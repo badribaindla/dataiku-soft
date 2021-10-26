@@ -1,0 +1,168 @@
+<div class="paned-settings-page-pane">
+        <h1>Notifications &amp; Integrations</h1>
+    
+        <div class="section">
+            <h2 id="instant-notifications">Instant notifications</h2>
+            <form class="dkuform-horizontal">
+    
+                <div class="control-group">
+                    <label class="control-label">On user connection</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="generalSettings.notifications.notifyOnUserConnection">
+                            <option value="NOBODY">Disabled</option>
+                            <option value="ALL">Notify all users</option>
+                        </select>
+                    </div>
+                </div>
+    
+                <div class="control-group">
+                    <label class="control-label">On task start/stop</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="generalSettings.notifications.notifyOnTaskStartAndStop">
+                            <option value="INITIATOR">Only notify the initiator</option>
+                            <option value="ALL_BROWSING_PROJECT">Notify all users browsing project</option>
+                            <option value="ALL_WITH_ACCESS_TO_PROJECT">Notify all users allowed to view the project</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="section">
+            <h2 id="dss-location">DSS location</h2>
+            <form class="dkuform-horizontal">
+                <div class="control-group">
+                    <label class="control-label">DSS URL</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.studioExternalUrl" />
+                        <button class="btn btn--secondary" title="Use current URL" ng-click="autofillStudioUrl()">
+                            <i class="icon-magic" ></i>
+                        </button>
+                        <span class="help-inline">URL through which DSS is available to users</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Forgotten password URL</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.studioForgotPasswordUrl" />
+                        <span class="help-inline">URL to which DSS should redirect when clicking on "Forgot your password?" link in login page.</span>
+                    </div>
+                </div>
+                 <div class="control-group">
+                    <label class="control-label">Admin contact info</label>
+                    <div class="controls">
+                        <textarea ng-model="generalSettings.studioAdminContact" style="width: 250px; height: 100px" />
+                        <span class="help-inline">Markdown text to indicate to users how to contact their administrator</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="section">
+        <h2 id="notification-emails">Notification emails</h2>
+        <form action="" class="dkuform-horizontal">
+            <div class="control-group">
+                <label class="control-label">DSS email address</label>
+                <div class="controls">
+                    <input type="text" ng-model="generalSettings.studioMailAddress" />
+                    <span class="help-inline">"From" address for mails sent by DSS (used when sender is not already defined by channel).</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Channel</label>
+
+                <div class="controls" ng-if="channels && !mailChannels.length">
+                    <i class="icon-warning-sign" /> You must define an email channel in the <strong>Messaging channels</strong> section to send "while you were away" reports, daily activity digests.
+                </div>
+
+                <div class="controls" ng-if="mailChannels.length">
+                    <select dku-bs-select
+                            ng-model="generalSettings.notifications.emailChannelId"
+                            ng-options="c.id as c.id for c in mailChannels"
+                    >
+                    </select>
+                    <span class="help-inline">Used to send "while you were away" reports, daily activity digests and mentions in discussions.</span>
+                </div>
+            </div>
+        </form>
+    </div>
+
+        <div class="section">
+            <h2 id="notifications-delay">Notifications delay</h2>
+            <form class="dkuform-horizontal">
+                <div class="control-group">
+                    <label class="control-label">Delay for articles save</label>
+                    <div class="controls">
+                        <input force-integer ng-model="generalSettings.debounceDelayForWikiArticleSave" type="number" required />
+                        <span class="help-inline">The time (in milliseconds) to wait after Wiki articles are saved before actually sending notifications</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    
+        <div class="section">
+            <h2 id="messaging-channels">Messaging channels</h2>
+
+            <div ng-repeat="channel in channels" class="repeatable-config-block">
+                <button class="pull-right btn btn--danger" style="margin: 10px" ng-click="removeChannel(channel)">
+                    Remove
+                </button>
+    
+                <h3>{{getChannelTypeLabel(channel.type)}} channel</h3>
+    
+                <div ng-switch on="channel.type">
+                    <div ng-switch-when="smtp">
+                        <div include-no-scope="/templates/admin/messaging-channel-smtp.html" />
+                    </div>
+                    <div ng-switch-when="slack">
+                        <div include-no-scope="/templates/admin/messaging-channel-slack.html" />
+                    </div>
+                    <div ng-switch-when="msft-teams">
+                        <div include-no-scope="/templates/admin/messaging-channel-teams.html" />
+                    </div>
+                    <div ng-switch-when="twilio">
+                        <div include-no-scope="/templates/admin/messaging-channel-twilio.html" />
+                    </div>
+                    <div ng-switch-when="aws-ses-mail">
+                        <div include-no-scope="/templates/admin/messaging-channel-aws-ses-mail.html" />
+                    </div>
+                    <div ng-switch-when="dataset">
+                        <div include-no-scope="/templates/admin/messaging-channel-dataset.html" />
+                    </div>
+                    <div ng-switch-when="shell">
+                        <div include-no-scope="/templates/admin/messaging-channel-shell.html" />
+                    </div>
+                    <div ng-switch-when="webhook">
+                        <div include-no-scope="/templates/admin/messaging-channel-webhook.html" />
+                    </div>
+                </div>
+            </div>
+    
+            <div class="noflex" style="margin: 10px 0;" custom-element-popup cep-position="smart" close-on-click="true">
+                <button ng-click="togglePopover()" class="mainzone btn btn--primary btn--text dropdown-toggle">
+                    <i plus-icon /> Add another channel
+                </button>
+                <ul class="popover custom-element-popup-popover dropdown-menu oa" style="max-height: 53vh;">
+                    <li>
+                        <a ng-click="addChannel('smtp')">Mail (SMTP)</a>
+                    </li>
+                    <li>
+                        <a ng-click="addChannel('aws-ses-mail')">Mail (via Amazon SES)</a>
+                    </li>
+                    <li>
+                        <a ng-click="addChannel('slack')">Slack</a>
+                    </li>
+                    <li>
+                        <a ng-click="addChannel('msft-teams')">Microsoft Teams</a>
+                    </li>
+                    <li>
+                        <a ng-click="addChannel('twilio')">Twilio</a>
+                    </li>
+                    <li>
+                        <a ng-click="addChannel('shell')">Execute shell command</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    

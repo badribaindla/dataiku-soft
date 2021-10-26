@@ -1,0 +1,65 @@
+<div class="flow-tool-mainzone">
+
+    <div class="header">
+        <div class="pull-right">
+            <a class="dib link-std zoom"
+                ng-click="tool.user.selectFocused(); zoomToSelection();"
+                ng-if="!tool.colorScale().continuous && !tool.disableFocusBehavior && tool.user.state.values.length"
+                title="Select all checked"
+                toggle="tooltip"
+                data-placement="bottom"
+                style="margin-right: 0px;"
+                >
+                <i class="icon-dku-select-checked" style="font-size: 1.2em" />
+            </a>
+            <a class="dib link-std zoom"
+                ng-if="!tool.colorScale().continuous"
+                ng-click="tool.user.zoomToFocused()"
+                title="Zoom to checked"
+                toggle="tooltip"
+                data-placement="bottom"
+                >
+                <i class="icon-dku-search" />
+            </a>
+            <button type="button" class="close" ng-click="stopCurrentTool()">&times;</button>
+        </div>
+
+        <h5>
+            {{tool.def.getToolDisplayName(tool.currentSession)}}
+            <a target="_blank" rel="noopener noreferrer" href="{{$root.versionDocRoot}}{{tool.helpLink}}"
+               ng-if="tool.helpLink" class="link-std" title="Click for documentation" toggle="tooltip">
+                <i class="icon-question-sign" />
+            </a>
+        </h5>
+    </div>
+
+    <div class="tool-state" ng-if="!tool.colorScale().continuous">
+        <ul class="tool-facet raw-unstyled-ul" style="overflow: auto; max-height: 250px">
+            <li ng-repeat="val in tool.user.state.values "
+                flow-tool-facet-elt
+                color="tool.user.getColor(val)"
+                number="tool.user.state.countByValue[val] || 0"
+                display-name="tool.zonesMap ? tool.zonesMap[val].name : val"
+                key="val"
+                single-focused="!!tool.disableFocusBehavior"
+                ng-class="{selected: tool.user.state.focusMap[val]}"
+                states="tool.user.state.focusMap"
+                display-global-tags="tool.displayGlobalTags"
+                >
+            </li>
+        </ul>
+        <div ng-if="tool.user.state.values && !tool.user.state.values.length" style="padding: 10px 20px; text-align: center;">
+            Nothing to show
+        </div>
+    </div>
+
+    <div ng-switch ng-if="tool.def.settingsTemplate" on="tool.def.settingsTemplate">
+        <div include-no-scope="{{tool.def.settingsTemplate}}" ng-switch-default />
+    </div>
+
+
+    <div class="tool-state" ng-if="tool.colorScale().continuous" style="height: 250px;">
+        <continuous-color-scale-legend tool="tool"></continuous-color-scale-legend>
+    </div>
+
+</div>

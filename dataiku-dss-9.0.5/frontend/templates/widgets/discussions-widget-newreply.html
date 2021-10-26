@@ -1,0 +1,45 @@
+<div class="discussions-widget-line horizontal-flex" style="position: relative;">
+	<div class="discussions-widget-newreplies-toast"
+		ng-click="viewNewReplies(true)"
+		ng-if="uiState.displayToastNewReplies"
+		ng-show="uiState.showToastNewReplies"
+		>
+		<span>View {{ getNewRepliesLabel() }}</span>
+	</div>
+	<div class="discussions-widget-line-left noflex">
+		<div user-picture="appConfig.login" size="32"></div>
+	</div>
+	<div class="discussions-widget-line-main flex">
+		<div autocompletable-textarea
+			 resizable="false"
+			 options="{placeholder: uiState.selectedConv ? 'Reply discussion' : 'Message', autofocus: false}">
+			<div ng-if="editorOptions" dku-local-keypress="{'ctrl-enter meta-enter': 'replyDiscussion()', 'up down': ''}">
+				<textarea
+					ng-model="uiState.newReply"
+					placeholder="{{ uiState.selectedConv ? 'Reply discussion' : 'Message' }}"
+					ui-codemirror="editorOptions"
+					maxlength="10000"
+					required="required"
+					ng-model-options="{allowInvalid: true}"
+					>
+				</textarea>
+			</div>
+		</div>
+		<div class="discussions-widget-reply-action-area horizontal-flex">
+			<div class="flex msg">
+				<span class="msg-error" ng-if="uiState.newReply.length > 10000">{{uiState.newReply.length}} / 10000</span>
+			</div>
+			<div class="noflex">
+				<a class="btn btn--text btn--primary"
+					ng-click="replyDiscussion()"
+					ng-disabled="!uiState.newReply.length || uiState.newReply.length > 10000 || (!uiState.selectedConv && (!uiState.newConvTopic.length || uiState.newConvTopic.length > 200))"
+					title="{{ getDisabledReason() }}"
+					toggle="tooltip-left"
+					container="body"
+					>
+					{{ uiState.selectedConv ? 'SEND' : 'START DISCUSSION' }}
+				</a>
+			</div>
+		</div>
+	</div>
+</div>

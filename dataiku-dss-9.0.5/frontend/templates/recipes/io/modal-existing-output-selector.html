@@ -1,0 +1,73 @@
+<div class="h100">
+   	<div class="vertical-flex h100">
+   		<div class="setup-top-row setup-row">
+       		<span class="">Search</span>
+       		<div class="search-field">
+       			<span class="icon-dku-search"></span>
+                <input placeholder="" type="search" ng-model="editOutput.filter"/>
+       		</div>
+   		</div>
+   		<div class="flex">
+			<div class="fh oa">
+				<ul class="choices">
+            		<li ng-repeat="computable in editOutput.usable" class="top-line">
+                		<div ng-if="! computable.usableAsOutput[role.name].usable || computable.alreadyUsedAsOutputOf" class="disabled">
+                    		<a ng-if="computable.localProject" title="{{computable.label}}">
+						    	<i class="icon-plus"></i>
+						        <div class="illustration noflex">
+									<i ng-if="computable.type == 'DATASET'" class="{{computable.dataset.type | datasetTypeToIcon}}"></i>
+									<i ng-if="computable.type == 'MANAGED_FOLDER'" class="icon-box"></i>
+									<i ng-if="computable.type == 'SAVED_MODEL'" class="icon-machine_learning_regression"></i>
+                                    <i ng-if="computable.type == 'MODEL_EVALUATION_STORE'" class="icon-model-evaluation-store"></i>
+                                    <i ng-if="computable.type == 'STREAMING_ENDPOINT'" class="{{computable.streamingEndpoint.type | datasetTypeToIcon}}"></i>
+								</div>
+			                    {{computable.label}}
+		                    </a>
+    		                <a ng-if="!computable.localProject" title="{{computable.label}} (from project {{computable.projectKey}})">
+						    	<i class="icon-plus"></i>
+						        <div class="illustration noflex">
+									<i ng-if="computable.type == 'DATASET'" class="{{computable.dataset.type | datasetTypeToIcon}}"></i>
+									<i ng-if="computable.type == 'MANAGED_FOLDER'" class="icon-box"></i>
+									<i ng-if="computable.type == 'SAVED_MODEL'" class="icon-machine_learning_regression"></i>
+                                    <i ng-if="computable.type == 'MODEL_EVALUATION_STORE'" class="icon-model-evaluation-store"></i>
+                                    <i ng-if="computable.type == 'STREAMING_ENDPOINT'" class="{{computable.streamingEndpoint.type | datasetTypeToIcon}}"></i>
+								</div>
+        		                {{computable.label}} (from project {{computable.projectKey}})
+	                    	</a>
+	                    	<small ng-if="computable.usableAsOutput[role.name].reason || !computable.localProject">
+	                    		<span ng-bind="computable.usableAsOutput[role.name].reason" />
+	                    	</small>
+                		    <small ng-if="computable.alreadyUsedAsOutputOf && computable.localProject && !computable.usableAsOutput[role.name].reason">
+                    		    <span>Already used as output of {{computable.alreadyUsedAsOutputOf}}</span>
+                        	</small>
+	    	            </div>
+
+	                	<div ng-if="computable.usableAsOutput[role.name].usable  && !computable.alreadyUsedAsOutputOf">
+    	                	<a ng-click="acceptEdit(computable)" ng-if="computable.localProject" title="{{computable.label}}">
+						    	<i class="icon-plus"></i>
+						        <div class="illustration noflex">
+									<i ng-if="computable.type == 'DATASET'" class="{{computable.dataset.type | datasetTypeToIcon}}"></i>
+									<i ng-if="computable.type == 'MANAGED_FOLDER'" class="icon-box"></i>
+									<i ng-if="computable.type == 'SAVED_MODEL'" class="icon-machine_learning_regression"></i>
+                                    <i ng-if="computable.type == 'STREAMING_ENDPOINT'" class="{{computable.streamingEndpoint.type | datasetTypeToIcon}}"></i>
+								</div>
+		        	            {{computable.label}}
+    	        	        </a>
+        	        	    <a href="" ng-click="acceptEdit(computable)" ng-if="!computable.localProject" title="{{computable.label}} (from project {{computable.projectKey}})">
+						    	<i class="icon-plus"></i>
+						        <div class="illustration noflex">
+									<i ng-if="computable.type == 'DATASET'" class="{{computable.dataset.type | datasetTypeToIcon}}"></i>
+									<i ng-if="computable.type == 'MANAGED_FOLDER'" class="icon-box"></i>
+									<i ng-if="computable.type == 'SAVED_MODEL'" class="icon-machine_learning_regression"></i>
+                                    <i ng-if="computable.type == 'STREAMING_ENDPOINT'" class="{{computable.streamingEndpoint.type | datasetTypeToIcon}}"></i>
+								</div>
+            	        	    {{computable.label}} (from project {{computable.projectKey}})
+        	    	        </a>
+    	            	</div>
+
+    		        </li>
+		        </ul>
+			</div>
+		</div>
+	</div>
+</div>

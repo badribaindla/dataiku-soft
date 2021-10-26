@@ -1,0 +1,1 @@
+Define the bins border and get the bins.

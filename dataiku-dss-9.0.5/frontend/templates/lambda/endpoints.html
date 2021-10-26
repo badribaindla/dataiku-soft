@@ -1,0 +1,280 @@
+<div class="page-with-subnav h100 vertical-flex">
+    <div block-api-error />
+
+    <div class="row-fluid offset0 topbar noflex" ng-if="uiState.activeEndpoint">
+        <div class="pull-right">
+            <button class="btn btn--primary" ng-click="sendPlayTestQueriesMsg()" ng-show="canDevServer(endpoint) && endpoint.testQueries.length">
+                <i class="icon-play" />&nbsp;Run test queries
+            </button>
+
+            <span ng-show="canDevServer(endpoint) && !endpoint.testQueries.length" title="No test queries are defined" toggle="tooltip">
+                <button class="btn btn--primary" ng-click="sendPlayTestQueriesMsg()" disabled="disabled" style="pointer-events: none;">
+                    <i class="icon-play" />&nbsp;Run test queries
+                </button>
+            </span>
+        </div>
+
+        <div custom-element-popup class="subnav-selector">
+            <div class="mainzone" full-click>
+                <a class="trigger subnav-page-header-name horizontal-flex aie" main-click ng-click="togglePopover()">
+                    <i class="{{ endpoint.type | endpointTypeToIcon }} universe-color lambda-service" />
+                    <div class="mx-textellipsis mleftright4">Endpoint: <span class="font-weight-bold">{{ uiState.activeEndpoint.id }}</span></div>
+                    <small class="subnav-page-header-name__detail noflex">({{endpointTypes[uiState.activeEndpoint.type]}})</small>
+                    &nbsp;
+                    <i class="icon-caret-down" />
+                </a>
+            </div>
+
+            <ul class="popover custom-element-popup-popover-light subnav-selector-popover dropdown-menu">
+                <li>
+                    <a ng-click="hidePopover(); createNewEndpoint()">
+                        <i class="icon-plus" />Create new endpoint
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="renameEndpoint()">
+                        <i class="icon-pencil" />Rename
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="deleteEndpoint()" class="text-error">
+                        <i class="icon-trash" />Delete
+                    </a>
+                </li>
+
+                <li class="divider"/>
+                <li ng-repeat="endpoint in service.endpoints">
+                    <a ng-click="hidePopover(); uiState.activeEndpoint = endpoint">
+                        <i class="icon-ok mleft4" ng-class="{'visibility-hidden': endpoint !== uiState.activeEndpoint}" />
+                        <i class="{{ endpoint.type | endpointTypeToIcon }} universe-color lambda-service" />
+                        {{endpoint.id}} ({{endpointTypes[endpoint.type]}})
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row-fluid offset0 mainzone flex" ng-if="uiState.activeEndpoint" ng-switch="uiState.activeEndpoint">
+        <div ng-switch-default> <!-- rebuild on activeEndpoint change -->
+            <div ng-if="endpoint.type.substr(-11) === '_PREDICTION'" include-no-scope="/templates/lambda/prediction-endpoint.html" />
+            <div ng-if="endpoint.type == 'R_FUNCTION' || endpoint.type == 'PY_FUNCTION'" include-no-scope="/templates/lambda/function-endpoint.html" />
+            <div ng-if="endpoint.type == 'SQL_QUERY'" include-no-scope="/templates/lambda/sql-query-endpoint.html" />
+            <div ng-if="endpoint.type == 'DATASETS_LOOKUP'" include-no-scope="/templates/lambda/datasets-lookup-endpoint.html" />
+        </div>
+    </div>
+    <div class="row-fluid offset0 mainzone flex" ng-if="service && !uiState.activeEndpoint">
+        <div class="empty-list-cta" ng-if="service.endpoints == null ||service.endpoints.length == 0" >
+            <h1>
+                No endpoint in this API service
+            </h1>
+            <p>
+                Each endpoint of your service has its own URL.
+                <br />Endpoints may perform predictions, dataset lookups, SQL queries, etc.
+            </p>
+            <p class="small">
+                <span doclink-wrapper page="apinode/index">Read the documentation</span> to learn more.
+            </p>
+            <div class="import-first-dataset">
+                <a disabled-if-ro="" class="btn btn--contained btn--large btn--settings btn-import" ng-click="createNewEndpoint()">
+                    <span plus-icon />
+                    &nbsp;Create your first endpoint
+                </a>
+            </div>
+        </div>
+    </div>
+
+<script type="text/python-template" id="custPredEndpointTpl/PYTHON_CLASSIFICATION">
+from  dataiku.apinode.predict.predictor import ClassificationPredictor
+import pandas as pd
+class MyPredictor(ClassificationPredictor):
+    """The class for a classification Custom API node predictor"""
+
+    def __init__(self, data_folder = None):
+        """data_folder is the absolute path to the managed folder storing the data for the model
+        (if any)"""
+        self.data_folder = data_folder
+
+    def predict(self, features_df):
+        """
+        The main prediction method.
+
+        :param: df: a dataframe of 1 or several records to predict
+
+        :return: Either:
+            ``decision_series`` or
+            ``(decision_series, proba_df)`` or
+            ``(decision_series, proba_df, custom_keys_list)``
+
+        decision_series must be a Pandas Series of decisions
+
+        proba_df is optional and must contain one column per class
+
+        custom_keys_list is optional and must contain one entry per input row. Each entry of
+        custom_keys_list must be a Python dictionary. These custom keys will be sent in the
+        output result
+
+        decision_series, proba_df and custom_keys_list must have the same number of rows than df.
+        """
+
+        # Note: this sample uses the second form (decision_series, proba_df)
+
+        # Note: this sample "cheats" and always returns 5 predictions.
+        # You should actually return 1 prediction per row in the features_df
+
+        print "Features DataFrame %s" % features_df
+
+        # predictions, one per record (features_df row)
+        predictions = pd.Series(["good", "fair", "poor", "good", "poor"])
+
+        # optional probas for each class (may be None or a DataFrame with one column per class)
+        probas = pd.DataFrame({
+            'proba_good': pd.Series([.9, .6, .2, .7, .2]),
+            'proba_fair': pd.Series([.2, .7, .3, .3, .3]),
+            'proba_poor': pd.Series([.2, .6, .6, .3, .9])
+        })
+
+        return (predictions, probas)
+</script>
+
+<script type="text/r-template" id="custPredEndpointTpl/R_CLASSIFICATION">
+# Insert here initialization code
+# You can retrieve absolute paths to the resource folders
+# using dkuAPINodeGetResourceFolders()
+# (returns a vector of character)
+
+# This function is the entry point for your custom model
+# Alternative 1: return a simple character indicating the predicted class
+prediction_function <- function(feature1, feature2, feature3) {
+    # Compute the prediction according to the features
+    "class1"
+}
+
+
+# Alternative 2: return a list to give probabilities per class
+prediction_function2 <- function(feature1, feature2, feature3) {
+    # Compute the prediction according to the features
+
+    list(
+        prediction= "class1",
+        probas = list(
+                class1 = 0.78,
+                class2 = 0.23)
+    )
+}
+
+
+# Alternative 3: return a list that can give:
+#   - prediction (optional)
+#   - probas per class (optional)
+#   - custom answer keys (optional)
+prediction_function3 <- function(feature1, feature2, feature3) {
+    # Compute the prediction according to the features
+
+    list(
+            prediction= "class1",
+            probas = list(
+                    class1 = 0.78,
+                    class2 = 0.23),
+            customKeys = list(
+                    sum = feature1 + feature2,
+                    diff = feature1 - feature2)
+    )
+}
+</script>
+
+<script type="text/r-template" id="custPredEndpointTpl/R_REGRESSION">
+# Insert here initialization code
+# You can retrieve absolute paths to the resource folders
+# using dkuAPINodeGetResourceFolders()
+# (returns a vector of character)
+
+# This function is the entry point for your custom model
+# Alternative 1: return a simple number indicating the predicted value
+prediction_function <- function(feature1, feature2, feature3) {
+    # Compute the prediction according to the features
+    42.17
+}
+
+# Alternative 2: return a list that can give:
+#   - prediction (optional)
+#   - custom answer keys (optional)
+prediction_function2 <- function(feature1, feature2, feature3) {
+    # Compute the prediction according to the features
+
+    list(
+            prediction= 42.17,
+            customKeys = list(
+                    sum = feature1 + feature2,
+                    diff = feature1 - feature2)
+    )
+}
+</script>
+
+<script type="text/python-template" id="custPredEndpointTpl/PYTHON_REGRESSION">
+from  dataiku.apinode.predict.predictor import RegressionPredictor
+import pandas as pd
+class MyPredictor(RegressionPredictor):
+    """The class for a regression Custom API node predictor"""
+
+    def __init__(self, data_folder = None):
+        """data_folder is the absolute path to the managed folder storing the data for the model
+        (if any)"""
+        self.data_folder = data_folder
+
+    def predict(self, features_df):
+        """
+        The main prediction method.
+
+        :param: df: a dataframe of 1 or several records to predict
+
+        :return: Either:
+            ``prediction_series`` or
+            ``(prediction_series, custom_keys_list)``
+
+        prediction_series must be a Pandas Series of decisions
+
+        custom_keys_list is optional and must contain one entry per input row. Each entry of
+        custom_keys_list must be a Python dictionary. These custom keys will be sent in the
+        output result
+
+        prediction_series and custom_keys_list must have the same number of rows than df.
+        """
+
+        # Note: this sample uses the first form: precision_series
+
+        # Note: this sample "cheats" and always returns 4 predictions.
+        # You should actually return 1 prediction per row in the features_df
+
+        print "Features DataFrame %s" % features_df
+
+        # predictions, one per features_df row
+        return pd.Series([.4, 17.2, 21, 9.3])
+</script>
+
+<script type="text/r-template" id="custEndpointTpl/R_FUNCTION">
+# Insert here initialization code
+# You can retrieve absolute paths to the resource folders
+# using dkuAPINodeGetResourceFolders()
+# (returns a vector of character)
+
+# This function is the entry point for your R function API
+# You can call this function with passing "param1", "param2",
+# "param3" as arguments to the API call
+# (see REST API documentation)
+api_r_function <- function(param1, param2, param3) {
+    # All parameters are passed as character
+    as.integer(param1) + as.integer(param2) * as.integer(param3)
+}
+</script>
+
+<script type="text/python-template" id="custEndpointTpl/PY_FUNCTION">
+# Insert here initialization code
+
+# This function is the entry point for your Python function API
+# You can call this function with passing "param1", "param2",
+# "param3" as arguments to the API call
+# (see REST API documentation)
+def api_py_function(param1, param2, param3):
+    return param1 + param2 * param3
+</script>
+
+</div>

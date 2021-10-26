@@ -1,0 +1,73 @@
+<div class="modal modal3">
+    <div dku-modal-header modal-title="Pull {{ 'Notebook' | plurify: notebookConflictStatus.nonConflictingNotebooks.length + notebookConflictStatus.conflictingNotebooks.length + notebookConflictStatus.noLongerOnRemoteNotebooks.length}} from git" modal-class="has-border"></div>
+    <form name="notebookPushConflict" class="dkuform-modal-wrapper dkuform">
+        <div class="modal-body">
+            <div block-api-error></div>
+            <div ng-show="notebookConflictStatus.noLongerOnRemoteNotebooks.length > 0">
+                <div class="list-page-4 flex list-page--flat-design">
+                    <div class="main-list-zone">
+                        <h5 class="dku-small-title-sb mtop0">Cannot be pulled because no longer exist</h5>
+                        <div class="alert alert-warning horizontal-flex mbot16">
+                            <p class="mbot0" ng-if="notebookConflictStatus.noLongerOnRemoteNotebooks.length > 1">Those Notebooks do not exist anymore on the remote, they won't be pulled</p>
+                            <p class="mbot0" ng-if="notebookConflictStatus.noLongerOnRemoteNotebooks.length === 1">This Notebook does not exist anymore on the remote, it won't be pulled</p>
+                        </div>
+                        <ul ng-repeat="notebook in notebookConflictStatus.noLongerOnRemoteNotebooks" class="list-items">
+                            <li class="list-item no-last-border no-hover">
+                                <div class="h100" notebook-conflict-hit no-selection="true" notebook="notebook">
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <hr style="margin-left: -16px; margin-right: -16px;" class="no-margin mbot16" ng-show="notebookConflictStatus.nonConflictingNotebooks.length > 0 && notebookConflictStatus.noLongerOnRemoteNotebooks.length > 0"/>
+            <div ng-show="notebookConflictStatus.nonConflictingNotebooks.length > 0">
+                <div class="list-page-4 flex list-page--flat-design">
+                    <div class="main-list-zone">
+
+                        <h5 class="dku-small-title-sb mtop0">Ready to be pulled</h5>
+
+                        <ul ng-repeat="notebook in notebookConflictStatus.nonConflictingNotebooks" class="list-items">
+                            <li class="list-item no-last-border no-hover">
+                                <div class="h100" notebook-conflict-hit no-selection="true" notebook="notebook">
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="margin-left: -16px; margin-right: -16px;" class="no-margin mbot16" ng-show="notebookConflictStatus.nonConflictingNotebooks.length > 0 && notebookConflictStatus.conflictingNotebooks.length > 0"/>
+
+            <div ng-show="notebookConflictStatus.conflictingNotebooks.length > 0">
+                <h5 class="dku-small-title-sb mtop0">Some Notebooks need to be overridden</h5>
+                <div class="alert alert-warning horizontal-flex mbot16">
+                    <p class="mbot0">Some Notebooks contain local modifications that are not pushed back into the remote repository.<br />
+                        Select remote Notebooks that will override their local counterpart.<br />
+                        Unselected Notebooks won't be pulled from the remote repository.</p>
+                </div>
+                <div class="list-page-4 flex list-page--flat-design">
+                    <div class="main-list-zone">
+
+                        <ul ng-repeat="notebook in notebookConflictStatus.conflictingNotebooks" class="list-items">
+                            <li class="list-item no-last-border" full-click>
+                                <div class="h100">
+                                    <label disable-main-click>
+                                        <input main-click type="checkbox" ng-model="notebook.selected"/>
+                                    </label>
+                                    <div notebook-conflict-hit notebook="notebook" class="h100">
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="hasNoNotebooksSelectedForPull()" ng-click="forcePullNotebooks()">Pull {{ 'notebook' | plurify: notebookConflictStatus.nonConflictingNotebooks.length + notebookConflictStatus.conflictingNotebooks.length + notebookConflictStatus.noLongerOnRemoteNotebooks.length}}</button>
+        </div>
+    </form>
+</div>

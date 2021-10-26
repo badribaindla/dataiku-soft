@@ -1,0 +1,98 @@
+<div ng-controller="BinnedXYChartDefController">
+    <div class="chartdef-line horizontal-flex">
+        <div class="noflex chartdef-line-header" style="width: 53px">Draw</div>
+
+        <div class="noflex chartdef-dropzone chartdef-dropzone-mono" ng-class="{'empty':chart.def.xDimension.length==0, 'notempty': chart.def.xDimension.length != 0}">
+            <div class="chartdef-dropzone-header">
+                <div contextual-menu ng-click="toggleContextualMenu($event)" class="qa_charts_x-axis-contextual-menu" style="cursor:pointer; position:relative">
+                    <span class="header-btn">
+                        X&nbsp;
+                        <i class="icon-caret-down" />
+                    </span>
+                    <div class="contextualMenu fixed-contextual-menu-align-left" ng-show="contextualMenu">
+                        <div include-no-scope="/templates/simple_report/config/x-axis-label-menu.html " />
+                    </div>
+                </div>
+            </div>
+            <div class="empty-placeholder">
+                Drop to set the X axis
+            </div>
+            <div ng-if="chart.def.variant == 'binned_xy_hex'" class="chartdef-dropzone-main" monovalued-std-aggr-dimension-zone-no-opts list="chart.def.xDimension" accept-callback="acceptDimension" />
+            <div ng-if="chart.def.variant != 'binned_xy_hex'" class="chartdef-dropzone-main" monovalued-std-aggr-dimension-zone list="chart.def.xDimension" accept-callback="acceptDimension" />
+
+        </div>
+
+
+        <div class="noflex mleft chartdef-dropzone chartdef-dropzone-mono" ng-class="{'empty':chart.def.yDimension.length==0, 'notempty': chart.def.yDimension.length != 0}">
+            <div class="chartdef-dropzone-header">
+                <div contextual-menu ng-click="toggleContextualMenu($event)" class="qa_charts_y-axis-contextual-menu" style="cursor:pointer; position:relative">
+                    <span class="header-btn">
+                        Y&nbsp;
+                        <i class="icon-caret-down" />
+                    </span>
+                    <div class="contextualMenu fixed-contextual-menu-align-left" ng-show="contextualMenu">
+                        <div include-no-scope="/templates/simple_report/config/y-axis-with-zero-menu.html " />
+                    </div>
+                </div>
+            </div>
+            <div class="empty-placeholder">
+                Drop to set the Y axis
+            </div>
+            <div ng-if="chart.def.variant == 'binned_xy_hex'" class="chartdef-dropzone-main" monovalued-std-aggr-dimension-zone-no-opts list="chart.def.yDimension" accept-callback="acceptDimension" />
+            <div ng-if="chart.def.variant != 'binned_xy_hex'" class="chartdef-dropzone-main" monovalued-std-aggr-dimension-zone list="chart.def.yDimension" accept-callback="acceptDimension" />
+        </div>
+
+    </div>
+
+    <div class="chartdef-line horizontal-flex" style="margin-top: 10px">
+        <div class="noflex chartdef-line-header" style="width: 53px">Details</div>
+
+        <!-- Color -->
+        <div class="noflex chartdef-dropzone chartdef-dropzone-mono" ng-class="{'empty':chart.def.colorMeasure.length==0, 'notempty': chart.def.colorMeasure.length !=0}">
+            <div class="chartdef-dropzone-header">
+                <div contextual-menu ng-click="toggleContextualMenu($event)" style="cursor:pointer; position:relative">
+                   <span class="header-btn">
+                        <i class="icon-dku-color_picker_2 qa_charts_color-options-dropdown" style="font-size: 12px" />
+                        <i class="icon-caret-down" />
+                    </span>
+                    <div class="contextualMenu fixed-contextual-menu-align-left" ng-show="contextualMenu">
+                        <div ng-if="chart.def.colorMeasure.length == 0">
+                            <div include-no-scope="/templates/simple_report/config/single-color-menu.html" />
+                        </div>
+                        <div ng-if="chart.def.colorMeasure.length != 0">
+                            <div include-no-scope="/templates/simple_report/config/continuous-color-menu.html" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="empty-placeholder">
+                Drop to color the bubbles
+            </div>
+
+            <div class="chartdef-dropzone-main" monovalued-std-aggr-measure-zone list="chart.def.colorMeasure" accept-callback="acceptMeasure" />
+        </div>
+
+
+        <!-- Size -->
+        <div class="noflex mleft chartdef-dropzone chartdef-dropzone-mono" ng-class="{'empty':chart.def.sizeMeasure.length==0, 'notempty': chart.def.sizeMeasure.length !=0}">
+            <div class="chartdef-dropzone-header">
+                <div contextual-menu ng-click="chart.def.variant == 'binned_xy_hex' && toggleContextualMenu($event)" ng-style="chart.def.variant == 'binned_xy_hex' && {'cursor':'pointer'}" style="position:relative">
+                   <span class="header-btn">
+                        <i class="icon-resize-full qa_charts_size-options-dropdown" style="font-size: 12px" />
+                        <i class="icon-caret-down" ng-if="chart.def.variant == 'binned_xy_hex'" />
+                    </span>
+                    <div class="contextualMenu fixed-contextual-menu-align-left" ng-show="contextualMenu">
+                        <div ng-if="chart.def.variant == 'binned_xy_hex'" include-no-scope="/templates/simple_report/config/hexagons-size-menu.html" />
+                    </div>
+                </div>
+            </div>
+            <div class="empty-placeholder">
+                Drop to set the size of bubbles
+            </div>
+
+            <div class="chartdef-dropzone-main" monovalued-std-aggr-measure-zone list="chart.def.sizeMeasure" accept-callback="acceptMeasure" />
+        </div>
+
+
+    </div>
+</div>

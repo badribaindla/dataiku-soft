@@ -1,0 +1,46 @@
+<div ng-controller="EditCustomAggregatesController" class="pivot-recipe modal modal3 custom-aggregates-modal">
+    <div dku-modal-header modal-title="Define custom aggregates" modal-class="has-border"/>
+    <form class="dkuform-modal-wrapper dkuform-modal-horizontal" name="newRecipeForm">
+        <div class="modal-body" style="overflow:visible;">
+            <ul class="custom-aggregates oa">
+                <li ng-repeat="aggregate in customAggregates track by $index" class="custom-aggregate">
+                    <div>
+                        <input type="text" ng-model="aggregate.name" class="qa_recipe_pivot-aggr-name" />
+                        <span class="help-inline">(short name)</span>
+                        <span ng-click="removeAggregate(aggregate)" class="pull-right"><i class="icon-trash"></i></span>
+                    </div>
+                    <div class="label-editor">
+                        <span>Listed as</span>
+                        <span ng-show="!aggregate.$labelEditing">{{aggregate.label || aggregate.name}}</span>
+                        <label style="display: inline-block">
+                            <input type="text" class="qa_recipe_pivot-aggr-label" ng-model="aggregate.label" placeholder="{{aggregate.name}}" ng-show="aggregate.$labelEditing" ng-blur="aggregate.$labelEditing = false" />
+                            <span ng-show="!aggregate.$labelEditing" ng-click="aggregate.$labelEditing = true" class="qa_recipe_pivot-aggr-label-edit"><i class="icon-pencil"></i></span>
+                        </label>
+                    </div>
+                    <div class="type-editor">
+                        <span>Store as</span>
+                        <div aggregate-type-editor schema-column="aggregate" />
+                    </div>
+                    <div class="expression-editor">
+                        <span dku-md-popover='In a custom aggregate, use ${column} to refer to the column the aggregate is applied to. 
+                        
+Other columns are not available in the aggregate.' 
+                        dku-md-title="Custom aggregate" class="help-popover step-help-popover" popover-clazz="step-help-popover" >
+                            <i class="icon-question-sign"></i>
+                        </span>
+                        <textarea class="sql-editor" ng-model="aggregate.expression" ui-codemirror="codeMirrorSettingService.get('text/x-sql')" />
+                       <!-- <pre class="debug">{{aggregate|json}}</pre> -->
+                    </div>
+                </li>
+                <li>
+                    <button class="btn btn--secondary" ng-click="addAggregate()" id="qa_recipe_pivot-new-aggr-button">New</button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons" ui-keydown="{'enter': 'commitAggregates();', 'esc': 'dismiss();'}">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="commitAggregates()">OK</button>
+        </div>
+    </form>
+</div>

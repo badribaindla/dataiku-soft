@@ -1,0 +1,16 @@
+<div ng-init="element = content" >
+	<div ng-if="element.children != undefined">
+		<div class="content-row horizontal-flex" style="padding-left: {{getMarginFromDepth(content.depth)}}px" full-click ng-class="{'is-destination': content.path == uiState.destination.path}">  <!-- 12 is defined as the INDENT_WIDTH in the css -->
+			<i class="icon" ng-class="{'icon-caret-down': content.expanded, 'icon-caret-right': !content.expanded}" ng-if="containsFolder(content)" style="left: {{getCarretLeftPosition(content.depth)}}px;"></i>
+			<a class="name-with-icon flex" ng-click="changeDestination(content); content.expanded = !content.expanded;" main-click>
+				<i class="icon icon-folder-close colored-folder-icon"></i>
+				<span class="name">{{element.name}}</span>
+			</a>
+		</div>
+		<ul ng-if="content.expanded">
+			<li ng-repeat="content in element.children">
+				<div include-no-scope="/templates/plugins/development/fragments/folder-selector.html" />
+			</li>
+		</ul>		
+	</div>
+</div>

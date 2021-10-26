@@ -1,0 +1,45 @@
+<div>
+	<div ng-show="testing" class="alert alert-info">
+		<i class="icon-spinner icon-spin icon-large"></i>
+		Please wait, testing connection ...
+	</div>
+
+	<div ng-show="testResult">
+		<div ng-show="!testResult.connectionOK && !dataset.params.connection" class="alert alert-error">
+			<span>No connection selected</span>
+		</div>
+		<div ng-show="!testResult.connectionOK && dataset.params.connection" class="alert alert-error">
+			<span>Failed to connect : {{testResult.connectionErrorMsg}}</span>
+			<button class="btn btn--secondary" ng-click="test(true)">Retry</button>
+		</div>
+		<div ng-show="testResult.connectionOK">
+			<div ng-show="testResult.testedConnectionOnly">
+				<div ng-show="!testResult.collectionExists && !dataset.params.collection" class="alert alert-error">
+					Connection OK. No collection selected.
+				</div>
+				<div ng-show="!testResult.collectionExists && dataset.params.collection" class="alert alert-info">
+					Connection OK. Collection does not exist.
+					<button class="btn btn--primary" ng-click="test(false)">Test again</button>
+				</div>
+				<div ng-show="testResult.collectionExists" class="alert alert-info">
+					Connection OK. Collection exists.
+					<button class="btn btn--primary" ng-click="test(false)">Test collection</button>
+				</div>
+				<div ng-show="testResult.filterErrorMsg" class="alert alert-error">
+					Invalid query filter
+					<pre>{{testResult.filterErrorMsg}}</pre>
+				</div>
+			</div>
+			<div ng-show="!testResult.testedConnectionOnly">
+				<div ng-show="!testResult.preview" class="alert alert-error">
+					Connection OK. Collection exists, but preview failed : {{testResult.previewErrorMsg}}
+					<button class="btn btn--primary" ng-click="test(false)">Test again</button>
+				</div>
+				<div ng-show="testResult.preview" class="alert alert-success">
+					Connection OK. Collection exists.
+					<button class="btn btn--primary" ng-click="test(false)">Test again</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,103 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-parent="processorForm">
+
+    <fieldset>
+        <span class="fieldLabel">Latitude column in this dataset</span>
+            <input
+                type='text'
+                bs-typeahead='step.$stepState.change.columnsBeforeStep'
+                autocomplete='off'
+                ng-trim="false"
+                ng-required="true"
+                data-min-length='0'
+                ng-model='step.params.leftLatCol'
+                class="submit-on-blur"
+                next-on-enter
+                />
+        </span>
+    </fieldset>
+    <fieldset>
+        <span class="fieldLabel">Longitude column in this dataset</span>
+            <input
+                type='text'
+                bs-typeahead='step.$stepState.change.columnsBeforeStep'
+                autocomplete='off'
+                ng-trim="false"
+                ng-required="true"
+                data-min-length='0'
+                ng-model='step.params.leftLonCol'
+                class="submit-on-blur"
+                next-on-enter
+                />
+        </span>
+    </fieldset>
+    <fieldset>
+        <span class="fieldLabel">Dataset to Join with</span>
+            <input
+                type='text'
+                bs-typeahead='datasetNames'
+                autocomplete='off'
+                ng-trim="false"
+                ng-required="true"
+                data-min-length='0'
+                ng-model='step.params.rightInput'
+                class="submit-on-blur"
+                next-on-enter
+                />
+        </span>
+    </fieldset>
+
+    <fieldset>
+        <span class="fieldLabel">Latitude column in other dataset</span>
+            <input
+                type='text'
+                bs-typeahead='getDatasetColumns(step.params.rightInput)'
+                autocomplete='off'
+                ng-trim="false"
+                ng-required="true"
+                data-min-length='0'
+                ng-model='step.params.rightLatCol'
+                class="submit-on-blur"
+                next-on-enter
+                />
+        </span>
+    </fieldset>
+    <fieldset>
+        <span class="fieldLabel">Longitude column in other dataset</span>
+            <input
+                type='text'
+                bs-typeahead='getDatasetColumns(step.params.rightInput)'
+                autocomplete='off'
+                ng-trim="false"
+                ng-required="true"
+                data-min-length='0'
+                ng-model='step.params.rightLonCol'
+                class="submit-on-blur"
+                next-on-enter
+                />
+        </span>
+    </fieldset>
+    <fieldset>
+        <span class="fieldLabel">Columns to copy from other dataset</span>
+        <ng2-values-list 
+            [(items)]="step.params.copyColumns"
+            [suggestions]="getDatasetColumns(step.params.rightInput)"
+            add-label="Add a column" 
+            (on-blur)="checkAndRefresh()"
+            (on-delete)="checkAndRefresh()"
+            value-placeholder="E.g. a column of the other dataset">
+        </ng2-values-list>
+        </span>
+    </fieldset>
+	<fieldset>
+		<span class="fieldLabel">Output column prefix</span>
+	   	<input type="text" ng-model="step.params.prefix"
+			class="submit-on-blur"
+			next-on-enter/>
+	</fieldset>
+    <fieldset>
+        <label>
+            <input type="checkbox" ng-model="step.params.useMiles" class="submit-on-blur">
+            <span class="fieldLabel">Distance in miles</span>
+        </label>
+    </fieldset>
+</form>

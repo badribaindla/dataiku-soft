@@ -1,0 +1,201 @@
+ <div class="vertical-flex h100 chart-configuration">
+     <debug data="chart"></debug>
+
+     <!-- --------------- HEADER ZONE ------------- -->
+     <div class="noflex row-fluid offset0 top-bar">
+
+         <!-- Picker and options toggle -->
+         <div class="button-bar">
+             <div chart-type-picker class="chart-type-picker dibvam"  />
+         </div>
+
+         <!-- Main definition zone -->
+         <div class="chart-param-bar">
+            <div ng-switch on="chart.def.type + chart.def.variant">
+
+                <div ng-switch-default>
+                    <div ng-if="chart.def.type" include-no-scope="/templates/simple_report/types/definition-{{chart.def.type}}.html" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Share button -->
+        <div class="share-bar">
+            <button ng-if="createAndPinInsight || isInAnalysis" id="qa_charts_publish-button" ng-click="createAndPinInsight()" class="btn btn--contained btn-wireframe btn--publish share-bar__publish-btn"
+                ng-class="{'published' : currentInsight.pinned, 'disabled' : isInAnalysis}"
+                style="pointer-events: auto"
+                toggle="{{ isInAnalysis ? 'tooltip' : ''}}" 
+                container="body" 
+                title="{{ isInAnalysis ? 'You can\'t publish charts from the Analysis section. When you deploy your script chose the \'attach charts\' option to attach graphs you\'ve built in the Analysis section to the new dataset. You can then publish those charts from the dataset.' : ''}}">
+                <i class="icon-dku-publish"></i> Publish
+            </button>
+
+            <div class="download-wrapper">
+                <button class="btn btn-icon  btn--secondary btn--chart-download" ng-click="downloadHandler()" id="qa_charts_download-button"
+                    ng-class="{'disabled':!canDownloadChart(), 'active': displayDownloadPanel}"
+                    container="{{ !canDownloadChart() ? 'body' : undefined }}"
+                    toggle="{{ !canDownloadChart() ? 'tooltip' : undefined }}"
+                    title="{{ !canDownloadChart() ? getDownloadDisabledReason() : undefined }}">
+                    <i class="icon-download"></i> Download
+                </button>
+
+                <div ng-if="displayDownloadPanel" class="download-panel">
+                    <ul class="download-list">
+                        <li ng-if="isExportableToImage(chart.def)"><a ng-click="export()" id="qa_charts_export-as-img">As an image</a></li>
+                        <li ng-if="isExportableToExcel(chart.def)"><a ng-click="exportToExcel()" id="qa_charts_export-as-pdf">As an Excel document</a></li>
+                    </ul>
+                </div>
+
+            </div>
+            <div class="dropdown" ng-if="chart.def.type == 'webapp' && appConfig.globalPermissions.mayDevelopPlugins" style="margin-top: 10px;">
+                <button data-toggle="dropdown" class="btn btn--secondary dropdown-toggle">
+                    Actions <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a ng-click="uiDisplayState.skinWebApp.refreshWebAppView()" >
+                            <i class="icon-refresh" /> Refresh view
+                        </a>
+                    </li>
+                    <li ng-if="uiDisplayState.skinWebApp.hasBackend">
+                        <a href="{{$state.href('projects.project.webapps.webapp.logs', {webAppId: uiDisplayState.skinWebApp.webAppId})}}" target="_blank">
+                            Backend logs
+                        </a>
+                    </li>
+                    <li ng-if="uiDisplayState.skinWebApp.hasBackend">
+                        <a ng-click="uiDisplayState.skinWebApp.restartBackend()">
+                            Restart backend
+                        </a>
+                    </li>
+                    <li ng-if="uiDisplayState.skinWebApp.hasBackend">
+                        <a ng-click="uiDisplayState.skinWebApp.regenerateWebAppView()">
+                            Refresh view and backend
+                        </a>
+                    </li>
+                </ul>
+            </div>
+         </div>
+     </div>
+
+    <!-- --------------- CHART ZONE & FILTER ZONE ------------- -->
+    <div class="flex">
+        <div class="fh">
+            <div class="h100">
+                <div class="h100 row-fluid offset0">
+                    <div class="h100 left-column" id="qa_charts_submenu-sidebar" ng-hide="readOnly && !chart.def.filters.length && (!legends.length || chart.def.legendPlacement != 'SIDEBAR')">
+                        <div class="h100 oa">
+                            <div include-no-scope="/templates/simple_report/left-column/left-column.html" />
+                            <div include-no-scope="/templates/simple_report/chart-options.html" />
+                            <div include-no-scope="/templates/simple_report/left-column/dimensions.html" />
+                        </div>
+                     </div>
+
+                     <!-- display: none; display: {{'flex'}}; ensures that the div will not be displayed before it's compiled by angular. (ng-cloak didn't do the job because we're compiling this every time we switch between charts?) -->
+                     <div ng-cloak 
+                        id="qa_charts_chart-wrapper" 
+                        style="display: none; display: {{'flex'}}; width: {{readOnly && !chart.def.filters.length && (!legends || !legends.length || chart.def.legendPlacement != 'SIDEBAR') ? '100%': 'calc(100% - 250px)'}}; float: left" 
+                        class="h100 chart-wrapper-zone chart-zone-{{chart.def.type}} vertical-flex">
+
+                         <div class="chart-title noflex">
+                            <activity-indicator activity-indicator="chartActivityIndicator"/>
+                            <div class="refresh-button-zone right">
+                                <span class="dku-loader dku-loader-in-chart icon-spin"></span>
+                                <div ng-show="chart.def.animationDimension.length"
+                                    class="dibvam mx-textellipsis chart-title__animation-label">
+                                    {{animation.labelify(animation.labels[animation.currentFrame].label)}}
+                                </div>
+                                <div class="dibvam">
+                                    <span ng-show="uiDisplayState.chartTopRightLabel" ng-class="{'aggregation-metric--hidden': uiDisplayState.hideAggregationsMetrics}">{{uiDisplayState.chartTopRightLabel}}&nbsp;&nbsp;</span>
+                                    <a ng-click="forceExecute()" id="qa_charts_refresh-chart" title="Refresh"> <i class="icon-refresh" />&nbsp;</a>
+                                    <a ng-click="bigChartSwitch()" id="qa_charts_maximize-chart" ng-hide="bigChartDisabled" title="Full size" class="mleft8">
+                                        <i ng-class="bigChart ? 'icon-resize-small':'icon-resize-full'"></i> &nbsp;
+                                    </a>
+
+                                    <span ng-if="readOnly && validity.valid && (isExportableToImage(chart.def) || isExportableToExcel(chart.def))">
+                                        <a ng-click="downloadHandler()" class="mleft8">
+                                            <i class="icon-download chart-download-icon"></i>
+                                        </a>
+                                    </span>
+                                </div>
+
+                                <div class="download-wrapper download-wrapper--upper" ng-if="readOnly && displayDownloadPanel">
+                                    <div class="download-panel">
+                                        <ul class="download-list">
+                                            <li ng-if="isExportableToImage(chart.def)"><a ng-click="export()">As an image</a></li>
+                                            <li ng-if="isExportableToExcel(chart.def)"><a ng-click="exportToExcel()">As an Excel document</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="refresh-button-zone left">
+                                <span ng-if="response.result.pivotResponse.engine=='LINO'">
+                                    Run: In DSS
+                                </span>
+                                <span ng-if="response.result.pivotResponse.engine=='SQL'">
+                                    Run: In database
+                                </span>
+                                <span ng-if="response.result.pivotResponse.engine=='SPARKSQL'">
+                                    Run: SparkSQL
+                                </span>
+                            </div>
+                            <h3 class="title">
+                                <span ng-show="!editTitle.editing" id="qa_charts_chart-name-span" ng-click="editTitle.editing=true" class="db mx-textellipsis">{{chart.def.name}}
+                                    &nbsp; <i class="icon-pencil" /></span>
+                            </h3>
+                            <form class="title-form" ng-show="editTitle.editing" ng-submit="editTitle.editing = false"
+                                ng-inject="$timeout">
+                                <input blur-model="chart.def.name" id="qa_charts_chart-name-input" ng-blur="blurTitleEdition()"
+                                    cancel-on-escape auto-focus="{{ editTitle.editing }}" class="chart-title__edition-input">
+                            </form>
+                             <!--<div ng-show="validity">{{validity|json}}</div>-->
+                         </div>
+
+                         <div block-api-error />
+                         <div class="flex chart-zone">
+                             <div class="fh">
+
+                                <!-- Don't use ng-if here ! We want the element to remain in the DOM
+                                    so that the chart drawing area remains valid -->
+                                 <div class="h100" ng-show="!validity || validity.valid && response && response.hasResult || validity.valid && previousResponseHadResult">
+                                    <div class="h100 graphWrapper" pivot-chart-result />
+                                </div>
+
+                                <div ng-if="validity && !validity.valid" class="h100">
+                                    <div ng-if="validity.type == 'INCOMPLETE'" class="error-message incomplete h100">
+                                        <div class="noflex">{{validity.message}}</div>
+                                        <img class="noflex" ng-if="computeChartPreview(chart.def.type, chart.def.variant)" ng-src="{{computeChartPreview(chart.def.type, chart.def.variant)}}" />
+                                    </div>
+                                    <div ng-if="validity.type == 'INVALID'" class="error-message invalid vertical-flex h100">
+                                        <div class="noflex">{{validity.message}}</div>
+                                        <img class="noflex" ng-if="computeChartPreview(chart.def.type, chart.def.variant)" ng-src="{{computeChartPreview(chart.def.type, chart.def.variant)}}" />
+                                    </div>
+                                    <div ng-if="validity.type == 'COMPUTE_ERROR'" class="error-message invalid vertical-flex h100">
+                                        <div class="noflex">
+                                            <span>{{validity.message}}</span>
+                                            <div ng-if="validity.showRevertEngineButton">
+                                                <button class="btn btn--secondary" ng-click="revertToLinoEngineAndReload()">Revert to DSS engine</button>
+                                            </div>
+                                        </div>
+                                        <img class="noflex" ng-if="computeChartPreview(chart.def.type, chart.def.variant)" ng-src="{{computeChartPreview(chart.def.type, chart.def.variant)}}" />
+                                    </div>
+                                    <div ng-if="validity.type == 'DRAW_ERROR'" class="error-message invalid vertical-flex h100">
+                                        <div class="noflex">{{validity.message}}</div>
+                                        <img class="noflex" ng-if="computeChartPreview(chart.def.type, chart.def.variant)" ng-src="{{computeChartPreview(chart.def.type, chart.def.variant)}}" />
+                                    </div>
+                                </div>
+
+                                <div ng-if="validity.tempError && validity.tempError.type == 'MEASURE_REJECTED'" class="error-message invalid">
+                                    <div class="noflex">{{validity.tempError.message}}</div>
+                                </div>
+
+                                <div ng-show="response && !response.hasResult" class="waiting-result" future-waiting
+                                    response="response" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ </div>

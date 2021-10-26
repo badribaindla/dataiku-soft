@@ -1,0 +1,33 @@
+<div dataset-selector="objectSmartId"
+    no-live-update="{{noLiveUpdate}}"
+    available-datasets="availableObjects"
+    popover-width="275"
+    popover-placement="{{popoverPlacement || 'auto'}}"
+    transclude="true"
+    type="{{type}}"
+    ng-disabled="ngDisabled"
+    empty-message="{{emptyMessage}}">
+
+    <div class="object-picker bootstrap-select btn-group">
+        <button type="button" class="btn dropdown-toggle selectpicker dku-select-button btn--secondary" ng-disabled="ngDisabled" ng-class="{disabled: ngDisabled}">
+                <span ng-show="!object&&emptyMessage" class="filter-option">{{emptyMessage}}</span>
+                <span ng-show="!object&&!emptyMessage" class="filter-option">No {{type|niceConst|lowercase}} selected</span>
+
+                <div ng-if="object" class="horizontal-flex currently-selected fh">
+                    <div class="noflex dibvam" style="padding-left: 3px; padding-right: 7px;">
+                        <i class="dibvam {{object.subtype | subTypeToIcon: object.type }} {{object.subtype | subTypeToColor: object.type }}" />
+                    </div>
+                    <div class="mx-textellipsis dibvam" style="flex: 0 1 auto;">
+                        {{object.label || object.smartName}}
+                    </div>
+                    <div class="noflex dibvam">
+                        <small>
+                            &nbsp;– <a href="{{$root.StateUtils.href.dssObject(type, object.smartId, projectKey || $stateParams.projectKey)}}">view</a>
+                        </small>
+                    </div>
+                </div>
+
+                &nbsp;<span class="caret" />
+        </button>
+    </div>
+</div>

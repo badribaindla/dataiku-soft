@@ -1,0 +1,44 @@
+<div ng-controller="NewFuzzyJoinController" class="join-recipe modal modal3">
+    <div dku-modal-header modal-title="Add an input dataset" modal-class="has-border"/>
+    <form class="dkuform-modal-wrapper dkuform-modal-horizontal" name="newRecipeForm">
+        <div class="modal-body" style="overflow:visible;">
+            <div class="alert alert-error" ng-show="error">
+                <i class="icon-dku-error"></i>
+                {{error}}
+            </div>
+
+            <div class="explaination" ng-show="!creation">
+                You can join a new dataset to one of the existing input datasets.
+            </div>
+
+            <div class="control-group">
+                <label for="" class="control-label" ng-show="creation">First input dataset</label>
+                <label for="" class="control-label" ng-show="!creation">Existing input dataset</label>
+                <div class="controls" ng-show="creation">
+                    <div dataset-selector="newJoin.dataset1" available-datasets="availableInputDatasets" class="qa_recipe_available-datasets-dropdown"></div>
+                </div>
+                <div class="controls" ng-show="!creation">
+                    <select
+                            dku-bs-select
+                            ng-model="newJoin.table1Index"
+                            ng-options="index as getDatasetName(index) for index in range(params.virtualInputs.length)"
+                    />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="" class="control-label" ng-show="creation">Second input dataset</label>
+                <label for="" class="control-label" ng-show="!creation">New input dataset</label>
+                <div class="controls">
+                    <div dataset-selector="newJoin.dataset2" available-datasets="availableInputDatasets" class="qa_recipe_available-datasets-dropdown"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons" global-keydown="{'enter':'joinIsValid() && addJoin();', 'esc': 'dismiss();' }">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" ng-disabled="!joinIsValid()" class="btn btn--text btn--primary qa_recipe_join-add-ds-button" ng-click="addJoin()">Add dataset</button>
+        </div>
+    </form>
+</div>

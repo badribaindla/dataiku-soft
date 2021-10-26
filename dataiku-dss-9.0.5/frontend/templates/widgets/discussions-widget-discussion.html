@@ -1,0 +1,165 @@
+<div class="discussions-widget-discussion h100 vertical-flex" ng-if="uiState.selectedConv === null">
+	<div class="discussions-widget-header noflex">
+		<div class="discussions-widget-line horizontal-flex">
+			<div class="noflex discussions-widget-line-left"></div>
+			<div class="discussions-widget-line-main flex">
+				<div class="discussions-widget-line-item single-line">
+					Discussion no longer available
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="discussions-widget-discussion h100 vertical-flex" ng-if="uiState.selectedConv" ng-click="scrollChanged($event)">
+	<div class="discussions-widget-header noflex vertical-flex" ng-if="!discussionId">
+		<div class="discussions-widget-line horizontal-flex flex">
+			<div class="noflex discussions-widget-line-left">
+				<a ng-click="uiState.selectedConv = undefined" ng-if="!discussionId"><i class="icon-chevron-left" /></a>
+			</div>
+			<div class="discussions-widget-line-main flex">
+				<div class="discussions-widget-line-item single-line" ng-if="!uiState.editingTopic" title="{{ uiState.selectedConv.topic || 'Unnamed discussion' }}">
+					<strong>
+						{{ uiState.selectedConv.topic || 'Unnamed discussion' }}
+					</strong>
+				</div>
+				<div class="discussions-widget-line-editingtopic" ng-if="uiState.editingTopic">
+					<div class="horizontal-flex">
+						<input class="flex override-min-width"
+							type="text"
+							ng-init="uiState.newConvTopic = uiState.selectedConv.topic"
+							ng-model="uiState.newConvTopic"
+							placeholder="Topic"
+							dku-local-keypress="{enter: 'editTopic()', esc: 'uiState.editingTopic = false'}"
+							required="required"
+							maxlength="200"
+							autofocus="autofocus"
+							/>
+						<button class="btn btn--success noflex"
+							ng-click="editTopic()"
+							ng-disabled="!uiState.newConvTopic.length || uiState.newConvTopic.length > 200"
+							title="{{ !uiState.newConvTopic.length ? 'The topic cannot be empty!' : (uiState.newConvTopic.length > 200 ? 'The topic cannot be longer than 200 characters!' : '') }}">
+							SAVE
+						</button>
+						<button class="btn btn--secondary noflex" ng-click="uiState.editingTopic = false">
+							CANCEL
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="discussions-widget-line-right noflex" ng-if="!uiState.editingTopic">
+				<a ng-click="closeDiscussion(uiState.selectedConv.closedOn == 0)"
+					class="btn btn--secondary discussions-widget-closebtn"
+					ng-show="!uiState.selectedConv.closedOn"
+					>
+					<i class="icon-DKU_resolve" />&nbsp;Resolve
+				</a>
+				<div custom-element-popup cep-position="align-right-bottom" class="dib">
+					<a class="mainzone dropdown-toggle" ng-click="togglePopover()"><i class="icon-ellipsis-vertical" /></a>
+					<ul class="popover custom-element-popup-popover dropdown-menu">
+						<li>
+							<a ng-click="uiState.editingTopic = true; hidePopover();">
+								<span class="icon-pencil" /> Edit topic
+							</a>
+						</li>
+						<li>
+							<a ng-click="deleteDiscussion(); hidePopover();">
+								<span class="icon-trash" /> Delete discussion
+							</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="discussions-widget-line horizontal-flex flex">
+			<div class="noflex discussions-widget-line-left"></div>
+			<div class="flex discussions-widget-line-main horizontal-flex">
+				<div class="flex discussions-widget-participants discussions-widget-line-item single-line" custom-element-popup>
+					<a class="mainzone dropdown-toggle" ng-click="togglePopover()" ng-bind-html="getDiscussionParticipants(uiState.selectedConv)"></a>
+					<ul class="popover custom-element-popup-popover dropdown-menu" style="max-width: 300px; overflow: hidden;">
+						<li ng-repeat="user in getDiscussionParticipantsList(uiState.selectedConv)" ng-if="user.lastReplyTime > 0">
+							<a href="/profile/{{user.login}}/">
+								<div user-picture="user.login" size="20" title="{{user.login}}" style="margin-bottom: 4px;"></div>
+								<span>{{ user.displayName || user.login || 'Unknown user' }}</span>
+							</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="discussions-widget-list-replies flex" ng-class="{closed: uiState.selectedConv.closedOn > 0}" ng-init="resetInputs(); scrollChanged(true);" on-scroll="scrollChanged">
+		<div ng-repeat="reply in uiState.selectedConv.replies track by $index" class="discussions-widget-reply" ng-init="replyIdx = $index" ng-style="{'padding-top': $first && uiState.cachedUserReadTime < reply.time ? '10px': ''}">
+			<div class="discussions-widget-newreplies" ng-if="$first && uiState.cachedUserReadTime < reply.time">
+				<span>{{ getNewRepliesLabel() }}</span>
+			</div>
+			<div class="discussions-widget-line horizontal-flex">
+				<div class="discussions-widget-line-left noflex">
+					<div user-picture="reply.author" size="32"></div>
+				</div>
+				<div class="discussions-widget-line-main flex">
+					<div class="discussions-widget-line-item single-line horizontal-flex" ng-class="{editing: uiState.replyEditing == replyIdx}">
+						<div class="flex discussions-widget-topic" title="{{ uiState.selectedConv.users[reply.author].displayName || reply.author || 'Unknown user' }}">{{ uiState.selectedConv.users[reply.author].displayName || reply.author || 'Unknown user' }}</div>
+						<div ng-if="uiState.replyEditing != replyIdx" class="discussions-widget-edition noflex">
+							<span ng-if="appConfig.login == reply.author">
+								<a class="edit-link" ng-click="uiState.replyEditing = replyIdx"><i class="icon-pencil" /></a>
+							</span>
+							<span ng-if="reply.editedOn" title="Edited on {{ reply.editedOn | date:'dd MMM yy HH:mm' }}">
+								(edited)
+							</span>
+						</div>
+						<div ng-if="uiState.replyEditing == replyIdx" class="discussions-widget-edition noflex">
+							<span class="counter msg-error" ng-if="uiState.replyEditedText.length > 10000">
+								{{ uiState.replyEditedText.length }} / 10000
+							</span>
+							<button class="btn btn--text btn--primary" ng-click="editReply(reply)" ng-disabled="!uiState.replyEditedText.length || uiState.replyEditedText.length > 10000" title="{{ !uiState.replyEditedText.length ? 'The message cannot be empty!' : (uiState.replyEditedText.length > 10000 ? 'The message cannot be longer than 10000 characters!' : '') }}">save</button>
+							<button class="btn btn--text btn--secondary" ng-click="resetEditing()">cancel</button>
+						</div>
+						<div ng-if="uiState.replyEditing != replyIdx" class="discussions-widget-date noflex">
+							{{ reply.time | friendlyDateTime:'EEE, d MMM' }}
+						</div>
+					</div>
+					<div class="discussions-widget-replyzone">
+						<div class="markdown-std" from-markdown="reply.text" ng-if="uiState.replyEditing != replyIdx"></div>
+						<div ng-if="uiState.replyEditing == replyIdx" ng-init="uiState.replyEditedText = reply.text">
+							<div autocompletable-textarea
+								 resizable="false"
+								 options="{placeholder: 'Reply discussion'}">
+								<div ng-if="editorOptions" dku-local-keypress="{'ctrl-enter meta-enter': 'editReply(reply)', 'up down': ''}">
+									<textarea
+										ng-model="uiState.replyEditedText"
+										placeholder="Reply discussion"
+										auto-focus="true"
+										ui-codemirror="editorOptions"
+										maxlength="10000"
+										required="required"
+										ng-model-options="{allowInvalid: true}"
+										>
+									</textarea>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="discussions-widget-readiness" ng-if="appConfig.easterEggs">
+				<div ng-repeat="(convLogin, convUser) in uiState.selectedConv.users"
+					ng-if="convLogin != appConfig.login && convUser.lastReplyTime > 0 &&
+					convUser.lastReadTime >= reply.time &&
+					(replyIdx == uiState.selectedConv.replies.length - 1 || convUser.lastReadTime < uiState.selectedConv.replies[replyIdx + 1].time)">
+					<div user-picture="convLogin" size="20" title="{{convLogin + ' read the discussion up to this message'}}"></div>
+				</div>
+			</div>
+			<div class="discussions-widget-newreplies"
+				ng-if="replyIdx <= uiState.selectedConv.replies.length &&
+				uiState.cachedUserReadTime >= reply.time &&
+				uiState.cachedUserReadTime < uiState.selectedConv.replies[replyIdx + 1].time"
+				>
+				<span>{{ getNewRepliesLabel() }}</span>
+			</div>
+		</div>
+	</div>
+	<div ng-if="uiState.selectedConv.closedOn == 0" class="discussions-widget-replyform noflex" include-no-scope="/templates/widgets/discussions-widget-newreply.html"></div>
+	<div ng-if="uiState.selectedConv.closedOn > 0" class="discussions-widget-reopenform noflex">
+		<button class="btn btn--text btn--primary" ng-click="closeDiscussion(false);">Re-open the discussion</button>
+	</div>
+</div>

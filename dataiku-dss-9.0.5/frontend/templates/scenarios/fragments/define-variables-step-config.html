@@ -1,0 +1,53 @@
+		<div class="control-group">
+			<label class="control-label">Evaluated variables</label>
+			<div class="controls">
+	            <label class="dku-toggle">
+	                <input type="checkbox" ng-model="step.params.evaluateValues">
+	                <span/>
+	            </label>
+	            <span class="help-inline">
+	            	When enabled, all values are evaluated as DSS formulas. Else, values are 'raw'
+	            </span>
+	        </div>
+        </div>
+
+		<div class="control-group" ng-if="!step.params.evaluateValues">
+			<label class="control-label">Variables</label>
+			<div class="controls">
+				<div class="codemirror" style="border: 1px solid #ccc;">
+					<textarea name="jsonStuff" json-object-pretty-view ng-model="step.params.variables" style="min-height: 60px"
+                        ui-codemirror="codeMirrorSettingService.get('text/x-sql')" required></textarea>
+				</div>
+				<div ng-show="setupForm.jsonStuff.$invalid" class="alert alert-error">
+                   	JSON is invalid<br />{{setupForm.jsonStuff.dkuJSONError}}
+                </div>
+			</div>
+		</div>
+		<div class="control-group" ng-if="step.params.evaluateValues">
+			<label class="control-label">Variables</label>
+			<div class="controls" ng-controller="EvaluatedVariablesStepSubcontroller">
+				<ul class="variable-definitions" ng-model="step.params.definitions">
+					<li ng-repeat="definition in step.params.definitions" class="variable-definition horizontal-flex">
+				        <div class="noflex"><input type="text" ng-model="definition.key" placeholder="No key" /></div>
+				        <span>&rarr;</span>
+						<div class="flex" style="overflow-x: auto;">
+							<grel-editor columns="[]" expression="definition.value"></grel-editor>
+						</div>
+				        <a ng-click="removeDefinition($index)">&times;</a>
+					</li>
+					<li>
+						<button class="btn btn--secondary" ng-click="addDefinition()" ng-disabled="!canAddDefinition()">Add variable</button>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="control-group" ng-if="step.params.evaluateValues">
+            <tabs>
+                <pane title="Examples">
+                    <div grel-examples></div>
+                </pane>
+                <pane title="Reference">
+                    <div grel-reference style="overflow: auto; margin-top: 10px; height: 300px;"></div>
+                </pane>
+            </tabs>
+           </div>

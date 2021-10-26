@@ -1,0 +1,83 @@
+<div class="code-snippet-editor-wrapper">
+    <div class="error-block" block-api-error></div>
+    <!-- Header of the recipe editor zone, contains code sample selector ui -->
+    <div class="code-snippet-editor-header-zone">
+        <div code-snippet-editor-switch code-samples-selector-visible="codeSamplesSelectorVisible" />
+        
+        <div custom-element-popup cep-position="align-right-bottom" close-on-click="true" style="margin-right: 10px; display: inline-block;">
+            <i class="icon-cog mainzone cursor-pointer" ng-click="togglePopover()"></i>
+            <ul class="popover custom-element-popup-popover dropdown-menu">
+                <li>
+                    <a href ui-sref="profile.my.settings" >Change display settings...</i></a>
+                </li>
+            </ul>
+        </div>
+        
+        <div ng-transclude style="flex: 1;"></div>
+    </div>
+    <div class="editor-wrapper">
+        <div class="editor">
+            <textarea ng-model="editorParams.code"
+                      ui-codemirror="editorParams.editorOptions"
+                      ui-refresh="reflow"
+                      class="qa_generic_code-snippet-editor-textarea"></textarea>
+        </div>
+
+        <div ng-show="codeSamplesSelectorVisible">
+
+            <div data-extend-template="/templates/widgets/code-snippet-editor-sample-selector.html">
+
+                <!-- Template for sample preview -->
+                <div class="sample-template" data-block="samplePreview">
+                    <div class="sample-description">
+                        <h4>{{sample.title}}</h4>
+                        <div class="tool-bar">
+                            <span code-snippet-editor-create-edit-modal-button
+                                sample-type="sampleType"
+                                category="saveCategory"
+                                sample = "sample"
+                                template="'/templates/widgets/code-snippet-editor-create-edit-sample-modal.html'"
+                                controller="'CreateEditSampleController'"
+                                reload-sample-list-func = "reloadSampleListFunc"
+                                hide-sample-func = "hideSampleFunc" />
+                            <span ng-if="sample.origin==='CUSTOM'"
+                                code-snippet-editor-create-edit-modal-button
+                                sample-type="sampleType"
+                                category="saveCategory"
+                                sample = "sample"
+                                template="'/templates/widgets/code-snippet-editor-create-edit-sample-modal.html'"
+                                controller="'CreateEditSampleController'"
+                                reload-sample-list-func = "reloadSampleListFunc"
+                                hide-sample-func = "hideSampleFunc"
+                                force-mode="'CREATE_FROM'"/>
+                            <span ng-show="sample.origin==='CUSTOM'" code-snippet-editor-delete-sample-button>
+                                <button title="delete sample" ng-click="deleteSample()">
+                                    <i class="icon-trash"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <div class="tag-list">
+                            <span class="tag" ng-repeat = "tag in sample.tags" ng-style="{'background' : tag.color}"  color-contrast="{{tag.color}}">{{tag.name}}</span>
+                        </div>
+                        <div from-markdown="sample.description" />
+                    </div>
+                    <div class="sample-code">
+                        <div class="editor" ng-repeat="variation in sample.variations" ng-if="variation.code">
+                                <div class="insertable-marker btn btn--success" ng-click="insert(variation)"><span class="icon-plus"></span>&nbsp; INSERT</div>
+                                <div class="content">
+                                    <h5 ng-if="variation.title">{{variation.title}}</h5>
+                                    <span ng-if="!variation.title" style="margin-bottom:38px;display:inline-block;"></span>
+                                    <textarea data-code-mirror-language="{{sampleType}}">{{resolveCodeForPreviewFunc(variation)}}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sample-documentation" ng-if="sample.documentation">
+                        <div from-markdown="sample.documentation" />
+                    </div>
+                </div>
+                <!-- End of template for sample preview -->
+
+            </div>
+        </div>
+    </div>
+</div>

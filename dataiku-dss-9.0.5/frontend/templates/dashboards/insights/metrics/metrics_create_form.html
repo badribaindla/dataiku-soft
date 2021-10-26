@@ -1,0 +1,44 @@
+<div block-api-error />
+<div class="control-group">
+    <label class="control-label" dku-for="#objectTypeInput button">Type</label>
+    <div class="controls">
+        <div object-type-picker object-type="insight.params.objectType" include="['PROJECT', 'DATASET', 'SAVED_MODEL', 'MANAGED_FOLDER']" id="objectTypeInput"></div>
+    </div>
+</div>
+
+<div class="control-group" ng-if="insight.params.objectType != 'PROJECT'">
+    <label class="control-label" dku-for="#sourceObjectInput button">Source</label>
+    <div class="controls">
+        <div object-picker="insight.params.objectSmartId" type="{{insight.params.objectType}}" object="hook.sourceObject" error-scope="$parent.$parent" id="sourceObjectInput"></div>
+
+        <div insight-source-info/>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" dku-for="#metricIdInput + div button">Metric</label>
+    <div class="controls">
+        <select dku-bs-select
+            ng-options="metric as MetricsUtils.getMetricDisplayName(metric) for metric in computedMetrics"
+            ng-model="selectedMetric"
+            ng-disabled="hook.sourceObject && computedMetrics.length == 0"
+            id="metricIdInput">
+        </select>
+
+        <div class="alert alert-warning" ng-if="hook.sourceObject && computedMetrics.length == 0">
+            <div>This source has no metric. <span ng-if="isProjectAnalystRW()"><a href="{{getMetricsSettingsUrl()}}">Add some</a></span></div>
+        </div>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="insightNameInput">Insight name</label>
+    <div class="controls">
+        <input type="text" ng-model="insight.name" placeholder="{{hook.defaultName}}" id="insightNameInput" />
+    </div>
+</div>
+
+<input type="hidden" ng-model="insight.params.objectType" required />
+<input type="hidden" ng-if="insight.params.objectType != 'PROJECT'" ng-model="insight.params.objectSmartId" required />
+<input type="hidden" ng-model="insight.params.metricId" required />
+

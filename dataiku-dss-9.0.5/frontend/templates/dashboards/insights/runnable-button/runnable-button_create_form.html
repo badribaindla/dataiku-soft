@@ -1,0 +1,21 @@
+<div class="control-group">
+    <label class="control-label">Runnable</label>
+    <div class="controls" ng-if="runnables.length > 0">
+        <select dku-bs-select ng-model="selectedRunnable" ng-options="runnable as (runnable.desc.meta.label || runnable.id) for runnable in runnables"
+                ng-change="onRunnableSelected(selectedRunnable)"></select>
+    </div>
+    <div class="controls" ng-if="runnables.length == 0 && runnablesExist">
+        <span>No runnable is accessible for the current user's rights</span>
+    </div>
+    <div class="controls" ng-if="runnables.length == 0 && !runnablesExist">
+        <span>No runnables available, add some from the <a href="{{$state.href('plugins')}}">plugin list</a></span>
+    </div>
+    <input type="hidden" ng-model="insight.params.runnableType" required /> <!-- Make the form invalid when no runnable is selected -->
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="insightNameInput">Insight name</label>
+    <div class="controls">
+        <input type="text" ng-model="insight.name" placeholder="{{hook.defaultName}}" id="insightNameInput" />
+    </div>
+</div>

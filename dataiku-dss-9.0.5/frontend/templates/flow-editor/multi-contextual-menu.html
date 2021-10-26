@@ -1,0 +1,253 @@
+
+<li ng-if="!FlowGraphSelection.getSelectedNodes().includes(object)" style="text-align: center;">
+	Other items are selected
+</li>
+
+<li ng-if="FlowGraphSelection.getSelectedNodes().includes(object)">
+	<a disabled-if-ro ng-click="deleteFlowItems()">
+		<span class="text-error">
+			<i class="icon-fixed-width icon-trash" />
+			&nbsp;Delete {{FlowGraphSelection.getSelectedNodes().length}} items
+		</span>
+	</a>
+</li>
+
+<li class="divider" ng-if="hasZone"></li>
+<li ng-if="hasZone && !isAllZonesCollapsed">
+    <a ng-click="toggleZoneCollapse(getSelectedTaggableObjectRefs(), 'collapseAll')">
+        <i class="icon-fixed-width icon-resize-small" />
+        Collapse selected
+    </a>
+</li>
+<li ng-if="hasZone && !isAllZonesExpanded">
+    <a ng-click="toggleZoneCollapse(getSelectedTaggableObjectRefs(), 'expandAll')">
+        <i class="icon-fixed-width icon-resize-full" />
+        Expand selected
+    </a>
+</li>
+
+<li class="divider" ng-if="!hasZone"></li>
+<li disabled-if-ro ng-if="!hasZone">
+	<a ng-click="moveToFlowZone(getSelectedTaggableObjectRefs(), false, computeMovingImpact())" id="qa_flow-zone-item">
+		<i class="icon-fixed-width icon-move_to_zone" />
+		Move to a flow zone
+	</a>
+</li>
+<li ng-if="allShareable && !hasZone" disabled-if-ro>
+    <a ng-click="shareToFlowZone(getSelectedTaggableObjectRefs())" id="qa_flow-zone-share">
+        <i class="icon-fixed-width icon-share_to_zone" />
+        Share to a flow zone
+    </a>
+</li>
+<li ng-if="allUnshareable && !hasZone" disabled-if-ro>
+    <a ng-click="unshareToFlowZone(getSelectedTaggableObjectRefs(), selectedObjectsZones)" id="qa_flow-zone-unshare">
+        <i class="icon-fixed-width icon-unshare_to_zone" />
+        Unshare from this zone
+    </a>
+</li>
+<li ng-if="(havePredecessors || haveSuccessors) && FlowGraphSelection.getSelectedNodes().includes(object) && !hasZone" class="divider"></li>
+
+<li ng-if="havePredecessors && FlowGraphSelection.getSelectedNodes().includes(object) && !hasZone">
+	<a ng-click="selectPredecessors()" ng-mouseover="FlowGraphFolding.previewSelect(object, 'predecessors')" ng-mouseleave="FlowGraphFolding.endPreviewBranch()">
+		<i class="icon-fixed-width icon-DKU_select_upstream" />&nbsp;Select all upstream
+	</a>
+</li>
+
+<li ng-if="haveSuccessors && FlowGraphSelection.getSelectedNodes().includes(object) && !hasZone">
+	<a ng-click="selectSuccessors()" ng-mouseover="FlowGraphFolding.previewSelect(object, 'successors')" ng-mouseleave="FlowGraphFolding.endPreviewBranch()">
+		<i class="icon-fixed-width icon-DKU_select_downstream" />&nbsp;Select all downstream
+	</a>
+</li>
+
+<li ng-if="(havePredecessors || haveSuccessors) && FlowGraphSelection.getSelectedNodes().includes(object) && !hasZone" class="divider"></li>
+
+<li ng-if="havePredecessors && !hasZone">
+	<a ng-click="FlowGraphFolding.foldPredecessors(object)" ng-mouseover="FlowGraphFolding.previewFold(object, 'predecessors')" ng-mouseleave="FlowGraphFolding.endPreviewBranch()">
+		<i class="icon-fixed-width icon-DKU_collapse_upstream" />
+		Hide all upstream
+	</a>
+</li>
+
+<li ng-if="haveSuccessors && !hasZone">
+	<a ng-click="FlowGraphFolding.foldSuccessors(object)" ng-mouseover="FlowGraphFolding.previewFold(object, 'successors')" ng-mouseleave="FlowGraphFolding.endPreviewBranch()">
+		<i class="icon-fixed-width icon-DKU_collapse_downstream" />
+		Hide all downstream
+	</a>
+</li>
+
+<!-- Tools specific -->
+<li ng-if="tool.type == 'TAGS' && tool.user.getFocusedAsList().length && FlowGraphSelection.getSelectedNodes().includes(object)" class="divider" />
+<li disabled-if-ro ng-if="tool.type == 'TAGS' && tool.user.getFocusedAsList().length && FlowGraphSelection.getSelectedNodes().includes(object)" >
+	<a class="oh" ng-click="tool.actions.setTags(tool.user.getFocusedAsList(), FlowGraphSelection.getSelectedNodes(), 'ADD');">
+		<i class="icon-fixed-width icon-fixed-width icon-tag"/>
+
+		<span ng-if="tool.user.getFocusedAsList().length == 1">
+			Add tag <strong>{{tool.user.getFocusedAsList()[0]}}</strong>
+		</span>
+		<span ng-if="tool.user.getFocusedAsList().length > 1">
+			Add <strong>{{tool.user.getFocusedAsList().length}} tags</strong>
+		</span>
+
+		to selected items
+	</a>
+</li>
+<li disabled-if-ro ng-if="tool.type == 'TAGS' && tool.user.getFocusedAsList().length && FlowGraphSelection.getSelectedNodes().includes(object)" >
+	<a class="oh" ng-click="tool.actions.setTags(tool.user.getFocusedAsList(), FlowGraphSelection.getSelectedNodes(), 'REMOVE');">
+		<i class="icon-fixed-width icon-tag"/>
+
+		<span ng-if="tool.user.getFocusedAsList().length == 1">
+			Remove tag <strong>{{tool.user.getFocusedAsList()[0]}}</strong>
+		</span>
+		<span ng-if="tool.user.getFocusedAsList().length > 1">
+			Remove <strong>{{tool.user.getFocusedAsList().length}} tags</strong>
+		</span>
+
+		from selected items
+	</a>
+</li>
+
+
+
+<li ng-if="tool.type == 'RECIPES_ENGINES' && anyRecipe" class="divider"></li>
+<li disabled-if-ro ng-if="tool.type == 'RECIPES_ENGINES' && anyRecipe" >
+	<a ng-click="changeSelectedRecipesEngines()">
+		<i class="icon-cogs"/>
+		Change recipe engines
+	</a>
+</li>
+
+
+
+<li ng-if="tool.type == 'CONNECTIONS' && anyCanChangeConnection" class="divider"></li>
+<li disabled-if-ro ng-if="tool.type == 'CONNECTIONS' && anyCanChangeConnection" >
+	<a ng-click="changeSelectedItemsConnections()">
+		<i class="icon-dataset"/>
+		Change connections
+	</a>
+</li>
+
+
+
+<li ng-if="tool.type == 'SPARK_CONFIG' && anyRecipe" class="divider"></li>
+<li disabled-if-ro ng-if="tool.type == 'SPARK_CONFIG' && anyRecipe" >
+	<a ng-click="changeSelectedSparkConfig()">
+		<i class="icon-code_spark_scala_recipe"/>
+		Change Spark config
+	</a>
+</li>
+
+
+
+<li ng-if="tool.type == 'SCENARIOS' && anyLocalComputable" class="divider"></li>
+<li disabled-if-ro ng-if="tool.type == 'SCENARIOS' && anyLocalComputable" >
+	<a ng-click="addSelectedToScenario()">
+		<i class="icon-play"/>
+		Add to a scenario
+	</a>
+</li>
+
+
+
+<li ng-if="tool.type == 'COUNT_OF_RECORDS'" class="divider"></li>
+<li disabled-if-ro ng-if="tool.type == 'COUNT_OF_RECORDS' && anyLocalDataset" >
+	<a ng-click="updateStatuses();">
+		<i class="icon-refresh"/>
+		Update count of records now
+	</a>
+</li>
+<li disabled-if-ro ng-if="tool.type == 'COUNT_OF_RECORDS' && anyLocalDataset" >
+	<a ng-click="setAutoCountOfRecords(true)">
+		<i class="icon-refresh"/>
+		Enable auto-compute
+	</a>
+</li>
+<li disabled-if-ro ng-if="tool.type == 'COUNT_OF_RECORDS' && anyLocalDataset" >
+	<a ng-click="setAutoCountOfRecords(false);">
+		<i class="icon-refresh"/>
+		Disable auto-compute
+	</a>
+</li>
+
+
+
+<li ng-if="['SPARK_PIPELINES', 'SQL_PIPELINES'].includes(tool.type) && anyLocalDataset" class="divider"></li>
+<li disabled-if-ro ng-if="['SPARK_PIPELINES', 'SQL_PIPELINES'].includes(tool.type) && anyLocalDataset" >
+	<a ng-click="setVirtualizable(true)" ng-if="anyNonVirtualizable">
+		<i class="icon-forward"/>
+		Enable datasets virtualization
+	</a>
+	<a ng-click="setVirtualizable(false)" ng-if="!anyNonVirtualizable">
+		<i class="icon-forward"/>
+		Disable datasets virtualization
+	</a>
+</li>
+<li disabled-if-ro ng-if="tool.type == 'SPARK_PIPELINES' && anyCanSpark" >
+	<a ng-click="changeSelectedSparkPipelineability()">
+		<i class="icon-forward"/>
+		Set recipes pipelineability
+	</a>
+</li>
+<li disabled-if-ro ng-if="tool.type == 'SQL_PIPELINES'" >
+	<a ng-click="changeSelectedSqlPipelineability()">
+		<i class="icon-forward"/>
+		Set recipes pipelineability
+	</a>
+</li>
+
+
+<li ng-if="tool.type == 'WATCH' && (anyLocalComputable || anyRecipe)" class="divider"></li>
+<li disabled-if-ro ng-if="tool.type == 'WATCH' && (anyLocalComputable || anyRecipe)" >
+	<a ng-click="watchObjects(true)"
+	   ng-attr-title="{{ actionTooltips.plural.WATCH }}"
+	   toggle="tooltip-top"
+	   trigger="hover"
+	>
+		<i class="icon-eye-open"/>
+		{{ actionLabels.WATCH }} {{FlowGraphSelection.getSelectedNodes().length}} objects
+	</a>
+</li>
+<li disabled-if-ro ng-if="tool.type == 'WATCH' && (anyLocalComputable || anyRecipe)" >
+	<a ng-click="watchObjects(false)"
+	   ng-attr-title="{{ actionTooltips.plural.UNWATCH }}"
+	   toggle="tooltip-top"
+	   trigger="hover"
+	>
+		<i class="icon-eye-close"/>
+		{{ actionLabels.UNWATCH }} {{FlowGraphSelection.getSelectedNodes().length}} objects
+	</a>
+</li>
+<li disabled-if-ro ng-if="tool.type == 'WATCH' && (anyLocalComputable || anyRecipe)" >
+	<a ng-click="starObjects(true)"
+	   ng-attr-title="{{ actionTooltips.plural.STAR }}"
+	   toggle="tooltip-top"
+	   trigger="hover"
+	>
+		<i class="icon-star"/>
+		{{ actionLabels.STAR }} {{FlowGraphSelection.getSelectedNodes().length}} objects
+	</a>
+</li>
+<li disabled-if-ro ng-if="tool.type == 'WATCH' && (anyLocalComputable || anyRecipe)" >
+	<a ng-click="starObjects(false)"
+	   ng-attr-title="{{ actionTooltips.plural.UNSTAR }}"
+	   toggle="tooltip-top"
+	   trigger="hover"
+	>
+		<i class="icon-star-empty"/>
+		{{ actionLabels.UNSTAR }} {{FlowGraphSelection.getSelectedNodes().length}} objects
+	</a>
+</li>
+
+
+
+<li ng-if="tool.type == 'CHECK_CONSISTENCY'" class="divider"></li>
+
+<li ng-if="tool.type == 'CHECK_CONSISTENCY'">
+	<a ng-click="tool.user.markAsOK(FlowGraphSelection.getSelectedNodes())">
+		<i class="icon-cog" />&nbsp;Mark as OK
+	</a>
+</li>
+<li ng-if="tool.type == 'CHECK_CONSISTENCY' && tool.user.canRecheck(FlowGraphSelection.getSelectedNodes())">
+	<a ng-click="tool.user.recheck(FlowGraphSelection.getSelectedNodes())">
+		<i class="icon-refresh" />&nbsp;Recheck
+	</a>
+</li>

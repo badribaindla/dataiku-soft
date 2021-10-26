@@ -1,0 +1,29 @@
+<div>
+    <div class="horizontal-flex row-fluid object-nav">
+
+        <div class="flex oh" std-object-breadcrumb />
+        <div class="noflex" ng-if="tabUiState.projectAppView == 'REGULAR'">
+            <a class="tab" ng-class="{'enabled': topNav.tab == 'summary'}" ui-sref="projects.project.home.regular" fw500-width>Summary</a>
+            <a class="tab" ng-class="{'enabled': topNav.tab == 'activity'}" ui-sref="projects.project.home.activity" ng-if="isProjectAnalystRO()" fw500-width>Activity</a>
+            <!-- 
+            <a class="tab" ng-class="{'enabled': topNav.tab == 'changes'}" ui-sref="projects.project.home.changes" ng-if="isProjectAnalystRO() && showVersionControlFeatures()" fw500-width>Changes</a>
+             -->
+            <a class="tab" ng-class="{'enabled': topNav.tab == 'status'}" ui-sref="projects.project.home.status.metrics" ng-if="isProjectAnalystRO()" fw500-width>Metrics</a>
+            <div class="otherLinks">
+                <div discussions-button />
+                <div class="dib" include-no-scope="/templates/projects/actions.html" />
+            </div>
+        </div>
+        <div class="noflex" ng-if="tabUiState.projectAppView == 'APP_TILES'">
+            <!-- app tiles are on the same url than the regular home page, so they have to share the controller and the tab name :( -->
+            <a class="tab" ng-class="{'enabled': topNav.tab == 'summary'}" ui-sref="projects.project.home.regular" fw500-width>Application</a>
+            <div class="otherLinks">
+                <div discussions-button />
+                <div class="dib" include-no-scope="/templates/projects/actions.html" />
+            </div>
+        </div>
+    </div>
+
+    <div ui-view></div>
+    <div coachmark-serie-caller serie-id="'project-home'" />
+</div>

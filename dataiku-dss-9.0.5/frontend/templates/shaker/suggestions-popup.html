@@ -1,0 +1,139 @@
+<div class="cell-suggestion-popup">
+
+    <!-- Content suggestions -->
+    <div ng-repeat="(category, suggs) in contentData[0]"  ng-if="req.type == 'content' && shakerState.withSteps && shakerState.writeAccess" class="section">
+        <div class="section-content">
+            <ul class="nav dropdown">
+                <!--<li class="nav-header suggestion-category">{{category}}</li>-->
+                <li ng-repeat-end ng-repeat="sugg in suggs" class="suggestion">
+                    <a ng-click="executeSuggestion(sugg)"> <i class="{{sugg.icon}}"></i>
+                        <span ng-bind-html="sugg.text"/>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div ng-if="shakerWritable && contentData[2]" class="section">
+        <div class="section-content">
+            <ul class="nav dropdown">
+                <li class="dropdown-submenu">
+                    <a href="" >More actions on selected</a>
+                    <ul class="dropup dropdown-menu">
+                        <li ng-repeat-start="(category, suggs) in contentData[1]"  class="divider" ng-hide="$first"></li>
+                        <li ng-repeat-end ng-repeat="sugg in suggs">
+                            <a ng-click="executeSuggestion(sugg)"> <i class="{{sugg.icon}}"></i>
+                                <span ng-bind-html="sugg.text"></span>
+                            </a>
+                        </li>
+                        <li ng-repeat-end class="ng-hide"></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Cell suggestions -->
+    <div class="section" ng-if="shakerWritable" ng-repeat="(category, suggs) in cellData[0]">
+        <div class="section-content">
+            <ul class="nav dropdown dropdown-submenu-right">
+                <!--<li class="nav-header suggestion-category">{{category}}</li>-->
+                <li ng-repeat-end ng-repeat="sugg in suggs" class="suggestion">
+                    <a ng-click="executeSuggestion(sugg)">
+                        <i class="{{sugg.icon}}"></i>
+                        <span ng-bind-html="sugg.text"/>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div ng-if="shakerWritable && cellData[2]" class="section">
+        <div class="section-content">
+            <ul class="nav dropdown">
+                <li class="dropdown-submenu">
+                    <a href="" >More actions on cell</a>
+                    <ul class="dropup dropdown-menu">
+                        <li ng-repeat-start="(category, suggs) in cellData[1]"  class="divider" ng-hide="$first"></li>
+                        <li ng-repeat-end ng-repeat="sugg in suggs">
+                            <a ng-click="executeSuggestion(sugg)">
+                                <i class="{{sugg.icon}}"></i>
+                                <span ng-bind-html="sugg.text"></span>
+                            </a>
+                        </li>
+                        <li ng-repeat-end class="ng-hide"></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Column -->
+   <!--  <div class="section" ng-if="shakerWritable">
+        <div class="row-fluid">
+            <h4>
+                <i class="icon-list"/>
+                &nbsp;Column: {{req.column}}
+            </h4>
+        </div>
+        <div class="section-content">
+            <ul class="nav dropdown dropdown-submenu-right">
+                <li ng-repeat-start="(category, suggs) in columnData[0]" class="nav-header suggestion-category">{{category}}</li>
+                <li ng-repeat-end ng-repeat="sugg in suggs" class="suggestion">
+                    <a ng-click="executeSuggestion(sugg)">
+                        <i class="{{sugg.icon}}"></i>
+                        <span ng-bind-html="sugg.text"/>
+                    </a>
+                </li>
+
+                <li  dku-if="columnData[1]" class="suggestion-category dropup dropdown-submenu">
+                    <a href="" >More</a>
+                    <ul class="dropup dropdown-menu">
+                        <li ng-repeat-start="(category, suggs) in columnData[1]"  class="divider" ng-hide="$first"></li>
+                        <li ng-repeat-end ng-repeat="sugg in suggs">
+                            <a ng-click="executeSuggestion(sugg)">
+                                <i class="{{sugg.icon}}"></i>
+                                <span ng-bind-html="sugg.text"></span>
+                            </a>
+                        </li>
+                        <li ng-repeat-end class="ng-hide"></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div> -->
+
+    <!-- Filter & more -->
+    <div class="section">
+        <div class="section-content">
+            <ul class="nav dropdown">
+                <li ng-if="!shakerReadOnlyActions">
+                    <a ng-click="filter(req.cellValue, 'full_string')">
+                        <i class="icon-fixed-width icon-filter" />
+                        Filter on <span class="alphanum-literal">{{req.cellValue|gentleTruncate:35}}</span>
+                    </a>
+                </li>
+                <li ng-show="!shakerReadOnlyActions && req.type == 'content'">
+                    <a ng-click="filter(req.content, 'substring')">
+                        <i class="icon-fixed-width icon-filter" />
+                        Filter on <span class="alphanum-literal">{{req.content|gentleTruncate:35}}</span>
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="showCellValue()">
+                        <i class="icon-fixed-width icon-sun" />&nbsp;Show complete value
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="toggleRowHighlight(req.row)"> 
+                        <i class="icon-fixed-width icon-bolt" style="text-align: center" />&nbsp;Toggle row highlight
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="copyRowAsJSON(req.row)">
+                        <span class="icon-fixed-width"><b>{ }</b></span>&nbsp;Copy row as JSON
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</div>

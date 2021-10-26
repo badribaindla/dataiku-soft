@@ -1,0 +1,33 @@
+<div ng-controller="FollowScenarioRunTriggerController">
+	<div ng-include ="'/templates/scenarios/fragments/trigger-header.html'"></div>
+	<form name="descriptionForm" class="dkuform-horizontal trigger-form" ng-show="trigger.$expanded">
+        <div class="control-group">
+            <label class="control-label">Scenario</label>
+            <div class="controls">
+                <select required dku-bs-select ng-model="selected"
+                    ng-options="scenario as scenario.displayName for scenario in scenarios" />
+                <span class="help-inline">Trigger after each run of this scenario</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">When the other scenario...</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="trigger.params.outcomeFilter">
+                    <option value="">finishes</option>
+                    <option value="SUCCESS">runs successfully</option>
+                    <option value="WARNING">produces warnings</option>
+                    <option value="FAILED">fails</option>
+                    <option value="ABORTED">is aborted</option>
+                </select>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Check every (seconds)</label>
+            <div class="controls">
+                <input type="number" ng-model="trigger.delay" min="5" required />
+                <span class="help-inline">Delay between checks on the state of the scenario that this trigger follows</span>
+            </div>
+        </div>
+        <div ng-include="'/templates/scenarios/fragments/trigger-grace-delay-settings.html'" />
+	</form>
+</div>

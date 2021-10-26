@@ -1,0 +1,1 @@
+pivoted = base.unstack(level=1)

@@ -1,0 +1,34 @@
+<div class="row-fluid fh model-design">
+	<div class="span2 oa h100 nav-list-sidebar sidebar-analysis modal-footer-std-buttons" tab-model="uiState.settingsPane" disable-transition="true">
+		<ul style="padding-left: 10px;">
+			<li class="sidebar-header" click-next>Basic</li>
+			<li sidebar-tab-l1-link tab-name="learning" label="General settings" />
+			<li sidebar-tab-l1-link tab-name="debugging" label="Debugging" />
+
+			<li class="sidebar-header" click-next>Features</li>
+			<li sidebar-tab-l1-link tab-name="features" label="Features handling" />
+
+			<li class="sidebar-header" click-next>Modeling</li>
+			<li sidebar-tab-l1-link tab-name="algorithms" label="Algorithms" />
+			<li sidebar-tab-l1-link tab-name="reduction" label="Dimensionality reduction" ng-if="isMLBackendType('PY_MEMORY')"/>
+			<li sidebar-tab-l1-link tab-name="outliers" label="Outliers detection" ng-if="isMLBackendType('PY_MEMORY') || isMLBackendType('MLLIB')"/>
+
+			<li class="sidebar-header" click-next>Advanced</li>
+            <li sidebar-tab-l1-link tab-name="runtime" label="Runtime environment" ng-if="isMLBackendType('PY_MEMORY')" />
+			<li sidebar-tab-l1-link tab-name="spark" label="Spark config" ng-if="isMLBackendType('MLLIB') || isMLBackendType('H2O')" />
+		</ul>
+	</div>
+
+	<div class="span10 offset0 h100 boxed-next-to-sidebar no-padding" ng-if="mlTaskDesign">
+		<div ng-switch on="uiState.settingsPane">
+		<div class="h100 oa" ng-switch-when="learning" include-no-scope="/templates/analysis/clustering/settings/learningtask.html" />
+		<div class="h100 oa" ng-switch-when="debugging" include-no-scope="/templates/analysis/mlcommon/settings/debugging.html" />
+		<div class="h100" ng-switch-when="features" include-no-scope="/templates/analysis/mlcommon/settings/features.html" />
+		<div class="h100 oa" ng-switch-when="reduction" include-no-scope="/templates/analysis/clustering/settings/reduction.html" />
+		<div class="h100 oa" ng-switch-when="outliers" include-no-scope="/templates/analysis/clustering/settings/outliers.html" />
+		<div class="h100 oa" ng-switch-when="algorithms" include-no-scope="/templates/analysis/mlcommon/settings/algorithms.html" />
+        <div class="h100 oa" ng-switch-when="spark" include-no-scope="/templates/analysis/mlcommon/settings/spark.html" />
+        <div class="h100 oa" ng-switch-when="runtime" include-no-scope="/templates/analysis/mlcommon/settings/python.html" />
+		</div>
+	</div>
+</div>

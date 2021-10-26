@@ -1,0 +1,465 @@
+<div class="h100 metrics-checks-selection" >
+    <div class="settings-block">
+        <h2 class="metrics-section-title">Metrics</h2>
+        <p class="desc">The metrics are metadata about your dataset and the data in it. They allow you to control the evolution of your data as well as performing verification over their evolution. Metrics are computed using probes activated here. To visualize a metric, you need to activate the corresponding probe.</p>
+        <h4>General settings</h4>
+        <label>
+            <input type="checkbox" ng-model="metrics.engineConfig.padRunsWithMetrics" />
+            <span>
+                Compute metrics when there is not additional incurred cost
+            </span>
+        </label>
+        <div>
+            <button class="btn btn--secondary" ng-click="editRunSettings()">Edit computation settings</button>
+            <div ng-if="computationPlan" contextual-menu cep-position="align-right-top" ng-click="toggleContextualMenu($event)" style="cursor:pointer; position:relative; display: inline-block; margin-left: 10px;">
+                <span>Computations : {{totalCount}} metric{{totalCount>1?'s':''}} in {{computationPlan.length}} run{{computationPlan.length>1?'s':''}}&nbsp;<i class="icon-arrow-right "></i></span>
+                <div class="contextualMenu metrics-plan oa" ng-show="contextualMenu" style="z-index: 20;">
+                    <div ng-repeat="run in computationPlan">
+                        <div>On {{run.engineType}} ({{getEngineSpeed(run.engineType)}}):</div>
+                        <div class="metric-in-plan" ng-repeat="computation in run.computations">
+                            {{MetricsUtils.getMetricDisplayName(computation)}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="columnQuery || metricQuery" class="filter-box" custom-element-popup cep-position="align-left-bottom" close-on-click="true">
+            <button ng-click="togglePopover()" class="mainzone btn btn--secondary dropdown-toggle">Mass actions <span class="caret"></span></button>
+            <ul class="popover custom-element-popup-popover dropdown-menu">
+                <li><a ng-click="activateFilteredMetrics()">Activate</a></li>
+                <li><a ng-click="deactivateFilteredMetrics()">Deactivate</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="settings-block metrics-list" ng-repeat="availableProbe in availableProbes.probes" probe-preview >
+        <div ng-init="probe = availableProbe.probe;" class="horizontal-flex">
+            <h4 class="flex">
+                <label class="dku-toggle" >
+                    <input type="checkbox" ng-model="availableProbe.probe.enabled" ng-change="regenMetricsSet()" />
+                    <span/>
+                </label>
+                <i class="noflex icon-dku-python probe-icon" ng-if="probe.type == 'python'"></i>
+                <i class="noflex icon-list probe-icon" ng-if="probe.type == 'cell'"></i>
+                <i class="noflex icon-dku-sql probe-icon" ng-if="probe.type == 'sql_query'"></i>
+                <i class="noflex icon-puzzle-piece probe-icon" ng-if="probe.type.startsWith('py_plugin') || probe.type.startsWith('sql_plugin')"></i>
+                <span ng-show="!editing">{{getAvailableProbeName(availableProbe)}}</span>
+                <label style="display: inline-block">
+                    <input type="text" ng-model="availableProbe.probe.meta.name" ng-show="editing" ng-blur="editing = false" />
+                    <span ng-show="(probe.type == 'python' || probe.type == 'cell' || probe.type == 'sql_query' || probe.type.startsWith('py_plugin') || probe.type.startsWith('sql_plugin'))">
+                        <i class="icon-pencil" ng-click="editing = true" ng-show="!editing"></i>
+                        <i class="icon-trash" ng-click="removeProbe(availableProbe);"></i>
+                    </span>
+                </label>
+            </h4>
+
+            <div class="noflex compute-on-build" ng-if="!metricsCallbacks.isPartitioned()" ng-class="{'disabled-settings' : !availableProbe.probe.enabled}">
+                Auto compute after build:
+                <div class="btn-group">
+                    <button class="btn btn--secondary" ng-click="probe.computeOnBuildMode = 'NO'" ng-class="{'btn--active' : probe.computeOnBuildMode == 'NO'}">
+                        <span class="title">No</span>
+                    </button>
+                    <button class="btn btn--secondary" ng-click="probe.computeOnBuildMode = 'PARTITION'" ng-class="{'btn--active' : probe.computeOnBuildMode == 'PARTITION'}">
+                        <span class="title">Yes</span>
+                    </button>
+                </div>
+            </div>
+
+
+            <div class="noflex compute-on-build" ng-if="metricsCallbacks.isPartitioned() && availableProbe.probe.type == 'partitioning'" ng-class="{'disabled-settings' : !availableProbe.probe.enabled}">
+                Auto compute after build:
+                <div class="btn-group">
+                    <button class="btn btn--secondary" ng-click="probe.computeOnBuildMode = 'NO'" ng-class="{'btn--active' : probe.computeOnBuildMode == 'NO'}">
+                        <span class="title">No</span>
+                    </button>
+                    <button class="btn btn--secondary" ng-click="probe.computeOnBuildMode = 'WHOLE_DATASET'" ng-class="{'btn--active' : probe.computeOnBuildMode == 'WHOLE_DATASET'}">
+                        <span class="title">Yes</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="noflex compute-on-build" ng-if="metricsCallbacks.isPartitioned() && availableProbe.probe.type != 'partitioning'" ng-class="{'disabled-settings' : !availableProbe.probe.enabled}">
+                Auto compute after build:
+                <div class="btn-group">
+                    <button class="btn btn--secondary" ng-click="probe.computeOnBuildMode = 'NO'" ng-class="{'btn--active' : probe.computeOnBuildMode == 'NO'}">
+                        <span class="title">no</span>
+                    </button>
+                    <button class="btn btn--secondary" ng-click="probe.computeOnBuildMode = 'PARTITION'" ng-class="{'btn--active' : probe.computeOnBuildMode == 'PARTITION'}">
+                        <span class="title">partitions</span>
+                    </button>
+                    <button class="btn btn--secondary" ng-click="probe.computeOnBuildMode = 'WHOLE_DATASET'" ng-class="{'btn--active' : probe.computeOnBuildMode == 'WHOLE_DATASET'}">
+                        <span class="title">whole dataset</span>
+                    </button>
+                    <button class="btn btn--secondary" ng-click="probe.computeOnBuildMode = 'BOTH'" ng-class="{'btn--active' : probe.computeOnBuildMode == 'BOTH'}">
+                        <span class="title">both</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="availableProbe.probe.type == 'verify_col' || availableProbe.probe.type == 'col_stats' || availableProbe.probe.type == 'adv_col_stats' || availableProbe.probe.type == 'percentile_stats'"
+            ng-controller="MassMetricSelectionController" ng-class="{'disabled-settings' : !availableProbe.probe.enabled}">
+
+            <div class="metrics-columns-selection" filtered-multi-select-rows ng-model="availableProbe.hint.columns">
+                <div class="tools">
+                    <span class="mass">
+                        <input type="checkbox"
+                            ng-model="selection.all"
+                            dku-indeterminate="selection.some"
+                            ng-change="updateMassSelectionCheckbox()"
+                        />
+                    </span>
+
+                    <button
+                            dku-inline-popup
+                            ng-click="recomputeAggregationStates()"
+                            class="btn btn--secondary"
+                            ng-disabled="selection.none"
+                            toggle="tooltip-bottom"
+                            style="padding-right: 20px;">
+                        <label>
+                            ACTIONS
+                            <span class="caret"></span>
+                        </label>
+                        <content class="mass-popup">
+                            <ul>
+                                <li>
+                                    <small>Enable/disable aggregations</small>
+                                </li>
+                                <li ng-repeat="metric in availableProbe.hint.columns[0].metrics track by $index">
+                                    <label><input
+                                            type="checkbox"
+                                            ng-model="aggregation.all[metric.aggregated]"
+                                            dku-indeterminate="aggregation.some[metric.aggregated]"
+                                            ng-change="massAction(metric.aggregated)"
+                                            ng-disabled="aggregation.disabled[metric.aggregated]"
+                                            style="margin: 0 4px" />
+                                    <span ng-class="{disabled:aggregation.disabled[metric.aggregated]}">{{metric.name}}</span></label>
+                                </li>
+                            </ul>
+                        </content>
+                    </button>
+
+                    <span>
+                        {{selection.selectedObjects.length}} / {{selection.allObjects.length}}
+                    </span>
+
+                    <span class="filter std-list-search-box">
+                        <i class="icon icon-search" />
+                        <input type="search" ng-model="selection.filterQuery.column" placeholder="Filter column...">
+                    </span>
+
+
+                </div>
+
+                <div class="aggregations-wrapper">
+                    <div class="aggregations"
+                        fat-repeat="selection.filteredObjects"
+                        as="column"
+                        row-height="35"
+                        style="white-space: nowrap; height: {{availableProbe.hint.columns.length*35}}px;outline:none;"
+                        tabindex="0"
+                        style="outline:none"
+                        ng-keydown="multiSelectKeydown($event, true)">
+                        <div class="aggregation" ng-class="{focused: selection.selectedObject === column,selected: column.$selected}" full-click>
+                            <div class="unselectable">
+                                <span style="display:none;" main-click ng-click="objectClicked(column, $event)"></span> <!-- because checkbox click is prioritary -->
+                                <div class="mass unselectable">
+                                    <input type="checkbox" ng-model="column.$selected" ng-click="checkBoxChanged(column, $event)">
+                                </div>
+                            </div>
+                            <div class="unselectable column-name">
+                                {{column.column}}
+                            </div>
+                            <div ng-repeat="metric in column.metrics track by $index" class="metric">
+                                <label class="dku-labelled-toggle">
+                                    <input type="checkbox"
+                                        ng-model="metric.active"
+                                        ng-change="regenMetricsSet()"
+                                        ng-disabled="metric.disabled"/>
+                                    <span>{{metric.name}}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="availableProbe.probe.type == 'python'" class="python" ng-class="{'disabled-settings' : !availableProbe.probe.enabled}">
+            <div code-env-selection-form="availableProbe.probe.configuration.envSelection" env-lang="'PYTHON'" selection-label="'Code env'" style="margin-bottom: 20px;"></div>
+            <textarea ng-model="availableProbe.probe.configuration.code" ui-codemirror="pythonEditorOptions"></textarea>
+        </div>
+
+        <div ng-if="availableProbe.probe.type == 'sql_query'" class="sql-query" ng-class="{'disabled-settings' : !availableProbe.probe.enabled}">
+            <label ng-if="isHive">
+                <span>Can run on Impala</span>
+                <input type="checkbox" ng-model="availableProbe.probe.configuration.canRunOnImpala" ></input>
+            </label>
+            <label style="display: inline-block;">
+                <span>Is a single aggregate</span>
+                <input type="checkbox" ng-model="availableProbe.probe.configuration.singleAggregate" ></input>
+            </label>
+            <label style="display: inline-block;" ng-if="availableProbe.probe.configuration.singleAggregate">
+                <span>per column</span>
+                <input type="checkbox" ng-model="availableProbe.probe.configuration.perColumn" ></input>
+            </label>
+
+            <div class="horizontal-flex">
+                <div class="noflex metrics-columns-selection" ng-if="availableProbe.probe.configuration.singleAggregate && availableProbe.probe.configuration.perColumn"
+                    filtered-multi-select-rows
+                    ng-model="availableProbe.hint.columns"
+                    ng-controller="MassMetricSelectionController">
+                    <div class="tools" >
+                        <span class="mass">
+                            <input type="checkbox"
+                                ng-model="selection.all"
+                                dku-indeterminate="selection.some"
+                                ng-change="updateMassSelectionCheckbox();setMetricStateFromSelected()"
+                            />
+                        </span>
+                        <span class="filter std-list-search-box">
+                            <i class="icon icon-search" />
+                            <input type="search" ng-model="selection.filterQuery.column" placeholder="Filter column...">
+                        </span>
+                    </div>
+
+                    <div>
+                        <div class="fattable-default-style" fat-repeat="selection.filteredObjects" as="column" row-height="35" style="max-height:300px;height: {{availableProbe.hint.columns.length*35}}px;outline:none;" tabindex="0" style="outline:none" ng-keydown="multiSelectKeydown($event, true)">
+                            <div class="aggregation mx-textellipsis" ng-class="{focused: selection.selectedObject === column,selected: column.$selected}" full-click>
+                                <div class="unselectable">
+                                    <span style="display:none;" main-click ng-click="objectClicked(column, $event)"></span> <!-- because checkbox click is prioritary -->
+                                    <div class="mass" >
+                                        <input type="checkbox" ng-model="column.$selected" ng-click="checkBoxChanged(column, $event).then(setMetricStateFromSelected)">
+                                        {{column.column}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex" style="min-height: 200px;">
+                   <div class="fh">
+                       <textarea ng-model="availableProbe.probe.configuration.code" ui-codemirror="sqlEditorOptions"></textarea>
+                   </div>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="availableProbe.probe.type == 'cell'" class="cell-value" ng-class="{'disabled-settings' : !availableProbe.probe.enabled}">
+
+            <div class="alert alert-info">
+                <p>This probe creates metrics that are the values of one or more cells from the dataset itself. This allows you to
+                display dataset values directly as metrics, with historization.</p>
+
+                <p>You select which row will be used by defining a filter over the dataset, and a policy for selecting
+                the row to use when multiple rows match the filter. As an advanced option, you can use several rows, and
+                this will create an array metric instead of a single value metric.</p>
+
+                <p>You can select multiple columns to create several metrics at once, for the same row(s)</p>
+            </div>
+            <div class="row-fluid">
+
+                <div class="span8">
+                    <h5>Row(s) selection</h5>
+                    <div style="min-height: 200px">
+                        <label>
+                            <input type="checkbox" ng-model="availableProbe.probe.configuration.filter.enabled" />
+                            Enable filter
+                        </label>
+                        <div filter-editor ng-show="availableProbe.probe.configuration.filter.enabled"
+                                    filter-desc="availableProbe.probe.configuration.filter"
+                                    dataset="datasetFullInfo.name"
+                                    schema="datasetFullInfo.dataset.schema"
+                                    hide-sql-filter="!isSql && !isHive"
+                                    />
+                    </div>
+                    <label>
+                        <span>Use this output of the filter</span>
+                        <select ng-model="availableProbe.probe.configuration.mode" ng-options="x[0] as x[1] for x in cellProbeRowSelectionModes" options-descriptions="cellProbeRowSelectionModesDesc" layout="list" dku-bs-select />
+                    </label>
+                </div>
+                <div class="span4">
+                    <h5>Column(s) selection</h5>
+                    <div class="noflex metrics-columns-selection"
+                    filtered-multi-select-rows
+                    ng-model="availableProbe.hint.columns"
+                    ng-controller="MassMetricColumnSelectionController">
+                        <div class="tools" >
+                            <span class="mass">
+                                <input type="checkbox"
+                                    ng-model="selection.all"
+                                    dku-indeterminate="selection.some"
+                                    ng-change="updateMassSelectionCheckbox();setMetricStateFromSelected()"
+                                />
+                            </span>
+                            <span class="filter std-list-search-box">
+                                <i class="icon icon-search" />
+                                <input type="search" ng-model="selection.filterQuery.column" placeholder="Filter column...">
+                            </span>
+                        </div>
+
+                        <div>
+                            <div class="fattable-default-style" fat-repeat="selection.filteredObjects" as="column" row-height="35" style="max-height:300px;height: {{availableProbe.hint.columns.length*35}}px;outline:none;" tabindex="0" style="outline:none" ng-keydown="multiSelectKeydown($event, true)">
+                                <div class="aggregation mx-textellipsis" ng-class="{focused: selection.selectedObject === column,selected: column.$selected}" full-click>
+                                    <div class="unselectable">
+                                        <span style="display:none;" main-click ng-click="objectClicked(column, $event)"></span> <!-- because checkbox click is prioritary -->
+                                        <div class="mass" >
+                                            <input type="checkbox" ng-model="column.$selected" ng-click="checkBoxChanged(column, $event).then(setMetricStateFromSelected)">
+                                            {{column.column}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="availableProbe.probe.type.startsWith('py_plugin')" class="python" ng-class="{'disabled-settings' : !availableProbe.probe.enabled}">
+            <div plugin-probe-config probe-type="availableProbe.probe.type" probe-config="availableProbe.probe.configuration">
+                   <div custom-params-form desc="loadedDesc.desc" plugin-desc="pluginDesc" component-id="loadedDesc.id" config="probeConfig.config" />
+            </div>
+        </div>
+        <div ng-if="availableProbe.probe.type.startsWith('sql_plugin')" class="sql-query" ng-class="{'disabled-settings' : !availableProbe.probe.enabled}">
+            <div class="horizontal-flex" plugin-probe-config probe-type="availableProbe.probe.type" probe-config="availableProbe.probe.configuration">
+                <div class="noflex metrics-columns-selection"
+                    ng-if="loadedDesc.desc.singleAggregate && loadedDesc.desc.perColumn"
+                    ng-controller="MassMetricSelectionController"
+                    filtered-multi-select-rows
+                    ng-model="availableProbe.hint.columns"
+                    style="margin-right: 20px;">
+                    <div class="tools">
+                        <span class="mass">
+                            <input type="checkbox"
+                                ng-model="selection.all"
+                                dku-indeterminate="selection.some"
+                                ng-change="updateMassSelectionCheckbox()"
+                            />
+                        </span>
+
+
+                        <span class="filter std-list-search-box">
+                            <i class="icon icon-search" />
+                            <input type="search" ng-model="selection.filterQuery.column" placeholder="Filter column...">
+                        </span>
+                    </div>
+
+                    <div>
+                        <div class="fattable-default-style" fat-repeat="selection.filteredObjects" as="column" row-height="35" style="max-height:300px;height: {{availableProbe.hint.columns.length*35}}px;outline:none" tabindex="0" style="outline:none" ng-keydown="multiSelectKeydown($event, true)">
+                            <div class="aggregation mx-textellipsis" ng-class="{focused: selection.selectedObject === column,selected: column.$selected}" full-click>
+                                <div class="unselectable">
+                                    <span style="display:none;" main-click ng-click="objectClicked(column, $event)"></span> <!-- because checkbox click is prioritary -->
+                                    <div class="mass" >
+                                        <input type="checkbox" ng-model="column.$selected" ng-click="checkBoxChanged(column, $event).then(setMetricStateFromSelected)">
+                                        {{column.column}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex">
+                    <form class="dkuform-horizontal" name="customConfigForm">
+                        <div plugin-probe-config probe-type="availableProbe.probe.type" probe-config="availableProbe.probe.configuration">
+                            <div custom-params-form desc="loadedDesc.desc" plugin-desc="pluginDesc" component-id="loadedDesc.id" config="probeConfig.config" />
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <div ng-if="canPreview && availableProbe.probe.enabled" class="alert check-preview-block" style="margin-top: 10px;"
+             ng-class="{'disabled-settings' : !availableProbe.probe.enabled, 'alert-info' : !computing && !runResult && !fatalAPIError && !errorRunsCount, 'alert-success' : runResult && !(fatalAPIError || errorRunsCount > 0), 'alert-warning' : computing, 'alert-danger': fatalAPIError || errorRunsCount > 0}">
+
+            <p class="pull-right" ng-show="computing">
+                <a ng-click="showProgressModal(computing)" class="alert-link">See progress</a>
+                <i class="icon-spinner icon-spin" />
+            </p>
+
+            <p class="pull-right" ng-show="fatalAPIError">
+                <span class="alert-link">Failed</span>
+            </p>
+
+            <div ng-if="runResult" class="pull-right" contextual-menu cep-position="align-right-bottom" ng-click="toggleContextualMenu($event)" style="cursor:pointer; position:relative; display: inline-block;">
+                <span>Last run results <i class="icon-arrow-down"></i></span>
+                <div class="contextualMenu last-metrics-run-results oa" ng-show="contextualMenu" style="z-index: 20;">
+                    <div>Started {{runResult.startTime | date:'yyyy/MM/dd HH:mm'}}, finished {{runResult.endTime | date:'yyyy/MM/dd HH:mm'}}</div>
+                    <div ng-repeat="computed in resultingMetrics">
+                        Computed : {{computed.metricId}} = {{computed.value}}
+                    </div>
+                    <div ng-if="resultingPartitions">
+                        Computed {{resultingPartitions.partitions.length}} partitions in {{allRuns.length}} runs ({{errorRunsCount}} errors)
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-target-group" ng-if="true">
+                <a ng-show="!testEnabled" ng-click="testEnabled = true">Click to run this now</a>
+                <div ng-show="testEnabled">
+                <button ng-if="!metricsCallbacks.isPartitioned()" ng-click="computeProbe(availableProbe.probe)" class="btn btn--secondary">
+                    <i class="icon-play" />&nbsp;Run
+                </button>
+                <p ng-if="metricsCallbacks.isPartitioned()" class="dibvam" style="margin: 0">Run on:</p>
+
+                <ul ng-if="metricsCallbacks.isPartitioned()" class="btn-group" style="display:inline-block; margin-right: 10px; ">
+                    <button class="btn btn--secondary" ng-click="previewSettings.mode='ALL';"
+                            ng-class="{'btn--active' : previewSettings.mode === 'ALL'}" ng-disabled="computing">
+                        whole dataset
+                    </button>
+
+                    <button class="btn btn--secondary" ng-click="previewSettings.mode='PARTITIONS';"
+                            ng-class="{'btn--active' : previewSettings.mode === 'PARTITIONS'}" ng-disabled="computing">
+                        all partitions
+                    </button>
+
+                    <button class="btn btn--secondary" ng-click="previewSettings.mode='PARTITION';"
+                            ng-class="{'btn--active' : previewSettings.mode === 'PARTITION'}" ng-disabled="computing">
+                        single partition
+                    </button>
+                </ul>
+
+                <div ng-if="metricsCallbacks.isPartitioned() && previewSettings.mode === 'PARTITION'" class="list-customfilter-box" style="display: inline-block">
+                    <select dku-bs-select="{liveSearch:true,size:'auto', 'style':'dku-select-button'}"
+                            ng-model="previewSettings.partition"
+                            ng-options="p for p in metricsPartitionsIdsExcludingAll"></select>
+                    <a ng-click="refreshMetricsPartitions()"><span class="right-add-on">
+                        <i ng-class="{'icon-refresh': true, 'icon-spin': refreshing}"></i>
+                    </span></a>
+                </div>
+
+                <button ng-if="metricsCallbacks.isPartitioned()" class="btn btn--secondary" ng-click="computeProbe(availableProbe.probe)"
+                        ng-disabled="computing || (previewSettings.mode === 'PARTITION' && !previewSettings.partition)">
+                    <i class="icon-play" />&nbsp;Run
+                </button>
+                </div>
+            </div>
+
+            <div ng-if="fatalAPIError" block-api-error ></div>
+
+            <div class="preserve-eol" ng-if="previewErrorRun.error" style="margin-top: 10px;">
+                <i class="icon-warning-sign" />&nbsp;{{previewErrorRun.error.clazz}} : <span class="preserve-eol">{{previewErrorRun.error.message}}</span>
+                <div class="stack" ng-click="previewErrorRun.expandError = !previewErrorRun.expandError"><i class="icon-eye"></i>&nbsp;Stacktrace</div>
+            </div>
+            <div class="preserve-eol stack" ng-if="previewErrorRun.error && previewErrorRun.expandError" >{{previewErrorRun.error.stack}}</div>
+            <div ng-if="previewErrorRun.logTail != null && previewErrorRun.logTail.lines.length > 0" ng-click="previewErrorRun.showLog = !previewErrorRun.showLog"><i class="icon-eye"></i> Log</div>
+            <div class="preserve-eol stack"  ng-if="previewErrorRun.showLog" >
+                <div ng-repeat="line in previewErrorRun.logTail.lines track by $index">{{line}}</div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="add-probe-button" ng-show="appConfig.licensedFeatures.advancedMetricsChecksAllowed || appConfig.licensing.ceEntrepriseTrial">
+        <button ng-if="datasetFullInfo" class="btn btn--secondary" ng-click="addProbe('cell')">New cell value probe</button>
+        <button class="btn btn--secondary" ng-click="addProbe('python')">New Python probe</button>
+        <button ng-if="isSql || isHive" class="btn btn--secondary" ng-click="addProbe('sql_query')">New SQL query probe</button>
+        <div style="display: inline-block" new-custom-probe-menu title="New custom probe"/>
+    </div>
+
+    <div style="margin: 10px 20px;" feature-locked feature-name="'Custom Python and SQL metrics'" ng-if="!(appConfig.licensedFeatures.advancedMetricsChecksAllowed || appConfig.licensing.ceEntrepriseTrial)"/>
+
+</div>

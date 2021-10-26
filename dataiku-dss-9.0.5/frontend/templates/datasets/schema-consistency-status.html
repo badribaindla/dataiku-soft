@@ -1,0 +1,112 @@
+<div ng-if="consistency && consistency.empty && currentSchema.columns.length" class="alert alert-info">This dataset is empty
+    <button class="btn btn--secondary" ng-click="checkConsistency()"><i class="icon-refresh" /> Check again</button>
+</div>
+
+<div ng-if="!consistency && !schemaJustModified && currentSchema.columns.length" class="alert alert-info">
+    You can check that the schema is consistent with the dataset.
+    <button class="btn btn--secondary" ng-click="checkConsistency()">Check now</button>
+</div>
+
+<div ng-if="schemaJustModified && currentSchema.columns.length" class="alert alert-info">
+    You modified the schema of the dataset. It is recommended to check its consistency.
+    <button class="btn btn--secondary" ng-click="checkConsistency()">Check now</button>
+</div>
+
+<div ng-if="!schemaJustModified && (consistency.result.warningLevel == 'WARN' || consistency.result.warningLevel == 'INFO') && currentSchema.columns.length">
+	<div ng-if="consistency.result.type =='TEXT_POSITION_BASED_FIXED_COLUMNS' || consistency.result.type == 'TEXT_POSITION_BASED_VARIABLE_COLUMNS'"
+            class="alert" ng-class="'alert-' + (consistency.result.warningLevel == 'WARN' ? 'warning':'info')" >
+		The schema of the dataset does not match the data
+		<ul >
+			<li ng-repeat="reason in consistency.result.textReasons">{{reason}}</li>
+		</ul>
+
+		<div class="pull-right">
+			<button class="btn btn--secondary" ng-click="checkConsistency()"><i class="icon-refresh" /> Check again</button>
+			<button class="pull-right btn btn--danger" ng-click="discardConsistencyError()">Ignore error</button>
+		</div>
+
+		<button class="btn btn--secondary" ng-click="overwriteSchema(consistency.result.detectedSchema);">Reload schema from detected data</button>
+		<button ng-if="managed" class="btn btn--danger" ng-click="clearManagedDataset()">Clear dataset</button>
+	</div>
+
+	<div ng-if="consistency.result.type =='FIXED_TYPE_AND_SCHEMA'" class="alert" ng-class="'alert-' + (consistency.result.warningLevel == 'WARN' ? 'warning':'info')" >
+		The columns in the schema do not match detected columns in data
+		<ul style="max-height: 150px; overflow: auto">
+			<li ng-repeat="c in consistency.result.detectedButNotInSchema">Detected but not in schema: {{c}}</li>
+			<li ng-repeat="c in consistency.result.inSchemaButNotDetected">In schema but not detected: {{c}}</li>
+		</ul>
+		<div class="pull-right">
+			<button class="btn btn--secondary" ng-click="checkConsistency()"><i class="icon-refresh" /> Check again</button>
+			<button class="pull-right btn btn--danger" ng-click="discardConsistencyError()">Ignore inconsistencies</button>
+		</div>
+
+		<button class="btn btn--secondary" ng-click="overwriteSchema(consistency.result.detectedSchema);">Reload schema from detected data</button>
+		<button ng-if="managed" class="btn btn--danger" ng-click="clearManagedDataset()">Clear dataset</button>
+	</div>
+
+	<div ng-if="consistency.result.type =='NAME_BASED_VARIABLE_COLUMNS'" class="alert alert-info" >
+		The columns in the schema do not match detected columns in data
+		<ul style="max-height: 150px; overflow: auto">
+			<li ng-repeat="c in consistency.result.detectedButNotInSchema">Detected but not in schema: {{c}}</li>
+			<li ng-repeat="c in consistency.result.inSchemaButNotDetected">In schema but not detected: {{c}}</li>
+		</ul>
+		<div class="pull-right">
+			<button class="btn btn--secondary" ng-click="checkConsistency()"><i class="icon-refresh" /> Check again</button>
+			<button class="pull-right btn btn--danger" ng-click="discardConsistencyError()">Ignore inconsistencies</button>
+		</div>
+
+		<button class="btn btn--secondary" ng-click="overwriteSchema(consistency.result.detectedSchema);">Reload schema from detected data</button>
+		<button ng-if="managed" class="btn btn--danger" ng-click="clearManagedDataset()">Clear dataset</button>
+	</div>
+</div>
+
+<div ng-if="!schemaJustModified && consistency.result.warningLevel == 'FATAL' && currentSchema.columns.length">
+	<div ng-if="consistency.result.type =='FIXED_TYPE_AND_SCHEMA'" class="alert alert-error" >
+		<span ng-if="consistency.kind == 'sql' || consistency.kind == 'cassandra'">
+			The schema of the dataset does not match the table
+		</span>
+		<span ng-if="consistency.kind == 'generic' || consistency.kind == 'mongodb' || consistency.kind == 'files'">
+			The schema of the dataset does not match the data
+		</span>
+
+		<ul style="max-height: 150px; overflow: auto">
+			<li ng-repeat="reason in consistency.result.textReasons">{{reason}}</li>
+		</ul>
+
+		<div class="pull-right">
+			<button class="btn btn--secondary" ng-click="checkConsistency()"><i class="icon-refresh" /> Check again</button>
+			<button class="pull-right btn btn--danger" ng-click="discardConsistencyError()">Ignore error</button>
+		</div>
+
+		<button class="btn btn--secondary" ng-click="overwriteSchema(consistency.result.detectedSchema);">
+			<span ng-if="consistency.kind == 'sql' || consistency.kind == 'cassandra'">
+				Reload schema from table
+			</span>
+			<span ng-if="consistency.kind == 'generic' || consistency.kind == 'mongodb' || consistency.kind == 'files'">
+				Reload schema using detected data
+			</span>
+		</button>
+		<button ng-if="managed" class="btn btn--danger" ng-click="clearManagedDataset()">Clear dataset</button>
+	</div>
+</div>
+
+<div ng-if="!schemaJustModified && consistency && !consistency.result.warningLevel && !consistency.empty && currentSchema.columns.length">
+	<div class="alert alert-success">
+		Schema and data are consistent.
+		<button class="btn btn--secondary" ng-click="checkConsistency()"><i class="icon-refresh" /> Check again</button>
+	</div>
+</div>
+
+<div ng-if="!currentSchema.columns.length">
+	<div class="alert">
+		Schema is empty.
+		<div>
+			<button class="btn btn--secondary" ng-show="consistency.result.detectedSchema.columns.length" ng-click="overwriteSchema(consistency.result.detectedSchema);">
+				Reload schema using detected data
+			</button>
+			<button class="btn btn--secondary" ng-click="checkConsistency()">
+				Check data
+			</button>
+		</div>
+	</div>
+</div>

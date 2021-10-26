@@ -1,0 +1,51 @@
+<div class="modal modal3">
+    <form class="dkuform-modal-wrapper" global-keydown="{'esc': 'cancel();' }">
+        <input type="hidden" autofocus="true" />
+        <dku-modal-header modal-title="Changing {{change}}" modal-close="cancel"></dku-modal-header>
+        <div block-api-error/>
+        <div class="modal-body tight-body" >
+            <p class="modal-accent-font">Do you want to keep your settings or have them all re-detected?</p>
+            <div class="alert alert-info" ng-if="loseMetrics || loseAlgo || loseWeight || loseArchitecture || loseAssertions">
+                Even if you choose the KEEP SETTINGS option, the following settings will be lost:
+                <ul>
+                <li ng-if="loseAlgo">
+                    <strong>Algorithms</strong>
+                    &mdash; not the same between classification &amp; regression
+                </li>
+                <li ng-if="loseArchitecture">
+                    <strong>Architecture</strong>
+                    &mdash;  the current code will be commented
+                </li>
+                <li ng-if="loseMetrics">
+                    <strong>Metrics</strong>
+                    &mdash; not the same between the different prediction types
+                </li>
+                <li ng-if="loseWeight && change === 'target'">
+                    <strong>Weighting strategy</strong>
+                    &mdash; the target variable cannot be the sample weight
+                </li>
+                <li ng-if="loseWeight && change === 'prediction type'">
+                    <strong>Weighting strategy</strong>
+                    &mdash; regression cannot use class weight
+                </li>
+                <li ng-if="loseAssertions">
+                    <strong>Assertions</strong>
+                    &mdash; depend on prediction type &amp; target
+                </li>
+                </ul>
+            </div>
+            <label class="checkbox" ng-if="newName">
+                <input type="checkbox" ng-model="renameMLTask"/>
+                Rename <strong>{{mlTaskDesign.name}}</strong> to <strong>{{newName}}</strong>
+            </label>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <div class="pull-right">
+                <button type="button" class="btn btn--text btn--secondary" ng-click="cancel();">Cancel</button>
+                <button type="button" class="btn btn--text btn--primary" ng-click="confirm(false);">Keep settings</button>
+                <button type="button" class="btn btn--text btn--danger" ng-click="confirm(true);">Re-detect settings</button>
+            </div>
+        </div>
+    </form>
+
+</div>

@@ -1,0 +1,50 @@
+<div class="recipe-settings-section1 pad16 mtop0">
+    <div class="recipe-settings-section2 pad0" ng-if="!distinctOptionDisabled">
+        <h1 class="recipe-settings-section1-title pad0">
+            Distinct rows
+            <label
+                title="{{!recipeStatus || recipeStatus.selectedEngine.canDistinctSelect ? 'Remove duplicate rows' : 'Not available with this engine'}}"
+                class="dku-toggle pull-right"
+                ng-class="{disabled: recipeStatus && !recipeStatus.selectedEngine.canDistinctSelect}"
+                toggle="tooltip"
+                >
+                <input type="checkbox"
+                    ng-model="filterDesc.distinct"
+                    ng-change="hooks.updateRecipeStatus()"
+                    ng-disabled="recipeStatus && !recipeStatus.selectedEngine.canDistinctSelect"
+                    >
+                </input>
+                <span />
+            </label>
+        </h1>
+        <div class="dku-text text-weak mtop8">
+            {{ filterDesc.distinct ? "Duplicate rows will be removed." : "Duplicate rows are allowed."}}
+        </div>
+    </div>
+    <div class="recipe-settings-section2 pad0" ng-class="{'mtop16 padtop16': !distinctOptionDisabled}">
+        <h1 class="recipe-settings-section1-title pad0">
+            Filter
+            <label class="dku-toggle pull-right">
+                <input
+                    type="checkbox"
+                    ng-model="filterDesc.enabled"
+                    ng-change="updateRecipeStatusLater()"
+                    />
+                <span/>
+            </label>
+        </h1>
+        <div filter-editor
+            ng-if="filterDesc.enabled"
+            filter-desc="filterDesc"
+            dataset="dataset"
+            schema="schema"
+            must-run-in-database="recipeStatus && recipeStatus.selectedEngine && recipeStatus.selectedEngine.type != 'DSS'"
+            filter-update-callback="onFilterUpdate"
+            class="mtop8"
+        /> <!-- the 'hideSqlFilter' flag gets the default value (null transforms to false) unless the caller has set it already (vstack does) -->
+
+        <div ng-show="!filterDesc.enabled" class="dku-text text-weak mtop8">
+            Filters enable you to select only the rows that match a condition.
+        </div>
+    </div>
+</div>

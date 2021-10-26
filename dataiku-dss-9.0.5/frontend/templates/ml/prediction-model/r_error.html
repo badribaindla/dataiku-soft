@@ -1,0 +1,57 @@
+<div ng-controller="ErrorDistributionController" ng-if="modelData.perf.regression_performance">
+    <div class="row-fluid">
+        <div class="span8">
+            <table class="table error-distrib">
+                <tr>
+                    <th title="Minimum without clipping at quantile 0.02" ng-if="hasRawMinMax()">Min. (raw)</th>
+                    <th>Min.</th>
+                    <th>25<sup>th</sup> perc.</th>
+                    <th>Median</th>
+                    <th>75<sup>th</sup> perc.</th>
+                    <th>90<sup>th</sup> perc.</th>
+                    <th>Max. </th>
+                    <th title="Maximum without clipping at quantile 0.98" ng-if="hasRawMinMax()">Max. (raw)</th>
+                </tr>
+                <tr>
+                    <td ng-bind="raw_min" ng-if="hasRawMinMax()"/>
+                    <td ng-bind="min" />
+                    <td ng-bind="p25" />
+                    <td ng-bind="median" />
+                    <td ng-bind="p75" />
+                    <td ng-bind="p90" />
+                    <td ng-bind="max" />
+                    <td ng-bind="raw_max" ng-if="hasRawMinMax()"/>
+                </tr>
+                <tr>
+                    <th colspan="2">Average           </th>
+                    <td ng-bind="average" ng-attr-colspan="{{hasRawMinMax() ? '2' : '1' }}"/>
+                    <th colspan="2">Standard deviation</th>
+                    <td ng-bind="std" ng-attr-colspan="{{hasRawMinMax() ? '2' : '1' }}"/>
+                </tr>
+            </table>
+        </div>
+        <div class="span4 doctor-explanation">
+            <h1>Description</h1>
+            <p> The errors (difference between predicted and actual values) should be centered around zero,
+                and the distribution should be "narrow", i.e the spread of the error should be limited.
+                More generally, the errors should be "normally" distributed around zero (the curve should
+                look like a bell).</p>
+            <p>To reduce the effect of possible spurious outliers, error distribution is winsorized (clipped)
+                at the 2nd and 98th percentiles.</p>
+        </div>
+    </div>
+
+    <div style="height: 300px; width: 100%;">
+        <svg style="height: 100%; width: 100%" class="chart-std-font"
+            distribution-chart id="errorDistributionChartContainer" data="bars"
+            data-colors="[colors[0], '#999']" data-x-marks="[0]"></svg>
+    </div>
+
+    <p class="alert alert-warning" ng-if="modelData.trainInfo.kfold">
+        This model was evaluated using K-fold cross-test.
+        These results are for the first fold only.</p>
+</div>
+
+<div class="placeholder-block" ng-if="modelData.perf && !modelData.perf.regression_performance">
+    Error distribution data is not available.
+</div>

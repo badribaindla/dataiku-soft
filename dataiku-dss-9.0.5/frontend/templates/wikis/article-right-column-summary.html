@@ -1,0 +1,44 @@
+<div class="object-right-column-summary fh vertical-flex" ng-if="selection.selectedObject">
+    <div item-header
+        class="noflex"
+         href="articleHref"
+        color="universe-color article"
+        icon="icon-file-text"
+        title="{{selection.selectedObject.displayName}}">
+        {{selection.selectedObject.displayName}}
+    </div>
+
+    <div class="column-header-tabs noflex">
+        <div class="tab"
+            ng-class="{active: uiState.activeTab == 'details'}"
+            ng-click="uiState.activeTab = 'details'">
+            <div class="title">Details</div>
+        </div>
+        <div class="tab" ng-class="{active: uiState.activeTab == 'discussions'}" ng-click="uiState.activeTab = 'discussions'">
+            <div class="title">Discussions</div>
+        </div>
+        <div class="tab"
+            ng-class="{active: uiState.activeTab == 'actions'}"
+            ng-click="uiState.activeTab = 'actions'">
+            <div class="title">Actions</div>
+        </div>
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex">
+        <div class="fh" ng-switch="uiState.activeTab">
+            <div ng-switch-when="details" class="details-tab h100 oa">
+                <object-details
+                    object-type="ARTICLE"
+                    object-data="articleData"
+                    context="right-column"
+                    ng-inject="QuickView"
+                    hover-intent-callback="QuickView"
+                    editable="canWriteProject()"
+                />
+            </div>
+
+        </div>
+    </div>
+</div>

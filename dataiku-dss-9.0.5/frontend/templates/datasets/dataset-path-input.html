@@ -1,0 +1,34 @@
+<div>
+    <div ng-show="changeNeedsConfirm && !changeConfirmed">
+        <span>Changing this path could lead to datasets overlapping. </span><button class="btn btn--secondary" style="display: inline-block; margin: 5px;" ng-click="changeConfirmed = !changeConfirmed;">Edit anyway</button>
+    </div>
+    <div class="input-wrapper horizontal-flex noflex">
+        <span class="flex" on-smart-change="onManualInputChange()">
+            <input ng-disabled="browseActive || (changeNeedsConfirm && !changeConfirmed)" ng-model="path" type="text" style="width: 100%" />
+        </span>
+        <button type="button" ng-disabled="browseActive || (changeNeedsConfirm && !changeConfirmed)" class="btn btn--secondary noflex" ng-click="onToggleBrowse()">Browse&hellip;</button>
+    </div>
+
+    <div class="browse-path-dropdown flex" ng-if="browseActive">
+        <div class="fh" global-keydown="{'esc':'onCancelClick()', 'enter':'onOKClick()'}">
+            <div class="h100 vertical-flex">
+                <!-- File system explorer -->
+                <browse-path class="flex vertical-flex"
+                    title="{{title}}"
+                    path="navObj.browsePath"
+                    selected-items="navObj.selectedItems"
+                    browse-fn="browseFn"
+                    can-select-fn="canSelect"
+                    can-browse-fn="canBrowse"
+                    items-are-projects="false"
+                >
+                </browse-path>
+                <!-- Validation -->
+                <div class="actions">
+                    <button class="btn btn--secondary" ng-click="onCancelClick()">Cancel</button>
+                    <button class="btn btn--primary" ng-click="onOKClick()">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,23 @@
+<span>
+    <span base-type-selector schema-column="schemaColumn"></span>
+    <span ng-if="schemaColumn.type == 'string'" ng-init="schemaColumn.maxLength = schemaColumn.maxLength || -1">
+        <div custom-element-popup cep-position="align-left-bottom" cep-offset-left="-26" close-on-click="false" style="display: inline-block; font-size: 0.8em;">
+            <div class="mainzone dropdown-toggle" ng-click="togglePopover()" >
+                <span>(&hellip;)</span>
+            </div>
+            <div class="popover custom-element-popup-popover dropdown-menu dkuform-modal-horizontal qa_recipe_pivot-aggr-store-as" style="padding: 5px">
+                <span style="vertical-align: middle;">Max length:</span>
+                <input type="number" force-integer ng-model="schemaColumn.maxLength" style="vertical-align: middle;" />
+            </div>
+        </div>
+    </span>
+    <span ng-if="schemaColumn.type == 'array'">
+        &lt;<span aggregate-type-editor schema-column="schemaColumn.arrayContent"></span>&gt;
+    </span>
+    <span ng-if="schemaColumn.type == 'map'">
+        &lt;<span aggregate-type-editor schema-column="schemaColumn.mapKeys"></span>,<span aggregate-type-editor schema-column="schemaColumn.mapValues"></span>&gt;
+    </span>
+    <span ng-if="schemaColumn.type == 'object'">
+        {<span ng-repeat="objectField in schemaColumn.objectFields"><input type="text" ng-model="objectField.name"/>:<span aggregate-type-editor schema-column="objectField"></span>,</span><i ng-click="addObjectField()" class="icon-plus-sign add"></i>}
+    </span>
+</span>

@@ -1,0 +1,53 @@
+<div class="modal modal3 modal-fixed-height500 modal-wide notebook-creation-modal" ng-controller="NewNotebookFromFileModalController">
+    
+    <dku-modal-header modal-class="has-border">
+        <dku-modal-title>
+            <span>New Notebook from template on {{datasetSmartName}}</span>
+        </dku-modal-title>
+    </dku-modal-header>
+
+    <div class="pad16">
+        <div class="mbot16">
+            <p ng-show="appConfig.admin">
+                More templates are available through <a ng-click="dismiss()" href="{{$state.href('plugins')}}">plugins</a>.
+            </p>
+            <p ng-show="!appConfig.admin">
+                More templates are available through plugins.
+            </p>
+        </div>
+        <div class="dkuform oa form-new-notebook flex">        
+            <!-- Available notebooks template list -->
+            <ul class="selectable-items-list selectable-items-list--no-margins padright16">
+                <li ng-repeat="template in newTemplatedNotebook.availableTemplates" class="selectable-item selectable" 
+                    ng-click="newTemplatedNotebook.template = template" 
+                    ng-class="{selected: newTemplatedNotebook.template.id == template.id}">
+                    <span class="selection-indicator">
+                        <i class="icon-ok" title="active" ng-if="newTemplatedNotebook.template.id == template.id"></i>
+                    </span>
+                    <div>
+                        <span class="selectable-item__title">{{template.label}}</span>
+                        <div class="selectable-item__description">{{template.shortDesc}}</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Env of the new notebook -->
+        <div class="noflex control-group dkuform">
+            <label class="control-label" for="notebookContainer">Container</label>
+            <select dku-bs-select ng-model="newTemplatedNotebook.containerConf" ng-options="c.id as c.label for c in containerConfs" />
+        </div>
+    
+        <!-- Name of the new notebook -->
+        <div class="noflex dkuform">
+            <label class="control-label" for="newNotebookName">Name</label>
+            <input type="text" id="newNotebookName" ng-model="newTemplatedNotebook.baseName"
+                auto-focus="true" required ng-pattern="/^[^#.*/\\]+$/" placeholder="E.g. Analyze {{datasetSmartName}}" />
+            <div class="modal-footer modal-footer-std-buttons">
+                <div class="pull-right">
+                    <button type="submit" class="btn btn--text btn--primary" ng-disabled="newNotebookForm.$invalid" ng-click="createTemplatedNotebook()">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

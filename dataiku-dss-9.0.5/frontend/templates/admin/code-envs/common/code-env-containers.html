@@ -1,0 +1,96 @@
+<div class="h100 vertical-flex">
+    <div block-api-error/>
+    <div ng-if="!addLicInfo.containersLicensed" class="alert alert-error">
+        <i class="icon-warning-sign"/>&nbsp;Your license does not cover usage of containers
+    </div>
+
+    <div class="locked-feature" ng-if="appConfig.communityEdition">
+        <div class="banner">
+            Containers are not available with your
+            <span class="edition">Free Edition</span> license
+        </div>
+        <div include-no-scope="/templates/profile/community-vs-enterprise-try.html"></div>
+    </div>
+
+    <div class="noflex" ng-if="addLicInfo.containersLicensed">
+        <form class="dkuform-horizontal">
+            <div class="control-group">
+                <label class="control-label">Build for</label>
+                <div class="controls">
+                    <label>
+                        <input type="radio" ng-model="containerSelection" ng-model-options="{ getterSetter: true }" value="NONE" class="exclude-from-smart-change"/>
+                        None
+                    </label>
+                    <label>
+                        <input type="radio" ng-model="containerSelection" ng-model-options="{ getterSetter: true }" value="ALL" class="exclude-from-smart-change"/>
+                        All container configurations
+                    </label>
+                    <label>
+                        <input type="radio" ng-model="containerSelection" ng-model-options="{ getterSetter: true }" value="ALLOWED" class="exclude-from-smart-change"/>
+                        Selected container configurations
+                    </label>
+                </div>
+            </div>
+            <div class="control-group" ng-show="containerSelection() === 'ALLOWED'">
+                <div class="controls">
+                    <select dku-bs-select multiple="multiple" ng-model="codeEnv.containerConfs"
+                            ng-options="c for c in containerNames"></select>
+                </div>
+            </div>
+        </form>
+        <div class="alert alert-info" ng-show="containerSelection() === 'ALL' || (containerSelection() === 'ALLOWED' && codeEnv.containerConfs.length > 0)">
+            <span ng-show="codeEnv.allContainerConfs">Code environment images will be built for <strong>all current containers configurations</strong>.<br /></span>
+            You will have to update this code environment again when you edit these container configurations.
+        </div>
+        <div class="alert alert-error" ng-show="outdatedContainerConfs.length > 0 && containerSelection() !== 'ALL' ">
+            <h5>
+                <i class="icon-dku-error"></i>
+                Some of the container configurations you have chosen for this code environment do not exist anymore:
+            </h5>
+            <ul class="item-list">
+                <li ng-repeat="containerConf in outdatedContainerConfs">{{ containerConf }}</li>
+            </ul>
+            <button class="btn btn--secondary" ng-click="removeOutdatedContainerConfs()">Remove from selected containers</button>
+        </div>
+
+        <form class="dkuform-horizontal">
+            <div class="control-group">
+                <label class="control-label">Build for</label>
+                <div class="controls">
+                    <label>
+                        <input type="radio" ng-model="sparkKubernetesSelection" ng-model-options="{ getterSetter: true }" value="NONE" class="exclude-from-smart-change"/>
+                        None
+                    </label>
+                    <label>
+                        <input type="radio" ng-model="sparkKubernetesSelection" ng-model-options="{ getterSetter: true }" value="ALL" class="exclude-from-smart-change"/>
+                        All Spark-on-K8S configurations
+                    </label>
+                    <label>
+                        <input type="radio" ng-model="sparkKubernetesSelection" ng-model-options="{ getterSetter: true }" value="ALLOWED" class="exclude-from-smart-change"/>
+                        Selected Spark-on-K8S configurations
+                    </label>
+                </div>
+            </div>
+            <div class="control-group" ng-show="sparkKubernetesSelection() === 'ALLOWED'">
+                <div class="controls">
+                    <select dku-bs-select multiple="multiple" ng-model="codeEnv.sparkKubernetesConfs"
+                            ng-options="c for c in sparkKubernetesNames"></select>
+                </div>
+            </div>
+        </form>
+        <div class="alert alert-info" ng-show="sparkKubernetesSelection() === 'ALL' || (sparkKubernetesSelection() === 'ALLOWED' && codeEnv.sparkKubernetesConfs.length > 0)">
+            <span ng-show="codeEnv.allSparkKubernetesConfs">Code environment images will be built for <strong>all current Spark-on-K8S configurations</strong>.<br /></span>
+            You will have to update this code environment again when you edit these Spark-on-K8S configurations.
+        </div>
+        <div class="alert alert-error" ng-show="outdatedSparkKubernetesConfs.length > 0 && sparkKubernetesSelection() !== 'ALL' ">
+            <h5>
+                <i class="icon-dku-error"></i>
+                Some of the Spark-on-K8S configurations you have chosen for this code environment do not exist anymore:
+            </h5>
+            <ul class="item-list">
+                <li ng-repeat="sparkKubernetesConf in outdatedSparkKubernetesConfs">{{ sparkKubernetesConf }}</li>
+            </ul>
+            <button class="btn btn--secondary" ng-click="removeOutdatedSparkKubernetesConfs()">Remove from selected Spark-on-K8S</button>
+        </div>
+    </div>
+</div>

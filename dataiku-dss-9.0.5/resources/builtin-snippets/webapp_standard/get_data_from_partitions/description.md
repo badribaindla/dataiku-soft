@@ -1,0 +1,1 @@
+Only returns data from the given partitions

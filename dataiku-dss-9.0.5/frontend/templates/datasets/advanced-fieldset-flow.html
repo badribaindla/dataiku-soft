@@ -1,0 +1,121 @@
+<div class="container-fluid">
+	<h2 class="settings-section-title">Flow</h2>
+	<form class="dkuform-horizontal">
+		<div class="control-group">
+			<label class="control-label">Rebuild behavior</label>
+			<div class="controls">
+				<label>
+					<input type="radio" ng-model="dataset.flowOptions.rebuildBehavior" value="NORMAL" />
+					&nbsp; Normal
+				</label>
+				<label>
+					<input type="radio" ng-model="dataset.flowOptions.rebuildBehavior" value="EXPLICIT" />
+					&nbsp; Explicit
+					<span class="help-inline" ng-show="dataset.partitioning.dimensions.length">
+						Only rebuild an existing partition when it's explicitly asked
+					</span>
+					<span class="help-inline" ng-show="!dataset.partitioning.dimensions.length">
+						Only rebuild the dataset when it's explicitly asked
+					</span>
+				</label>
+				<label>
+					<input type="radio" ng-model="dataset.flowOptions.rebuildBehavior" value="WRITE_PROTECT" />
+					&nbsp; Write-protected
+					<span class="help-inline" ng-show="dataset.partitioning.dimensions.length">
+						Never rebuild an existing partition, even when explicitly asked
+					</span>
+					<span class="help-inline" ng-show="!dataset.partitioning.dimensions.length">
+						Never rebuild the dataset, even when explicitly asked
+					</span>
+				</label>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Cross-project build behavior</label>
+			<div class="controls">
+				<label>
+					<input type="radio" ng-model="dataset.flowOptions.crossProjectBuildBehavior" value="DEFAULT" />
+					&nbsp; Inherit global setting
+				</label>
+				<label>
+					<input type="radio" ng-model="dataset.flowOptions.crossProjectBuildBehavior" value="STOP" />
+					&nbsp; Stop at this dataset
+				</label>
+				<label>
+					<input type="radio" ng-model="dataset.flowOptions.crossProjectBuildBehavior" value="TRAVERSE" />
+					&nbsp; Continue recursion
+				</label>
+			</div>
+		</div>
+		<div class="control-group pipeline-config" disabled-if='!anyPipelineTypeEnabled()' toggle="tooltip"
+		     title="{{anyPipelineTypeEnabled() ? '': 'Pipelines must be enabled from the project settings'}}">
+			<label class="control-label">Virtualizable in build</label>
+			<div class="controls">
+				<label>
+					<input type="checkbox" ng-model="dataset.flowOptions.virtualizable" />
+					<span class="help-inline">
+						When building a merged pipeline, may the data of this dataset not be materialized? Strongly increases merged pipeline performance.
+					</span>
+				</label>
+			</div>
+		</div>
+
+		<div class="control-group" ng-show="dataset.partitioning.dimensions.length>0">
+			<label class="control-label">Missing partitions as empty</label>
+			<div class="controls">
+				<label>
+					<input type="checkbox" ng-model="dataset.partitioning.considerMissingRequestedPartitionsAsEmpty" />
+					<span class="help-inline">
+						<strong>WARNING: This option is experimental and unsupported. It will only work for some kinds of recipes and datasets</strong>. 
+                        When a missing partition is requested as source of a build, consider as empty instead of failing. Useful if you have "holes" in a time partitioning.
+                    </span>
+				</label>
+			</div>
+		</div>
+
+		<div class="control-group" ng-if="dataset.type && ['JobsDB', 'StatsDB'].indexOf(dataset.type) < 0">
+			<label class="control-label">Empty as not ready</label>
+			<div class="controls">
+				<label>
+					<input type="checkbox" ng-model="dataset.params.notReadyIfEmpty" />
+                    <span class="help-inline">
+					   If the dataset or partition is empty, consider it as not ready, so that the downstream recipes will not run.
+                    </span>
+				</label>
+			</div>
+		</div>
+
+		<div class="control-group" ng-if="dataset.partitioning.dimensions.length>0">
+			<label class="control-label">Flow epoch</label>
+			<div class="controls">
+				<label>
+					<input type="text" ng-model="dataset.flowOptions.flowEpoch" />
+                    <span class="help-inline">
+                        Advanced partitioning use cases.
+                    </span>
+				</label>
+			</div>
+		</div>
+
+		<div class="control-group" ng-if="!dataset.managed && ['Filesystem', 'HDFS', 'FTP', 'SFTP', 'SCP', 'HTTP', 'UploadedFiles', 'FilesInFolder'].indexOf(dataset.type) >= 0">
+			<label class="control-label">Change tracking</label>
+			<div class="controls">
+				<input type="text" ng-model="dataset.params.markerFile" placeholder="Name of marker file"></input>
+				<span class="help-inline">The dataset is considered modified whenever the marker file changes, independently of modifications on the actual dataset files</span>
+ 			</div>
+		</div>
+	</form>
+
+	<h2 class="settings-section-title">Custom properties</h2>
+	<form class="dkuform-horizontal">
+		<div class="control-group">
+			<label  class="control-label">Advanced properties</label>
+			<div class="controls">
+				<ng2-connection-properties-list [(items)]="dataset.dkuProperties"></ng2-connection-properties-list>
+				<span class="help-inline">
+					For specific use cases
+				</span>
+			</div>
+   		</div>
+	</form>
+</div>

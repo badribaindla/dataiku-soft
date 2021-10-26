@@ -1,0 +1,264 @@
+<div>
+    <div class="dss-page" ng-init="showInputScreen = true">
+        <div future-waiting response="listFuture" dku-if="listFuture && !listFuture.hasResult"></div>
+        <div ng-show="showInputScreen" class="fh">
+            <div class="h100 vertical-flex">
+                <div block-api-error></div>
+                <div class="flex center-children">
+                    <div>
+                        <div style="max-width: 800px">
+                            <div info-messages-raw-list-with-alert="massImportSourcesResult.messages"></div>
+                        </div>
+                        <div style="margin-top: 10px; text-align: initial;">
+                            <form class="dkuform-horizontal spark-override-config">
+                                <div class="control-group">
+                                    <label class="control-label"><h5 style="display:inline-block; margin: 0">Connection to browse</h5></label>
+                                    <div class="controls">
+                                        <select dku-bs-select="{liveSearch:true}"
+                                                title="Connection"
+                                                ng-model="connection"
+                                                ng-options="connection as connection.displayName | connectionNameFormatter group by connection.type for connection in connections | orderBy:'type + displayName'"
+                                                ng-required></select>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="!isHdfs && isCatalogAware()">
+                                    <label class="control-label"><h5 style="display:inline-block; margin: 0" ng-switch="connection.type">
+                                        <span ng-switch-when="BigQuery">Restrict to BigQuery project</span>
+                                        <span ng-switch-when="Snowflake">Restrict to database</span>
+                                        <span ng-switch-default>Restrict to catalog</span>
+                                    </h5></label>
+                                    <div class="controls">
+                                        <select dku-bs-select="{liveSearch:true}"
+                                                title="Any"
+                                                ng-model="catalog"
+                                                ng-options="catalog.catalog as catalog.label for catalog in catalogs"
+                                                ng-required></select>
+                                        <div ng-if="connection != null && connectionOfSchemas == null" style="display: inline-block; width: 30px;" ng-click="fetchSchemas()"><i class="icon-refresh"></i></div>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="!isHdfs">
+                                    <label class="control-label"><h5 style="display:inline-block; margin: 0" ng-switch="connection.type">
+                                        <span ng-switch-when="BigQuery">Restrict to BigQuery dataset</span>
+                                        <span ng-switch-default>Restrict to schema</span>
+                                    </h5></label>
+                                    <div class="controls">
+                                        <select dku-bs-select="{liveSearch:true}"
+                                                title="Any"
+                                                ng-model="schema"
+                                                ng-options="schema.schema as schema.label for schema in schemas"
+                                                ng-required></select>
+                                        <div ng-if="connection == null || connectionOfSchemas != null" style="display: inline-block; width: 30px;"></div>
+                                        <div ng-if="connection != null && connectionOfSchemas == null" style="display: inline-block; width: 30px;" ng-click="fetchSchemas()"><i class="icon-refresh"></i></div>
+                                    </div>
+                                </div>
+                            </form>
+                            <button type="button" class="btn btn--primary btn--large" ng-click="refreshList()" ng-disabled="listFuture || !connection">List tables</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div ng-show="!showInputScreen" class=" container-fluid page-top-padding fh h100 oa">
+            <div class="h100">
+                <div class="h100 sql-mass-import" filtered-multi-select-rows ng-model="massImportData.tables" select-click-behaviour="select-add">
+                    <div class="vertical-flex h100">
+                        <div block-api-error></div>
+                        <!--region top connection/schema selector-->
+                        <div style="display: flex; margin-bottom: 20px; align-items: center; margin: 0; flex-shrink: 0;margin-bottom: 10px;">
+                            <label style="display: flex; align-items: center; margin-bottom: 0"><span style="margin-right: 5px">Connection</span>
+                                <select dku-bs-select="{liveSearch:true}"
+                                        ng-model="connection"
+                                        ng-options="connection as connection.displayName group by connection.type for connection in connections | orderBy:'type + displayName'"
+                                        ng-required></select>
+                            </label>
+                            <label ng-show="!isHdfs && isCatalogAware()" style="display: flex; align-items: center; margin-bottom: 0">
+                                <span style="margin-right: 5px; margin-left: 20px" ng-switch="connection.type">
+                                    <span ng-switch-when="BigQuery">BigQuery Project / Dataset</span>
+                                    <span ng-switch-when="Snowflake">Database / Schema</span>
+                                    <span ng-switch-default>Catalog / Schema</span>
+                                </span>
+                                <div style="display: flex; align-items: center">
+                                    <select dku-bs-select="{liveSearch:true}"
+                                            ng-model="catalog"
+                                            ng-options="catalog.catalog as catalog.label for catalog in catalogs"
+                                            ng-required></select>
+                                    <div style="margin-left: 5px">
+                                    <select dku-bs-select="{liveSearch:true}"
+                                            ng-model="schema"
+                                            ng-options="schema.schema as schema.label for schema in schemas"
+                                            ng-required style="margin-left: 10px"></select>
+                                    </div>
+                                    <span ng-click="fetchSchemas()" style="margin-left: 5px; width: 12px;"><i ng-if="connection != null && connectionOfSchemas == null" class="icon-refresh"></i></span>
+                                </div>
+                            </label>
+                            <label ng-show="!isHdfs && !isCatalogAware()" style="display: flex; align-items: center; margin-bottom: 0">
+                                <span style="margin-right: 5px; margin-left: 20px" ng-switch="connection.type">
+                                    <span ng-switch-when="BigQuery">Dataset</span>
+                                    <span ng-switch-default>Schema</span>
+                                </span>
+                                <div style="display: flex; align-items: center">
+                                    <select dku-bs-select="{liveSearch:true}"
+                                            ng-model="schema"
+                                            ng-options="schema.schema as schema.label for schema in schemas"
+                                            ng-required></select>
+                                    <span ng-click="fetchSchemas()" style="margin-left: 5px; width: 12px;"><i class="icon-refresh" ng-if="connection != null && connectionOfSchemas == null"></i></span>
+                                </div>
+                            </label>
+                            <button type="submit" class="btn btn--secondary" ng-disabled="(!catalog || !schema) && !isHdfs" ng-click="refreshList()" style="margin-left: 20px">
+                                List tables
+                            </button>
+                            <div style="flex: 1; display: flex; flex-direction: row-reverse;">
+                                <button type="submit" class="btn btn--primary" ng-click="importTables($stateParams.zoneId)" ng-disabled="!selection.selectedObjects || !selection.selectedObjects.length">
+                                    Import tables
+                                </button>
+                            </div>
+                        </div>
+                        <!--endregion-->
+                        <!--region table headers for SQL and HDFS-->
+                        <div class="flex" style="margin-bottom: 10px;">
+                            <div class="flex std-list-search-box with-icon" style="position: relative; margin-right: 0; width: 293px; display: inline-block;">
+                                <span class="search-icon"><i class="icon-dku-search"></i></span>
+                                <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Filter" style="padding-right: 4px; width: 100%; box-sizing: border-box;">
+                                <div class="error-drawer" ng-if="selection.filterParams.userQueryErrors">
+                                    <div class="error" ng-repeat="(exp, err) in selection.filterParams.userQueryErrors">
+                                        <i class="icon icon-warning-sign"/>{{err.message}}
+                                    </div>
+                                </div>
+                            </div>
+                            <div ng-show="massImportData.hanaPackages.length" style="display: inline-block;">
+                                <select dku-bs-select="{'liveSearch': true, 'noneSelectedText': 'Filter by HANA Package...'}" ng-model="massImportData.selectedHanaPackage" ng-change="selection.filterQuery.userQuery = '/^' + massImportData.selectedHanaPackage + '/'; massImportData.selectedHanaPackage = null" ng-options="x for x in massImportData.hanaPackages" />
+                            </div>
+                        </div>
+                        <div class="fattable-default-header dku-border-bottom noflex" ng-if="!isHdfs">
+                            <div class="small" style="cursor: pointer; width: 200px;">
+                                <div style="display: flex">
+
+                                    <input type="checkbox"
+                                           class="select-cb"
+                                           style="margin-top: auto; margin-bottom: auto;"
+                                           ng-model="selection.all"
+                                           dku-indeterminate="selection.some"
+                                           ng-change="updateMassSelectionCheckbox();">
+                                    <div ng-click="sortBy('table')" style="flex: 1;">
+
+                                        <strong>Table</strong>
+                                        <i class="icon-caret-down" ng-if="isSortedBy('table', true)"/>
+                                        <i class="icon-caret-up" ng-if="isSortedBy('table', false)"/>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="small" style="cursor: pointer" ng-click="sortBy('catalog')" ng-if="isCatalogPresent">
+                                <span ng-switch="connection.type">
+                                    <strong ng-switch-when="BigQuery">Project</strong>
+                                    <strong ng-switch-when="Snowflake">Database</strong>
+                                    <strong ng-switch-default>Catalog</strong>
+                                </span>
+                                <i class="icon-caret-down" ng-if="isSortedBy('catalog', true)"/>
+                                <i class="icon-caret-up" ng-if="isSortedBy('catalog', false)"/>
+                            </div>
+                            <div class="small" style="cursor: pointer" ng-click="sortBy('schema')" ng-if="isSchemaPresent">
+                                <span ng-switch="connection.type">
+                                    <strong ng-switch-when="BigQuery">Dataset</strong>
+                                    <strong ng-switch-default>Schema</strong>
+                                </span>
+                                <i class="icon-caret-down" ng-if="isSortedBy('schema', true)"/>
+                                <i class="icon-caret-up" ng-if="isSortedBy('schema', false)"/>
+                            </div>
+                            <div class="small" style="cursor: pointer" ng-click="sortBy('type')">
+                                <strong>Type</strong>
+                                <i class="icon-caret-down" ng-if="isSortedBy('type', true)"/>
+                                <i class="icon-caret-up" ng-if="isSortedBy('type', false)"/>
+                            </div>
+                            <div class="small" style="cursor: pointer" ng-click="sortBy('remarks')">
+                                <strong>Remarks</strong>
+                                <i class="icon-caret-down" ng-if="isSortedBy('remarks', true)"/>
+                                <i class="icon-caret-up" ng-if="isSortedBy('remarks', false)"/>
+                            </div>
+                        </div>
+                        <div class="fattable-default-header dku-border-bottom noflex" ng-if="isHdfs">
+                            <div style="cursor: pointer; width: 100%;">
+
+                                <input type="checkbox"
+                                       class="select-cb"
+                                       style="margin-top: auto; margin-bottom: auto;"
+                                       ng-model="selection.all"
+                                       dku-indeterminate="selection.some"
+                                       ng-change="updateMassSelectionCheckbox();">
+                                <div class="unselectable" style="width:105px;cursor: pointer" ng-click="sortBy('table')">
+                                    <strong>Table</strong>
+                                    <i class="icon-caret-down" ng-if="isSortedBy('table', true)"/>
+                                    <i class="icon-caret-up" ng-if="isSortedBy('table', false)"/>
+                                </div>
+                            </div>
+                        </div>
+                        <!--endregion-->
+                        <div class="vertical-flex h100" style="position: relative">
+                            <div class="flex fattable-default-style common-styles-only" ng-show="!isHdfs"
+                                 fat-repeat="selection.filteredObjects"
+                                 style="background: white;outline: none; "
+                                 tabindex="0"
+                                 ng-keydown="multiSelectKeydown($event, true)"
+                                 as="table"
+                                 row-height="36">
+                                <div class="h100" ng-class="{focused: selection.selectedObject === table,selected: table.$selected}">
+                                    <div class="unselectable mx-textellipsis" full-click style="width: 200px">
+                                        <span style="display:none;" main-click ng-click="objectClicked(table, $event)"></span> <!-- because checkbox click is prioritary -->
+                                        <div class="mass">
+                                            <input type="checkbox" ng-model="table.$selected" ng-click="checkBoxChanged(table, $event)"/>
+                                        </div>
+                                        <span ng-bind-html="table.table | boldify:selection.filterParams.userQueryResult"></span>
+                                    </div>
+                                    <div class="small mx-textellipsis" ng-if="isCatalogPresent" title="{{table.catalog}}">
+                                        {{table.catalog}}
+                                    </div>
+                                    <div class="small mx-textellipsis" ng-if="isSchemaPresent" title="{{table.schema}}">
+                                        {{table.schema}}
+                                    </div>
+                                    <div class="small mx-textellipsis" title="{{table.type.toLocaleLowerCase() | capitalize}}">
+                                        {{table.type.toLocaleLowerCase() | capitalize}}
+                                    </div>
+                                    <div class="small mx-textellipsis" title="{{table.remarks}}">
+                                        {{table.remarks}}
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="flex fattable-default-style common-styles-only" ng-show="isHdfs"
+                                 fat-repeat="selection.filteredObjects"
+                                 as="table"
+                                 row-height="36"
+                                 style="background: white;outline: none"
+                                 tabindex="0"
+                                 ng-keydown="multiSelectKeydown($event, true)">
+                                <div class="h100" ng-class="{focused: selection.selectedObject === table,selected: table.$selected}">
+                                    <div class="unselectable mx-textellipsis" full-click>
+                                        <span style="display:none;" main-click ng-click="objectClicked(table, $event)"></span> <!-- because checkbox click is prioritary -->
+                                        <div class="mass unselectable">
+                                            <input type="checkbox" ng-model="table.$selected" ng-click="checkBoxChanged(table, $event)"/>
+                                        </div>
+                                        <span custom-element-popup cep-position="smart" close-on-click="true" ng-if="table.messages.error || table.messages.warning">
+                                            <span class="mainzone" ng-click="togglePopover()" title="Click to see warnings">
+                                            <i class="icon-warning-sign" style="cursor: pointer;"></i>
+                                            </span>
+                                            <div class="popover custom-element-popup-popover dropdown-menu" style="padding: 10px;">
+                                            <div info-messages-raw-list-with-alert="table.messages"/>
+                                            </div>
+                                        </span>
+                                        <span ng-bind-html="table.table | boldify:selection.filterParams.userQueryResult"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="empty-list" ng-show="selection.filteredObjects.length==0 && massImportData.tables" style="    position: absolute; left: 50%; transform: translateX(-50%); ">
+                                <div>No available tables</div>
+                                <span ng-show="selection.allObjects.length>0">Try <a ng-click="clearFilters()">clearing filters</a> to show more</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

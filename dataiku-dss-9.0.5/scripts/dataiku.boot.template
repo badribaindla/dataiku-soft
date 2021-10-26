@@ -1,0 +1,97 @@
+#!/bin/sh
+# Boot time init script for Dataiku DSS
+
+# chkconfig: 2345 90 10
+# description: starts the Dataiku DSS
+
+### BEGIN INIT INFO
+# Provides:          {{SERVICE_NAME}}
+# Required-Start:    $local_fs $network
+# Required-Stop:     $local_fs $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts the Dataiku DSS
+### END INIT INFO
+
+set -e
+
+# Read configuration file, nothing to do if none
+#
+# Should contain following configuration variables:
+# DIP_HOME=<installation directory>
+# DIP_USER=<user account>
+#
+# May contain an optional list of cgroups to create for DSS use
+# DIP_CGROUP_ROOT=<cgroup root mountpoint, if different from the default /sys/fs/cgroup>
+# DIP_CGROUPS=<colon-separated list of cgroup directories to create, relative to the cgroup root mountpoint>
+
+DIP_CONFIG_FILE={{BOOT_CONFIG_FILE}}
+if [ -f "$DIP_CONFIG_FILE" ]; then
+	DIP_HOME=
+	DIP_USER=
+	DIP_CGROUP_ROOT="/sys/fs/cgroup"
+	DIP_CGROUPS=
+	. "$DIP_CONFIG_FILE"
+	if [ -z "$DIP_HOME" -o -z "$DIP_USER" ]; then
+		echo "0 : ERROR : Missing configuration parameter in $DIP_CONFIG_FILE" >&2
+		exit 1
+	fi
+else
+	exit 0
+fi
+
+start() {
+	if [ -n "$DIP_CGROUPS" ]; then
+		echo "{{SERVICE_NAME}} : creating cgroups"
+		echo "$DIP_CGROUPS" | tr ":" "\n" | while read d; do
+			# sanity check
+			case "$d" in
+				"" | . | .. | /* | ./* | ../* )
+					echo 2>&1 "Error: invalid cgroup : $d"
+					exit 1
+					;;
+				* )
+					mkdir -p "$DIP_CGROUP_ROOT/$d"
+					chown -Rh "$DIP_USER" "$DIP_CGROUP_ROOT/$d"
+					;;
+			esac
+		done
+	fi
+	echo "{{SERVICE_NAME}} : starting Dataiku DSS"
+	su - "$DIP_USER" -c "$DIP_HOME/bin/dss start"
+}
+
+stop() {
+	echo "{{SERVICE_NAME}} : stopping Dataiku DSS"
+	su - "$DIP_USER" -c "$DIP_HOME/bin/dss stop"
+}
+
+status() {
+	su - "$DIP_USER" -c "$DIP_HOME/bin/dss status"
+}
+
+case "$1" in
+	start)
+		start
+		;;
+
+	stop)
+		stop
+		;;
+
+	restart)
+		stop || true
+		start
+		;;
+
+	status)
+		status
+		;;
+
+	*)
+		echo "Usage: $0 {start|stop|restart|status}" >&2
+		exit 1
+		;;
+esac
+
+exit 0

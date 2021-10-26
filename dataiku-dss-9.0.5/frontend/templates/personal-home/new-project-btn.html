@@ -1,0 +1,89 @@
+<div ng-if="!$ctrl.asTiles" class="btn-group new-project">
+    <button ng-if="!$ctrl.isAutomationNode()" id="qa_homepage_new-project-button" ng-click="togglePopover()" class="btn btn--primary" custom-element-popup hide-popover-button="true" cep-position="align-right-bottom" close-on-click="true" disabled-if-project-folder-ro="">
+        <div class="mainzone">
+            + New Project
+        </div>
+
+        <div class="popover custom-element-popup-popover new-project-options" >
+            <div full-click class="project-option" id="qa_homepage_blank-project-button" ng-class="{'disabled': !$ctrl.getPermissions().mayCreateProjects}">
+                <i class="icon-plus" />
+                <a main-click class="title link-std" ng-click="$ctrl.newProject()">Blank project</a>
+                <div class="description">Create a new blank project</div>
+                <div ng-show="!$ctrl.getPermissions().mayCreateProjects" class="description">You do not have permission to create this</div>
+            </div>
+             <div full-click class="project-option" id="qa_homepage_{$projectCreationMacro.runnable.id}-button" ng-repeat="projectCreationMacro in $ctrl.projectCreationMacros" ng-class="{'disabled': !$ctrl.getPermissions().mayCreateProjectsFromMacros}">
+                <i class="{{projectCreationMacro.icon}}" />
+                <a main-click class="title link-std" ng-click="$ctrl.newProjectFromMacro(projectCreationMacro.runnable)">{{projectCreationMacro.label}}</a>
+                <div class="description">{{projectCreationMacro.description}}</div>
+                <div ng-show="!$ctrl.getPermissions().mayCreateProjectsFromMacros" class="description">You do not have permission to create this</div>
+            </div>
+            <div full-click class="project-option" ng-class="{active: objectInterest.watching == 'SHALLOW', 'disabled': !$ctrl.getPermissions().mayCreateProjectsFromTemplates}">
+                <i class="icon-dku-sample_project" />
+                <a main-click class="title link-std" ng-click="$ctrl.newTutorial()">{{$root.wl.productShortName}} tutorials</a>
+                <div class="description">Create a tutorial project</div>
+                <div ng-show="!$ctrl.getPermissions().mayCreateProjectsFromTemplates" class="description">You do not have permission to create this</div>
+            </div>
+            <div full-click class="project-option" ng-class="{'disabled': !$ctrl.getPermissions().mayCreateProjectsFromTemplates}">
+                <i class="icon-dku-tutorial" />
+                <a main-click class="title link-std" ng-click="$ctrl.newSample()">Sample projects</a>
+                <div class="description">Create a project from a sample</div>
+                 <div ng-show="!$ctrl.getPermissions().mayCreateProjectsFromTemplates" class="description">You do not have permission to create this</div>
+            </div>
+            <div full-click class="project-option" ng-class="{'disabled': !$ctrl.getPermissions().mayCreateProjects}">
+                <i class="icon-dku-import_project" />
+                <a main-click class="title link-std" ng-click="$ctrl.importProject()">Import project</a>
+                <div class="description">Import a project into the system</div>
+                 <div ng-show="!$ctrl.getPermissions().mayCreateProjects" class="description">You do not have permission to create this</div>
+            </div>
+        </div>
+    </button>
+    <button ng-if="$ctrl.isAutomationNode()" ng-click="$ctrl.newAutomationProject()" class="btn btn--primary" custom-element-popup hide-popover-button="true" cep-position="align-right-bottom" close-on-click="true" disabled-if-project-folder-ro="">
+        <div class="mainzone">
+            + New Project
+        </div>
+    </button>
+
+</div>
+<div ng-if="$ctrl.asTiles" class="portal-container project-onboarding">
+    <div class="portals-panel">
+        <ul class="portals-list">
+            <li class="portal" ng-if="$ctrl.getPermissions().mayCreateProjects">
+                <a ng-click="$ctrl.newProject()" disabled-if-project-folder-ro="">
+                    <div class="portal-cover">
+                        <img ng-src="/static/dataiku/images/getting-started/onboard-new-project.png">
+                        <h3>Blank project</h3>
+                        <p>Start from a blank canvas and upload your data.</p>
+                    </div>
+                </a>
+            </li>
+            <li class="portal" ng-if="$ctrl.getPermissions().mayCreateProjectsFromTemplates">
+                <a ng-click="$ctrl.newTutorial()" disabled-if-project-folder-ro="">
+                    <div class="portal-cover">
+                        <img ng-src="/static/dataiku/images/getting-started/onboard-tutorial.png" >
+                        <h3>Tutorial</h3>
+                        <p>Explore the tutorials and learn about the power of {{$root.wl.productShortName}}</p>
+                    </div>
+                </a>
+            </li>
+            <li class="portal" ng-if="$ctrl.getPermissions().mayCreateProjectsFromTemplates">
+                <a ng-click="$ctrl.newSample()" disabled-if-project-folder-ro="">
+                    <div class="portal-cover">
+                        <img ng-src="/static/dataiku/images/getting-started/onboard-sample.png" >
+                        <h3>Sample</h3>
+                        <p>Create a copy of one of our sample projects</p>
+                    </div>
+                </a>
+            </li>
+            <li class="portal" ng-if="$ctrl.getPermissions().mayCreateProjects">
+                <a ng-click="$ctrl.importProject()" disabled-if-project-folder-ro="">
+                    <div class="portal-cover">
+                        <img ng-src="/static/dataiku/images/getting-started/onboard-import.png" alt="">
+                        <h3>Import</h3>
+                        <p>Import a previously saved {{$root.wl.productShortName}} project</p>
+                    </div>
+
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

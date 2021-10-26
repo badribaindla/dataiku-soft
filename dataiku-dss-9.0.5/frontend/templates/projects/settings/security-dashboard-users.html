@@ -1,0 +1,68 @@
+<div style="position: relative" class="h100 dashboard-authorizations" filtered-multi-select-rows ng-model="additionalDashboardUsers.users" ng-controller="ProjectSettingsDashboardUsersController" global-keydown="{'ctrl-s meta-s':'saveAuthorizations()'}">
+    <div class="vertical-flex fh h100">
+        <div class="noflex authorizations-header" >
+            <div class="pull-right">
+                <button ng-if="isDirty()" ng-click="save()" class="btn btn--outline btn--primary"><i class="icon-save" style="margin-right: 10px;"></i>Save</button>
+                <button ng-if="!isDirty()" disabled class="btn btn--outline btn--primary"><i class="icon-save" style="margin-right: 10px;"></i>Saved</button>
+            </div>
+            <h2 class="page-subtitle dib">Additional dashboard users</h2>
+            <div block-api-error></div>
+        </div>
+        <div class="noflex dku-colored-list spaced fattable-default-header dku-border-bottom" ng-model="additionalDashboardUsers.users">
+            <div>
+                <input type="checkbox"
+                    class="select-cb"
+                    ng-model="selection.all"
+                    dku-indeterminate="selection.some"
+                    ng-change="updateMassSelectionCheckbox();" />
+
+                <span class="dropdown">
+                    <a data-toggle="dropdown" class="btn btn--secondary dropdown-toggle unselectable" ng-class="{disabled:selection.none}">
+                        ACTIONS <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a ng-click="remove(selection.selectedObjects)"><i class="icon-trash"/>Delete</a>
+                        </li>
+                    </ul>
+                </span>
+
+                <div class="std-list-search-box with-icon" style="display: inline-block">
+                    <span class="search-icon"><i class="icon-dku-search"></i></span>
+                    <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Search…" />
+                </div>
+
+                <button class="btn btn--secondary" ng-click="add()"><i plus-icon />&nbsp;Add</button>
+            </div>
+        </div>
+        <div class="flex" style="flex-grow: 0; flex-basis: {{36*selection.filteredObjects.length + 1}}px;">
+            <div class="fh">
+                <div class="h100 fattable-default-style disablable authorization-table" fat-repeat="selection.filteredObjects" as="user" row-height="36">
+                    <div ng-class="{focused: selection.selectedObject === user,selected: user.$selected}" full-click>
+                        <div class="unselectable">
+                            <span style="display:none;" main-click ng-click="objectClicked(user, $event)"></span> <!-- because checkbox click is prioritary -->
+                            <span class="mass unselectable">
+                                <input type="checkbox" ng-model="user.$selected" ng-click="checkBoxChanged(user, $event)" />
+                            </span>
+                            <span class="name">
+                                <input type="text"  style="width:200px" bs-typeahead="userLogins"  ng-model="user.login" placeholder="Enter login..."/>
+
+                                <span ng-if="userLogins.indexOf(user.login) >= 0" class="text-success">
+                                    <i class="icon-ok" />
+                                    <span user-picture="user.login" size="24" class="avatar24" />
+                                </span>
+                                <span ng-if="userLogins.indexOf(user.login) < 0" class="text-warning">
+                                    Unknown user
+                                </span>
+
+                            </span>
+                        </div>
+                        <div class="remove">
+                            <i class="icon-trash" ng-click="remove([user])" style="cursor: pointer;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

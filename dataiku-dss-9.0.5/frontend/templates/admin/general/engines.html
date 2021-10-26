@@ -1,0 +1,156 @@
+<div class="paned-settings-page-pane">
+        <h1>Engines &amp; Connections</h1>
+    
+        <div class="section">
+            <h2 id="datasets-creation-settings">Datasets creation settings</h2>
+
+            <form class="dkuform-horizontal">
+    
+                <div class="alert alert-info">Most of these settings can be overridden on a per-project basis</div>
+    
+                <div class="control-group">
+                    <label for="" class="control-label">Preferred fallback connection</label>
+                    <div class="controls" >
+                        <input type="text" ng-model="generalSettings.defaultDatasetCreationSettings.preferedConnection" />
+                        <span class="help-inline">
+                            Use this connection by default for new managed output datasets when no proper contextual connection
+                            can be selected (for example, recipe from an "Uploaded" dataset).
+                        </span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Preferred connection (forced)</label>
+                    <div class="controls" >
+                        <input type="text" ng-model="generalSettings.defaultDatasetCreationSettings.forcedPreferedConnection" />
+                        <span class="help-inline">
+                            Use this connection by default for new managed output datasets, even if a better contextual connection could
+                            be selected (for example, same as input)
+                        </span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Preferred connection for uploads</label>
+                    <div class="controls" >
+                        <input type="text" ng-model="generalSettings.defaultDatasetCreationSettings.preferedUploadConnection" />
+                        <span class="help-inline">
+                            Use this connection by default for uploaded datasets
+                        </span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Preferred storage formats</label>
+                    <div class="controls" >
+                        <input type="text" ng-model="generalSettings.defaultDatasetCreationSettings.preferedStorageFormats" />
+                        <span class="help-inline">
+                            Comma-separated list of ordered (most preferred to least preferred) storage formats.
+                        </span>
+                    </div>
+                </div>
+    
+                <div class="control-group">
+                    <label for="" class="control-label">Default virtualizable</label>
+                    <div class="controls" >
+                        <label>
+                            <input type="checkbox" ng-model="generalSettings.defaultDatasetCreationSettings.virtualizable" />
+                            <span class="help-inline">
+                                Should datasets be created as virtualizable (for Spark pipelines)
+                            </span>
+                        </label>
+                    </div>
+                </div>
+    
+                <div class="control-group">
+                    <label for="" class="control-label">Uploads in default location</label>
+                    <div class="controls" >
+                        <label>
+                            <input type="checkbox" ng-model="generalSettings.defaultDatasetCreationSettings.allowUploadsWithoutConnection" />
+                            <span class="help-inline">
+                                Should uploaded datasets be allowed in the main DSS data dir (i.e. without a target connection) ?
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    
+        <div class="section">
+            <h2 id="recipe-engines">Recipe engines</h2>
+
+            <div class="alert alert-info">These settings can be overridden on a per-project basis</div>
+    
+            <form class="dkuform-horizontal">
+                <div recipe-engines-preference-config model="generalSettings.recipeEnginesPreferences" />
+            </form>
+        </div>
+
+
+        <div class="section">
+            <h2 id="ui-customization-settings">Control which datasets or recipes are displayed for creation</h2>
+
+            <div class="alert alert-info">
+                These settings only apply in the web interface and for creating new objects. They are meant to avoid showing options that are not technically applicable on this instance / for this user or project.
+                Existing objects will always be displayed, and hidden objects may still be creatable through the python API, or when importing existing projects for example.
+            </div>
+
+            <form class="dkuform-horizontal">
+                <div class="control-group">
+                    <label for="" class="control-label">Deactivate dataset type if connection not available</label>
+                    <div class="controls" >
+                        <label>
+                            <input type="checkbox" ng-model="generalSettings.uiCustomizationSettings.showDatasetTypesForWhichThereIsNoConnection"  ng-true-value="false" ng-false-value="true"/>
+                            <span class="help-inline">
+                                Deactivated dataset types are hidden or disabled in the UI. If a user could create a connection supporting this dataset type, it will not be deactivated (applies to admin users, or to user having the authorization to create personal connections)
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Hide following dataset types</label>
+                    <div class="controls" >
+                        <select dku-bs-select multiple="multiple"
+                            ng-model="generalSettings.uiCustomizationSettings.hideDatasetTypes"
+                            ng-options="opt.value as opt.displayName group by opt.tile for opt in hideDatasetTypesOptions"></select>
+                        <span class="help-inline">Selected dataset types are hidden in the new dataset menu of the flow, and in the new dataset page. Some of this options are not really dataset types, but more generic ways of creating datasets or containers.</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Show traditional Hadoop</label>
+                    <div class="controls" >
+                        <label>
+                            <input type="checkbox" ng-model="generalSettings.uiCustomizationSettings.showTraditionalHadoop"/>
+                            <span class="help-inline">
+                                Should DSS show options to create Hive and Impala code recipe, Hive datasets and Hive notebook
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Show R recipe & notebook</label>
+                    <div class="controls" >
+                        <label>
+                            <input type="checkbox" ng-model="generalSettings.uiCustomizationSettings.showR"/>
+                            <span class="help-inline">
+                                Should DSS show options to create R and SparkR code recipe and R notebook
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Show Scala recipe & notebook</label>
+                    <div class="controls" >
+                        <label>
+                            <input type="checkbox" ng-model="generalSettings.uiCustomizationSettings.showScala"/>
+                            <span class="help-inline">
+                                Should DSS show options to create Scala code recipe (including streaming if activated) and Scala notebook
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </div>

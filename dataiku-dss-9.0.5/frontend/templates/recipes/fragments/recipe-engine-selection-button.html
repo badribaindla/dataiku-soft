@@ -1,0 +1,21 @@
+<div class="engine-selection-widget"
+    ng-class="{
+        'text-success': recipeStatus.selectedEngine.statusWarnLevel == 'OK',
+        'text-error': recipeStatus.selectedEngine.statusWarnLevel == 'ERROR',
+        'text-warning': recipeStatus.selectedEngine.statusWarnLevel == 'WARN',
+         disabled: !canChangeEngine()
+    }"
+    visible-if="recipeStatus">
+    <span ng-show="recipeStatus.selectedEngine" id="qa_recipe_selected-engine">
+        {{recipeStatus.selectedEngine.label }}
+    </span>
+    <span class="text-error" ng-show="recipeStatus && !recipeStatus.selectedEngine">
+        No engine selected
+    </span>
+    <a class="engine-switch link-std" id="qa_recipe_engine-selection-icon" ng-click="canChangeEngine() && showEngineSelectionModal()">
+        <i class="icon-cogs"/>
+    </a>
+    <div ng-show="recipeStatus.selectedEngine.statusMessage" ng-if="!hideStatus">
+        {{recipeStatus.selectedEngine.statusMessage}}
+    </div>
+</div>

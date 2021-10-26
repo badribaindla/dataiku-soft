@@ -1,0 +1,46 @@
+<div ng-if="tile.behavior == 'GO_TO_DATASET'">
+    <a main-click ui-sref="projects.project.datasets.dataset.settings({datasetName:tile.datasetName})" wt1-click-event="app-tile-upload-dataset-edit"><i class="icon-dataset"></i>&nbsp;{{tile.datasetName}}</a>
+    <span ng-include="'/templates/apps/fragments/tile-help.html'"></span>
+</div>
+<div ng-if="tile.behavior.startsWith('INLINE_')">
+    <div block-api-error />
+    <div class="app-tiles__tile-upload-files-drop-zone">
+        <droparea drop="drop(files)" multiple class="droparea-style-v2-resizing">
+            <ul class="files">
+                <li ng-repeat="file in files track by $index">
+                    <div class="file">
+                        <i class="icon-file"></i>
+                        <span class="path" title="file.path">{{ file.path }}</span>
+                        <a href class="close" ng-click="deleteFile(file, $event)"><i class="icon-trash"></i></a>
+                        <span class="size">{{ file.length|filesize }}</span>
+                        <progress ng-show="file.progress <= 100" value="{{ file.progress }}" max="100"></progress>
+                    </div>
+                </li>
+                <div class="h100" ng-if="files.length == 0">
+                    <div class="preview-cta" >
+                        No file yet
+                    </div>
+                </div>
+            </ul>
+            <div class="upload-hook" ng-class="{'centered-upload-hook':files.length >0}">
+                Drag and drop your files here or
+                <button class="btn btn--contained upload-button">Add a file</button>
+    
+                <p ng-show="files.length >= 1" style="font-size: 13px; color: #999; font-weight: 400; margin-top: 5px; margin-bottom: 0">
+                    Creates a single dataset: multiple files must have the same schema.
+                </p>
+            </div>
+        </droparea>
+        <div ng-show="detectionResults && !detectionResults.connectionOK">
+            <div class="alert alert-error">
+                <i class="icon-dku-error" /><span summary-of-error="detectionResults.connectionError" />
+            </div>
+        </div>
+    </div>
+
+    <span ng-include="'/templates/apps/fragments/tile-help.html'" class="app-tiles__tile-help--multiline-neighbour"></span>
+    <div>
+        <a main-click ui-sref="projects.project.datasets.dataset.settings({datasetName:tile.datasetName})" wt1-click-event="app-tile-upload-dataset-edit"><i class="icon-arrow-right"></i>&nbsp;View settings of dataset {{tile.datasetName}}</a>
+        <span>({{dataset.formatType}}, {{dataset.schema.columns.length}} column(s))</span><span ng-if="uiState.detecting"&nbsp;><i class="icon-spin icon-spinner"></i></span>
+    </div>
+</div>

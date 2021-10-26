@@ -1,0 +1,77 @@
+<div class="modal modal3 dku-modal" ng-controller="EditProjectAPIKeyModalController">
+    <div dku-modal-header-with-totem modal-title="{{creation ? 'New API Key' : 'Edit API Key'}}" modal-totem="icon-unlock-alt" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body" style="max-height: 350px !important;">
+            <div block-api-error />
+
+            <div class="control-group">
+                <label class="control-label">Label</label>
+                <div class="controls">
+                    <input type="text" ng-model="apiKey.label" placeholder="Label"/>
+                </div>
+            </div>
+
+            <fieldset class="control-group" ng-disabled="!appConfig.admin || !appConfig.impersonationEnabled">
+                <label class="control-label">Impersonate DSS user</label>
+                <div class="controls">
+                    <input type="text" ng-model="apiKey.dssUserForImpersonation" />
+                    <div class="help-inline">
+                        This is used only for selecting the user
+                        to impersonate in jobs. It does not grant the DSS privileges of this
+                        user
+                         <div ng-show="appConfig.impersonationEnabled && !appConfig.admin" class="alert alert-error">You may not edit this as you are not DSS admin</div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="control-group">
+                <label class="control-label">Description</label>
+                <div class="controls">
+                    <input type="text" ng-model="apiKey.description" placeholder="What should this key be used for?" />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">
+                    Project-wide privileges
+                </label>
+                <textarea json-object-pretty-view ng-model="apiKey.projectPrivileges" style="width: 100%; box-sizing: border-box; min-height: 150px"/>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">
+                    Execute SQL
+                </label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="apiKey.execSQLLike" id="execSQLLikeInput" />
+                        <span class="help-inline">Can these users run SQL queries on the connections defined in DSS.</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">
+                    Datasets privileges
+                </label>
+                <textarea json-object-pretty-view ng-model="apiKey.localDatasets" style="width: 100%; box-sizing: border-box; min-height: 150px"/>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">
+                    <a class="btn btn--secondary" ng-click="makeAdmin(apiKey)"> Make admin </a>
+                </label>
+            </div>
+        </div>
+
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="create()" ng-if="creation">Create</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="save()" ng-if="!creation">Save</button>
+        </div>
+
+    </form>
+
+</div>

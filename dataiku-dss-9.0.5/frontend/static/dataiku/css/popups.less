@@ -1,0 +1,261 @@
+/* popups, dropdowns, contextual menus, ... */
+
+.open .anchor-for-popups > .dropdown-menu,
+.open .scrolly-wrapper > .dropdown-menu {
+    display: block;
+}
+
+.anchor-for-popups {
+    position: relative;
+}
+
+.scrolly-wrapper {
+    position: absolute;
+}
+
+.scrolly-wrapper.dropdown-menu.pull-right {
+    right: 0;
+    left: auto;
+}
+
+div.scrolly-wrapper  ul.dropdown-menu
+{
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.anchor-for-popups .dropdown-menu {
+    position: static;
+
+    li {
+        position: static;
+
+        .scrolly-wrapper {
+            z-index: 10;
+            display: none
+        }
+
+        &:hover > .scrolly-wrapper {
+            display: block;
+        }
+    }
+}
+
+.mx-standard-dropdown-list {
+    margin: 0;
+    li { list-style: none; }
+}
+
+.mx-standard-dropdown-active-link {
+    background-image: none;
+    background-color: @grey-background;
+    color: @grey-lighten-1;
+}
+.mx-standard-dropdown-link {
+    .mx-ssp(14px, @font-weight-normal);
+    padding: 2px 6px;
+    color: @grey-lighten-1;
+
+    i {
+        display: inline-block;
+        margin-left: 4px;
+        margin-right: 8px;
+        text-align: center;
+        width: 16px;
+    }
+
+    &:hover, &:focus {
+        .mx-standard-dropdown-active-link;
+    }
+}
+
+// The very simple to use, always in DOM, bootstrap dropdown menu
+.dropdown-menu {
+    border-radius: 0;
+    border: none;
+    box-shadow: 2px 2px 8px 1px fade(@grey-base, 20%);
+    background-color: @white-base;
+    padding: 0;
+
+    .dku-border-bottom {
+        border-bottom: 1px @border-color solid;
+    }
+}
+// The basic case: it's a list
+ul.dropdown-menu {
+    > li > a {
+        .mx-standard-dropdown-link;
+        &.text-error {
+            color: @error-text;
+        }
+    }
+    > li.active > a, > li:hover > a {
+        .mx-standard-dropdown-active-link;
+        &.text-error {
+            color: @error-text;
+        }
+    }
+    > li.header {
+        font-weight: @font-weight-bold;
+        padding: 0 6px;
+    }
+    .dropdown-submenu > a:after {
+        position: relative;
+        left: -10px;
+    }
+}
+.dropdown-menu ul.dropdown-menu, ul.dropdown-menu.typeahead {
+    > li.active > a, > li:hover > a {
+        .mx-standard-dropdown-active-link;
+    }
+
+    max-height: 200px;
+    overflow: auto;
+}
+ul.dropdown-menu > li > a.disabled {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+}
+
+// Better Left-opening Sub menus
+// ---------------------------
+.dropdown-menu.pull-right {
+    &.custom-element-popup-popover { right: auto;} // JS-computed
+
+    .dropdown-submenu {
+        // Undo the float
+        // Yes, this is awkward since .pull-left adds a float, but it sticks to our conventions elsewhere.
+        float: none;
+
+        // Positioning the submenu
+        > .dropdown-menu {
+            left: auto;
+            right: 100%;
+            .border-radius(0px);
+        }
+    }
+}
+// Top-opening
+.dropup .dropdown-menu {
+    top: auto !important;
+    bottom: 0;
+}
+
+// Forgiving imprecise mouse path
+.dropdown-submenu:hover {
+    &:before,
+    &:after {
+        display: block;
+        content: '';
+        width: 75px;
+        height: 30px;
+        background: transparent;
+        position: absolute;
+        right: 0;
+    }
+    &:before {
+        bottom: 100%;
+        -webkit-transform-origin: 100% 0;
+        -webkit-transform: rotate(-24deg);
+        transform-origin: 100% 0;
+        transform: rotate(-24deg);
+    }
+    &:after  {
+        top: 100%;
+        -webkit-transform-origin: 100% 100%;
+        -webkit-transform: rotate(24deg);
+        transform-origin: 100% 100%;
+        transform: rotate(24deg);
+    }
+
+    .dropdown-menu.pull-right & {
+        &:before, &:after {
+            right: auto;
+            left: 0;
+        }
+        &:before {
+            bottom: 100%;
+            -webkit-transform-origin: 0 0;
+            -webkit-transform: rotate(24deg);
+            transform-origin: 0 0;
+            transform: rotate(24deg);
+        }
+        &:after  {
+            top: 100%;
+            -webkit-transform-origin: 0 100%;
+            -webkit-transform: rotate(-24deg);
+            transform-origin: 0 100%;
+            transform: rotate(-24deg);
+        }
+    }
+}
+
+.dropdown-submenu.hover > .dropdown-menu {
+    display: block;
+}
+
+.custom-element-popup-popover {
+    max-width: 400px;
+    min-width: 200px;
+    position: absolute;
+    box-sizing: border-box;
+    display: block;
+    z-index: 3000;
+
+    border-radius: 0;
+    border-top: none;
+    border-bottom: none;
+    border-right: none;
+}
+
+.custom-element-popup-popover-light {
+    max-width: 400px;
+    min-width: 200px;
+    position: absolute;
+    box-sizing: border-box;
+    display: block;
+    z-index: 5;
+
+    border-radius: 0;
+    border: 1px solid @border-color;
+    background-color: @white-base;
+}
+
+.object-page-actions-popover {
+    position: absolute;
+    bottom: 0;
+    min-width: 300px;
+    z-index: 5;
+    border-radius: 0;
+    border: 1px solid @border-color;
+    background-color: @white-base;
+}
+
+.popover {
+    z-index:100000;
+    border: 1px solid @border-color;
+    border-radius: 0;
+    background: @white-base;
+}
+
+.dropdown-trigger-fade {
+    .mx-link-nodecoration;
+    color: inherit;
+    opacity: .3;
+    font-size: 1.3em;
+    text-decoration: none;
+    display: inline-block;
+    &:hover {
+        color: inherit;
+        opacity: 0.8;
+    }
+    .open &{
+        opacity: 0.8;
+    }
+
+    &:after { // bigger click/hover target
+        display: block; content: " "; position: absolute;
+        left: 5px; right: 0; top: 0; bottom: 0;
+    }
+}

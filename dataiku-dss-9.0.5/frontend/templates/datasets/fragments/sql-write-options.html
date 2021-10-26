@@ -1,0 +1,36 @@
+<div class="container-fluid">
+	<h2 class="settings-section-title mtop0">SQL write</h2>
+	<form class="dkuform-horizontal" ng-if="dataset.type == 'PostgreSQL' || dataset.type == 'Greenplum'">
+		<div class="control-group">
+			<label class="control-label" for="">Data type error action (write)</label>
+			<div class="controls">
+				<select dku-bs-select
+					ng-model="dataset.params.writeWithCopyBadDataBehavior"
+					ng-options="x[0] as x[1] for x in [
+							['NOVERIFY_ERROR', 'Don\'t check (faster)'],
+							['ERROR', 'Error'],
+							['DISCARD_CELL', 'Discard cell and emit warning']]" />
+			</div>
+		</div>
+	</form>
+	<form class="dkuform-horizontal" ng-if="dataset.type != 'PostgreSQL' && dataset.type != 'Greenplum'">
+		<div class="control-group">
+			<label class="control-label" for="">Data type error action (write)</label>
+			<div class="controls">
+				<select dku-bs-select
+					ng-model="dataset.params.writeJDBCBadDataBehavior"
+					ng-options="x[0] as x[1] for x in [
+							['ERROR', 'Error'],
+							['DISCARD_CELL', 'Discard cell and emit warning'],
+							['DISCARD_ROW', 'Discard row and emit warning']]" />
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label" for="">Insert batch size (rows)</label>
+			<div class="controls">
+				<input type="number" ng-model="dataset.params.writeInsertBatchSize" min="1"/>
+			</div>
+		</div>
+	</form>
+
+</div>

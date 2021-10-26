@@ -1,0 +1,1 @@
+stacked = pivoted.stack(dropna=True)

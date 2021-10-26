@@ -1,0 +1,244 @@
+<div class="object-right-column-summary h100 vertical-flex" ng-if="selection.selectedObject">
+    <div item-header
+        class="noflex"
+        href="$state.href('projects.project.modelevaluationstores.modelevaluationstore.summary', {projectKey: selection.selectedObject.projectKey, mesId: selection.selectedObject.name})"
+        color="model-evaluation-store"
+        icon="icon-model-evaluation-store"
+        title="{{selection.selectedObject.name}}">
+        {{selection.selectedObject.description || topNav.item.data.name}}
+    </div>
+
+    <div class="column-header-tabs noflex" ng-if="!$state.current.name.startsWith('projects.project.flow') && !$state.current.name.startsWith('projects.project.modelevaluationstores.modelevaluationstore')">
+        <div class="tab"
+            ng-class="{active: uiState.activeTab == 'details'}"
+            ng-click="uiState.activeTab = 'details'"
+            >
+            <div class="title">Details</div>
+        </div>
+        <div class="tab" ng-class="{active: uiState.activeTab == 'discussions'}" ng-click="uiState.activeTab = 'discussions'">
+            <div class="title">Discussions</div>
+        </div>
+        <div class="tab"
+            ng-class="{active: uiState.activeTab == 'actions'}"
+            ng-click="uiState.activeTab = 'actions'"
+            >
+            <div class="title">Actions</div>
+        </div>
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex oa">
+        <div class="h100" ng-switch="uiState.activeTab">
+            <div ng-switch-when="details" class="details-tab h100 oa">
+                <object-details object-type="MODEL_EVALUATION_STORE" object-data="modelEvaluationStoreData" context="right-column" hover-intent-callback="QuickView" editable="canWriteProject()" edit-custom-fields="editCustomFields"></object-details>
+            </div>
+
+            <!-- DISCUSSIONS tab -->
+            <div ng-switch-when="discussions" class="object-summary-tab-content discussions-tab h100 oa">
+                <div class="h100" discussions-widget watch-object="selection.selectedObject" selected-item="{projectKey: selection.selectedObject.projectKey, type: 'MODEL_EVALUATION_STORE', id: selection.selectedObject.name}" />
+            </div>
+
+            <div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+                <!-- First unnamed section -->
+                <div class="icons-section icons-grey icons-main">
+                    <div simple-right-col-action-href
+                        ng-if="(isLocalModelEvaluationStore || modelEvaluationStoreData.directAccessOnOriginal) && !$state.includes('projects.project.modelevaluationstores.modelevaluationstore')"
+                        href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.summary', {projectKey: selection.selectedObject.projectKey, mesId: selection.selectedObject.name})}}"
+                        label="Open"
+                        icon="icon-beaker" />
+                        
+                    <div simple-right-col-action-click
+                        ng-if="modelEvaluationStore && isOnStoreObjectPage()"
+                        on-click="GlobalProjectActions.buildModelEvaluationStore(this, $stateParams.mesId)"
+                        label="Build"
+                        icon="icon-play"
+                        />
+
+                    <div ng-if="isLocalModelEvaluationStore && selection.selectedObject.predecessors.length"
+                        simple-right-col-action-click
+                        on-click="isProjectAnalystRW() && buildModelEvaluationStore()"
+                        label="Build"
+                        icon="icon-play"
+                        disabled-if-ro
+                        />
+
+                    <div simple-right-col-action-href
+                        ng-if="$state.includes('projects.project.modelevaluationstores.modelevaluationstore')"
+                        href="{{$state.href('projects.project.flow', { id : 'modelevaluationstore_' + $stateParams.projectKey + '.' + $stateParams.mesId })}}"
+                        label="View in flow"
+                        icon="icon-sitemap icon-rotate-90"
+                        />
+                        
+                    <div simple-right-col-action-click
+                        on-click="startApplyTagging()"
+                        label="Tag"
+                        icon="icon-tags"
+                        disabled-if-ro
+                        title=""
+                        />
+
+                    <div simple-right-col-action-click
+                        ng-if="projectSummary.canManageExposedElements && isLocalModelEvaluationStore"
+                        ng-inject="ExposedObjectsService"
+                        on-click="ExposedObjectsService.exposeSingleObject('MODEL_EVALUATION_STORE', modelEvaluationStore.id, modelEvaluationStore.name)"
+                        label="Share"
+                        icon="icon-dku-share"
+                        />
+
+                    <div simple-right-col-action-click
+                        ng-if="isLocalModelEvaluationStore"
+                        ng-show="!['YES', 'SHALLOW'].includes(selection.selectedObject.interest.watching)"
+                        on-click="watchObjects(true)"
+                        label="Watch"
+                        icon="icon-eye-open"
+                        title=""
+                        />
+
+                    <div simple-right-col-action-click
+                        ng-if="isLocalModelEvaluationStore"
+                        ng-show="['YES', 'SHALLOW'].includes(selection.selectedObject.interest.watching)"
+                        on-click="watchObjects(false)"
+                        label="Unwatch"
+                        icon="icon-eye-close"
+                        title=""
+                        />
+
+                    <div simple-right-col-action-click
+                        ng-if="isLocalModelEvaluationStore"
+                        ng-show="!selection.selectedObject.interest.starred"
+                        on-click="starObjects(true)"
+                        label="Star"
+                        icon="icon-star"
+                        title=""
+                        />
+
+                    <div simple-right-col-action-click
+                        ng-if="isLocalModelEvaluationStore"
+                        ng-show="selection.selectedObject.interest.starred"
+                        on-click="starObjects(false)"
+                        label="Unstar"
+                        icon="icon-star-empty"
+                        title=""
+                        />
+
+                    <div simple-right-col-action-click
+                         ng-if="isLocalModelEvaluationStore && !$state.current.name.includes('flow')"
+                         ng-inject="Navigator"
+                         on-click="Navigator.showForTopNav()"
+                         label="Navigate"
+                         icon="icon-compass"
+                         disabled-if-ro
+                    />
+
+                    <div simple-right-col-action-click
+                        ng-if="isLocalModelEvaluationStore && appConfig.customFieldsPluginComponentRefs.length"
+                        on-click="editCustomFields()"
+                        label="Metadata"
+                        icon="icon-dku-fields"
+                        disabled-if-ro
+                        />
+
+                    <div simple-right-col-action-click
+                        ng-if="isLocalModelEvaluationStore"
+                        on-click="GlobalProjectActions.deleteTaggableObject(this, 'MODEL_EVALUATION_STORE', selection.selectedObject.name, selection.selectedObject.description)"
+                        label="Delete"
+                        icon="icon-trash"
+                        ng-class="{'icons-danger': isProjectAnalystRW()}"
+                        disabled-if-ro
+                        />
+
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel name="recipes" open="true" class="accordion">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        Code recipes
+                        <i class="{{foldableChevronClazz}}" />
+                    </h4>
+                    <div ng-show="foldableOpen" class="icons-section icons-code" disabled-block-if-ro >
+                        <div simple-right-col-action-click
+                            on-click="showCreateCodeBasedModal('python', [selection.selectedObject.name], selection.selectedObject.ownerZone)"
+                            label="Python"
+                            icon="icon-code_python_recipe"
+                            />
+
+                        <div class="action-icon" ng-repeat="i in ([3] | range)"></div> <!-- flexbox filler, see CSS -->
+                    </div>
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel open="true" class="accordion" name="actions.flowZones" ng-if="$state.current.name.startsWith('projects.project.flow')">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}" />
+                        Flow Zones
+                    </h4>
+                    <div ng-show="foldableOpen" class="icons-section icons-flow-zones" disabled-block-if-ro >
+                        <div simple-right-col-action-click
+                             on-click="moveToFlowZone(getSelectedTaggableObjectRefs(), false, computeMovingImpact())"
+                             label="Move"
+                             icon="icon-move_to_zone"
+                             title="Move to a flow zone"
+                        />
+                        <div simple-right-col-action-click
+                             on-click="shareToFlowZone(getSelectedTaggableObjectRefs())"
+                             label="Share"
+                             icon="icon-share_to_zone"
+                             title="Share to a flow zone"
+                        />
+                        <div simple-right-col-action-click
+                             ng-if="selection.selectedObject.usedByZones.length && !selection.selectedObject.successors.length"
+                             on-click="unshareToFlowZone(getSelectedTaggableObjectRefs(), [selection.selectedObject.usedByZones[0]])"
+                             label="Unshare"
+                             icon="icon-unshare_to_zone"
+                             title="Unshare from this flow zone"
+                        />
+                        <div simple-right-col-action-click
+                             ng-if="$state.current.name.startsWith('projects.project.flow') && isMESZoneInput()"
+                             on-click="zoomToOtherZoneNode(selection.selectedObject.ownerZone)"
+                             label="Original"
+                             toggle="tooltip-bottom"
+                             title="Zoom on original node in other zone"
+                             icon="icon-go_to_original"
+                        />
+                        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                    </div>
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel name="otherActions" open="true" class="accordion other-actions" ng-if="isProjectAnalystRW() || !isLocalModelEvaluationStore">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}" />
+                        Other actions
+                    </h4>
+
+                    <div ng-show="foldableOpen">
+                        <ul class="simple-list" style="margin-bottom: 10px;">
+                            <li ng-if="!isLocalModelEvaluationStore">
+                                <a class="link-std" href="{{$state.href('projects.project.flow', {projectKey: selection.selectedObject.projectKey})}}">
+                                    <i class="icon-mail-reply" /> Go to source project
+                                </a>
+                            </li>
+                            <li ng-if="isProjectAnalystRW() && !isLocalModelEvaluationStore"> <!-- isProjectAnalystRW is not required but that would be weird -->
+                                <a class="link-std" ng-click="unshare()">
+                                    <i class="icon-trash" /> Stop sharing to this project
+                                </a>
+                            </li>
+                            <li ng-if="isLocalModelEvaluationStore && $state.current.name.includes('flow')">
+                                <a class="link-std" ng-click="copyAllSelected()">
+                                    <i class="icon-fixed-width icon-copy" /> Copy
+                                </a>
+                            </li>
+                           <div ng-show="macroRoles['MODEL_EVALUATION_STORE'] && macroRoles['MODEL_EVALUATION_STORE'].length != 0">
+                                <hr />
+                                <li ng-repeat="runnable in macroRoles['MODEL_EVALUATION_STORE']" ng-show="runnable.applicableToForeign || isLocalModelEvaluationStore">
+                                    <a class="link-std" ng-click="showCreateRunnable(runnable.runnable, runnable.roleTarget, getSmartName(selection.selectedObject.projectKey, selection.selectedObject.name))">
+                                       <i class="icon-fixed-width {{runnable.icon}}" /> {{runnable.label}}
+                                    </a>
+                              </li>
+                            </div>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

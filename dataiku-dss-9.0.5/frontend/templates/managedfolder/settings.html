@@ -1,0 +1,78 @@
+<div ng-if="topNav.tab == 'settings'" class="fh managed-folder-settings" tab-model="uiState.activeTab">
+    <div style="position: absolute; right: 10px; top: 6px;" global-keydown="{'ctrl-s meta-s':'saveOdb()'}">
+        <button ng-if="!settingsIsDirty()" type="button" class="btn btn--outline btn--primary" disabled> <i class="icon-save" />&nbsp;Saved
+        </button>
+        <button ng-if="settingsIsDirty()" type="button" class="btn btn--outline btn--primary" ng-click="saveOdb()" > <i class="icon-save" />&nbsp;Save
+        </button>
+    </div>
+    
+    <div class="vertical-flex h100">
+        <ul class="nav nav-tabs noflex">
+             <li class="tab" tab-active="storage">
+                 <a tab-set="storage">Storage</a>
+             </li>
+             <li class="tab" tab-active="partitioning">
+                 <a tab-set="partitioning">Partitioning</a>
+             </li>
+             <li class="tab" tab-active="advanced">
+                <a tab-set="advanced">Advanced</a>
+             </li>
+        </ul>
+        <div block-api-error />
+        <div class="tab-content flex" ng-if="uiState.activeTab == 'storage'">
+            <div class="fh" ng-if="odb">
+                <div class="container-fluid page-top-padding h100 oa">
+                    <div class="row-fluid">
+                        <div class="span7 generic-white-box">
+                            <form class="dkuform-horizontal">
+                                <div class="control-group">
+                                    <label class="control-label" for="">Type</label>
+                                    <div class="controls" ng-if="storageBackends && storageBackends.length > 0">
+                                        <select dku-bs-select
+                                            ng-model="uiState.selectedProviderType"
+                                            ng-options="storageBackend as (storageBackend|fsProviderDisplayName) for storageBackend in storageBackends" />
+                                    </div>
+                                </div>
+                            </form>
+                            <div ng-if="!odb.type.toLowerCase().startsWith('fsprovider_')">
+                                <ng-include class="h100" src="'/templates/managedfolder/connection-' + odb.type.toLowerCase() + '.html'"></ng-include>
+                            </div>
+                            <div ng-if="odb.type.toLowerCase().startsWith('fsprovider_')">
+                                <ng-include class="h100" src="'/templates/managedfolder/connection-custom.html'"></ng-include>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-content flex" ng-if="uiState.activeTab == 'partitioning'">
+            <div class="fh">
+            <div class="container-fluid page-top-padding h100 oa" ng-if="odb">
+                <div class="h100" pane-partitioning dataset="odb" detect-scheme="detectScheme" test-scheme="testScheme"></div>
+            </div>
+            </div>
+        </div>
+        <div class="tab-content flex" ng-if="uiState.activeTab == 'advanced'">
+            <div scrollable-to-bottom>
+                <div include-no-scope="/templates/datasets/advanced-fieldset-flow.html" />
+                <div class="container-fluid">
+                    <form class="dkuform-horizontal">
+                        <div class="control-group" >
+                            <label class="control-label">Change tracking</label>
+                            <div class="controls">
+                                <input type="text" ng-model="odb.markerFile" placeholder="Name of marker file"></input>
+                                <span class="help-inline">The folder is considered modified whenever the marker file changes, independently of modifications on the actual files</span>
+                            </div>
+                        </div>
+                        <div class="control-group" >
+                            <label class="control-label">Content type</label>
+                            <div class="controls">
+                                <input type="text" ng-model="odb.contentType"></input>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

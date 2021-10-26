@@ -1,0 +1,53 @@
+<div custom-element-popup cep-width="fit-main">
+    <div class="btn-group horizontal-flex w100">
+        <button class="noflex btn btn--secondary btn--icon" ng-disabled="animation.currentFrame == 0" ng-click="animation.drawFrame(animation.currentFrame-1)">
+            <i class="icon-angle-left"></i>
+        </button>
+        <div class="flex btn btn--secondary animation-controls__btn has-caret mainzone selector" ng-click="togglePopover()">
+            <div class="current-label">{{animation.labelify(animation.labels[animation.currentFrame].label)}}</div>
+            <span class="caret" />
+        </div>
+        <button class="noflex btn btn--secondary btn--icon" ng-disabled="!animation.hasNext()" ng-click="animation.drawFrame(animation.currentFrame+1)">
+            <i class="icon-angle-right"></i>
+        </button>
+    </div>
+
+    <ul class="popover custom-element-popup-popover-light dku-colored-list clickable oa" style="max-height: 200px">
+        <li ng-repeat="label in animation.labels" ng-click="animation.drawFrame($index); hidePopover()" ng-class="{'bold': animation.currentFrame == $index}">
+            {{animation.labelify(label.label)}} <i ng-show="" />
+        </li>
+    </ul>
+</div>
+
+<div class="horizontal-flex" style="align-items: center;">
+    <div class="noflex" style="margin: 5px; width: 15px; text-align: center;">
+        <div class="play-controls qa_charts_animation-controls" style="cursor: pointer;">
+            <i class="icon-play" ng-click="animation.play()" ng-show="!animation.playing"></i>
+            <i class="icon-pause" ng-click="animation.pause()" ng-show="animation.playing"></i>
+        </div>
+    </div>
+
+    <div class="flex" animated-chart-slider labels="animation.labels" current-frame="animation.currentFrame" dimension="animation.dimension"></div>
+
+</div>
+
+<div class="horizontal-flex speed-repeat">
+    <div class="repeat">
+        <label>
+            <input type="checkbox" id="qa_charts_animation-repeat" ng-model="chart.def.animationRepeat" /> Repeat
+        </label>
+    </div>
+
+    <div class="flex" style="text-align: right; padding-right: 4px;">
+        Speed
+    </div>
+
+    <div>
+        <div class="btn-group speed">
+            <div class="btn btn--secondary" id="qa_charts_animation_speed_1x" ng-click="chart.def.animationFrameDuration = 3000" ng-class="{'btn--active': chart.def.animationFrameDuration == 3000}">x1</div>
+            <div class="btn btn--secondary" id="qa_charts_animation_speed_2x" ng-click="chart.def.animationFrameDuration = 1000" ng-class="{'btn--active': chart.def.animationFrameDuration == 1000}">x2</div>
+            <div class="btn btn--secondary" id="qa_charts_animation_speed_4x" ng-click="chart.def.animationFrameDuration = 500" ng-class="{'btn--active': chart.def.animationFrameDuration == 500}">x4</div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,62 @@
+<div class="modal modal3 dku-modal" ng-controller="ProjectDeployerInfraSetupModalController">
+    <div dku-modal-header-with-totem modal-title="New infrastructure" modal-totem="icon-plus" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <div>
+                <div class="control-group">
+                    <label class="control-label">Infrastructure unique ID</label>
+                    <div class="controls">
+                        <input type="text" ng-model="newInfra.id" required ng-pattern="/^[_A-Za-z0-9-]+$/"/>
+                        <span class="help-inline">Alphanumeric characters, hyphens and underscores</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Lifecycle stage</label>
+                    <div class="controls">
+                        <select dku-bs-select
+                                ng-options="stage.id as (stage.id + ' - ' + stage.desc) for stage in appConfig.projectDeploymentStages"
+                                ng-model="newInfra.stage"
+                                required
+                        />
+                        <span class="help-inline">
+                            All deployments created on this infrastructure will appear in this column in the Deployments screen.
+                        </span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Automation node URL</label>
+                    <div class="controls">
+                        <input type="text" ng-model="newInfra.automationNodeUrl" ng-pattern="/^https?:\/\/\S+$/" required/>
+                        <div class="alert alert--warning mtop4 mbot4" ng-if="hasUrlSuffix(newInfra.automationNodeUrl)">
+                                URL should be http[s]://host[:port], an URL suffix is unexpected and will likely not work
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Admin API key</label>
+                    <div class="controls">
+                        <input type="text" ng-model="newInfra.apiKey" required/>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit"
+                    class="btn btn--text btn--primary"
+                    ng-disabled="theform.$invalid"
+                    ng-click="ok()"
+            >
+                Add
+            </button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,310 @@
+<!-- Only show side panel on the analysis main page -->
+<div ng-class="{'main-panel': topNav.tabsType=='ANALYSIS', 'main-panel--reduced': topNav.tabsType=='ANALYSIS' && standardizedSidePanel.opened}">
+
+    <div class="object-nav analysis-top-tabs no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width" navigator-object>
+
+        <div ng-if="topNav.tabsType=='ANALYSIS'" class="horizontal-flex">
+            <div std-object-breadcrumb class="flex oh"/>
+
+            <div class="tabs noflex">
+                <a fw500-width
+                    class="tab"
+                    ng-class="{enabled: topNav.tab == 'summary'}"
+                    href="{{$state.href('projects.project.analyses.analysis.summary')}}" >
+                    Summary
+                </a>
+                <a fw500-width
+                    class="tab"
+                    ng-class="{enabled: topNav.tab == 'script'}"
+                    href="{{$state.href('projects.project.analyses.analysis.script')}}" >
+                    Script
+                </a>
+                <a fw500-width
+                    class="tab tab-charts"
+                    ng-class="{enabled: topNav.tab == 'charts'}"
+                    href="{{$state.href('projects.project.analyses.analysis.charts')}}" >
+                    Charts
+                </a>
+                <a fw500-width
+                    class="tab"
+                    ng-class="{enabled: topNav.tab == 'models'}"
+                    href="{{$state.href('projects.project.analyses.analysis.ml.list')}}" >
+                    Models
+                </a>
+
+                <div class="otherLinks">
+                    <button class="btn btn--contained btn--flow"
+                        ng-show="topNav.tab!='models'"
+                        ng-click="createShakerRecipe()"
+                        ng-disabled="topNav.tab == 'models'">
+                        <i class="icon-play" />&nbsp;Deploy script
+                    </button>
+                    <div class="dib">
+                        <button class="mainzone btn btn--secondary" id="qa_generic_actions-dropdown" onfocus="this.blur();" ng-click="standardizedSidePanel.toggleTab('actions')">
+                            Actions
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="topNav.tabsType == 'PREDICTION-ANALYSIS-MODEL'" class="horizontal-flex">
+            <!-- Left breadcrumb -->
+            <div class="object-breadcrumb flex-no-grow oh" ng-if="topNav.item.type == 'ANALYSIS'">
+                <a class="item analysis" href="{{$state.href('projects.project.analyses.analysis.script')}}"  title="{{ topNav.item.data.name }}">
+                    <i class="icon icon-dku-nav_analysis"></i>
+                    <span class="title ellipsis" title="{{topNav.item.data.name}}">{{topNav.item.data.name}}</span>
+                </a>
+            </div>
+            <div class="models-intermediate-link noflex" style="margin-left: 15px" >/</div>
+            <div class="models-intermediate-link noflex">
+                <a ui-sref="projects.project.analyses.analysis.ml.predmltask.list.results">Models</a>
+            </div>
+            <div class="models-intermediate-link noflex">/</div>
+            <div class="selector flex-no-shrink mx-textellipsis">
+                <div custom-element-popup cep-position="align-left-bottom">
+                    <a ng-click="togglePopover()" class="mainzone" style="max-width: 100%;">
+                        <span class="caret">
+                            <i class="icon-caret-down" />
+                        </span>
+                        {{mlTasksContext.model.userMeta.name}}
+                    </a>
+
+                    <div class="popover custom-element-popup-popover-light models-selector-popover">
+                        <ul>
+                            <li ng-repeat="task in mlTasksContext.models" full-click class="horizontal-flex">
+                                <span class="noflex" style="width: 19px; padding-left: 5px">
+                                    <i class="icon-star" ng-if="task.userMeta.starred" />
+                                </span>
+                                <a class="flex"
+                                    main-click
+                                    ui-sref="projects.project.analyses.analysis.ml.predmltask.model.report({fullModelId : task.fullModelId})">
+                                    {{task.userMeta.name}}
+                                </a>
+                                <span class="metric noflex">
+                                    <i ng-if="task.sampleWeightsEnabled" class="icon-dku-weight"/>
+                                    {{mlTasksContext.activeMetric|mlMetricName : task}}:
+                                    <span ng-bind-html="task.mainMetric | mlMetricFormat :mlTasksContext.activeMetric :3 :false" />
+                                    | {{task.sessionDate|date: 'yyyy/MM/dd-HH:mm'}}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right tabs -->
+            <div class="tabs noflex">
+                <a class="tab"
+                    ng-class="{enabled: topNav.tab == 'report'}"
+                    href="{{$state.href('projects.project.analyses.analysis.ml.predmltask.model.report')}}"
+                    >&nbsp;Report
+                </a>
+                <span ng-if="!mlTasksContext.noPredicted">
+                    <a class="tab"
+                        ng-class="{enabled: topNav.tab == 'predictedtable'}"
+                        href="{{$state.href('projects.project.analyses.analysis.ml.predmltask.model.predictedtable')}}"
+                        >&nbsp;Predicted data
+                    </a>
+                    <a class="tab tab-charts"
+                        ng-class="{enabled: topNav.tab == 'charts'}"
+                        href="{{$state.href('projects.project.analyses.analysis.ml.predmltask.model.predictedcharts')}}"
+                        >&nbsp;Charts
+                    </a>
+                </span>
+
+                <div class="otherLinks">
+                    <button class="btn btn--contained btn--alt btn--publish" disabled-if='true' disabled-message="This model has to be deployed before you can publish its report" disabled-position="tooltip-bottom">
+                        <i class="icon-dku-publish"></i>&nbsp;
+                        <span>Publish</span>
+                    </button>
+
+                    <button
+                        class="btn btn--secondary"
+                        ng-click="mlTasksContext.deploy()"
+                        disabled-if="mlTasksContext.model.backendType === 'VERTICA'"
+                        disabled-message="Vertica ML backend is no longer supported"
+                        >
+                        <i class="icon-play"></i>
+                        &nbsp;Deploy
+                    </button>
+
+                    <div class="dropdown dib">
+                        <button class="btn btn--secondary dropdown-toggle" id="qa_model-action-button" data-toggle="dropdown" href="#">
+                            Actions <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu pull-right text-left">
+                            <li ng-hide="mlTasksContext.noExport">
+                                <a  ng-click="mlTasksContext.exportNotebook()">
+                                    <i class="icon-code_python_recipe" />
+                                    &nbsp;Export to Jupyter notebook
+                                </a>
+                            </li>
+                            <!-- hidden for now : doesn't work
+                            <li ng-show="mlTasksContext.showDownloadModel('snowflakefunction')">
+                                <a ng-click="mlTasksContext.exportToSnowflakeFunction()">
+                                    <i class="icon-cloud-download" />
+                                    &nbsp;{{mlTasksContext.mayDownloadModel('snowflakefunction') ? "Export to Snowflake function" :
+                                        "Can't export to Snowflake function (details)"}}
+                                </a>
+                            </li>
+                            -->
+                            <li ng-show="mlTasksContext.showDownloadModel('pmml')">
+                                <a ng-click="mlTasksContext.downloadModel('pmml')">
+                                    <i class="icon-cloud-download" />
+                                    &nbsp;{{mlTasksContext.mayDownloadModel('pmml') ? "Download as PMML" :
+                                        "Can't download as PMML (details)"}}
+                                </a>
+                            </li>
+                            <li ng-show="mlTasksContext.showDownloadModel('jar') && mlTasksContext.mayDownloadModel('jar')">
+                                <a ng-click="mlTasksContext.downloadModel('jar-fat')">
+                                    <i class="icon-cloud-download" />
+                                    &nbsp;Download as "fat" jar (standalone)
+                                </a>
+                            </li>
+                            <li ng-show="mlTasksContext.showDownloadModel('jar')">
+                                <a ng-click="mlTasksContext.downloadModel('jar-thin')">
+                                    <i class="icon-cloud-download" />
+                                    &nbsp;{{mlTasksContext.mayDownloadModel('jar') ? 'Download as "thin" jar (require libraries)' :
+                                        "Can't download as jar (details)"}}
+                                </a>
+                            </li>
+                            <li ng-show="mlTasksContext.showDownloadModel('jar') && mlTasksContext.mayDownloadModel('jar')">
+                                <a ng-click="mlTasksContext.downloadModel('jar-lib')">
+                                    <i class="icon-cloud-download" />
+                                    &nbsp;Download scoring libraries jar
+                                </a>
+                            </li>
+                            <li ng-if="mlTasksContext.showDownloadModel('docgen')">
+                                <a ng-click="mlTasksContext.downloadModel('docgen')">
+                                    <i class="icon-cloud-download" />
+                                    &nbsp;{{mlTasksContext.mayDownloadModel('docgen') ? "Export model documentation" :
+                                        "Can't export model documentation (details)"}}
+                                </a>
+                            </li>
+                            <li>
+                                <a  ng-click="mlTasksContext.delete()">
+                                    <span class="text-error">
+                                        <i class="icon-trash" />
+                                        &nbsp;Delete this model
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div ng-if="topNav.tabsType == 'CLUSTERING-ANALYSIS-MODEL'" class="horizontal-flex">
+            <!-- Left breadcrumb -->
+            <div class="object-breadcrumb flex-no-grow oh" ng-if="topNav.item.type == 'ANALYSIS'">
+                <a class="item analysis" href="{{$state.href('projects.project.analyses.analysis.script')}}"  title="{{ topNav.item.data.name }}">
+                    <i class="icon icon-dku-nav_analysis"></i>
+                    <span class="title ellipsis" title="{{topNav.item.data.name}}">{{topNav.item.data.name}}</span>
+                </a>
+            </div>
+            <div class="models-intermediate-link noflex" style="margin-left: 15px">/</div>
+            <div class="models-intermediate-link noflex">
+                <a  ui-sref="projects.project.analyses.analysis.ml.clustmltask.list.results">Models</a>
+            </div>
+            <div class="models-intermediate-link noflex">/</div>
+
+            <div class="selector flex-no-shrink mx-textellipsis">
+                <div custom-element-popup cep-position="align-left-bottom">
+                    <a ng-click="togglePopover()" class="mainzone" style="max-width: 100%;">
+                        <span class="caret">
+                            <i class="icon-caret-down" />
+                        </span>
+                        {{mlTasksContext.model.userMeta.name}}
+                    </a>
+
+                    <div class="popover custom-element-popup-popover-light models-selector-popover">
+                        <ul>
+                            <li ng-repeat="task in mlTasksContext.models" full-click class="horizontal-flex">
+                                <span class="noflex" style="width: 19px; padding-left: 5px">
+                                    <i class="icon-star" ng-if="task.userMeta.starred" />
+                                </span>
+                                <a class="flex" main-click ui-sref="projects.project.analyses.analysis.ml.clustmltask.model.report({fullModelId : task.fullModelId})">{{task.userMeta.name}}</a>
+                                <span class="metric noflex">
+                                    {{mlTasksContext.activeMetric|mlMetricName : task}}: {{task.mainMetric|nicePrecision:2}} |
+                                            {{task.sessionDate|date: 'yyyy/MM/dd-HH:mm'}}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right tabs -->
+            <div class="tabs noflex">
+                <a class="tab" ng-class="{enabled: topNav.tab == 'report'}"  href="{{$state.href('projects.project.analyses.analysis.ml.clustmltask.model.report')}}" >&nbsp;Report</a>
+                <span ng-if="!mlTasksContext.noPredicted">
+                    <a class="tab"
+                        ng-class="{enabled: topNav.tab == 'predictedtable'}"
+                        href="{{$state.href('projects.project.analyses.analysis.ml.clustmltask.model.predictedtable')}}" >
+                        &nbsp;Predicted data
+                    </a>
+                    <a class="tab tab-charts"
+                        ng-class="{enabled: topNav.tab == 'charts'}"
+                        href="{{$state.href('projects.project.analyses.analysis.ml.clustmltask.model.predictedcharts')}}" >
+                        &nbsp;Charts
+                    </a>
+                </span>
+
+                <div class="otherLinks">
+                    <button class="btn btn--contained btn--alt btn--publish" disabled-if='true' disabled-message="This model has to be deployed before you can publish its report" disabled-position="tooltip-bottom">
+                        <i class="icon-dku-publish"></i>&nbsp;
+                        <span>Publish</span>
+                    </button>
+
+                    <button
+                        class="btn btn--secondary"
+                        ng-click="mlTasksContext.deploy()"
+                        disabled-if="mlTasksContext.model.backendType === 'VERTICA'"
+                        disabled-message="Vertica ML backend is no longer supported">
+                        <i class="icon-play"></i>
+                        &nbsp;Deploy
+                    </button>
+
+                    <div class="dropdown dib">
+                        <button class="btn btn--secondary dropdown-toggle" id="qa_model-action-button" data-toggle="dropdown" href="#">
+                            Actions <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu pull-right text-left">
+                            <li ng-hide="mlTasksContext.noExport">
+                                <a  ng-click="mlTasksContext.exportNotebook()">
+                                    <i class="icon-code_python_recipe" />
+                                    &nbsp;Export to Jupyter notebook
+                                </a>
+                            </li>
+                            <li ng-if="mlTasksContext.showDownloadModel('docgen')">
+                                <a ng-click="mlTasksContext.downloadModel('docgen')">
+                                    <i class="icon-cloud-download" />
+                                    &nbsp;{{mlTasksContext.mayDownloadModel('docgen') ? "Export model documentation" :
+                                        "Can't export model documentation (details)"}}
+                                </a>
+                            </li>
+                            <li>
+                                <a ng-click="mlTasksContext.delete()">
+                                    <span class="text-error">
+                                        <i class="icon-trash" />
+                                        &nbsp;Delete this model
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div ui-view class="dss-page"></div>
+
+</div>
+
+<!-- Only show side panel on the analysis main page -->
+<standardized-side-panel ng-if="topNav.tabsType=='ANALYSIS'" page="object" object-type="ANALYSIS" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" close-on-click-outside="true">
+</standardized-side-panel>

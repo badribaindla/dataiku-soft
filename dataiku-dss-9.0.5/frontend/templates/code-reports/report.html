@@ -1,0 +1,47 @@
+<div class="main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+    <div class="object-nav analysis-top-tabs horizontal-flex no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width" navigator-object>
+        <div std-object-breadcrumb class="flex oh" />
+        <div class="tabs noflex">
+            <a class="tab"
+                ng-class="{enabled: topNav.tab == 'summary'}"
+                href="{{$state.href('projects.project.reports.report.summary')}}"
+                fw500-width>
+                Summary
+            </a>
+            <a class="tab"
+                ng-class="{enabled: topNav.tab == 'view'}"
+                href="{{$state.href('projects.project.reports.report.view')}}"
+                fw500-width>
+                View
+            </a>
+            <a class="tab"
+                ng-class="{enabled: topNav.tab == 'edit'}"
+                href="{{$state.href('projects.project.reports.report.edit')}}"
+                ng-if="isProjectAnalystRW() && mayCreateActiveWebContent()"
+                fw500-width>
+                Edit
+            </a>
+            <a class="tab"
+                ng-class="{enabled: topNav.tab == 'history'}"
+                href="{{$state.href('projects.project.reports.report.history')}}"
+                fw500-width>
+                History
+            </a>
+
+            <div class="otherLinks">
+                <span ng-if="canWriteProject() && topNav.tab == 'edit'">
+                    <span object-save-button save="saveReport" can-save="true" is-dirty="isDirty()" object-id="report.id" object-type="REPORT" dropdown-align-right="true" />
+                </span>
+
+                <button class="mainzone btn btn--secondary" id="qa_generic_actions-dropdown" onfocus="this.blur();" ng-click="standardizedSidePanel.toggleTab('actions')">
+                    Actions
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div ui-view class="dss-page report"></div>
+</div>
+
+<standardized-side-panel page="object" object-type="REPORT" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" close-on-click-outside="true">
+</standardized-side-panel>

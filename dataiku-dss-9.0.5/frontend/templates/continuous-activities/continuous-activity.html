@@ -1,0 +1,51 @@
+<div block-api-error />
+<div class="main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+    <div class="scenario-editor-page vertical-flex no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width">
+
+		<div class="top-level-tabs objecttype-recipe">
+			<div class="horizontal-flex row-fluid object-nav">
+				<div class="flex oh" std-object-breadcrumb />
+				<div class="noflex">
+					<div class="otherLinks">
+                        <div class="dropdown" ng-if="continuousActivityPage.recipe">
+                            <a class="btn btn--secondary" ui-sref="projects.project.recipes.recipe({recipeName: continuousActivityPage.recipe.recipe.name})">
+                                Recipe
+                            </a>
+                            <ng-switch on="continuousActivityPage.flatOutputs.length">
+                                <span ng-switch-when="1">
+                                    <a ng-if="continuousActivityPage.flatOutputs[0].objectType == 'DATASET'" class="btn btn--secondary" href="{{datasetSmartHRef(continuousActivityPage.flatOutputs[0].id,'explore')}}">
+                                        Output dataset
+                                    </a>
+                                    <a ng-if="continuousActivityPage.flatOutputs[0].objectType == 'STREAMING_ENDPOINT'" class="btn btn--secondary" ui-sref="projects.project.streaming-endpoints.streaming-endpoint.settings({streamingEndpointId: continuousActivityPage.flatOutputs[0].id})">
+                                        Output streaming endpoint
+                                    </a>
+                                    </span>
+
+                                <div ng-switch-default class="btn-group">
+                                    <button class="btn btn--secondary dropdown-toggle" data-toggle="dropdown">
+                                        Outputs
+                                        <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu pull-right">
+                                        <li ng-repeat="target in continuousActivityPage.flatOutputs">
+                                            <a ng-if="target.objectType == 'DATASET'" href="{{ $state.href('projects.project.datasets.dataset.explore', {datasetName: target.name }) }}">{{ target.name }}</a>
+                                            <a ng-if="target.objectType == 'STREAMING_ENDPOINT'" ui-sref="projects.project.streaming-endpoints.streaming-endpoint.settings({streamingEndpointId: target.id})">{{ target.name }}</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </ng-switch>
+                        
+                            <button class="mainzone btn btn--secondary" id="qa_generic_actions-dropdown" onfocus="this.blur();" ng-click="standardizedSidePanel.toggleTab('actions')">
+                                Actions
+                            </button>
+                        </div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div ui-view class="dss-page"></div>
+    </div>
+</div>
+
+<standardized-side-panel page="object" object-type="CONTINUOUS_ACTIVITY" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" close-on-click-outside="true">
+</standardized-side-panel>

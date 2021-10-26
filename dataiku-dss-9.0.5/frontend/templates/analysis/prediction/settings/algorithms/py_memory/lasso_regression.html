@@ -1,0 +1,35 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Lasso Regression
+    </div>
+    <div data-block="algorithm-description">
+        <p><strong>Lasso Regression</strong> is a linear model that addresses some problems of Ordinary Least Squares by imposing a
+        <em>penalty</em> (or <em>regularization term</em>) to the weights
+        </p>
+        <p>Lasso regression  uses a <em>L1 regularization</em>.</p>
+        <p>
+            This algorithm only selects some of the input features and completely discards others (depending on the value of the regularization term). It thus generally creates simpler output formulas than other linear models.
+        </p> 
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group required">
+            <label class="control-label">Regularization term</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.lasso_regression.alphaMode">
+                    <option value="AUTO_CV">Auto-optimize by cross-validation</option>
+                    <option value="AUTO_IC">Auto-optimize by information criterion</option>
+                    <option value="MANUAL">Specify values to test</option>
+                </select>
+                <div class="help-inline">
+                    Auto-optimization is generally faster than trying multiple values, but it does not support sparse features (like text hashing)
+                </div>
+            </div>
+        </div>
+        <ml-hp-numerical ng-if="mlTaskDesign.modeling.lasso_regression.alphaMode == 'MANUAL'"
+                         ng-model="mlTaskDesign.modeling.lasso_regression.alpha"
+                         decimal
+                         label="Alpha"
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+    </div>
+</div>

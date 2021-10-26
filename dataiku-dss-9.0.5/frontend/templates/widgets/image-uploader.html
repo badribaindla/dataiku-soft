@@ -1,0 +1,85 @@
+<div class="image-uploader empty" ng-class="{'no-preview': uiState.noPreview, 'no-color-picker': !showColorPicker}">
+
+    <div id="image-upload-pane" class="split-pane settings-pane" >
+        <div class="fixed-h" ng-hide="!showColorPicker">
+            <div class="simple-columns">
+                <label>
+                    <input class="option" type="radio" name="image-style" ng-model="uiState.isUseColor" ng-value="true" /> Select color
+                </label>
+                <a class="shuffle" ng-click="shufflePattern()">Shuffle</a>
+            </div>
+
+            <div class="color-options">
+                <span ng-repeat="color in stockColors track by $index" class="color-sample" ng-class="{selected: color==uiState.imgColor}" ng-click="pickStockColor(color)"
+                      style="background-color:{{color}};"  ></span>
+
+                <label colorpicker colorpicker-with-input="true" ng-model="uiState.imgColor" ng-click="onClickColor()">
+                    <span class="color-sample" style="background-color:{{uiState.imgColor}};">
+                        <i class="icon-tint" style="color:white;margin-left:0.25em;" />
+                    </span>
+                    <span class="color-code">{{uiState.imgColor}}</span>
+                </label>
+                <label ng-click="onClickColor()">
+                    <input class="option" type="checkbox" name="image-style" ng-model="uiState.showInitials" /> Add project initials
+                </label>
+            </div>
+
+        </div>
+        <div class="expand-h flex-column" >
+            <div ng-hide="!showColorPicker" class="fixed-h option-image">
+                <label>
+                    <input class="option" type="radio" name="image-style" ng-model="uiState.isUseColor" ng-value="false"/> Select image
+                </label>
+                <a class="clear-link" ng-hide="empty || !showColorPicker" ng-click="clearImageForUpload()" >Clear image</a>
+            </div>
+
+            <div class="selection-wrapper expand-h flex-column">
+                <div class='original expand-h' ng-click="onClickImage()" >
+                    <div class="selection" ng-mousedown="startMoving($event)">
+                        <div class="selection-border selection-border-left" ng-mousedown="startResizing($event, 'll')"></div>
+                        <div class="selection-border selection-border-right" ng-mousedown="startResizing($event, 'rr')"></div>
+                        <div class="selection-border selection-border-top" ng-mousedown="startResizing($event, 'tt')"></div>
+                        <div class="selection-border selection-border-bottom" ng-mousedown="startResizing($event, 'bb')"></div>
+                        <div class="resizeHandle tl" ng-mousedown="startResizing($event, 'tl')"></div>
+                        <div class="resizeHandle tr" ng-mousedown="startResizing($event, 'tr')"></div>
+                        <div class="resizeHandle br" ng-mousedown="startResizing($event, 'br')"></div>
+                        <div class="resizeHandle bl" ng-mousedown="startResizing($event, 'bl')"></div>
+                    </div>
+
+                    <div class="placeholder v-centered">
+                        <p>Drop an image here</p>
+                        <p><small>Or click to select a file</small></p>
+                    </div>
+                </div>
+
+                <div class="image-options fixed-h" ng-hide="empty || !showResizeModes" >
+                    <div class="space">
+                    <select dku-bs-select ng-model="uiState.resizeMode">
+                        <option value="SLICE">Take image slice</option>
+                        <option value="STRETCH_">Crop and stretch image</option>
+                        <option value="SCALE">Crop and scale image to fit </option>
+                        <option value="FILL">Crop and scale image to fill</option>
+                    </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="split-pane preview-pane" ng-hide="uiState.noPreview">
+        <div class="fixed-h">
+            <div><p>Preview</p></div>
+            <div class="preview-frame" >
+                <div class="preview-image pattern-{{ uiState.imgPattern }} " ng-hide="!empty && !uiState.isUseColor" ng-class="{ 'hide-pattern': !uiState.isUseColor }">
+                    <div class="preview-image-color" ng-style="{'background-color': '\'' + previewBackgroundColor() + '\''}" ng-hide="!uiState.isUseColor"></div>
+                    <div class="preview-image-text" ng-hide="!uiState.isUseColor || !uiState.showInitials">
+                        {{ initials }}
+                    </div>
+                    <img ng-if="(!uiState.isUseColor && uiState.isProjectImg) || objectType === 'USER'"  ng-src='{{ imageUrl() }}' class='totem {{totemClass}}'/>
+                </div>
+                <canvas ng-hide="empty || uiState.isUseColor" class="preview {{ totemClass }}"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>

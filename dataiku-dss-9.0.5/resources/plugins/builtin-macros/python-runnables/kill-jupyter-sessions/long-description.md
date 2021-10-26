@@ -1,0 +1,1 @@
+This macro kills Jupyter sessions that have either been running for too long, or that have been idle for too long.

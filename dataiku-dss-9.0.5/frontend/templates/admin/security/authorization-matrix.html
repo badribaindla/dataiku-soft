@@ -1,0 +1,444 @@
+<div class="h100 vertical-flex authorization-matrix-page pad16" ng-init="canGroups = (appConfig.licensedFeatures.userSecurityAllowed && appConfig.licensingMode != 'SAAS')">
+
+    <div block-api-error></div>
+
+    <div class="fh oa" ng-if="!canGroups">
+        <div class="locked-feature" ng-if="!appConfig.licensedFeatures.userSecurityAllowed">
+            <div class="banner">
+                Your DSS <span ng-bind="appConfig.licensedFeatures.limitedEditionString" /> does
+                not allow you to manage security.
+            </div>
+            <div include-no-scope="/templates/profile/community-vs-enterprise-try.html"></div>
+        </div>
+        <div class="container-fluid page-top-padding" ng-if="appConfig.licensingMode == 'SAAS'">
+            <div style="margin: 3em auto; width: 500px; text-align: center">
+                <h4 class="ce-unavail">
+                    Collaborative features are not available in
+                    <br />
+                    Dataiku DSS Online Trial
+                </h4>
+            </div>
+        </div>
+    </div>
+
+
+	<div class="header noflex" ng-if="canGroups">
+		Show:
+		<select dku-bs-select ng-model="uiState.showPermissionsBy">
+			<option value="GROUPS">By group</option>
+			<option value="USERS">By user</option>
+		</select>
+
+		<div class="authorization-matrix-legend">
+			<div>
+				<div class="legend-item"><div class="grant-wrapper"><div class="grant readProjectContent">RC</div></div> Read project content</div>
+				<div class="legend-item"><div class="grant-wrapper"><div class="grant writeProjectContent">WC</div></div> Write project content</div>
+				<div class="legend-item"><div class="grant-wrapper"><div class="grant runScenarios">RS</div></div> Run scenarios</div>
+				<br />
+				<div class="legend-item"><div class="grant-wrapper"><div class="grant readDashboards">RD</div></div> Read dashboards</div>
+				<div class="legend-item"><div class="grant-wrapper"><div class="grant writeDashboards">WD</div></div> Write dashboards</div>
+				<div class="legend-item"><div class="grant-wrapper"><div class="grant moderateDashboards">MD</div></div> Moderate dashboards</div>
+				<br />
+				<div class="legend-item"><div class="grant-wrapper"><div class="grant manageDashboardAuthorizations">DA</div></div> Manage dashboard auth.</div>
+				<div class="legend-item"><div class="grant-wrapper"><div class="grant manageExposedElements">EE</div></div> Manage exposed elements</div>
+                <div class="legend-item"><div class="grant-wrapper"><div class="grant manageAdditionalDashboardUsers">AU</div></div> Manage dashboard users</div>
+                <br />
+                <div class="legend-item"><div class="grant-wrapper"><div class="grant executeApp">EA</div></div> Execute app</div>
+				<div class="legend-item"><div class="grant-wrapper"><div class="grant admin">A</div></div> Admin</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="flex oa" ng-if="canGroups && authorizationMatrix">
+		<table class="authorization-matrix-table" ng-if="uiState.showPermissionsBy == 'GROUPS'" authorization-matrix-table>
+
+			<tr class="users">
+				<td></td>
+				<th ng-repeat="group in authorizationMatrix.perGroup.groups">
+					<div class="rotated">
+						<span>{{group}}</span>
+					</div>
+				</th>
+			</tr>
+
+			<tr class="data">
+				<th>Global admin</th>
+				<td ng-class="{'hover' : hover.col == $index}"
+					ng-mouseenter="hover.col = $index"
+					ng-mouseleave="hover.col = null"
+					ng-repeat="user in authorizationMatrix.perGroup.groups"
+					class="global-grant-item {{authorizationMatrix.perGroup.admin[$index]}}">
+					<i class="icon-ok" ng-if="authorizationMatrix.perGroup.admin[$index]" />
+					<i class="icon-remove" ng-if="!authorizationMatrix.perGroup.admin[$index]" />
+				</td>
+			</tr>
+
+			<tr class="data">
+				<th>Manage user-defined meanings</th>
+				<td ng-class="{'hover' : hover.col == $index}"
+					ng-mouseenter="hover.col = $index"
+					ng-mouseleave="hover.col = null"
+					ng-repeat="user in authorizationMatrix.perGroup.groups"
+					class="global-grant-item {{authorizationMatrix.perGroup.mayManageUDM[$index]}}">
+					<i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayManageUDM[$index]" />
+					<i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayManageUDM[$index]" />
+				</td>
+			</tr>
+            <tr class="data">
+                <th>Create projects</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayCreateProjects[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayCreateProjects[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayCreateProjects[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Create code envs</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayCreateCodeEnvs[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayCreateCodeEnvs[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayCreateCodeEnvs[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Manage all code envs</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayManageCodeEnvs[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayManageCodeEnvs[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayManageCodeEnvs[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Create clusters</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayCreateClusters[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayCreateClusters[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayCreateClusters[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Manage all clusters</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayManageClusters[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayManageClusters[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayManageClusters[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Develop plugins</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayDevelopPlugins[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayDevelopPlugins[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayDevelopPlugins[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Edit lib folders</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayEditLibFolders[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayEditLibFolders[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayEditLibFolders[$index]" />
+                </td>
+            </tr>
+			<tr class="data">
+				<th>Create user connections</th>
+				<td ng-class="{'hover' : hover.col == $index}"
+					ng-mouseenter="hover.col = $index"
+					ng-mouseleave="hover.col = null"
+					ng-repeat="user in authorizationMatrix.perGroup.groups"
+					class="global-grant-item {{authorizationMatrix.perGroup.mayCreateAuthenticatedConnections[$index]}}">
+					<i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayCreateAuthenticatedConnections[$index]" />
+					<i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayCreateAuthenticatedConnections[$index]" />
+				</td>
+			</tr>
+            <tr class="data">
+                <th>Write unisolated code</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayWriteUnsafeCode[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayWriteUnsafeCode[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayWriteUnsafeCode[$index]" />
+                </td>
+            </tr>
+            <tr class="data" ng-if="appConfig.impersonationEnabled">
+                <th>Write isolated code</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayWriteSafeCode[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayWriteSafeCode[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayWriteSafeCode[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Create published API services</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayCreatePublishedAPIServices[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayCreatePublishedAPIServices[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayCreatePublishedAPIServices[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Create published projects</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayCreatePublishedProjects[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayCreatePublishedProjects[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayCreatePublishedProjects[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>May write in root project folder</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayWriteInRootProjectFolder[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayWriteInRootProjectFolder[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayWriteInRootProjectFolder[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>May create active web content</th>
+                <td ng-class="{'hover' : hover.col == $index}"
+                    ng-mouseenter="hover.col = $index"
+                    ng-mouseleave="hover.col = null"
+                    ng-repeat="user in authorizationMatrix.perGroup.groups"
+                    class="global-grant-item {{authorizationMatrix.perGroup.mayCreateActiveWebContent[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perGroup.mayCreateActiveWebContent[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perGroup.mayCreateActiveWebContent[$index]" />
+                </td>
+            </tr>
+
+			<tr class="separator">
+				<td>&nbsp;</td>
+				<td ng-repeat="user in authorizationMatrix.perGroup.groups"></td>
+			</tr>
+
+			<tr  class="data" ng-repeat="projectGrants in authorizationMatrix.perGroup.projectsGrants
+				 | startAt: authorizationMatrix.perGroup.$offset
+				 | limitTo: authorizationMatrix.perGroup.$pageSize">
+				<th class="header ellipsed">
+					<a ui-sref="projects.project.security({projectKey: projectGrants.projectKey})"
+						title="Project name: {{projectGrants.projectName}}"
+						toggle="tooltip"
+						class="link-std">
+						{{projectGrants.projectKey}}
+					</a>
+				</th>
+
+				<td ng-repeat="user in authorizationMatrix.perGroup.groups"
+					class="project-grant-item"
+					ng-class="{'hover' : hover.col == $index}"
+					ng-mouseenter="hover.col = $index"
+					ng-mouseleave="hover.col = null">
+					<div project-grant-item grant="projectGrants.grants[$index]" />
+				</td>
+			</tr>
+		</table>
+
+		<div ng-if="uiState.showPermissionsBy == 'GROUPS' && authorizationMatrix && authorizationMatrix.perGroup.projectsGrants.length > authorizationMatrix.perGroup.$pageSize" class="pagination">
+			Page: <span ng-repeat="p in authorizationMatrix.perGroup.$pages">
+				<a ng-if="authorizationMatrix.perGroup.$offset != p*authorizationMatrix.perGroup.$pageSize" ng-click="authorizationMatrix.perGroup.$offset = p*authorizationMatrix.perGroup.$pageSize"> {{p+1}} </a>
+				<strong ng-if="authorizationMatrix.perGroup.$offset == p*authorizationMatrix.perGroup.$pageSize"> {{p+1}} </strong>
+			</span>
+		</div>
+
+
+
+		<table class="authorization-matrix-table" ng-if="uiState.showPermissionsBy == 'USERS'" authorization-matrix-table>
+
+			<tr class="users">
+				<td></td>
+				<th ng-repeat="user in authorizationMatrix.perUser.users"><div class="rotated"><span>{{user.displayName}}</span></div></th>
+			</tr>
+
+			<tr class="data">
+				<th>Global admin</th>
+				<td ng-repeat="user in authorizationMatrix.perUser.users"
+					class="global-grant-item {{authorizationMatrix.perUser.admin[$index]}}">
+					<i class="icon-ok" ng-if="authorizationMatrix.perUser.admin[$index]" />
+					<i class="icon-remove" ng-if="!authorizationMatrix.perUser.admin[$index]" />
+				</td>
+			</tr>
+
+			<tr class="data">
+				<th>Manage user-defined meanings</th>
+				<td ng-repeat="user in authorizationMatrix.perUser.users"
+					class="global-grant-item {{authorizationMatrix.perUser.mayManageUDM[$index]}}">
+					<i class="icon-ok" ng-if="authorizationMatrix.perUser.mayManageUDM[$index]" />
+					<i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayManageUDM[$index]" />
+				</td>
+			</tr>
+            <tr class="data">
+                <th>Create projects</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayCreateProjects[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayCreateProjects[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayCreateProjects[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Manage own code envs</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayCreateCodeEnvs[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayCreateCodeEnvs[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayCreateCodeEnvs[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Manage all code envs</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayManageCodeEnvs[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayManageCodeEnvs[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayManageCodeEnvs[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Manage own cluster</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayCreateClusters[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayCreateClusters[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayCreateClusters[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Manage all clusters</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayManageClusters[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayManageClusters[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayManageClusters[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Develop plugins</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayDevelopPlugins[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayDevelopPlugins[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayDevelopPlugins[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Edit lib folders</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayEditLibFolders[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayEditLibFolders[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayEditLibFolders[$index]" />
+                </td>
+            </tr>
+			<tr class="data">
+				<th>Create user connections</th>
+				<td ng-repeat="user in authorizationMatrix.perUser.users"
+					class="global-grant-item {{authorizationMatrix.perUser.mayCreateAuthenticatedConnections[$index]}}">
+					<i class="icon-ok" ng-if="authorizationMatrix.perUser.mayCreateAuthenticatedConnections[$index]" />
+					<i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayCreateAuthenticatedConnections[$index]" />
+				</td>
+			</tr>
+            <tr class="data">
+                <th>Write unisolated code</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayWriteUnsafeCode[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayWriteUnsafeCode[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayWriteUnsafeCode[$index]" />
+                </td>
+            </tr>
+            <tr class="data" ng-if="appConfig.impersonationEnabled">
+                <th>Write isolated code</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayWriteSafeCode[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayWriteSafeCode[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayWriteSafeCode[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Create published API services</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayCreatePublishedAPIServices[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayCreatePublishedAPIServices[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayCreatePublishedAPIServices[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>Create published projects</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayCreatePublishedProjects[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayCreatePublishedProjects[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayCreatePublishedProjects[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>May write in root project folder</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayWriteInRootProjectFolder[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayWriteInRootProjectFolder[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayWriteInRootProjectFolder[$index]" />
+                </td>
+            </tr>
+            <tr class="data">
+                <th>May create active web content</th>
+                <td ng-repeat="user in authorizationMatrix.perUser.users"
+                    class="global-grant-item {{authorizationMatrix.perUser.mayCreateActiveWebContent[$index]}}">
+                    <i class="icon-ok" ng-if="authorizationMatrix.perUser.mayCreateActiveWebContent[$index]" />
+                    <i class="icon-remove" ng-if="!authorizationMatrix.perUser.mayCreateActiveWebContent[$index]" />
+                </td>
+            </tr>
+
+			<tr class="separator" ng-if="authorizationMatrix.perUser.projectsGrants.length > 0">
+				<td>&nbsp;</td><td ng-repeat="user in authorizationMatrix.perUser.users"></td>
+			</tr>
+
+			<tr  class="data" ng-repeat="projectGrants in authorizationMatrix.perUser.projectsGrants
+				 | startAt: authorizationMatrix.perUser.$offset
+				 | limitTo: authorizationMatrix.perUser.$pageSize">
+				<th class="header ellipsed">
+					<a ui-sref="projects.project.security({ projectKey: projectGrants.projectKey })"
+						title="Project name: {{projectGrants.projectName}}"
+						toggle="tooltip"
+						class="link-std">
+						{{projectGrants.projectKey}}
+					</a>
+				</th>
+
+				<td ng-repeat="user in authorizationMatrix.perUser.users" class="project-grant-item">
+					<div project-grant-item grant="projectGrants.grants[$index]" />
+				</td>
+			</tr>
+		</table>
+
+		<div ng-if="uiState.showPermissionsBy == 'USERS' && authorizationMatrix && authorizationMatrix.perUser.projectsGrants.length > authorizationMatrix.perUser.$pageSize" class="pagination">
+			Page: <span ng-repeat="p in authorizationMatrix.perUser.$pages">
+				<a ng-if="authorizationMatrix.perUser.$offset != p*authorizationMatrix.perUser.$pageSize" ng-click="authorizationMatrix.perUser.$offset = p*authorizationMatrix.perUser.$pageSize"> {{p+1}} </a>
+				<strong ng-if="authorizationMatrix.perUser.$offset == p*authorizationMatrix.perUser.$pageSize"> {{p+1}} </strong>
+			</span>
+		</div>
+	</div>
+</div>

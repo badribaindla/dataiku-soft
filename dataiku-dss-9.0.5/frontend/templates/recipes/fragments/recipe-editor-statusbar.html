@@ -1,0 +1,71 @@
+<div class="editor-statusbar">
+    <span class="editor-statusbar--full-width" ng-show="valCtx.validationResult.topLevelMessages.messages.length > 0">
+		<ul>
+			<li ng-repeat="error in valCtx.validationResult.topLevelMessages.messages | limitTo: 2"> <!-- We display only 2 messages to make sure 'View more' is always visible  -->
+                <span class="editor-statusbar__error text-{{error.severity.toLowerCase()}}">
+                    <i ng-class="{'icon-warning-sign': error.severity.toLowerCase() !== 'info', 'icon-info-sign': error.severity.toLowerCase() === 'info'}" />
+                    {{error.message}}
+                    <a ng-click="gotoLine(cm,error.line)" ng-show="error.line">(at line {{error.line}}) </a>
+                </span>
+			</li>
+            <li>
+                <a ng-click="displayAllMessagesInModal()">
+                    View more
+                    <ng-pluralize ng-if="valCtx.validationResult.topLevelMessages.messages.length > 2"
+                                  count="valCtx.validationResult.topLevelMessages.messages.length" offset="2"
+                                  when="{'one': '(1 more message)', 'other': '({} more messages)'}">
+                    </ng-pluralize>
+                </a>
+            </li>
+		</ul>
+	</span>
+    <span class="editor-statusbar--full-width text-success" ng-show="valCtx.validationResult && valCtx.validationResult.topLevelMessages.messages.length == 0" class="text-success">
+        <i class="icon-ok" />&nbsp;Validation successful
+
+        <!-- ugly ... -->
+        <span ng-show="recipe.type == 'sql_script'">
+            (config and connection only. You need to execute to validate the query)
+        </span>
+	</span>
+    <em class="editor-statusbar--full-width smallgrey" ng-show="!valCtx.validationResult && (recipe.type == 'spark_sql_query' || recipe.type.indexOf('spark') < 0)">Hint: Hit Ctrl-Enter to validate</em>
+    <div class="editor-statusbar__help" ng-switch on="recipe.type">
+        <div ng-switch-when="sql_query">
+            <small class="smallgrey">SQL Query</small>
+            <doclink page="/code_recipes/sql" title="Help" />
+        </div>
+        <div ng-switch-when="sql_script">
+            <small class="smallgrey">SQL Script</small>
+            <doclink page="/code_recipes/sql" title="Help" />
+        </div>
+        <div ng-switch-when="pig">
+            <doclink page="/code_recipes/pig" title="Help" />
+        </div>
+        <div ng-switch-when="hive">
+            <doclink page="/code_recipes/hive" title="Help" />
+        </div>
+        <div ng-switch-when="impala">
+            <doclink page="/code_recipes/impala" title="Help" />
+        </div>
+        <div ng-switch-when="python">
+            <doclink page="/code_recipes/python" title="Help" />
+        </div>
+        <div ng-switch-when="r">
+            <doclink page="/code_recipes/r" title="Help" />
+        </div>
+        <div ng-switch-when="julia">
+            <doclink page="/code_recipes/julia" title="Help" />
+        </div>
+        <div ng-switch-when="spark_sql_query">
+            <doclink page="/code_recipes/sparksql" title="Help" />
+        </div>
+        <div ng-switch-when="spark_scala">
+            <doclink page="/code_recipes/scala" title="Help" />
+        </div>
+        <div ng-switch-when="pyspark">
+            <doclink page="/code_recipes/pyspark" title="Help" />
+        </div>
+        <div ng-switch-when="sparkr">
+            <doclink page="/code_recipes/sparkr" title="Help" />
+        </div>
+    </div>
+</div>

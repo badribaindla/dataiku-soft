@@ -1,0 +1,52 @@
+<div class="modal new-tutorial-modal dku-modal modal3 vertical-flex">
+	<div dku-modal-header-with-totem modal-title="{{$root.wl.productShortName + (uiState.currentType == 'TUTORIAL' ? ' Tutorials' : ' Samples')}}" modal-totem="icon-dku-tutorial" />
+	<div class="noflex" style="margin: 5px;">
+			<div ng-if="tutorialsList && !tutorialsList.couldFetch">
+				<div block-api-error></div>
+				<div class="row-fluid">
+					<div class="alert alert-warning">
+						<h4>Could not download {{uiState.currentType == 'TUTORIAL' ? 'tutorials' : 'sample projects'}}</h4>
+						<p style="font-size: 1.1em; margin-top: 10px">Not all {{uiState.currentType == 'TUTORIAL' ? 'tutorials' : 'sample projects'}} are available here.<br />
+						You can download all sample projects and tutorials from <a target="_blank" rel="noopener noreferrer" href="https://www.dataiku.com/learn/guide">our Learn website</a></p>
+						<p><small>Details: {{tutorialsList.fetchError.detailedMessage}}.</small></p>
+					</div>
+				</div>
+			</div>
+		</div>
+	<div class="flex">
+		<div ng-if="tutorialsList" class="fh">
+			<div class="horizontal-flex">
+				<div class="noflex" style="width: 200px;">
+					<ul class="section-pills">
+						<li ng-class="{'active' : uiState.currentSection == section}" ng-repeat="section in availableSections" full-click><a ng-click="uiState.currentSection  = section" main-click>{{section}}</a></li>
+					</ul>
+				</div>
+				<div class="flex">
+					<div class="fh oa">
+						<div class="project-tiles">
+
+							<div ng-repeat="project in availableTutorials[uiState.currentSection]" class="tile-wrapper">
+								<div class="project" full-click>
+									<div class="image row-cell">
+										<a ng-click="start(project.id)" main-click>
+										<img ng-src="{{project.imageURL}}" ng-if="project.imageURL != undefined"></img>
+										</a>
+									</div>
+									<div class="modal-body project-body row-cell">
+										<div class="title">
+											<h3>{{project.name}}</h3>
+										</div>
+										<div class="description">
+											<div from-markdown="project.shortDesc || project.description" class="description description-on-home" />
+										</div>
+									</div>
+								</div>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

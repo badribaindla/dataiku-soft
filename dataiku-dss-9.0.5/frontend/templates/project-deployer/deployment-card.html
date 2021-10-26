@@ -1,0 +1,187 @@
+<div class="standard-widget deployment-card"
+     ng-click="redirect()"
+     ng-class="{'standard-widget--warning': deploymentStatus.currentState === 'WARNING' || deploymentStatus.currentState === 'UNKNOWN' || deploymentStatus.currentState === 'OUT_OF_SYNC',
+        'standard-widget--error': deploymentStatus.currentState === 'LOADING_FAILED' || deploymentStatus.currentState === 'ERROR' || deploymentStatus.currentState === 'UNHEALTHY'}">
+    <div class="standard-container__header standard-container__header--with-totem deployment-card__header simple-columns">
+        <div class="standard-container__totem" ng-if="lightStatus.projectBasicInfo.id">
+            <totem project-name="lightStatus.projectBasicInfo.name"
+                project-key="lightStatus.projectBasicInfo.id"
+                object-type="'PUBLISHED_PROJECT'"
+                object-id="lightStatus.projectBasicInfo.id"
+                object-img-hash = "lightStatus.projectBasicInfo.imageInfo.objectImgHash"
+                img-color="lightStatus.projectBasicInfo.imageInfo.imgColor"
+                img-pattern="lightStatus.projectBasicInfo.imageInfo.imgPattern"
+                show-initials="lightStatus.projectBasicInfo.imageInfo.showInitials"
+                is-project-img="lightStatus.projectBasicInfo.imageInfo.isUploadedImg"
+                default-img-color="lightStatus.projectBasicInfo.imageInfo.defaultImgColor"
+            />
+        </div>
+        <div class="standard-container__titles vertical-flex">
+            <h5 class="vertical-flex standard-container__title">
+                <a ng-show="!dashboardTile"
+                   class="link-object"
+                   ui-sref="projectdeployer.projects.project.home.status({ publishedProjectKey: lightStatus.projectBasicInfo.id})"
+                   show-tooltip-on-text-overflow
+                   text-tooltip="lightStatus.projectBasicInfo.name"
+                   tooltip-direction="'tooltip-top'"
+                   observe-resize="false">
+                </a>
+                <div class="deployment-card__header-title"
+                     show-tooltip-on-text-overflow
+                     text-tooltip="lightStatus.projectBasicInfo.name"
+                     tooltip-direction="'tooltip-top'"
+                     observe-resize="false"
+                     ng-show="dashboardTile"></div>
+            </h5>
+            <div class="horizontal-flex aic">
+                <i class="icon-bundle"></i>
+                <a class="link-object padleft4 deployment-card__header-title"
+                   ng-show="!dashboardTile"
+                   ui-sref="projectdeployer.projects.project.bundle.status({ publishedProjectKey: lightStatus.projectBasicInfo.id, bundleId: lightStatus.deploymentBasicInfo.bundleId})"
+                   show-tooltip-on-text-overflow
+                   text-tooltip="lightStatus.deploymentBasicInfo.bundleId"
+                   tooltip-direction="'tooltip-top'"
+                   observe-resize="false">
+                </a>
+                <div class="padleft4 text-weak deployment-card__header-title"
+                     ng-show="dashboardTile"
+                     show-tooltip-on-text-overflow
+                     text-tooltip="lightStatus.deploymentBasicInfo.bundleId"
+                     tooltip-direction="'tooltip-top'"
+                     observe-resize="false"></div>
+            </div>
+            <div class="text-weak noflex deployment-card__header-title" show-tooltip-on-text-overflow text-tooltip="lightStatus.deploymentBasicInfo.id" tooltip-direction="'tooltip-top'" observe-resize="false"></div>
+        </div>
+        <div class="status-icon">
+            <i class="{{deploymentStatus.currentState |deploymentHealthToIcon}}" title="{{deploymentStatus.message}}" data-container="body" toggle="tooltip"></i>
+        </div>
+    </div>
+    <div class="pad8 deployment-card__body">
+        <ul class="standard-container__list deployment-card__list">
+            <li class="standard-container__list-item standard-container__list-item--single-row" ng-if="!dashboardTile">
+                <span class="standard-container__list-item-title">Created</span>
+                <div class="standard-container__list-item-body horizontal-flex">
+                    <div class="flex-no-shrink"
+                         title="{{ lightStatus.deploymentBasicInfo.creationTag.lastModifiedOn | date:'yyyy-MM-dd – HH:mm:ss' }}"
+                         toggle="tooltip"
+                         placement="top"
+                         container="body">
+                        {{ lightStatus.deploymentBasicInfo.creationTag.lastModifiedOn | friendlyTimeDeltaShort }} by&nbsp;
+                    </div>
+                    <a class="flex-no-grow link-object mx-textellipsis"
+                       title="{{ lightStatus.deploymentBasicInfo.createdByDisplayName || lightStatus.deploymentBasicInfo.creationTag.lastModifiedBy.login }}"
+                       href="/profile/{{ lightStatus.deploymentBasicInfo.creationTag.lastModifiedBy.login }}/"
+                       toggle="tooltip"
+                       placement="top"
+                       container="body">
+                        {{ lightStatus.deploymentBasicInfo.createdByDisplayName || lightStatus.deploymentBasicInfo.creationTag.lastModifiedBy.login }}
+                    </a>
+                </div>
+            </li>
+            <li class="standard-container__list-item standard-container__list-item--single-row">
+                <span class="standard-container__list-item-title">Updated</span>
+                <div class="standard-container__list-item-body horizontal-flex">
+                    <div class="flex-no-shrink"
+                         toggle="tooltip"
+                         placement="top"
+                         container="body"
+                         title="{{ lightStatus.deploymentBasicInfo.versionTag.lastModifiedOn | date:'yyyy-MM-dd – HH:mm:ss' }}">
+                        {{ lightStatus.deploymentBasicInfo.versionTag.lastModifiedOn | friendlyTimeDeltaShort }} by&nbsp;
+                    </div>
+                    <a class="flex-no-grow link-object mx-textellipsis" ng-href="{{ dashboardTile ? '' : '/profile/' + lightStatus.deploymentBasicInfo.versionTag.lastModifiedBy.login+'/'}}"
+                       ng-show="!dashboardTile"
+                       title="{{ lightStatus.deploymentBasicInfo.lastModifiedByDisplayName || lightStatus.deploymentBasicInfo.versionTag.lastModifiedBy.login }}"
+                       toggle="tooltip"
+                       placement="top"
+                       container="body">
+                        {{ lightStatus.deploymentBasicInfo.lastModifiedByDisplayName || lightStatus.deploymentBasicInfo.versionTag.lastModifiedBy.login }}
+                    </a>
+                    <div class="flex-no-grow mx-textellipsis" ng-show="dashboardTile"
+                       title="{{ lightStatus.deploymentBasicInfo.lastModifiedByDisplayName || lightStatus.deploymentBasicInfo.versionTag.lastModifiedBy.login }}"
+                       toggle="tooltip"
+                       placement="top"
+                       container="body">
+                        {{ lightStatus.deploymentBasicInfo.lastModifiedByDisplayName || lightStatus.deploymentBasicInfo.versionTag.lastModifiedBy.login }}
+                    </div>
+                </div>
+            </li>
+            <li class="standard-container__list-item standard-container__list-item--single-row">
+                <span class="standard-container__list-item-title">Deployed on</span>
+                <span class="standard-container__list-item-body">
+                    <i class="icon-infra universe-color project-deployer"></i>
+                    <a ng-if="!dashboardTile"
+                       ui-sref="projectdeployer.infras.infra.status({ infraId: lightStatus.infraBasicInfo.id})"
+                       class="link-object deployment-card__list-single-row-body-text padleft4">
+                        <div show-tooltip-on-text-overflow text-tooltip="lightStatus.infraBasicInfo.id" tooltip-direction="'tooltip-top'" observe-resize="false"></div>
+                    </a>
+                    <div ng-if="dashboardTile"
+                         show-tooltip-on-text-overflow
+                         text-tooltip="lightStatus.infraBasicInfo.id"
+                         tooltip-direction="'tooltip-top'" observe-resize="false"
+                         class="deployment-card__list-single-row-body-text padleft4"></div>
+                </span>
+            </li>
+            <li class="standard-container__list-item" ng-if="automationInfo">
+                <span class="standard-container__list-item-title">as Automation project:</span>
+                <span class="horizontal-flex">
+                    <a class="standard-list__external-link horizontal-flex mx-textellipsis" href="{{ automationInfo.automationUrl }}" target="blank">
+                        <div show-tooltip-on-text-overflow text-tooltip="automationInfo.automationProjectKey" tooltip-direction="'tooltip-top'" observe-resize="false"></div>
+                    </a>
+                    <a class="no-underline padleft4 standard-list__external-link standard-container__list-item-body" href="{{ automationInfo.automationUrl }}" target="blank">
+                        <i class="smaller-font icon-external-link"></i>
+                    </a>
+                </span>
+            </li>
+            <li class="standard-container__list-item" ng-if="bundleOriginInfo">
+                <span class="standard-container__list-item-title">from Design project:</span>
+                <div ng-show="!bundleOriginInfo.url" show-tooltip-on-text-overflow text-tooltip="bundleOriginInfo.projectKey" tooltip-direction="'tooltip-top'" observe-resize="false">
+                </div>
+                <span ng-show="bundleOriginInfo.url" class="horizontal-flex">
+                    <a class="standard-list__external-link horizontal-flex mx-textellipsis" href="{{ bundleOriginInfo.url }}" target="blank">
+                        <div show-tooltip-on-text-overflow text-tooltip="bundleOriginInfo.projectKey" tooltip-direction="'tooltip-top'" observe-resize="false"></div>
+                    </a>
+                    <a class="no-underline padleft4 standard-list__external-link standard-container__list-item-body" href="{{ bundleOriginInfo.url }}" target="blank">
+                        <i class="smaller-font icon-external-link"></i>
+                    </a>
+                </span>
+            </li>
+            <li class="standard-container__list-item standard-container__list-item--single-row" ng-if="dashboardTile && scenarioLastRuns">
+                <span ng-if="scenarioLastRuns.total" class="standard-container__list-item-title">Last scenario runs</span>
+                <span ng-if="scenarioLastRuns.total" class="standard-container__list-item-body">
+                    {{ getSummaryLine(scenarioLastRuns) }}
+                    <span class="mleft4 bullet"
+                                toggle="tooltip"
+                                title="{{ displayScenarioNamesOfHighestSeverity(scenarioLastRuns) }}"
+                                ng-class="{'bullet--error': scenarioLastRuns.highestSeverity.value === outcome.FAILED,
+                                'bullet--warning': scenarioLastRuns.highestSeverity.value === outcome.WARNING,
+                                'bullet--success': scenarioLastRuns.highestSeverity.value !== outcome.FAILED && scenarioLastRuns.highestSeverity.value !== outcome.WARNING }">
+                    </span>
+                </span>
+                <span class="text-prompt" ng-if="scenarioLastRuns.total === 0">
+                    No scenario runs yet
+                </span>
+                <span class="text-prompt" ng-if="scenarioLastRuns.noScenarios">
+                    No scenarios
+                </span>
+                <span class="text-prompt" ng-if="scenarioLastRuns.noActiveScenarios">
+                    No scenarios with active triggers
+                </span>
+                <span class="text-prompt" ng-if="scenarioLastRuns.unreachable">
+                    Could not fetch latest scenario runs
+                </span>
+            </li>
+            <li class="status-icon standard-container__list-item standard-container__list-item--single-row" ng-if="!scenarioLastRuns && dashboardTile">
+                <i class="dku-loader icon-spin"></i>
+            </li>
+            <li class="standard-container__list-item">
+                <tag-edit-popover ng-model="lightStatus.deploymentBasicInfo.tags"
+                                  object-type="'PROJECT'"
+                                  editable="false"
+                                  responsive="dashboardTile"
+                                  manage-link="false"
+                                  class="tags-field">
+                </tag-edit-popover>
+            </li>
+        </ul>
+    </div>
+</div>

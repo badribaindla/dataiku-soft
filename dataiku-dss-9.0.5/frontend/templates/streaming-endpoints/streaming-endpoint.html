@@ -1,0 +1,39 @@
+
+<div ng-class="{'main-panel': true, 'main-panel--reduced': standardizedSidePanel.opened}">
+    
+    <div class="horizontal-flex row-fluid object-nav no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width" navigator-object>
+        <div class="flex oh" std-object-breadcrumb />
+        <div class="noflex">
+            <a class="tab" id="qa_streaming-endpoint-explore_explore-tab" ng-class="{'enabled': topNav.tab == 'explore'}" href="{{$state.href('projects.project.streaming-endpoints.streaming-endpoint.explore')}}" fw500-width>
+                Explore
+            </a>
+            <a class="tab" id="qa_dataset-explore_history-tab" ng-class="{'enabled': topNav.tab == 'history'}" href="{{$state.href('projects.project.streaming-endpoints.streaming-endpoint.history')}}" fw500-width>
+                History
+            </a>
+            <a class="tab" id="qa_dataset-explore_settings-tab" ng-class="{'enabled': topNav.tab == 'settings'}" href="{{$state.href('projects.project.streaming-endpoints.streaming-endpoint.settings')}}" fw500-width>
+                Settings
+            </a>
+            
+            <div class="otherLinks" ng-class="{dataset:streamingEndpointFullInfo.creatingRecipe || streamingEndpointFullInfo.creatingContinuousRecipe}" ng-if="streamingEndpointFullInfo.streamingEndpoint">
+                <a ng-show="streamingEndpointFullInfo.creatingRecipe"
+                class="btn btn--contained btn--alt btn--flow"
+                href="{{$state.href('projects.project.recipes.recipe', {projectKey: streamingEndpointFullInfo.creatingRecipe.projectKey, recipeName: streamingEndpointFullInfo.creatingRecipe.name })}}">
+                    <i class="{{streamingEndpointFullInfo.creatingRecipe.type|recipeTypeToIcon}}" />
+                    <span>Parent recipe</span>
+                </a>
+                <a ng-show="streamingEndpointFullInfo.creatingContinuousRecipe"
+                class="btn btn--contained btn--alt btn--flow"
+                href="{{$state.href('projects.project.recipes.recipe', {projectKey: streamingEndpointFullInfo.creatingContinuousRecipe.projectKey, recipeName: streamingEndpointFullInfo.creatingContinuousRecipe.name })}}">
+                    <i class="{{streamingEndpointFullInfo.creatingContinuousRecipe.type|recipeTypeToIcon}}" />
+                    <span>Parent continuous recipe</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div ui-view class="dss-page"></div>
+
+</div>
+
+<standardized-side-panel page="object" object-type="STREAMING_ENDPOINT" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" close-on-click-outside="true">
+</standardized-side-panel>

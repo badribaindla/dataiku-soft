@@ -1,0 +1,1 @@
+Loads a Dataiku dataset as a Spark dataframe.

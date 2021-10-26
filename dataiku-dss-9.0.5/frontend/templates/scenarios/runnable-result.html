@@ -1,0 +1,59 @@
+<div ng-switch="resultType">
+    <div block-api-error></div>
+    <div ng-switch-when="NONE">
+        <h2 class="recipe-settings-section1-title">Result</h2>
+    </div>
+    <div ng-switch-when="HTML">
+        <button class="btn btn--secondary pull-right" ng-click="downloadHtml()" style="margin: 10px;"><i class="icon-download"></i>&nbsp;Download</button>
+        <h2 class="recipe-settings-section1-title">Result</h2>
+
+        <div dku-bind-html-unsafe="loaded" style="overflow: scroll"></div>
+    </div>
+    <div ng-switch-when="URL">
+        <h2 class="recipe-settings-section1-title">Result</h2>
+        <a target="_blank" rel="noopener noreferrer" href="{{resultData.url}}">{{resultLabel || 'Remote data'}}</a>
+    </div>
+    <div ng-switch-when="FILE">
+        <h2 class="recipe-settings-section1-title">Result</h2>
+        <a target="_blank" rel="noopener noreferrer" class="nowrap" href="{{downloadUrl}}">{{resultLabel || 'File data'}}</a>
+    </div>
+    <div ng-switch-when="FOLDER_FILE">
+        <h2 class="recipe-settings-section1-title">Result</h2>
+        <div ng-if="previewedItem" managed-folder-contents-preview previewed-item="previewedItem" odb="odb" skin-state="skinState"/>
+    </div>
+    <div ng-switch-when="RESULT_TABLE" class="vertical-flex" style="height: 400px;">
+        <h2 class="recipe-settings-section1-title noflex">
+            <button class="btn btn--secondary pull-right" ng-click="exportResultTable()" style="margin: 10px;"><i class="icon-download"></i>&nbsp;Export</button>
+            <button class="btn btn--secondary pull-right" ng-click="downloadResultTableAsHTML()" style="margin: 10px; margin-right: 2px;"><i class="icon-download"></i>&nbsp;Download (HTML)</button>
+            Result
+        </h2>
+        <div class="fattable-default-header dku-border-bottom noflex">
+            <div class="small" ng-repeat="column in resultTable.columns">
+                <strong>{{column.displayName}}</strong>
+            </div>
+        </div>
+
+        <div class="flex fattable-default-style common-styles-only" fat-repeat="resultTable.records" as="record" row-height="36" style="background: white">
+            <div class="h100">
+                <div class="small unselectable mx-textellipsis" ng-repeat="column in resultTable.columns">
+                    <span ng-if="column.type == 'STRING'" ng-bind="record[$index]" />
+                    <span ng-if="column.type == 'STRING_LIST'" ng-bind="record[$index].join(',')" />
+                    <span ng-if="column.type == 'LOCAL_DATASET_WITH_TYPE'">
+                        <a ui-sref="projects.project.datasets.dataset.explore({datasetName: record[$index].split(':')[1]})">
+                            <i class="{{record[$index].split(':')[0]| datasetTypeToIcon}}" />
+                            {{record[$index].split(':')[1]}}
+                        </a>
+                    </span>
+                    <span ng-if="column.type == 'FQ_DATASET_WITH_TYPE'">
+                        <a ui-sref="projects.project.datasets.dataset.explore({projectKey: record[$index].split(':')[1].split('.')[0], datasetName: record[$index].split(':')[1].split('.')[1]})">
+                            <i class="{{record[$index].split(':')[0]| datasetTypeToIcon}}" />
+                            {{record[$index].split(':')[1]}}
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div ng-switch-default>unknown type {{resultType}}</div>
+</div>

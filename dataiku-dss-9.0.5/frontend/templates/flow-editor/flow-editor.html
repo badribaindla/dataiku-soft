@@ -1,0 +1,184 @@
+<div flow-editor
+    flow-common
+    flow-tool-support
+    multi-build-support
+    id="flow-editor-page"
+    class="dss-home-page"
+     ng-inject="FlowGraphFolding"
+    ng-inject="FlowGraphSelection">
+    <!-- global-keydown="{'meta-a': 'FlowGraphSelection.select()', 'ctrl-a': 'FlowGraphSelection.select()'}" -->
+
+    <div style="height: 100%; width: 100%;">
+        <div ng-class="hideForExport ? 'main-panel--fullscreen' : (standardizedSidePanel.opened ? 'main-panel--reduced' : 'main-panel')">
+
+            <div class="mainPane no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width no-transitions-on-load" ng-class="{'full-screen': fullScreen, 'main-panel--fullscreen': hideForExport}">
+
+                <div class="fatalAPIErrorContainer" ng-show="fatalAPIError">
+                    <block-api-error />
+                </div>
+
+                <div class="h100 vertical-flex " ng-style="{'background-color': getZoneColor($stateParams.zoneId)}">
+                    <!-- WARNING WARNING: The flow-editor directly accesses the scope of the graph
+                    so there MUST NOT be anything adding a scope in-between (yes it is ugly, we should
+                    not do that, but we do it for the moment )-->
+                    <div class="flow_zone_controls" ng-if="!!$stateParams.zoneId">
+                        <div class="simple-columns h100">
+                            <div class="mleft8 mx-center-children" zone-selection-menu color="getZoneColor($stateParams.zoneId)" title="Zones"/>
+                            <button class="btn mright8" style="background-color: transparent;" ng-click="zoomOutOfZone()">
+                                <i class="icon icon-dku-close" style="font-size: 12px;" color-contrast="{{getZoneColor($stateParams.zoneId)}}"/>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="h100" ng-class="{'flow--zoomed': !!$stateParams.zoneId}">
+                        <div class="h100" ng-show="nodesGraph && !isFlowEmpty && !allFilteredOut">
+                            <flow-graph
+                                id="flow-graph"
+                                graph="nodesGraph"
+                                show-folding="true"
+                                ng-class="{'rectangle-selection': rectangleSelection, 'with-zones': nodesGraph.hasZones}"
+                                highlight-dependencies-on-hover
+                                flow-graph-with-tooltips>
+                            </flow-graph>
+                        </div>
+                        <div class="h100 empty-flow-cta" ng-show="nodesGraph && allFilteredOut">
+                            <h1>All elements are hidden by filter</h1>
+                        </div>
+                        <div class="h100 empty-flow-cta" ng-show="nodesGraph && isFlowEmpty && !$stateParams.zoneId">
+                            <h1>Your Flow is empty</h1>
+                            <p>The Flow is the visual representation of your data project.<br />
+                                <span learn-link page="portals/concepts-overview">Read more about DSS concepts</span> to learn more</p>
+                            </p>
+                            <p class="image">
+                                <img src="/static/dataiku/images/empty-flow.png" />
+                            </p>
+                            <p>
+                                <a disabled-if-ro="" class="btn btn--contained btn--large btn--dataset btn-import" ui-sref="projects.project.datasets.new">
+                                    <span plus-icon />
+                                    &nbsp;Import your first dataset
+                                </a>
+                            </p>
+                        </div>
+                        <div class="h100 empty-flow-cta" ng-show="nodesGraph && isFlowEmpty && !!$stateParams.zoneId">
+                            <h1>This zone is empty</h1>
+                            <p class="image">
+                                <img class="mtop20 mbot20" src="/static/dataiku/images/empty-zone.svg" width="300px" alt="Empty zone"/>
+                            </p>
+                            <p>You can add a new dataset<br/>
+                                or <a ng-click="zoomOutOfZone()"> go back to the flow </a> to use an existing dataset from another zone
+                            </p>
+                        </div>
+
+                        <div id="flow-widgets-container" ng-show="!hideForExport" ng-class="{'flow-widgets-container--zoomed': !!$stateParams.zoneId}">
+                            <div flow-search-popover></div>
+
+                            <div class="new-button" ng-if="isProjectAnalystRW()">
+                                <!-- TODO @flow refactor, requires ~400ms to load -->
+                                <button ng-if="!$stateParams.zoneId" class="btn btn--secondary" style="display: inline-block" ng-click="moveToFlowZone([], true, [])" id="qa_create-flow-zone-button">
+                                + Zone
+                                </button>
+                                <div style="display: inline-block" new-recipe-menu title="Recipe"/>
+                                <div style="display: inline-block" new-dataset-menu title="Dataset"/>
+                                <div style="display: inline-block" new-other-flow-menu title="Other" ng-if="appConfig.streamingEnabled"/>
+                            </div>
+
+                            <div include-no-scope="/templates/flow-editor/flow_tools.html" />
+
+
+
+                            <div class="flow-actions-controls">
+                                <div custom-element-popup class="tool-selector flow-actions" cep-position="align-right-top" cep-width="fit-main" ng-show="isProjectAnalystRW()">
+                                    <a ng-click="togglePopover()" class="mainzone selector btn btn--secondary has-caret" >
+                                        <i class="icon-wrench" />
+                                        <span>Flow actions</span>
+                                        <span class="caret"/>
+                                    </a>
+
+                                    <ul class="popover custom-element-popup-popover-light dropdown-menu" style="left: auto; top: 60px;">
+                                        <li><a ng-click="startCopy(); togglePopover()">Copy subflow</a></li>
+                                        <li><a ng-click="buildAll()">Build all</a></li>
+                                        <li><a ng-click="startTool('CHECK_CONSISTENCY', {}); togglePopover()">Check consistency</a></li>
+                                        <li ng-if="appConfig.graphicsExportsEnabled">
+                                            <a ng-click="exportFlow()">Export to PDF/Image</a>
+                                        </li>
+
+
+                                        <li class="divider" ng-if="toolsState.hasOtherActive"/>
+                                        <li class="nav-header" ng-if="toolsState.hasOtherActive">Already active</li>
+                                        <li ng-repeat="toolState in toolsState.otherActive">
+                                            <a ng-click="activateTool(toolState.id); togglePopover()">
+                                                {{::getToolDisplayName(toolState)}}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="flex-no-basis vertical-flex mleft8">
+                                    <button class="btn btn--secondary btn--icon mbot8" ng-click="resizeToShowAll()" toggle="tooltip-top" container="body" title="Reset zoom and center"><i class="icon-resize-full"></i></button>
+                                    <button class="btn btn--secondary btn--icon" ng-click="zoomIn()"><i class="icon-plus"></i></button>
+                                    <button class="btn btn--secondary btn--icon" ng-click="zoomOut()"><i class="icon-minus"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="search-menu" id="flow-search-input" ng-show="!showPopup && nodesGraph && !isFlowEmpty">
+                                <div class="std-list-search-box list-control-widget" style="margin: 0">
+                                    <span class="add-on" style="font-size: 14px"><i class="icon-dku-search" /></span>
+                                    <input type="search" ng-model="flowSearch.pattern" placeholder="Search" autoFocus>
+                                </div>
+                                <div id="flow-search-counter" ng-inject="FlowGraphSelection" ng-class="{'with-zones': nodesGraph.hasZones}">
+
+                                    <a ng-click="FlowGraphSelection.selectAllByType(type); zoomToSelection()"
+                                    ng-repeat="(type, count) in nodesGraph.includedObjectsByType"
+                                    title="select {{count>1 ? 'all' : 'a'}} {{ type | niceTaggableType : count }}"
+                                    toggle="tooltip-bottom">
+                                        <strong>{{count}}</strong>
+                                        {{ type | niceTaggableType : count }}
+                                    </a>
+
+                                    <small ng-show="(nodesGraph.filteredOutElementCount || nodesGraph.recipesFilteredOut) && nodesGraph.nodesOnGraphCount">
+                                        (+{{nodesGraph.filteredOutElementCount}} hidden by filter)
+                                    </small>
+
+                                    <a ng-click="unfoldAll()"
+                                    title="Show all"
+                                    toggle="tooltip-bottom" >
+                                        <small ng-show="FlowGraphFolding.getFoldedNodeCount()>0" >
+                                        {{FlowGraphFolding.getFoldedNodeCount()}} hidden
+                                        </small>
+                                    </a>
+
+                                </div>
+                                <div style="display: inline-block; position: relative">
+                                    <div custom-element-popup close-others="false"
+                                        allow-modals="true"
+                                        class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown" style="margin-left: 0">
+                                        <span class="add-on" ng-click="toggleFilter()" style="cursor: pointer;">
+                                            <i class="icon-filter" ng-style="{color:filtering.filteringEnabled ? '#0096f2':'#666666'}" style="font-size: 12px;"></i>
+                                        </span>
+                                        <button class="dku-select-button has-caret  mainzone flow-filter-toggle-button" ng-click="togglePopover()">
+                                            <span class="pull-right" style="margin-right: 10px">
+                                                <i class="icon-warning-sign"
+                                                    ng-show="filtering.filteringResults.filteringError"
+                                                    toggle="tooltip-bottom"
+                                                    title="{{filtering.filteringResults.filteringError}}"
+                                                    style="color: red;"
+                                                />
+                                            </span>
+                                            <div class="mx-textellipsis" style="padding-right: 5px">{{filtering.activeFilter && filtering.activeFilter.name ? filtering.activeFilter.name : 'Unsaved filter'}}</div>
+                                            <b class="caret"></b>
+                                        </button>
+
+                                        <div flow-filter class="popover custom-element-popup-popover" style="z-index: 3000; padding: 0; display: flex; max-width: 1000px"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <standardized-side-panel page="flow" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" object-type="{{ rightColumnItem.nodeType }}" ng-show="!hideForExport">
+        </standardized-side-panel>
+
+    </div>
+    <span id="flow-export-toolbox-anchor"></span>
+</div>

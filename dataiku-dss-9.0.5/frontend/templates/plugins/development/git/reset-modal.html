@@ -1,0 +1,32 @@
+<div class="modal modal3 dku-modal">
+    <div dku-modal-header-with-totem modal-title="Select what to drop" modal-totem="icon-step-backward" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+            <div block-api-error />
+            <div class="dku-horizontal-selector-list">
+                <div class="selectable item" id="qa_plugindev_reset-head"
+                     ng-class="{'selected' : resetStrategy === 'HEAD', 'disabled' : !getResetModes().includes('HEAD')}"
+                     ng-click="setStrategy('HEAD')">
+                    <span class="name" style="min-width: 0">Local -</span>
+                    <span class="description">Drop uncommitted changes.</span>
+                </div>
+                <div class="selectable item" id="qa_plugindev_reset-upstream"
+                     ng-class="{'selected' : resetStrategy === 'UPSTREAM', 'disabled': !getResetModes().includes('UPSTREAM')}"
+                     ng-click="setStrategy('UPSTREAM')">
+                    <span class="name" style="min-width: 0">Local & get upstream -</span>
+                    <span class="description">Delete <strong>all</strong> of your non-pushed work on the current branch and use the remote state.</span>
+                </div>
+                <div class="alert alert-block" style="padding: 5px;" ng-show="resetStrategy === 'UPSTREAM'">
+                    <i class="icon-warning-sign" />&nbsp;This will reset local branch to HEAD of remote tracking branch <strong>{{ gitStatus.currentBranch }}</strong>. <br />
+                    Use in case of conflicts or to overwrite all of your work by what has been pushed to the origin.
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="button" class="btn btn--text btn--danger" id="qa_plugindev_perform-drop-changes" ng-click="gitReset()">Drop</button>
+        </div>
+    </form>
+</div>

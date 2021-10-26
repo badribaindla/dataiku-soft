@@ -1,0 +1,126 @@
+<div class="paned-settings-page-pane">
+    <h1>Auditing</h1>
+    
+    <div class="section">
+        <h2>Targets</h2>
+
+        <div add-remove ng-model="generalSettings.auditTrailSettings.targets">
+
+            <div ng-repeat="target in generalSettings.auditTrailSettings.targets" class="repeatable-config-block spark-execution-config" >
+            
+                <a class="pull-right text-danger" style="margin: 10px" ng-click="remove($index)">
+                    <i class="icon-trash" />
+                </a>
+
+                <form class="dkuform-horizontal">
+
+                <h3>Dispatching</h3>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Topics selection</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="target.topicsFiltering" ng-options="x[0] as x[1] for x in [['ALL', 'All'],['SELECTED', 'Explicit list']]" />
+                    </div>
+                </div>
+                <div class="control-group" ng-if="target.topicsFiltering == 'SELECTED'">
+                    <label for="" class="control-label">Topics</label>
+                    <div class="controls">
+                        <input type="text" comma-separated-view ng-model="target.topics" />
+                        <span class="help-inline">Comma-separated</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Routing keys selection</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="target.routingKeysFiltering" ng-options="x[0] as x[1] for x in [['ALL', 'All'],['SELECTED', 'Explicit list']]" />
+                    </div>
+                </div>
+                <div class="control-group" ng-if="target.routingKeysFiltering == 'SELECTED'">
+                    <label for="" class="control-label">Routing keys</label>
+                    <div class="controls">
+                        <input  type="text" comma-separated-view ng-model="target.routingKeys" />
+                        <span class="help-inline">Comma-separated</span>
+                    </div>
+                </div>
+
+                <h3>Destination</h3>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Type</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="target.type" ng-options="x[0] as x[1] for x in [['LOG4J', 'Send to Log4J'],['EVENT_SERVER', 'Send to DSS Event Server'],['KAFKA', 'Send to Kafka']]" />
+                    </div>
+                </div>
+                <div ng-if="target.type == 'LOG4J'">
+                    <div class="control-group">
+                        <label for="" class="control-label">Logger suffix</label>
+                        <div class="controls">
+                            <input type="text" ng-model="target.loggerSuffix" />
+                            <span class="help-inline">Appended after "dku.audit"</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Append topic to logger</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="target.appendTopicToLogger" />
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="target.type == 'EVENT_SERVER'">
+                    <div class="control-group">
+                        <label for="" class="control-label">URL</label>
+                        <div class="controls">
+                            <input type="text" ng-model="target.url" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Auth key</label>
+                        <div class="controls">
+                            <input type="password" autocomplete="new-password" ng-model="target.authKey" />
+                            <span class="help-inline">Leave blank if server does not require auth</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Trust all certificates</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="target.trustAllSSLCertificates" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Routing key mode</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="target.routingKeyMode" ng-options="x[0] as x[1] for x in [['FROM_MESSAGE', 'Use routing key defined in the message (can be null)'],['STATIC', 'Force a routing key'],['STATIC_IF_MISSING', 'Message or static if missing']]" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="target.routingKeyMode != 'FROM_MESSAGE'">
+                        <label for="" class="control-label">Routing key</label>
+                        <div class="controls">
+                            <input type="text" ng-model="target.routingKey" />
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="target.type == 'KAFKA'">
+                    <div class="control-group">
+                        <label for="" class="control-label">Connection name</label>
+                        <div class="controls">
+                            <input type="text" ng-model="target.connection" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Topic</label>
+                        <div class="controls">
+                            <input type="text" ng-model="target.topic" />
+                        </div>
+                    </div>
+                </div>
+
+                </form>
+            </div>
+            <button type="button" 
+                class="btn btn--text btn--primary" 
+                ng-click="add({type:'LOG4J', 'topicsFiltering': 'ALL', 'topics': [], 'routingKeysFiltering': 'ALL', 'routingKeys': [], 'appendTopicToLogger': true, 'routingKeyMode': 'STATIC_IF_MISSING'})">
+                <span plus-icon></span>&nbsp;Add a target
+            </button>
+        </div>
+    </div>
+</div>

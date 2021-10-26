@@ -1,0 +1,1 @@
+select(df, col_0)

@@ -1,0 +1,89 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Support Vector Machine
+    </div>
+    <div data-block="algorithm-description">
+        <p><strong>Support Vector Machine</strong> is a powerful (but very slow) 'black-box' algorithm for classification.</p>
+        <p>Through the use of <em>kernel functions</em>, it can learn complex non-linear decision boundaries (i.e., when it is not possible to compute the target as a linear combination of input features).</p>
+        <p>SVM is effective with a large number of features. However, this algorithm is generally much slower than others and is generally not practical with more than a few thousand records.</p>
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group">
+            <label class="control-label">Kernel</label>
+            <div class="controls">
+                <div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.svc_classifier.kernel.values.linear.enabled" /> Try with a linear kernel
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.svc_classifier.kernel.values.rbf.enabled" /> Try with a RBF kernel
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.svc_classifier.kernel.values.poly.enabled" /> Try with a polynomial kernel
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.svc_classifier.kernel.values.sigmoid.enabled" /> Try with a sigmoid kernel
+                    </label>
+                </div>
+            </div>
+        </div>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.svc_classifier.C"
+                         decimal
+                         label="C"
+                         help-inline="Penalty parameter C of the error term.
+                         <br /> A low value of C will generate a smoother decision boundary (higher bias) while a high value aims at correctly classifying all training examples, at the risk of overfitting (high variance).
+                         <br /> (C corresponds to the inverse of a regularization parameter)."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <div class="control-group" ng-show="mlTaskDesign.modeling.svc_classifier.kernel.values.rbf.enabled||mlTaskDesign.modeling.svc_classifier.kernel.values.sigmoid.enabled|| mlTaskDesign.modeling.svc_classifier.kernel.values.poly.enabled">
+            <label class="control-label">Gamma</label>
+            <div class="controls">
+                <div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.svc_classifier.gamma.values.auto.enabled" />Try with <code class="dku-code--neutral">1/nb_features</code> (auto)
+                    </label>
+                    <label class="checkbox-label checkbox-label--wide">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.svc_classifier.gamma.values.scale.enabled" />Try with <code class="dku-code--neutral">1/(nb_features * variance)</code> (scale)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.svc_classifier.gamma.values.custom.enabled" /> Try with custom gamma values
+                    </label>
+                </div>
+                <div class="help-inline">
+                    Kernel coefficient for RBF, polynomial and sigmoid kernels.
+                    <br/> Gamma defines the 'influence' of each training example in the features space.
+                    <br/> A low value of gamma means that each example has 'far-reaching influence', while a high value means that each example only has close-range influence.
+                </div>
+            </div>
+        </div>
+        <ml-hp-numerical ng-show="(mlTaskDesign.modeling.svc_classifier.kernel.values.rbf.enabled||mlTaskDesign.modeling.svc_classifier.kernel.values.sigmoid.enabled|| mlTaskDesign.modeling.svc_classifier.kernel.values.poly.enabled) && mlTaskDesign.modeling.svc_classifier.gamma.values.custom.enabled"
+                         ng-model="mlTaskDesign.modeling.svc_classifier.custom_gamma"
+                         decimal
+                         label="Custom Gamma values"
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <div class="control-group" ng-show="mlTaskDesign.modeling.svc_classifier.kernel.values.sigmoid.enabled|| mlTaskDesign.modeling.svc_classifier.kernel.values.poly.enabled">
+            <label class="control-label">Coef0</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.svc_classifier.coef0" step="0.01" />
+                <div class="help-inline">
+                    Independent term for 'polynomial' or 'sigmoid' kernel function.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Tolerance</label>
+            <div class="controls">
+                <input ng-model="mlTaskDesign.modeling.svc_classifier.tol" step="0.0001" type="number" />
+                <div class="help-inline">Tolerance for stopping criterion, i.e. variation on loss below which the algorithm stops training. Should be a positive number.</div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Maximum number of iterations</label>
+            <div class="controls">
+                <input type="number" force-integer min="-1" max="10000" ng-model="mlTaskDesign.modeling.svc_classifier.max_iter" />
+                <div class="help-inline">-1 = unlimited</div>
+            </div>
+        </div>
+    </div>
+</div>

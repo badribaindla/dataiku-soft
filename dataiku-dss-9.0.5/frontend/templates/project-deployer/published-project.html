@@ -1,0 +1,64 @@
+<div class="vertical-flex">
+    <div class="top-level-tabs">
+        <div class="horizontal-flex object-nav">
+            <div class="object-breadcrumb object-breadcrumb--tooltip-on-overflow">
+                <div class="item">
+                    <a class="object-breadcrumb__link-icon" ui-sref="projectdeployer.projects.list">
+                        <i class="icon icon-dku-project universe-background project-deployer" />
+                    </a>
+                    <div class="title">
+                        <a ui-sref="projectdeployer.projects.list"
+                            class="object-breadcrumb__link"
+                            title="Go back to project list">Projects</a>
+                        <i class="noflex object-breadcrumb__divider">/</i>
+                        <div class="object-breadcrumb__item" show-tooltip-on-text-overflow text-tooltip="projectStatus.projectBasicInfo.name" tooltip-direction="'tooltip-bottom'"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="noflex">
+                <a class="tab" ng-class="{enabled: $state.current.name.includes('status')}" 
+                    ui-sref="projectdeployer.projects.project.home.status" fw500-width>
+                    Status
+                </a>
+
+                <a class="tab" ng-class="{enabled: $state.current.name.includes('settings')}" 
+                    ng-if="projectStatus && projectStatus.isAdmin"
+                    ui-sref="projectdeployer.projects.project.home.settings" fw500-width>
+                    Settings
+                </a>
+
+                <a class="tab" ng-class="{enabled: $state.current.name.includes('history')}" 
+                    ng-if="projectStatus && projectStatus.isAdmin"
+                    ui-sref="projectdeployer.projects.project.home.history" fw500-width>
+                    History
+                </a>
+
+                <div ng-if="projectStatus.canWrite" class="otherLinks">
+                    <button class="btn btn--secondary dropdown-toggle" data-toggle="dropdown" href>
+                        Actions <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu pull-right text-left">
+                        <li>
+                            <a ng-click="openUploadBundleModal()">
+                                <i class="icon-upload" />
+                                    Upload bundles
+                            </a>
+                        </li>
+                        <li>
+                            <a ng-click="deleteProject()">
+                                <span class="text-error">
+                                    <i class="icon-trash" />
+                                    Delete this project
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="dss-page fh oa">
+        <div ui-view />
+    </div>
+</div>

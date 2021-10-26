@@ -1,0 +1,1 @@
+select collect_to_array(page) from page_views group by visitor_id;

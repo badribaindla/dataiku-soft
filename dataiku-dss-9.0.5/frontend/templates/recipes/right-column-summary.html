@@ -1,0 +1,350 @@
+<div class="object-right-column-summary h100 vertical-flex" ng-if="selection.selectedObject">
+    <div item-header
+        class="noflex"
+         href="$state.href('projects.project.recipes.recipe', {projectKey: selection.selectedObject.projectKey, recipeName: selection.selectedObject.name})"
+        color="{{recipeType | recipeTypeToColor}}"
+        icon="{{recipeType | recipeTypeToIcon}}"
+        title="{{selection.selectedObject.name}}">
+        {{selection.selectedObject.name}}
+    </div>
+
+    <div class="column-header-tabs noflex"  ng-if="!$state.current.name.startsWith('projects.project.flow') && !$state.current.name.startsWith('projects.project.recipes.list') && !$state.current.name.startsWith('projects.project.recipes.recipe')">
+        <div class="tab"
+            ng-class="{active: uiState.activeTab == 'details'}"
+            ng-click="uiState.activeTab = 'details'"
+            wt1-click-id="rightpanelrecipe_details">
+            <div class="title">Details</div>
+        </div>
+        <div class="tab"
+            ng-class="{active: uiState.activeTab == 'discussions'}"
+            ng-click="uiState.activeTab = 'discussions'"
+            wt1-click-id="rightpanelrecipe_discussions">
+            <div class="title">Discussions</div>
+        </div>
+        <div class="tab"
+            ng-class="{active: uiState.activeTab == 'actions'}"
+            ng-click="uiState.activeTab = 'actions'"
+            wt1-click-id="rightpanelrecipe_actions">
+            <div class="title">Actions</div>
+        </div>
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex oa">
+        <div class="h100" ng-switch="uiState.activeTab">
+            <div ng-switch-when="details" class="details-tab h100 oa">
+                <object-details
+                    object-type="RECIPE"
+                    object-data="recipeData"
+                    context="right-column"
+                    ng-inject="QuickView"
+                    hover-intent-callback="QuickView"
+                    editable="canWriteProject()"
+                    edit-custom-fields="editCustomFields"
+                />
+            </div>
+
+            <!-- DISCUSSIONS tab -->
+            <div ng-switch-when="discussions" class="object-summary-tab-content discussions-tab h100 oa">
+                <div class="h100" discussions-widget watch-object="recipeData" watch-object="selection.selectedObject" selected-item="{projectKey: selection.selectedObject.projectKey, type: 'RECIPE', id: selection.selectedObject.name}" />
+            </div>
+
+            <div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+                <div class="icons-section icons-grey icons-main">
+                    <div simple-right-col-action-href
+                         ng-if="$state.includes('projects.project.recipes.recipe')"
+                         href="{{$state.href('projects.project.flow', { id : 'recipe_' + recipe.name })}}"
+                         label="View in Flow"
+                         icon="icon-sitemap icon-rotate-90" />
+
+                    <div simple-right-col-action-click
+                         ng-if="$state.includes('projects.project.recipes.recipe')"
+                         ng-inject="Navigator"
+                         on-click="Navigator.showForTopNav()"
+                         label="Navigate"
+                         icon="icon-compass" />
+
+                    <div simple-right-col-action-href
+                        ng-if="!$state.includes('projects.project.recipes.recipe')"
+                        href="{{$state.href('projects.project.recipes.recipe', {recipeName:recipe.name})}}"
+                        label="Edit"
+                        icon="icon-edit"
+                        wt1-click-id="rightpanelrecipe_actions_edit" />
+
+                    <div ng-if="!recipeData.continuous && !$state.includes('projects.project.recipes.recipe')" simple-right-col-action-click
+                        label="Run"
+                        icon="icon-play"
+                        on-click="isProjectAnalystRW() && buildOutput()"
+                        title="{{payload.backendType !== 'VERTICA' ? recipe.notRunnableErrorMessage : 'Vertica ML backend is no longer supported'}}"
+                        toggle="tooltip"
+                        ng-class="{disabled: !isProjectAnalystRW()}"
+                        disabled-if="payload.backendType === 'VERTICA'"
+                        wt1-click-id="rightpanelrecipe_actions_run"
+                    ></div>
+
+                    <div simple-right-col-action-click
+                        on-click="startApplyTagging()"
+                        label="Tag"
+                        icon="icon-tags"
+                        disabled-if-ro
+                        wt1-click-id="rightpanelrecipe_actions_tag"  />
+
+                    <div simple-right-col-action-click
+                        ng-show="isMultiEngine(selection.selectedObject)"
+                        on-click="changeSelectedRecipesEngines()"
+                        label="Change engine"
+                        icon="icon-cogs"
+                        disabled-if-ro
+                        title="{{payload.backendType !== 'VERTICA' ? 'Change recipe engine' : 'Vertica ML backend is no longer supported'}}"
+                        toggle="tooltip"
+                        disabled-if="payload.backendType === 'VERTICA'"
+                        wt1-click-id="rightpanelrecipe_actions_changenegine"
+                    ></div>
+
+                    <div simple-right-col-action-click
+                        label="Copy"
+                        icon="icon-copy"
+                        ng-show="recipeTypeIsCopiable(recipe.type) && (!tool || tool.type != 'COPY')"
+                        on-click="isProjectAnalystRW() && showCopyRecipeModal(recipe)"
+                        disabled-if-ro
+                        title="{{hooks.recipeIsDirty() ? 'WARNING : there are unsaved changes' : ''}}"
+                        toggle="tooltip"
+                        wt1-click-id="rightpanelrecipe_actions_copy"
+                        />
+
+                    <div simple-right-col-action-click
+                         ng-if="$state.includes('projects.project.recipes.recipe')"
+                         ng-show="recipe.params.engineType == 'SQL' && recipe.type != 'split'"
+                         ng-click="convertToQueryRecipe('sql', 'SQL');"
+                         disabled-if-ro
+                         title="Convert to SQL recipe"
+                         toggle="tooltip"
+                         label="Convert to SQL"
+                         icon="icon-code_sql_recipe" />
+
+                    <div simple-right-col-action-click
+                         ng-if="$state.includes('projects.project.recipes.recipe')"
+                         ng-show="recipe.params.engineType == 'HIVE' && recipe.type != 'split'"
+                         ng-click="convertToQueryRecipe('hive', 'Hive');"
+                         disabled-if-ro
+                         title="Convert to Hive recipe"
+                         toggle="tooltip"
+                         label="Convert to Hive"
+                         icon="icon-code_hive_recipe" />
+
+                    <div simple-right-col-action-click
+                         ng-if="$state.includes('projects.project.recipes.recipe')"
+                         ng-show="recipe.params.engineType == 'IMPALA' && recipe.type != 'split'"
+                         ng-click="convertToQueryRecipe('impala', 'Impala');"
+                         disabled-if-ro
+                         title="Convert to Impala recipe"
+                         toggle="tooltip"
+                         label="Convert to Impala"
+                         icon="icon-code_impala_recipe" />
+
+                    <div simple-right-col-action-click
+                         ng-if="$state.includes('projects.project.recipes.recipe')"
+                         ng-show="recipe.params.engineType == 'SPARK' && recipe.type != 'split' && recipe.type != 'shaker'"
+                         ng-click="convertToQueryRecipe('spark', 'Spark');"
+                         disabled-if-ro
+                         title="Convert to Spark SQL recipe"
+                         toggle="tooltip"
+                         label="Convert to Spark SQL"
+                         icon="icon-code_sparksql_recipe" />
+
+                    <div simple-right-col-action-click
+                         ng-if="$state.includes('projects.project.recipes.recipe')"
+                         ng-show="hooks.transformToDevPlugin != null"
+                         disabled-if="!isPluginDeveloper()"
+                         toggle="tooltip"
+                         title="{{isPluginDeveloper() ? '' : 'You don\'t have the permission to edit plugins'}}"
+                         ng-click="hooks.transformToDevPlugin();"
+                         disabled-if-ro
+                         label="Convert to plugin"
+                         icon="icon-puzzle-piece" />
+
+                    <div simple-right-col-action-click
+                         ng-if="$state.includes('projects.project.recipes.recipe')"
+                         ng-click="renameRecipe()"
+                         label="Rename"
+                         disabled-if-ro
+                         icon="icon-pencil" />
+
+                    <div simple-right-col-action-click
+                         ng-show="!isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(true)"
+                         label="{{ actionLabels.WATCH }}"
+                         icon="icon-eye-open"
+                         ng-attr-title="{{ actionTooltips.WATCH }}"
+                         data-toggle="tooltip"
+                         wt1-click-id="rightpanelrecipe_actions_togglewatch"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-show="isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(false)"
+                         label="{{ actionLabels.UNWATCH }}"
+                         icon="icon-eye-close"
+                         ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                         data-toggle="tooltip"
+                         wt1-click-id="rightpanelrecipe_actions_togglewatch"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-show="!selection.selectedObject.interest.starred"
+                         on-click="starObjects(true)"
+                         label="{{ actionLabels.STAR }}"
+                         icon="icon-star"
+                         ng-attr-title="{{ actionTooltips.STAR }}"
+                         data-toggle="tooltip"
+                         wt1-click-id="rightpanelrecipe_actions_togglestar"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-show="selection.selectedObject.interest.starred"
+                         on-click="starObjects(false)"
+                         label="{{ actionLabels.UNSTAR }}"
+                         icon="icon-star-empty"
+                         ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                         data-toggle="tooltip"
+                         wt1-click-id="rightpanelrecipe_actions_togglestar"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-show="appConfig.customFieldsPluginComponentRefs.length"
+                         ng-click="editCustomFields()"
+                         label="Metadata"
+                         disabled-if-ro
+                         icon="icon-dku-fields"
+                         />
+
+                    <div simple-right-col-action-click
+                        label="Delete"
+                        icon="icon-trash"
+                        ng-class="{'icons-danger': isProjectAnalystRW()}"
+                        on-click="isProjectAnalystRW() && GlobalProjectActions.deleteTaggableObject(this, 'RECIPE', selection.selectedObject.name, selection.selectedObject.description)"
+                        disabled-if-ro
+                        wt1-click-id="rightpanelrecipe_actions_delete"
+                        />
+
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel name="otherActions" open="true" class="accordion" ng-if="isProjectAnalystRW() && recipeData.continuous">
+	                <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}" />
+	                    Continuous recipe
+	                </h4>
+
+                    <div ng-show="foldableOpen" class="icons-section icons-grey icons-continuous" style="margin-bottom: 20px;">
+                        <div simple-right-col-action-click
+                            label="Start"
+                            icon="icon-play"
+                            on-click="startContinuous()"
+                            ng-class="{disabled: !isProjectAnalystRW()}"
+                            ng-if="!recipeData.continuousState || recipeData.continuousState.desiredState != 'STARTED'"
+                            />
+                        <div simple-right-col-action-click
+                            label="Stop"
+                            icon="icon-stop"
+                            on-click="stopContinuous()"
+                            ng-class="{disabled: !isProjectAnalystRW()}"
+                            ng-if="!recipeData.continuousState || recipeData.continuousState.desiredState != 'STOPPED'"
+                            />
+                        <div simple-right-col-action-click
+                            label="Refresh status"
+                            icon="icon-refresh"
+                            on-click="refreshData()" />
+                        <div simple-right-col-action-click
+                            ng-if="recipeData.continuousState.mainLoopState"
+                            label="Current run"
+                            icon="icon-list"
+                            on-click="goToCurrentRun()" />
+                        <!-- 
+                        <pre class="debug" style="display: block">{{recipeData.continuousState|json}}</pre>
+                         -->
+                    </div>
+
+	            </div>
+
+                <div dku-foldable dku-foldable-right-panel name="otherActions" open="true" class="accordion other-actions" ng-if="
+                    isProjectAnalystRW() && (
+                        (appConfig.sparkEnabled && canSpark(selection.selectedObject)) ||
+                        (appConfig.impalaEnabled && canImpala(selection.selectedObject)) ||
+                        (appConfig.hiveEnabled && recipeType == 'impala') ||
+                        (appConfig.impalaEnabled && recipeType == 'hive') ||
+                        canPythonCodeEnv(selection.selectedObject) ||
+                        canRCodeEnv(selection.selectedObject) ||
+                        canSqlPipeline(selection.selectedObject)
+                    )">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}" />
+                        Other actions
+                    </h4>
+
+                    <div ng-show="foldableOpen">
+                        <ul class="simple-list" style="margin-bottom: 10px;">
+                            <other-action-list-item icon='icon-code_spark_scala_recipe'
+                                                    label='Change Spark configuration'
+                                                    on-click='changeSelectedSparkConfig()'
+                                                    wt1-click-id='rightpanelrecipe_actions_sparkconfig'
+                                                    show-condition='canSpark(selection.selectedObject)'/>
+                            <other-action-list-item icon='icon-code_spark_scala_recipe'
+                                                    label='Change Spark engine'
+                                                    on-click='changeSelectedSparkEngine()'
+                                                    wt1-click-id='rightpanelrecipe_actions_changesparkengine'
+                                                    show-condition='canSpark(selection.selectedObject)'/>
+                            <other-action-list-item icon='icon-forward'
+                                                    label='Change Spark pipelineability'
+                                                    on-click='changeSelectedSparkPipelineability()'
+                                                    wt1-click-id='rightpanelrecipe_actions_sparkpipeline'
+                                                    show-condition='canChangeSparkPipelineability(selection.selectedObject)'
+                                                    enable-condition='canSparkPipeline(selection.selectedObject)'
+                                                    disabled-tooltip='Spark pipelines are not enabled on this project or this recipe is not Spark pipelineable'/>
+                            <other-action-list-item icon='icon-forward'
+                                                    label='Change SQL pipelineability'
+                                                    on-click='changeSelectedSqlPipelineability()'
+                                                    wt1-click-id='rightpanelrecipe_actions_sqlpipeline'
+                                                    show-condition='canChangeSqlPipelineability(recipe)'
+                                                    enable-condition='canSqlPipeline(selection.selectedObject)'
+                                                    disabled-tooltip='SQL pipelines are not enabled on this project or this recipe is not SQL pipelineable'/>
+                            <other-action-list-item icon='icon-dku-impala'
+                                                    label='Change Impala write mode'
+                                                    on-click='changeSelectedImpalaWriteMode()'
+                                                    wt1-click-id='rightpanelrecipe_actions_impalawritemode'
+                                                    show-condition='appConfig.impalaEnabled && canImpala(selection.selectedObject)'/>
+                            <other-action-list-item icon='icon-dku-hive'
+                                                    label='Change Hive engine'
+                                                    on-click='changeSelectedHiveEngine()'
+                                                    wt1-click-id='rightpanelrecipe_actions_impalaengine'
+                                                    show-condition='appConfig.hiveEnabled && canHive(selection.selectedObject)'/>
+                            <other-action-list-item icon='icon-dku-hive'
+                                                    label='Convert to Hive recipe'
+                                                    on-click='convertSelectedToHive()'
+                                                    wt1-click-id='rightpanelrecipe_actions_converttohive'
+                                                    show-condition="appConfig.hiveEnabled && recipeType == 'impala'"/>
+                            <other-action-list-item icon='icon-dku-impala'
+                                                    label='Convert to Impala recipe'
+                                                    on-click='convertSelectedToImpala()'
+                                                    wt1-click-id='rightpanelrecipe_actions_converttoimpala'
+                                                    show-condition="appConfig.impalaEnabled && recipeType == 'hive'"/>
+                            <other-action-list-item icon='icon-code'
+                                                    label='Change Python code env'
+                                                    on-click='changePythonEnvSelection()'
+                                                    wt1-click-id='rightpanelrecipe_actions_changepythonenv'
+                                                    show-condition='canPythonCodeEnv(selection.selectedObject)'/>
+                            <other-action-list-item icon='icon-code'
+                                                    label='Change R code env'
+                                                    on-click='changeREnvSelection()'
+                                                    wt1-click-id='rightpanelrecipe_actions_changerenv'
+                                                    show-condition='canRCodeEnv(selection.selectedObject)'/>
+                        </ul>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>

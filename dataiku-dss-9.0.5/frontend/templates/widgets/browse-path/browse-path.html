@@ -1,0 +1,47 @@
+<div class="browse-path">
+    <span class="alert alert-warning noflex" ng-show="pathContent.truncated"><i class="icon-warning-sign"></i>&nbsp;Display is truncated !</span>
+    <!-- Breadcump -->
+    <div class="breadcrumbs noflex">
+        <span ng-if="destinationLabel" class="destination-label">{{destinationLabel}}</span> <i class="icon-folder-close colored-folder-icon"></i>
+        <span class="path-element browsable" ng-click="executeBrowse('/')">{{ title ? title : 'root' }}</span>
+        <span ng-repeat="elt in pathContent.pathElts track by $index"
+              ng-click="executeBrowse(pathContent.pathElts.slice(0, $index+1).join('/'))"
+              ng-if="!$first"
+              class="path-element browsable">
+              / {{displayItemFn(elt)}}
+        </span>
+    </div>
+    <!-- Searchbar -->
+    <div class="search noflex" ng-if="searchable === true">
+        <i class="icon-search">&nbsp;</i>
+        <input class="search-input" ng-model="filter.query" type="text" />
+    </div>
+    <!-- User messages -->
+    <div ng-show="browseError" class="alert alert-danger">Browse failed: <span summary-of-error="browseError" /></div>
+    <div class="no-files-cta contents-file-list flex" ng-if="pathContent.children.length == 0 && !pathContent.exists">
+        Selected path does not exist
+    </div>
+    <div class="no-files-cta contents-file-list flex" ng-if="pathContent.children.length == 0 && pathContent.exists && !pathContent.directory">
+        Selected path is a file
+    </div>
+    <div class="no-files-cta contents-file-list flex" ng-if="pathContent.children.length == 0 && pathContent.exists && pathContent.directory">
+        This folder is empty
+    </div>
+    <div class="no-files-cta contents-file-list flex" ng-if="pathContent.children.length > 0 && pathContent.filteredChildren.length == 0">
+        No file match your filter
+    </div>
+    <!-- Current explored folder content -->
+    <div class="contents-file-list flex" fat-repeat="pathContent.filteredChildren" as="item" row-height="35">
+        <div class="contents-file-list-line" ng-class="{disabled: !canSelectFn(item) && !canBrowseFn(item), selected : isSelected(item)}">
+            <!-- file name -->
+            <span class="name mx-textellipsis" title="{{item.name}}" main-click ng-click="clickOnItem(item, $event)">
+                <i ng-class="item.directory ? 'icon-folder-close colored-folder-icon' : (canSelectFn(item) ? (itemsAreProjects ? 'icon-dkubird universe-color project' : 'icon-file') : (itemsAreProjects ? 'icon-dkubird' : 'icon-file-alt'))"></i>
+                &nbsp;{{ item.name }}
+                <span class="browse-path__contents-line-icon-warning" style="line-height: 35px" ng-if="item.canWriteContents === false">
+                    <i toggle="tooltip" container="div.contents-file-list" title="{{cantWriteContentVerb}}" class="icon-dku-warning text-error"></i>
+                </span>
+            </span>
+        </div>
+    </div>
+    <div ng-show="browsing" class="spinner"><i class="icon-spinner icon-spin"></i></div>
+</div>

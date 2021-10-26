@@ -1,0 +1,203 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Neural Network
+    </div>
+    <div data-block="algorithm-description">
+        <strong>Neural Networks</strong> are a class of parametric models which are inspired by the functioning of the neurons. They consist of several "hidden" layers of neurons, which receive inputs and transmit them to the next layer, mixing the inputs and applying non-linearities, allowing for a complex decision function.
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group required">
+            <label class="control-label">Hidden layer sizes</label>
+            <div class="controls">
+                <div type="text" gs-field not-grid allow-dubs="true" ng-model="mlTaskDesign.modeling.neural_network.layer_sizes.values" min="1"></div>
+                <div class="help-inline">
+                    Number of neurons on each hidden layer. Add one value per layer
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Activation</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.neural_network.activation">
+                    <option value="relu">ReLU</option>
+                    <option value="identity">Identity</option>
+                    <option value="logistic">Logistic</option>
+                    <option value="tanh">Hyperbolic Tangent</option>
+                </select>
+                <div class="help-inline">
+                    The activation function for the neurons in the network.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Alpha</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.neural_network.alpha" />
+                <div class="help-inline">
+                    L2 regularization parameter. Higher values lead to smaller neuron weights and a more generalizable, although less sharp model.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Max iterations</label>
+            <div class="controls">
+                <input type="number" force-integer ng-model="mlTaskDesign.modeling.neural_network.max_iter" />
+                <div class="help-inline">
+                    Maximum iterations for learning. Higher values lead to better convergence, but take more time.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Convergence tolerance</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.neural_network.tol" step="0.0001" />
+                <div class="help-inline">
+                    If the loss does not improve by this ratio over two iterations, training stops.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Early stopping</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="mlTaskDesign.modeling.neural_network.early_stopping" />
+                <div class="help-inline">
+                    Whether the model should use validation and stop early.
+                </div>
+            </div>
+        </div>
+        <div class="control-group" ng-if="mlTaskDesign.modeling.neural_network.early_stopping">
+            <label class="control-label">Validation fraction</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.neural_network.validation_fraction" step="0.01" />
+                <div class="help-inline">
+                    The proportion of the training set to use for validation.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Solver</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.neural_network.solver">
+                    <option value="adam">ADAM</option>
+                    <option value="sgd">Stochastic Gradient Descent</option>
+                    <option value="lbfgs">LBFGS</option>
+                </select>
+                <div class="help-inline">
+                    The solver to use for optimization. LBFGS is a batch algorithm and is not suited for larger datasets.
+                </div>
+            </div>
+        </div>
+        <!-- SGD and ADAM -->
+        <div ng-if="['adam', 'sgd'].indexOf(mlTaskDesign.modeling.neural_network.solver) >= 0">
+            <div class="control-group">
+                <label class="control-label">Shuffle data</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="mlTaskDesign.modeling.neural_network.shuffle" />
+                    <div class="help-inline">
+                        Whether the data should be shuffled between epochs (recommended, unless the data is already in random order).
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Intial Learning Rate</label>
+                <div class="controls">
+                    <input type="number" ng-model="mlTaskDesign.modeling.neural_network.learning_rate_init" />
+                    <div class="help-inline">
+                        The initial learning rate for gradient descent.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Automatic batching</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="mlTaskDesign.modeling.neural_network.auto_batch" />
+                    <div class="help-inline">
+                        Whether batches should be created automatically (will use 200, or the whole dataset if there are less samples). Uncheck to select batch size.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group" ng-if="!mlTaskDesign.modeling.neural_network.auto_batch">
+                <label class="control-label">Batch size</label>
+                <div class="controls">
+                    <input type="number" ng-model="mlTaskDesign.modeling.neural_network.batch_size" />
+                    <div class="help-inline">
+                        The number of samples to include in each mini-batch.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ADAM -->
+        <div ng-if="mlTaskDesign.modeling.neural_network.solver == 'adam'">
+            <div class="control-group">
+                <label class="control-label">beta_1</label>
+                <div class="controls">
+                    <input type="number" ng-model="mlTaskDesign.modeling.neural_network.beta_1" />
+                    <div class="help-inline">
+                        beta_1 parameter for ADAM.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">beta_2</label>
+                <div class="controls">
+                    <input type="number" ng-model="mlTaskDesign.modeling.neural_network.beta_2" />
+                    <div class="help-inline">
+                        beta_2 parameter for ADAM.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">epsilon</label>
+                <div class="controls">
+                    <input type="number" ng-model="mlTaskDesign.modeling.neural_network.epsilon" />
+                    <div class="help-inline">
+                        epsilon parameter for ADAM.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- SGD -->
+        <div ng-if="mlTaskDesign.modeling.neural_network.solver == 'sgd'">
+            <div class="control-group">
+                <label class="control-label">Learning rate annealing</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="mlTaskDesign.modeling.neural_network.learning_rate">
+                        <option value="constant">Constant</option>
+                        <option value="invscaling">Inverse scaling</option>
+                        <option value="adaptive">Adaptive</option>
+                    </select>
+                    <div class="help-inline">
+                        The policy for learning rate annealing.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">power_t</label>
+                <div class="controls">
+                    <input type="number" ng-model="mlTaskDesign.modeling.neural_network.power_t" />
+                    <div class="help-inline">
+                        The exponent for an inverse scaling learning rate.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Momentum</label>
+                <div class="controls">
+                    <input type="number" ng-model="mlTaskDesign.modeling.neural_network.momentum" />
+                    <div class="help-inline">
+                        The momentum coefficient for stochastic gradient descnt.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Use Nesterov momentum</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="mlTaskDesign.modeling.neural_network.nesterovs_momentum" />
+                    <div class="help-inline">
+                        Whether the Nesterov accelerated gradient technique should be used for momentum.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

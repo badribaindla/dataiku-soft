@@ -1,0 +1,50 @@
+<div class="modal modal3 dku-modal" style="width: 800px;">
+    <form class="dkuform-horizontal">
+        <div dku-modal-header modal-title="Set subsample used to compute statistics"/>
+        <div class="modal-body modal-no-sizing">
+            <div class="modal-info-container">
+                <div class="modal-info">
+                    <p>
+                        During preprocessing of features, statistics must be computed for each feature. <a  ng-show="!uiState.showMore" ng-click="showHideMore()">Show more&hellip;</a>
+                    </p>
+                    <div ng-if="uiState.showMore">
+                        <p>
+                            For example, we need to compute the average of a numerical feature if we want to rescale it.
+                        </p>
+                        <p>
+                            To prevent from using too much memory, you can decide to compute these statistics only on a subsample of the train set.
+                        </p>
+                        <p>
+                            If you use a subsample, computation will be faster and will use less memory but the results will be less representative of the data.
+                        </p>
+                        <p>
+                            <a ng-click="showHideMore()">Show less&hellip;</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="control-group required">
+                <label class="control-label">Sample Ratio</label>
+                <div class="controls">
+                    <input type="number" ng-model="uiState.preprocessingFitSampleRatio" step="0.001" min="0.001" max="1" />
+                    <div class="help-inline">
+                        Proportion of the train set that goes to the sample used to compute statistics.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group required">
+                <label class="control-label">Random seed</label>
+                <div class="controls">
+                    <input type="number" ng-model="uiState.preprocessingFitSampleSeed" />
+                    <div class="help-inline">Using a fixed random seed allows for reproducible result</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <div class="pull-right" ng-if="!positive">
+                <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+                <button type="button" class="btn btn--text btn--primary" ng-click="validate()">Ok</button>
+            </div>
+        </div>
+    </form>
+</div>

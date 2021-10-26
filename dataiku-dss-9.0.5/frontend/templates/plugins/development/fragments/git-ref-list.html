@@ -1,0 +1,52 @@
+<div class="modal modal3 dku-modal">
+    <div dku-modal-header modal-class="has-border" modal-title="Git references"/>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body" style="max-height: 350px !important;">
+            <div block-api-error/>
+
+            <div ng-if="(gitReferences | objectSize) > 0">
+                <ul class="cell-list">
+                    <li ng-repeat="(gitRefPath, gitRef) in gitReferences" style="padding: 5px;">
+                        <div class="horizontal-flex">
+                            <strong>{{ gitRefPath }}</strong>&nbsp;
+                            <small class="noflex" title="Last imported hash">
+                                <span ng-show="gitRef.lastHash.length > 0"> ({{ gitRef.lastHash | limitTo: 7 }})</span>
+                                <span ng-hide="gitRef.lastHash.length > 0"> (not pulled yet)</span>
+                            </small>
+                            <span style="margin-left: auto;">
+                                <a ng-click="gitRefActions.pullModal(gitRefPath)" class="btn btn--primary">Update</a>
+                                <a ng-click="gitRefActions.setModal(gitRef, gitRefPath)" class="btn btn--secondary">Edit</a>
+                                <a ng-click="gitRefActions.rmModal(gitRefPath)" class="btn btn--danger">Delete</a>
+                            </span>
+                        </div>
+                        <div class="horizontal-flex">
+                            <div class="flex information">
+                                <a ng-href="{{ gitRef.remote }}">{{ gitRef.remote }}</a> @ {{ gitRef.checkout || 'master'}}
+                            </div>
+                        </div>
+
+                        <div class="horizontal-flex">
+                            <div class="flex information" ng-show="gitRef.remotePath.length > 0">
+                                Subfolder path: {{ gitRef.remotePath }}
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div ng-if="(gitReferences | objectSize) === 0">
+                <h3>No Git references have been added yet.</h3>
+                <p>Import external developed code from Git repositories, with full traceability and reproducibility.</p>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <div class="pull-left">
+                <button type="submit" class="btn btn--primary" ng-click="gitRefActions.setModal()">Add new</button>
+            </div>
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="gitRefActions.pullModal()" ng-disabled="(gitReferences | objectSize) === 0">Update all references</button>
+        </div>
+    </form>
+</div>

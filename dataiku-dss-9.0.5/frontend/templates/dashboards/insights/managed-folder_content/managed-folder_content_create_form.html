@@ -1,0 +1,35 @@
+<div class="dku-horizontal-selector-list" style="padding-top: 20px">
+    <div class="selectable item" ng-click="insight.params.singleFile = false" ng-class="{selected: !insight.params.singleFile}">
+        <span class="name">Whole folder</span>
+        <span class="description">Browse & view the entire folder</span>
+    </div>
+    <div class="selectable item" ng-click="insight.params.singleFile = true" ng-class="{selected: insight.params.singleFile}">
+        <span class="name">Single file</span>
+        <span class="description">Select one file to display</span>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label">Source folder</label>
+    <div class="controls">
+        <div object-picker="insight.params.folderSmartId" type="MANAGED_FOLDER" object="hook.sourceObject"></div>
+        <input type="hidden" ng-model="insight.params.folderSmartId" required /> <!-- Make the form invalid when no folder is selected -->
+
+        <div insight-source-info/>
+    </div>
+</div>
+
+<div class="control-group" ng-if="insight.params.singleFile">
+    <label class="control-label">File to display</label>
+    <div class="controls">
+        <select dku-bs-select ng-model="insight.params.filePath" ng-options="f.path as f.path for f in files"></select>
+        <input type="hidden" ng-model="insight.params.filePath" required /> <!-- Make the form invalid when no file is selected -->
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="insightNameInput">Insight name</label>
+    <div class="controls">
+        <input type="text" ng-model="insight.name" placeholder="{{hook.defaultName}}" id="insightNameInput" />
+    </div>
+</div>

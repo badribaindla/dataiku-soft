@@ -1,0 +1,75 @@
+<div class="model-snippet-body__details" ng-if="snippetData.trainInfo.state =='DONE' || snippetData.trainInfo.state == 'FAILED' || snippetData.trainInfo.state == 'RUNNING'">
+    <div class="model-snippet-body__details-content">
+        <table class="model-train-details-table">
+            <tr ng-show="snippetData.trainInfo.state === 'RUNNING' && snippetData.containerUsageMetrics.isKubernetesEnabled">
+                <td>Active containers</td>
+                <td>
+                    <span dku-html-tooltip position="top" class="kubernetes-containers-status__progress-ring">
+                        <tooltip-content>
+                            <div>
+                                <p ng-show="snippetData.containerUsageMetrics['nbReady'] > 0">{{snippetData.containerUsageMetrics["nbReady"]}} active</p>
+                                <p ng-show="snippetData.containerUsageMetrics['nbPending'] > 0">{{snippetData.containerUsageMetrics["nbPending"]}} launching</p>
+                                <p ng-show="snippetData.containerUsageMetrics['nbDead'] > 0">{{snippetData.containerUsageMetrics["nbDead"]}} dead</p>
+                            </div>
+                        </tooltip-content>
+                        <tooltip-trigger>
+                            <progress-ring
+                                values="[snippetData.containerUsageMetrics['nbReady'], snippetData.containerUsageMetrics['nbPending'], snippetData.containerUsageMetrics['nbDead']]"
+                                maximum="snippetData.maxKubernetesContainers"
+                                center-value="snippetData.containerUsageMetrics['nbReady']"
+                                classes="['kubernetes-containers-status__progress-ring--active', 'kubernetes-containers-status__progress-ring--launching', 'kubernetes-containers-status__progress-ring--dead']"
+                                class-not-filled="kubernetes-containers-status__progress-ring--na"
+                                radius="17.5"
+                                stroke-width="2"
+                                max-angle="180"
+                            ></progress-ring>
+                        </tooltip-trigger>
+                    </span>
+                </td>
+            </tr>
+            <tr ng-show="snippetData.trainInfo.trainRows > 0 && !snippetData.trainInfo.fullRows">
+                <td>Train set</td>
+                <td>{{snippetData.trainInfo.trainRows}} rows</td>
+            </tr>
+            <tr ng-show="snippetData.trainInfo.fullRows > 0">
+                <td>Train set</td>
+                <td>{{snippetData.trainInfo.fullRows}} rows</td>
+            </tr>
+            <tr ng-show="snippetData.trainInfo.testRows > 0">
+                <td>Test set</td>
+                <td>{{snippetData.trainInfo.testRows}} rows</td>
+            </tr>
+            <tr ng-show="snippetData.trainInfo.state !== 'RUNNING' && snippetData.trainInfo.trainingTime+snippetData.trainInfo.preprocessingTime > 0">
+                <td>Train time</td>
+                <td>{{snippetData.trainInfo.trainingTime + snippetData.trainInfo.preprocessingTime | friendlyDuration}}</td>
+            </tr>
+        </table>
+        <div ng-if="snippetData.userMeta.description" class="model-snippet-body__description">
+            <span from-markdown="snippetData.userMeta.description"></span>
+        </div>
+        <div class="model-snippet-body__details-active">
+            <div ng-if="snippetSource == 'SAVED' && !smData.active" class="activation model-footer-std-buttons" style="padding-bottom: 10px">
+                <button class="btn btn-success" ng-click="makeActive(smData)">Make active</button>
+            </div>
+            <div ng-if="snippetSource == 'SAVED' && smData.active" class="activation">
+                <h3>Active version</h3>
+            </div>
+        </div>
+    </div>
+    <div class="model-snippet-body__details-content" ng-if="snippetData.trainInfo.state == 'TRAINING'">
+        <table class="model-train-details-table">
+            <tr ng-show="snippetData.trainInfo.trainRows > 0">
+                <td>Train set</td>
+                <td>{{snippetData.trainInfo.trainRows}} rows</td>
+            </tr>
+            <tr ng-show="snippetData.trainInfo.fullRows > 0">
+                <td>Train set</td>
+                <td>{{snippetData.trainInfo.fullRows}} rows</td>
+            </tr>
+            <tr ng-show="snippetData.trainInfo.testRows > 0">
+                <td>Test set</td>
+                <td>{{snippetData.trainInfo.testRows}} rows</td>
+            </tr>
+        </table>
+    </div>
+</div>

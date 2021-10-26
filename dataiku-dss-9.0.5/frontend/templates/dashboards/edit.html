@@ -1,0 +1,158 @@
+<div class="under-modal" style="z-index: 1039;"></div> <!-- tooltip container -->
+
+<div class="dashboard-edit fh vertical-flex">
+    <div block-api-error class="noflex no-margin-alert-error"></div>
+    <div class="flex">
+        <div class="fh">
+
+            <div class="horizontal-flex">
+
+                <div class="flex h100" >
+                    <div class="next-page-link" ng-show="uiState.currentPageIdx < dashboard.pages.length - 1" ng-click="uiState.currentPageIdx = uiState.currentPageIdx+1">
+                        <i class="icon-angle-right" />
+                    </div>
+                    <div class="previous-page-link" ng-show="uiState.currentPageIdx > 0" ng-click="uiState.currentPageIdx=uiState.currentPageIdx-1">
+                        <i class="icon-angle-left" />
+                    </div>
+                    <div class="add-insight-button"
+                        ng-click="createNewInsight()"
+                        toggle="tooltip"
+                        title="Add a tile to this slide"
+                        placement="right"
+                        container=".under-modal">
+                        +
+                    </div>
+                    <div dashboard-zone data="dashboardData" editable="true" />
+                </div>
+
+                <div class="right-panel-edit nofkex vertical-flex oa h100">
+
+                    <div class="column-header-tabs noflex" ng-init="uiState.activeTab = 'dashboard'">
+                        <div class="tab" ng-class="{'tab' : true, 'active' : uiState.activeTab == 'dashboard'}"
+                             ng-click="uiState.activeTab = 'dashboard'">
+                            <div class="title">Dashboard</div>
+                        </div>
+                        <div class="tab" ng-class="{'tab' : true, 'active' : uiState.activeTab == 'slide'}"
+                             ng-click="uiState.activeTab = 'slide'">
+                            <div class="title">Slide</div>
+                        </div>
+                        <div class="tab" ng-class="{'tab' : true, 'active' : uiState.activeTab == 'tile'}"
+                             ng-click="uiState.activeTab = 'tile'">
+                            <div class="title">Tile</div>
+                        </div>
+                    </div>
+
+                    <div class="flex oa" ng-switch="uiState.activeTab" ng-init="uiState.activeTab = 'slide';">
+
+                        <div ng-switch-when="dashboard">
+                            <form class="dku-right-col-form">
+                                <div class="control-group">
+                                    <label class="control-label" for="dashboardNameInput">Name</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="dashboard.name" id="dashboardNameInput" required />
+                                    </div>
+                                </div>
+
+
+                                <div class="control-group">
+                                    <label class="control-label">Owner</label>
+                                    <div class="controls">
+                                        <a href="/profile/{{dashboard.owner}}/" class="avatar" style="margin-right: 5px;">
+                                            <div class="avatar24 ng-isolate-scope" user-picture="dashboard.owner" size="24"></div>
+                                        </a>
+                                        <span class="dibvam">
+                                            {{ownerDisplayName}}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="control-group">
+                                    <label class="control-label">Display</label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="dashboard.showGrid">
+                                            Display Layout
+                                        </label>
+                                        <label ng-if="dashboard.showGrid">
+                                            Layout Format
+                                            <select dku-bs-select="{style: 'dku-select-button btn--secondary input-half-size', width:102}" ng-model="dashboard.gridFormat" placeholder="{{dashboard.gridFormat.format}}" ng-options="x.format for x in gridFormats | filter: { format: '!' + 'Custom' }">
+                                                <option value="">Grid</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div ng-switch-when="slide">
+                            <form class="dku-right-col-form">
+                                <div class="control-group">
+                                    <label class="control-label">Current Slide</label>
+                                    <div class="controls">
+                                        <select dku-bs-select ng-model="uiState.currentPageIdx" ng-options="dashboard.pages.indexOf(page) as getPageTitle(page) for page in dashboard.pages">
+                                        </select>
+                                    </div>
+                                    <a ng-click="createPage()" style="display:inline-block; margin-top: 10px;"><i class="icon-plus-sign inline-page-plus"></i> Add a new slide</a>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Title</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="dashboard.pages[uiState.currentPageIdx].title" placeholder="{{'Slide ' + (uiState.currentPageIdx + 1)}}" auto-focus="true" />
+                                        <label>
+                                            <input type="checkbox" ng-model="dashboard.pages[uiState.currentPageIdx].showTitle">
+                                            Use slide title as header on slide
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Background color</label>
+                                    <span class="color-picker-wrapper">
+                                        <span class="color-picker" ng-class="{'default': !dashboard.pages[uiState.currentPageIdx].backgroundColor}" style="background-color:{{dashboard.pages[uiState.currentPageIdx].backgroundColor ? dashboard.pages[uiState.currentPageIdx].backgroundColor : '#EEE'}};" colorpicker debounce="true" ng-model="dashboard.pages[uiState.currentPageIdx].backgroundColor"></span>
+                                        <a class="reset" ng-click="dashboard.pages[uiState.currentPageIdx].backgroundColor = null;" ng-class="{'disabled' : !dashboard.pages[uiState.currentPageIdx].backgroundColor}" >Reset to default</a>
+                                    </span>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div ng-switch-when="tile" class="fh">
+                            <div ng-if="!uiState.selectedTile" class="h100">
+                                <div class="centered-info" style="font-size: 16px">
+                                    <p>
+                                        Select a tile to edit its settings
+                                    </p>
+                                    <p>
+                                        OR
+                                    </p>
+                                    <a ng-click="createNewInsight()" style="text-decoration:none;"><i class="icon-plus-sign inline-left-panel-plus" style="width:auto;margin-right:5px;"></i> Create one</a>
+                                </div>
+                            </div>
+                            <div ng-if="uiState.selectedTile" dashboard-tile-params tile="uiState.selectedTile" insight="insightsMap[uiState.selectedTile.insightId]" can-moderate-dashboards="canModerateDashboards()" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="noflex dashboard-slide-selector" ui-sortable="pageSortOptions" ng-model="dashboard.pages">
+        <div ng-repeat="page in dashboard.pages"
+             class="dashboard-slide-tab"
+             ng-class="{'dashboard-slide-tab--current': $index == uiState.currentPageIdx}"
+             ng-click="uiState.currentPageIdx == $index ? (uiState.activeTab = 'slide') : (uiState.currentPageIdx = $index)">
+            <div class="dashboard-slide-tab__content">
+                <div dashboard-miniature class="fh thin-borders" dashboard="dashboard" page-idx="$index"></div>
+                <div class="dashboard-slide-tab__tools-bar">
+                    <a ng-click="openCopySlideModal($index)" class="dashboard-slide-tab__tool-button"><i class="icon-copy" /></a>
+                    <a ng-click="removePage($index)" class="dashboard-slide-tab__tool-button" stop-propagation><i class="icon-trash" /></a>
+                </div>
+                <div class="dashboard-slide-tab__title" title="{{page.title || ('Slide ' + ($index+1))}}">
+                    {{$index+1}}. {{page.title || ('Slide ' + ($index+1))}}
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-slide-tab">
+            <div class="dashboard-slide-tab__content dashboard-slide-tab__content--new-slide" ng-click="createPage()" toggle="tooltip" title="Add slide" placement="right">+</div>
+        </div>
+    </div>
+</div>

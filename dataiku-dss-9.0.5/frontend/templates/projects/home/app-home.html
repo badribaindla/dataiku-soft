@@ -1,0 +1,115 @@
+<div class="summary-tab h100 oa">
+    <div block-api-error />
+    <!-- Different mechanism for apps -->
+    
+    <div class="app-home__header">
+        <div ng-if="projectSummary" editable-project-summary class="app-home__summary object-or-project-summary-column-base horizontal-flex">
+            <div class="app-home__image noflex" ng-if="appSummary.objectFullImgHash">
+                <totem project-name="appSummary.label"
+                   project-key=""
+                   object-type="'APPFULL'"
+                   object-id="projectSummary.generatingAppId"
+                   object-img-hash = "appSummary.objectFullImgHash"
+                   sizeX="300" sizeY="200"
+                   editable="false"
+                   is-project-img="true"
+                   totem-class="app-page__app-totem"></totem>
+            </div>
+            <div class="app-home__app-image noflex" ng-if="!appSummary.objectFullImgHash">
+                <totem project-name="appSummary.label"
+                   project-key=""
+                   object-type="'APP'"
+                   object-id="projectSummary.generatingAppId"
+                   object-img-hash = "appSummary.objectImgHash"
+                   sizeX="80" sizeY="200"
+                   editable="false"
+                   img-color="appSummary.imgColor",
+                   img-pattern="appSummary.imgPattern",
+                   show-initials="appSummary.showInitials",
+                   is-project-img="appSummary.isAppImg",
+                   default-img-color="appSummary.defaultImgColor"
+                   totem-class="app-page__app-totem"></totem>
+            </div>
+    
+            <div class="app-home__object-main title-zone flex">
+                <!-- Project Title -->
+                <h3 class="object-title">
+                    <div ng-if="!state.name.editing" style="height: 46px">
+                        <span class="ellipsed dib" style="max-width: calc(100% - 40px)">{{projectSummary.name}}</span>
+                        <a class="edit-button link-std"
+                            ng-if="isProjectAnalystRW()"
+                            ng-click="startFieldEdit('name', isProjectAnalystRW())"
+                            style="position: relative; top: -15px;">
+                            <i class="icon-pencil" title="Edit project name" toggle="tooltip" data-placement="right" />
+                        </a>
+                    </div>
+                    <form ng-if="state.name.editing" class="name-edit-zone dkuform-std-vertical" style="margin:0" name="renameProjectForm">
+                        <input
+                            type="text"
+                            class="in-place-edit"
+                            auto-focus="true"
+                            dku-local-keypress="{'enter': 'validateFieldEditNotUndefined()', 'esc' : 'cancelFieldEdit()'}"
+                            ng-model="state.name.newVal"
+                            placeHolder="New name"
+                            style="width: calc(100% - 115px); height: inherit; margin-bottom: 0"
+                            required
+                            />
+                        <span>
+                            <button ng-disabled="renameProjectForm.$invalid" class="btn btn--success" ng-click="validateFieldEdit()">Save</button>
+                            <button class="btn btn--secondary" ng-click="cancelFieldEdit()">Cancel</button>
+                        </span>
+                    </form>
+                </h3>
+                
+                <button type="button" class="btn btn--secondary pull-right" ng-click="switchToRegularProjectView()">Switch to project view</button>
+    
+                <!-- Short Description -->
+                <div ng-if="!state.shortDesc.editing" class="shortDesc-well">
+                    <div ng-if="isProjectAnalystRW() && (object.shortDesc == null || object.shortDesc.length == 0)" ng-click="startFieldEdit('shortDesc', isProjectAnalystRW())">
+                        <span class="help-text">
+                            Create a short description (appears on homepage)
+                        </span>
+                    </div>
+                    <div ng-if="object.shortDesc.length">
+                        <a class="edit-button link-std pull-right"
+                            ng-if="isProjectAnalystRW()"
+                            ng-click="startFieldEdit('shortDesc', isProjectAnalystRW())"
+                            style="position: relative; top: -15px;"
+                            title="Edit project short description"
+                            toggle="tooltip">
+                            <i class="icon-pencil" />
+                        </a>
+                        <div from-markdown="object.shortDesc" class="description markdown-std"></div>
+                    </div>
+                </div>
+                <form ng-if="state.shortDesc.editing" class="shortdesc-edit-zone shortDesc-well dkuform-std-vertical">
+                    <h3 autocompletable-textarea resizable="false" ui-keydown="{esc: 'cancelFieldEdit()', 'ctrl-s meta-s':'validateFieldEdit()', 'ctrl-enter meta-enter': 'validateFieldEdit()'}">
+                        <textarea
+                            ng-model="state.shortDesc.newVal"
+                            placeholder="Short description appears on homepage"
+                            auto-focus="true"
+                            style="width: 100%;max-width:100%"
+                            ui-codemirror="editorOptions"
+                            ng-if="editorOptions"
+                            >
+                        </textarea>
+                        <div>
+                            <button class="btn btn--success" ng-click="validateFieldEdit()">Save</button>
+                            <button class="btn btn--secondary" ng-click="cancelFieldEdit()">Cancel</button>
+                        </div>
+                    </h3>
+                </form>
+                
+                <div ng-if="appSummary && appSummary.originExists">
+                    <a ui-sref="apps.app({appId:appSummary.appId})">&lt; Back to application</a>
+                </div>
+    
+            </div>
+        
+        </div>
+    </div>
+    
+    <div ng-if="projectSummary" class="mtop20 mbot20">
+        <div include-no-scope="/templates/apps/app-tiles.html" />
+    </div>
+</div>

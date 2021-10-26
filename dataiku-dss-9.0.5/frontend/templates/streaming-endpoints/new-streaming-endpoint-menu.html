@@ -1,0 +1,39 @@
+<div scrolly-menu style="display: inline-block" class="dropdown">
+    <a name="new-streaming-endpoint-menu-dropdown-toggle" data-toggle="dropdown" class="btn btn--secondary dropdown-toggle" style="white-space: nowrap;" disabled-if-ro>
+        <span plus-icon />
+        {{title}} <b class="caret"></b>
+    </a>
+    <div class="scrolly-wrapper dropdown-menu pull-right">
+        <div class="anchor-for-popups">
+            <ul class="dropdown-menu new-dataset-menu">                
+                <li ng-repeat="result in displayedItems" ng-class="{'divider': result.divider, 'dataset-disabled': result.disabled, 'dropdown-submenu' : result.isSection, 'nav-header': result.header}" ng-mouseover="posnMenu($event)">
+
+                    <a ng-if="result.isSection" href> <i class="icon-fixed-width-small {{result.icon}}" />&nbsp;{{result.label}}
+                    </a>
+                    <div class="scrolly-wrapper" ng-if="result.isSection" >
+                        <ul class="dropdown-menu" ng-if="result.isSection">
+                            <li ng-repeat="item in result.items">
+                                <a ng-if="item.isInfo" ng-click="displayPluginInfo(item.pluginId, true, false)">
+                                    Learn more...
+                                </a>
+                                <a ng-if="item.fn && !item.isInfo && !item.disabled" ng-click="do(item.fn)">
+                                    <i class="icon-fixed-width-small {{item.icon}}" />&nbsp;{{item.label}}
+                                </a>
+                                <!-- TODO License -->
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div ng-if="result.header && result.label">
+                        {{ result.label }}
+                    </div>
+
+                    <a ng-click="do(result.fn)" ng-if="result.fn && !result.isSection && !result.disabled">
+                        <i class="icon-fixed-width-small {{result.icon}}" />
+                        {{result.label}}
+                    </a>
+                </li>
+             </ul>
+        </div>
+    </div>
+ </div>

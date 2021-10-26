@@ -1,0 +1,51 @@
+#!/bin/bash -e
+
+BINDIR=$(cd "$(dirname "$0")" && pwd -P)
+me=$(basename "$0")
+
+if [ $(id -u) -eq 0 ]; then
+  echo >&2 "*** $me: running DSS under superuser account is not supported."
+  exit 1
+fi
+
+export DIP_HOME=$(dirname "$BINDIR")
+
+# Load basic environment
+source "$BINDIR"/env-default.sh
+if [ -z "$DKUINSTALLDIR" ]; then
+  echo >&2 "FATAL: DKUINSTALLDIR is not defined. Please check $BINDIR/env-default.sh"
+  exit 1
+fi
+source "$DKUINSTALLDIR/scripts/_startup.inc.sh"
+
+bkdl_set_global_env
+bkdl_set_java_env
+bkdl_set_py_env
+bkdl_set_R_env
+bkdl_set_julia_env
+bkdl_load_env_files
+
+bkdl_env_sanity_check
+
+# Final environment setup
+export DKUBIN="$BINDIR"/dku
+export PYTHONPATH="$DIP_HOME/lib/python:$DKUINSTALLDIR/python"
+if ! DKUDISTRIB=$("$DKUINSTALLDIR"/scripts/install/find-distrib.sh 2>/dev/null); then
+  DKUDISTRIB="unknown unknown"
+fi
+export DKUDISTRIB
+
+# Force silent mode
+if [ "$1" = "-s" ]; then
+  export DKU_SILENT=1
+  shift
+fi
+
+exec "$DKUJAVABIN" \
+  -Ddku.dku \
+  $DKU_JAVA_OPTS \
+  $DKU_DKU_JAVA_OPTS \
+  -XX:OnOutOfMemoryError="kill -9 %p" \
+  -Djava.library.path="$DKU_DKU_JAVA_LIBRARY_PATH:$DKU_HADOOP_JAVA_LIBRARY_PATH" \
+  -cp "$(bkdl_get_cp)" \
+	com.dataiku.dip.cli.DKU "$@"

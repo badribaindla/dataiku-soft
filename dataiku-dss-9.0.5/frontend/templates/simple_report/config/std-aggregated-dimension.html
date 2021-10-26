@@ -1,0 +1,97 @@
+<div contextual-menu class="measure-wrapper" style="cursor:pointer"  ng-click="toggleContextualMenu($event)" cep-position="smart-left-bottom">
+    <span class="measure"> 
+        <i class="icon-caret-down pull-left"></i>
+        <span dku-if="dimension.type == 'DATE'" class="measure-name" title="{{dimension.column}} {{dateModeSuffix(dimension.dateParams.mode)}}">
+            <span class="colname" >{{dimension.column}}</span>
+            <small>{{dateModeSuffix(dimension.dateParams.mode)}}</small>
+        </span>
+        <span dku-if="dimension.type == 'NUMERICAL'" class="measure-name" title="{{dimension.column}} {{dimensionBinDescription(dimension) }}">
+            <span class="colname" >{{dimension.column }}</span>
+            {{dimensionBinDescription(dimension) }}
+        </span>
+        <span dku-if="dimension.type == 'ALPHANUM'" class="measure-name" title="{{dimension.column}}">
+            <span class="colname" >{{dimension.column}}</span>
+        </span>
+        <span dku-if="dimension.type == 'GEOPOINT' || dimension.type == 'GEOMETRY'" class="measure-name" title="{{dimension.column}} {{geoDimDescription(dimension)}}">
+            <span class="colname" >{{dimension.column}}</span>
+            {{geoDimDescription(dimension)}}
+        </span>
+        <i class="icon-trash pull-right" ng-click="remove($index);"></i>
+    </span>
+
+    <div class="fixed-contextual-menu-align-left contextualMenu" ng-show="contextualMenu">
+        <form class="dkuform-chart-options">
+            <div class="control-group" ng-show="dimension.type == 'NUMERICAL'">
+                <label for="" class="control-label">Binning</label>
+                <div class="controls">
+                    <select ng-model="dimension.numParams.mode" id="qa_charts_binning-select" ng-options="x[0] as x[1] for x in numericalBinningModes" />
+                </div>
+            </div>
+            <div class="control-group" ng-show="dimension.type == 'NUMERICAL' && dimension.numParams.mode == 'FIXED_NB'">
+                <label class="control-label">Number of bins</label>
+                <div class="controls font0">
+                    <input class="qa_charts_dimension-nb-bins-input" ng-disabled="dimension.type != 'NUMERICAL'" placeholder="Binning" type="number" blur-model="dimension.numParams.nbBins" min="1" id="dimension_nb_bins_input" />
+                    <button class="btn btn--secondary qa_charts_dimension-nb-bins-refresh" style="border-left: 0;" ng-click="blurElement('#dimension_nb_bins_input')"> <i class="icon-refresh" /></button>
+
+                    <label class="checkbox-label"  ng-show="dimension.type == 'NUMERICAL' && dimension.numParams.mode == 'FIXED_NB'">
+                        <input type="checkbox" id="qa_charts_adjust-binning-for-nice-bounds" ng-model="dimension.numParams.niceBounds" />
+                        Adjust bin size for nicer bounds
+                    </label>
+                </div>
+            </div>
+            <div class="control-group" ng-show="chart.def.type == 'lines' || chart.def.type == 'multi_columns_lines'" ng-if="!isSecondDimension">
+                <label class="control-label">Handling of empty bins</label>
+                <div class="controls font0">
+                    <select ng-model="dimension.numParams.emptyBinsMode" id="qa_charts_handling-empty-bins-select" ng-options="x[0] as x[1] for x in emptyBinsModes" />
+                </div>
+            </div>
+            <div class="control-group" ng-show="dimension.type == 'NUMERICAL' && dimension.numParams.mode == 'FIXED_SIZE'">
+                <label class="control-label">Bin size</label>
+                <div class="controls qa_charts_bin-size-controls">
+                    <input ng-disabled="dimension.type != 'NUMERICAL'" placeholder="Bin size" type="number" blur-model="dimension.numParams.binSize" id="dimension_bin_size_input" />
+                    <button class="btn btn--secondary" style="border-left: 0;" ng-click="blurElement('#dimension_bin_size_input')"> <i class="icon-refresh" /></button>
+                </div>
+            </div>
+
+            <div class="control-group"  ng-show="dimension.type == 'DATE'">
+                <label class="control-label">Date ranges</label>
+                <div class="controls">
+                    <select ng-disabled="dimension.type != 'DATE'" id="qa_charts_date-ranges-options-select" ng-model="dimension.dateParams.mode" ng-options="h.value as h.label group by h.group for h in dateModes()"></select>
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="!chart.def.hexbin && !isNumericalDimension(dimension)">
+                <label class="control-label">Sorting</label>
+                <div class="controls">
+                    <select ng-model="dimension.sort" id="qa_charts_sorting-select" ng-options="sort as sort.label for sort in dimension.possibleSorts"/>
+                </div>
+            </div>
+            <div class="control-group" ng-show="isAlphanumLikeDimension(dimension)">
+                <label class="control-label">Max displayed values</label>
+                <div class="controls qa_charts_max-displayed-values-controls">
+                    <input placeholder="Max nb. values" type="number" blur-model="dimension.maxValues" id="max_displayed_values_input" />
+                    <button class="btn btn--secondary" style="border-left: 0;" ng-click="blurElement('#max_displayed_values_input')"> <i class="icon-refresh" /></button>
+                </div>
+            </div>
+            <div class="control-group" ng-show="isAlphanumLikeDimension(dimension)">
+                <label class="control-label">'Others'</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" id="qa_charts_group-others-input" ng-model="dimension.generateOthersCategory" />
+                        Group extra values in a 'Others' category
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group" ng-inject="ChartFeatures" ng-show="(isTimelineable(dimension) || isBinnedNumericalDimension(dimension)) && ChartFeatures.hasOneTickPerBin(chart.def)" ng-if="!isSecondDimension">
+                <label class="control-label">Ticks</label>
+                <div class="controls">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="qa_charts_one-tick-per-bin-input" ng-model="dimension.oneTickPerBin" />
+                        Generate one tick per bin
+                    </label>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

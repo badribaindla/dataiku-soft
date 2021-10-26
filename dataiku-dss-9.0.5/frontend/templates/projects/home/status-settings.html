@@ -1,0 +1,59 @@
+	<div class="h100 vertical-flex" ng-init="uiState.settingsPane = $stateParams.selectedTab || 'metrics'">
+		<div block-api-error />
+		<div class="flex row-fluid">
+			<div class="fh row-fluid">
+				<div class="span2 offset0 nav-list-sidebar sidebar-admin modal-footer-std-buttons" tab-model="uiState.settingsPane">
+					<ul>
+						<li sidebar-tab-l1-link tab-name="metrics" label="Metrics" />
+						<li sidebar-tab-l1-link tab-name="checks" label="Checks" />
+					</ul>
+				</div>
+                
+				<div class="span10 h100 offset0 boxed-next-to-sidebar no-padding" ng-switch on="uiState.settingsPane">
+			        <div ng-switch-when="metrics" class="h100 oa">
+                        <div class="h100 metrics-checks-selection">
+    						<form class="dkuform-horizontal settings-block" name="theform" novalidate ng-controller="ProjectMetricsEditionController">
+                                <h4>Insert a metric value</h4>
+                                <div class="control-group">
+                                    <label class="control-label">Name/value</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="newMetric.name" />
+                                        &rarr;
+                                        <input type="text" ng-model="newMetric.value" />
+                                        <button class="btn btn--text btn--secondary" ng-click="addMetricPoint(newMetric)" ng-disabled="!newMetric.name || !newMetric.value">Add</button>
+                                    </div>
+                                </div>
+    						</form>
+                        </div>
+					</div>			
+			        <div ng-switch-when="checks" class="h100 oa">
+                        <div class="h100 metrics-checks-selection">
+                            <form class="dkuform-horizontal settings-block" name="theform" novalidate ng-controller="ProjectChecksEditionController">
+                                <h4>Insert a check value</h4>
+                                <div class="control-group">
+                                    <label class="control-label">Name/value</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="newCheck.name" />
+                                        :
+                                        <select dku-bs-select ng-model="newCheck.value">
+                                            <option value="OK">OK</option>
+                                            <option value="ERROR">Error</option>
+                                            <option value="WARNING">Warning</option>
+                                            <option value="EMPTY">Empty</option>
+                                        </select>
+                                        <button class="btn btn--text btn--secondary" ng-click="addCheckPoint(newCheck)" ng-disabled="!newCheck.name || !newCheck.value">Add</button>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Message</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="newCheck.message" />
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+					</div>			
+				</div>	
+			</div>
+		</div>
+	</div>

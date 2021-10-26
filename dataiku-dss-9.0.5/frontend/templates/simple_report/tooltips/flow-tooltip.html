@@ -1,0 +1,51 @@
+<div class="svg-tooltip" id="flow-tooltip">
+
+	<div class="header horizontal-flex" ng-inject="TaggableObjectsUtils">
+		<div class="flex">
+			<div class="title" ng-bind-html="node.description | breakify:'_| '"/>
+			<div style="color: #aaa" ng-show="node.datasetType">{{node.datasetType}} dataset</div>
+			<div style="color: #aaa" ng-show="node.recipeType">{{node.recipeType |recipeTypeToName}} recipe</div>
+			<div style="color: #aaa" ng-show="node.nodeType == 'ZONE'">Zone</div>
+			<div style="color: #aaa" ng-show="node.partitioned">
+				<i class="icon-DKU_partitioned" />
+				This {{TaggableObjectsUtils.fromNodeType(node.nodeType) | niceTaggableType}} is partitioned
+			</div>
+		</div>
+
+		<div class="interests noflex">
+			<i class="icon-star interests-star" ng-class="{ active: node.interest.starred }" />
+			<br />
+			<i class="icon-eye-open interests-watch" ng-class="{ active: isWatching(node.interest.watching) }" />
+		</div>
+	</div>
+
+	<div class="never-built-computable" ng-show="node.neverBuilt" style="padding: 5px 15px">
+		<i class="icon-warning-sign" style="color: #c09853"/> This dataset has not been built yet!
+	</div>
+
+	<div class="body">
+
+		<div ng-if="tooltip.template" ng-switch on="tooltip.template">
+			<div ng-switch-default include-no-scope="{{tooltip.template}}" />
+		</div>
+
+		<div ng-show="!tool && node.tags.length" style="margin-bottom: 15px">
+			<div class="subtitle" style="padding: 5px">{{node.tags.length}} {{ 'tag' | plurify : node.tags.length }}</div>
+			<ul class="raw-unstyled-ul">
+				<li ng-repeat="tag in node.tags track by tag" class="break-all">
+					<span class="bullet" style="background-color: {{tag |tagToColor}}" /> <span ui-global-tag="tag" object-type="TaggableObjectsUtils.fromNodeType(node.nodeType)"/>
+				</li>
+			</ul>
+		</div>
+
+		<div class="shortDesc break-all" ng-show="node.shortDesc.length" style="padding: 5px;">
+			<div style="color: #aaa">
+				<i class="icon-info-sign" style="color: #ccc; font-size: 0.9em; margin-right: 5px"/> Short description:
+			</div>
+			<div style="word-break: break-word;" from-markdown="node.shortDesc"></div>
+			<span ng-if="node.shortDesc.length == 140">&hellip;</span>
+		</div>
+
+	</div>
+
+</div>

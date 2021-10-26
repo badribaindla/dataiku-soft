@@ -1,0 +1,69 @@
+<div class="modal modal3 gethelp-modal modal-w800">
+    <div ng-if="wl.getHelpModalTitle">
+        <div dku-modal-header modal-title="{{wl.getHelpModalTitle}}" />
+
+        <form class="dkuform-modal-wrapper">
+            <div class="modal-body">
+                <div from-markdown="wl.getHelpModalText" />
+            </div>
+            <div class="modal-footer modal-footer-std-buttons" global-keydown="{'enter':'dismiss();', 'esc': 'dismiss();' }">
+                <button class="btn btn--text btn--secondary" ng-click="dismiss();">Close</button>
+            </div>
+        </form>
+    </div>
+    <div ng-if="!wl.getHelpModalTitle">
+        <div dku-modal-header modal-title="Get help with DSS" />
+
+        <form class="dkuform-modal-wrapper">
+            <div class="modal-body" style="padding-top: 5px; padding-bottom 5px;">
+                <div block-api-error />
+                <p>
+                    We're sorry that you're experiencing trouble or are having difficulties achieving your goals 
+                    with DSS. Here are some ways you can get help.
+                </p>
+
+                <div ng-if="!appConfig.communityEdition && !appConfig.admin">
+                    <h2 class="gethelp-modal__section-title">Contact your DSS administrators or company support resources</h2>
+                    <p ng-if="!appConfig.studioAdminContact">
+                        Your DSS administrators can provide initial help, analysis of issue, and will contact Dataiku Support if needed.
+                    </p>
+                    <div ng-if="appConfig.studioAdminContact" from-markdown="appConfig.studioAdminContact" />
+                </div>
+
+                <div class="gethelp-modal__section">
+                    <h2 class="gethelp-modal__section-title">Ask our online resources</h2>
+                    <p>
+                        Ask questions, get help, share best practices and interact with other Dataiku users on the <a target="_blank" rel="noopener noreferrer" href="https://community.dataiku.com/">Community</a>.
+                    </p>
+                </div>
+
+                <div class="gethelp-modal__section">
+                    <h2 class="gethelp-modal__section-title">Check our online resources</h2>
+                    <p>
+                        Our <a target="_blank" rel="noopener noreferrer" href="https://www.dataiku.com/learn">Learn section</a> contains a wealth of information about Dataiku, howtos, tutorials, documentation, &hellip;<br />
+                    </p>
+                </div>
+
+                <div ng-if="intercomEnabled" class="gethelp-modal__section">
+                    <h2 class="gethelp-modal__section-title">Chat with Dataiku</h2>
+                    <p><a ng-click="openIntercom()">Start a live chat conversation</a> with Dataiku. Please note that this support channel is provided on a purely best-effort basis.</p>
+                </div>
+
+                <div class="gethelp-modal__section">
+                    <h2 class="gethelp-modal__section-title">Open a support ticket</h2>
+                    <div class="alert alert-warning" ng-if="!appConfig.admin" style="margin-bottom: 5px">
+                        We strongly recommend that you get in touch with your DSS administrators before opening a support ticket. Dataiku does not have access to your DSS instances.
+                    </div>
+                    <div class="alert alert-warning" ng-if="appConfig.communityEdition" style="margin-bottom: 5px">
+                        Please note that support is provided to Free Edition user on a purely best-effort basis.
+                    </div>
+                    <p>Before opening a support ticket, please make sure to read our <doclink page="troubleshooting/obtaining-support#guidelines-for-submitting-a-support-ticket" title="Guidelines for submitting support tickets" />. If you provide us with the right information, we'll be able to help you better and faster.</p>
+                    <p><a ng-click="openSupport()">Open a ticket</a></p>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-std-buttons" global-keydown="{'enter':'dismiss();', 'esc': 'dismiss();' }">
+               <button class="btn btn--text btn--secondary" ng-click="dismiss();">Close</button>
+            </div>
+        </form>
+    </div>
+</div>

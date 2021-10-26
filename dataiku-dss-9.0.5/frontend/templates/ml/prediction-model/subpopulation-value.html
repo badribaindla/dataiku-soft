@@ -1,0 +1,166 @@
+<div>
+
+    <div class="subpop-table-row subpop-border-bottom"
+         ng-class="{'subpop-modality--excluded': data.excluded}"
+         ng-click="data.excluded || (uiState.isExpanded = !uiState.isExpanded)">
+            
+            <!-- MODALITY COLUMN -->
+
+            <div ng-style="{'background': getLinearGradient(data.weightedPercentage)}" 
+                 class="subpop-table__information subpop-table__information--modality subpop-table--value subpop-border-right"
+                 title="{{data.longTitle}}">
+                 <div class="lining-nums subpop-table--modality-percentage">
+                     {{data.weightedPercentageStr}}
+                 </div>
+                 <div class="mx-textellipsis" ng-if="data.title && data.title.length > 0">
+                     &nbsp;&mdash;&nbsp;&nbsp;{{data.title}}
+                 </div>
+            </div>
+
+            <!-- HIGHLIGHTED METRICS ONLY FOR BINARY CLASSIF -->
+            
+            <div class="subpop-table-row__highlighted-column subpop-table--highlited lining-nums"    
+                    ng-if="!data.excluded && display.predictionType === 'BINARY_CLASSIFICATION'">
+                <div class="subpop-table-row__highlighted-column-percentage"
+                        title="{{formatMetric(data.perf.singleMetrics.actPos['ratio'],'actual', 5)}}">
+                    {{formatMetric(data.perf.singleMetrics.actPos["ratio"], 'actual')}}
+                </div>
+                
+                <div class="subpop-table-row__highlighted-column-comparison"
+                        title="{{getAbsoluteDiffWithAllDataset('actual',5)}}"
+                        ng-class="{'above': isAboveAllDataset('actual'), 'below': isBelowAllDataset('actual')}">
+                    <i class="icon icon-long-arrow-up" ng-if="isAboveAllDataset('actual')"></i>
+                    <i class="icon icon-long-arrow-down" ng-if="isBelowAllDataset('actual')"></i>
+                    {{getAbsoluteDiffWithAllDataset('actual', 'actual')}}
+                </div>
+            </div>
+
+            <div class="subpop-table-row__highlighted-column subpop-table--highlited subpop-border-right lining-nums"
+                    ng-if="!data.excluded && display.predictionType === 'BINARY_CLASSIFICATION'">
+                    <div class="subpop-table-row__highlighted-column-percentage" 
+                        title="{{formatMetric(data.perf.singleMetrics.predPos['ratio'], 'predicted', 5)}}">
+                    {{formatMetric(data.perf.singleMetrics.predPos["ratio"], 'predicted')}}
+                </div>
+                
+                <div class="subpop-table-row__highlighted-column-comparison" 
+                        title="{{getAbsoluteDiffWithAllDataset('predicted', 5)}}"
+                        ng-class="{'above': isAboveAllDataset('predicted'), 'below': isBelowAllDataset('predicted')}">
+                    <i class="icon icon-long-arrow-up" ng-if="isAboveAllDataset('predicted')"></i>
+                    <i class="icon icon-long-arrow-down" ng-if="isBelowAllDataset('predicted')"></i>
+                    {{getAbsoluteDiffWithAllDataset('predicted', 'predicted')}}
+                </div>
+            </div>
+
+            <div class="subpop-table-no-result" ng-if="data.excluded">
+                <span>Not computed {{uiState.excludedReasons[data.reason]}}</span>
+            </div>
+
+            <!-- OTHER METRICS -->
+
+            <div ng-if="display.modelMetric && !data.excluded" class="subpop-table-metric lining-nums">
+                {{formatMetric(display.modelMetric.getMetricFromPerf(data.perf), display.modelMetric.fieldName)}}
+            </div>                       
+
+            <div ng-repeat="m in display.metrics"
+                ng-if="!data.excluded && m.displayed && !m.isModelMetric"                        
+                class="subpop-table-metric lining-nums">
+                {{formatMetric(m.getMetricFromPerf(data.perf), m.fieldName)}}
+            </div>
+    </div>
+
+    <div class="subpopulation-modality__expand subpop-border-bottom" ng-if="uiState.isExpanded">
+        <div class="subpopulation-modality__charts">
+            
+            <!-- BINARY CLASSIF -->
+
+            <div class="subpopulation-modality-graph"
+                 ng-if="display.predictionType === 'BINARY_CLASSIFICATION' && (data.perf.densityData | objectSize) > 0">
+
+                <svg ng-if="display.probabilityChart == 'DENSITY'"
+                        class="flex subpopulation-modality-graph--proba chart-std-font"
+                        multi-line-chart
+                        data-ys="data.perf.densityData.ys"
+                        data-x-marks="data.perf.densityData.xm"
+                        data-x="data.perf.densityData.x"
+                        data-labels="data.perf.densityData.labels"
+                        data-axes="['Predicted probability', 'Probability density']"
+                        data-colors="data.perf.densityData.colors"
+                        data-format="'.02f'"
+                        data-options="{area: true}">
+                </svg>
+        
+        
+                <svg ng-if="display.probabilityChart == 'PROBA_DISTRIB'"
+                        bc-per-bin-proba-distrib-chart
+                        class="flex subpopulation-modality-graph--proba chart-std-font"
+                        data="data.perf.probaDistribData"
+                        colors="colors"
+                        threshold="threshold"
+                        model_classes="classes">
+                </svg>
+            
+            </div>
+            
+            <div class="subpopulation-modality-graph"
+                 ng-if="display.predictionType === 'BINARY_CLASSIFICATION'">
+                
+                <bc-confusion-matrix
+                    class="subpopulation-modality-graph--confusion"
+                    data="data.perf.singleMetrics"
+                    model_classes="classes"
+                    display-mode="display.confusionMatrixMode"
+                    metricsWeighted="metricsWeighted">
+                </bc-confusion-matrix>
+        
+            </div>
+
+
+            <!-- REGRESSION -->
+
+            <div class="subpopulation-modality-graph"
+                 ng-if="display.predictionType === 'REGRESSION'">
+                <svg distribution-chart 
+                     class="w100 h100 chart-std-font"
+                     data="data.perf.errorDistribBars"
+                     data-colors="[colors[0], '#999']" 
+                     data-axes="['Error', '# of rows']"
+                     data-x-marks="[0]">
+                </svg>
+            </div>
+
+            <div class="subpopulation-modality-graph"
+            ng-if="display.predictionType === 'REGRESSION'">
+                <svg r-scatter-plot
+                     class="w100 h100 chart-std-font"
+                     data="data.perf.spd"
+                     data-colors="colors">
+                </svg>
+            </div>               
+
+
+        </div>
+
+        <div class="subpopulation-modality__charts-display" ng-if="(data.perf.densityData | objectSize) > 0">
+
+            <!-- BINARY CLASSIF -->
+
+            <div class="subpopulation-modality__chart-display"
+                 ng-if="display.predictionType === 'BINARY_CLASSIFICATION'">        
+                Display: 
+                <select dku-bs-select
+                        ng-model="display.probabilityChart" 
+                        ng-options="x[0] as x[1] for x in display.probabilityCharts"></select>
+            </div>
+
+            <div class="subpopulation-modality__chart-display"
+                 ng-if="display.predictionType === 'BINARY_CLASSIFICATION'">                
+                Display:
+                <select dku-bs-select ng-model="display.confusionMatrixMode"
+                    ng-options="x[0] as x[1] for x in display.confusionMatrixModes"></select>
+            </div>
+
+        </div>
+    
+    </div>  
+
+</div>

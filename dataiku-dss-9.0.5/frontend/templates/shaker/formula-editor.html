@@ -1,0 +1,77 @@
+<div class="formula-editor">
+	<div class="editor-header noflex" >
+		<div class="fh">
+			<div class="horizontal-flex">
+				<div class="totem noflex"><i class="icon-eye-open"></i></div>
+				<h4 class="noflex">Step</h4>
+				<div class="name flex">Formula</div>
+				<div class="buttons noflex" >
+					<doclink page="/advanced/formula" title="Using the formula language" show-icon="true" class="mright8"></doclink>
+					<button class="btn btn--secondary mright8" ng-click="parentDismiss()">Cancel</button>
+					<button class="btn btn--primary" ng-click="hooks.ok()">Apply</button>
+				</div>
+			</div>
+		</div>
+	</div>
+    <div class="split" style="height: calc(100% - 60px);" ng-cloak>
+    	<form class="half-pane h100" on-smart-change="validateGRELExpression()" >
+    		<div class="h100 vertical-flex">
+				<div class="alert-zone--before-editor">
+					<div class="alert alert-warning" ng-show="editing.expression && grelExpressionValid && grelExpressionData.displayConcatMessage">
+						<span>
+							<i class="icon-dku-warning" /> You may want to use concat to concatenate two non numeric values
+							<button class="btn btn--primary btn--text" ng-click="fixupFormula(editing.expression)">
+								<i class="icon-magic" />
+							</button>
+						</span>
+					</div>
+				</div>
+				<div class="editor-zone flex" global-keydown="{ 'ctrl-enter meta-enter' : 'hooks.ok()'}">
+					<div class="fh">
+						<div class="editor h100">
+							<grel-editor on-validate="onValidate" validator="expressionValidator" columns="columns" scope-variables="recipeVariables" expression="editing.expression"></grel-editor>
+						</div>
+					</div>
+				</div>
+
+				<div id="qa_formula_alert_zone" class="alert-zone oa noflex">
+					<div class="alert alert-info" ng-show="!editing.expression">Please enter formula</div>
+					<div class="alert alert-success" ng-show="editing.expression && grelExpressionValid">
+						<div class="pull-right">
+							<a ng-click="validateGRELExpression()"> <span class="text-success"> <i class="icon-ok" /></span>
+							</a>
+						</div>
+						<span>
+						Formula is valid
+						</span>
+					</div>
+					<div class="alert alert-error" ng-show="editing.expression && grelExpressionError">
+						<span>
+						Formula is invalid : {{grelExpressionError}}
+						</span>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="half-pane h100 oa">
+			<div class="result-col h100">
+				<div ng-show="!grelExpressionData.table" class="h100-flex-center">
+					<div>No preview yet</div>
+				</div>
+				<div ng-show="grelExpressionData.table">
+					<div dku-if="grelExpressionData.table.rows.length == 0">
+						<em>No sample data. Is the table empty ?</em>
+					</div>
+					<table id="qa_formula_sample_output" class="table table-striped table-bordered">
+						<tr>
+							<th ng-repeat="col in grelExpressionData.table.colNames"><div class="cell">{{col}}</div></th>
+						</tr>
+						<tr ng-repeat="row in grelExpressionData.table.rows track by $index">
+							<td ng-repeat="v in row.data track by $index"><div class="cell" ng-class="{'ok':v}">{{v}}</div></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+    	</div>
+    </div>
+</div>

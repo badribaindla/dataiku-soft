@@ -1,0 +1,132 @@
+<div class="modal modal3 dku-modal analyze-full-sample-config-modal modal-fixed-height400" auto-size="false">
+    <!-- make it the same width/height as the analyse box modal so that you can't click outside on the modal below -->
+	<dku-modal-header modal-title="Select full sample statistics" >
+        <dku-modal-tabs>
+            <li class="tab"  ng-class="{'active': uiState.tab == 'METRICS'}"><a ng-click="uiState.tab = 'METRICS'">Values to compute</a></li>
+            <li class="tab"  ng-class="{'active': uiState.tab == 'ENGINE'}"><a ng-click="uiState.tab = 'ENGINE'">Computation engine</a></li>
+        </dku-modal-tabs>
+	</dku-modal-header>
+    
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body" >
+            <div class="vertical-flex">
+                <div class="noflex" block-api-error />
+                <div class="flex" ng-if="uiState.tab == 'METRICS'">
+	                <div class="clearfix" >
+	                    <label class="control-label">Min, max, avg, stddev, non empty, histogram</label>
+	                    <label class="dku-toggle">
+	                        <input type="checkbox" ng-model="shaker.fullSampleStatistics.basic" ng-change="shaker.fullSampleStatistics.countDistinct = shaker.fullSampleStatistics.countDistinct && shaker.fullSampleStatistics.basic;">
+	                        <span/>
+	                    </label>
+	                </div>
+	                <div class="clearfix">
+	                    <label class="control-label">Distinct value count</label>
+	                    <label class="dku-toggle">
+	                        <input type="checkbox" ng-model="shaker.fullSampleStatistics.countDistinct" ng-change="shaker.fullSampleStatistics.basic = shaker.fullSampleStatistics.countDistinct || shaker.fullSampleStatistics.basic;">
+	                        <span/>
+	                    </label>
+	                </div>
+                    <div class="clearfix">
+                        <label class="control-label">Number top values (10-100)</label>
+                        <span style="margin-left:14px">
+                            <input type="number" ng-model="shaker.fullSampleStatistics.numberTopValues" min="10" max="100"
+                            style="width:40px; padding-right:0px">
+                        </span>
+                    </div>
+	                <div class="clearfix">
+	                    <label class="control-label">Mode, top-K</label>
+	                    <label class="dku-toggle">
+	                        <input type="checkbox" ng-model="shaker.fullSampleStatistics.advanced">
+	                        <span/>
+	                    </label>
+	                </div>
+	                <div class="clearfix">
+	                    <label class="control-label">Median, IQR</label>
+	                    <label class="dku-toggle">
+	                        <input type="checkbox" ng-model="shaker.fullSampleStatistics.percentile">
+	                        <span/>
+	                    </label>
+	                </div>
+                    <legend class="settings-section-title" style="margin-bottom: 0px;">Meanings</legend>
+	                <div class="clearfix">
+	                    <label class="control-label">Meaning validity</label>
+	                    <label class="dku-toggle">
+	                        <input type="checkbox" ng-model="shaker.fullSampleStatistics.validity">
+	                        <span/>
+	                    </label>
+	                    <span class="help-inline">Applies to forced meanings only</span>
+	                </div>
+	                <legend class="settings-section-title" style="margin-bottom: 0px;">Update behavior</legend>
+	                <div class="clearfix">
+	                    <label class="control-label">Update on modal open</label>
+	                    <div class="controls">
+	                        <input type="checkbox" ng-model="shaker.fullSampleStatistics.updateOnAnalyzeBoxOpen" />
+	                        <span class="help-inline">Check and update values when opening the Analyze box</span>
+	                    </div>
+	                </div>
+                </div>
+                <div class="flex" ng-if="uiState.tab == 'ENGINE'">
+	                <div class="control-group title-group">
+	                    <label class="control-label" for="">Activate stream engine</label>
+	                    <div class="controls">
+	                        <input type="checkbox" ng-model="shaker.fullSampleStatistics.engineConfig.dss.active"></input>
+	                    </div>
+	                </div>
+	                <div class="control-group title-group">
+	                    <label class="control-label" for="">Activate SQL</label>
+	                    <div class="controls">
+	                        <input type="checkbox" ng-model="shaker.fullSampleStatistics.engineConfig.sql.active"></input>
+	                    </div>
+	                </div>
+	                <div class="control-group title-group">
+	                    <label class="control-label" for="">Activate Impala</label>
+	                    <div class="controls">
+	                        <input type="checkbox" ng-model="shaker.fullSampleStatistics.engineConfig.impala.active"></input>
+	                    </div>
+	                </div>
+	                <div class="control-group title-group">
+	                    <label class="control-label" for="">Activate Hive</label>
+	                    <div class="controls">
+	                        <input type="checkbox" ng-model="shaker.fullSampleStatistics.engineConfig.hive.active"></input>
+	                    </div>
+	                </div>
+	                <div class="control-group">
+	                    <label class="control-label" for="">Extra configuration</label>
+	                    <div class="controls">
+							<ng2-key-values-list
+								[(items)]="shaker.fullSampleStatistics.engineConfig.hive.extraConf"
+								add-label="Add extra configuration"
+								key-placeholder="Configuration key"
+								value-placeholder="Configuration value">
+							</ng2-key-values-list>
+	                    </div>
+	                </div>
+	                <div class="control-group title-group" ng-if="appConfig.interactiveSparkEngine != null">
+	                    <label class="control-label" for="">Activate Spark</label>
+	                    <div class="controls">
+	                        <input type="checkbox" ng-model="shaker.fullSampleStatistics.engineConfig.spark.active"></input>
+	                    </div>
+	                </div>
+	                <div class="control-group" ng-if="appConfig.interactiveSparkEngine != null">
+	                    <label class="control-label" for="">Extra configuration</label>
+	                    <div class="controls">
+							<ng2-key-values-list
+								[(items)]="shaker.fullSampleStatistics.engineConfig.spark.extraConf"
+								add-label="Add extra configuration"
+								key-placeholder="Configuration key"
+								value-placeholder="Configuration value">
+							</ng2-key-values-list>
+	                    </div>
+	                </div>
+                </div>
+            </div>
+        </div>
+	    <div class="modal-footer has-border modal-footer-std-buttons">
+	        <div class="pull-right">
+	            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+                <button type="button" class="btn btn--text btn--primary" ng-click="resolveModal({'save':true})" disabled-if="!theform.$valid">Save</button>
+                <button type="button" class="btn btn--text btn--primary" ng-click="resolveModal({'save':true,'compute':true})" disabled-if="!theform.$valid">Save and compute</button>
+	        </div>
+	    </div>
+    </form>
+</div>

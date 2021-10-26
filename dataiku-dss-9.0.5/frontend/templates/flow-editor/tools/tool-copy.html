@@ -1,0 +1,62 @@
+<div class="flow-tool-mainzone" ng-controller="CopyToolController">
+
+    <div class="header">
+        <div class="pull-right">
+            <button type="button" class="close" ng-click="stopCurrentTool()">&times;</button>
+        </div>
+
+        <h5>
+            {{tool.def.getToolDisplayName(tool.currentSession)}}
+            <a target="_blank" rel="noopener noreferrer" href="{{$root.versionDocRoot}}{{tool.helpLink}}"
+               ng-if="tool.helpLink" class="link-std" title="Click for documentation" toggle="tooltip">
+                <i class="icon-question-sign" />
+            </a>
+        </h5>
+    </div>
+
+
+    <div class="tool-state" style="margin: 10px 0">
+        <ul class="tool-facet raw-unstyled-ul">
+            <li flow-tool-facet-elt
+                color="'green'"
+                key="'Copied'"
+                number="tool.user.state.countByState.REQUESTED"
+                single-focused="true"
+                />
+            <li flow-tool-facet-elt
+                color="'#41f544'"
+                key="'Dependent (copied)'"
+                number="tool.user.state.countByState.REQUIRED"
+                single-focused="true"
+                />
+            <li flow-tool-facet-elt
+                color="'#ffc500'"
+                key="'Reused'"
+                number="tool.user.state.countByState.REUSED"
+                single-focused="true"
+                />
+            <!-- <li flow-tool-facet-elt
+                color="'#e2e2e2'"
+                key="'Not copied'"
+                single-focused="true"
+                /> -->
+        </ul>
+    </div>
+
+    <div style="padding: 5px" ng-inject="FlowGraphSelection">
+        <a class="btn btn--secondary" style="width: 120px" ng-click="addSelected(false)" ng-disabled="!FlowGraphSelection.getSelectedNodes().length">
+            Add
+        </a>
+        <a class="btn btn--secondary" style="width: 120px" ng-click="removeSelected()" ng-disabled="!FlowGraphSelection.getSelectedNodes().length">
+            Remove
+        </a>
+    </div>
+
+    <div style="padding: 5px; text-align: right;">
+        <a class="btn btn--success" ng-click="go()" ng-disabled="!tool.user.state.countByState.REQUESTED">
+            Copy to ...
+        </a>
+        &nbsp;
+    </div>
+
+</div>

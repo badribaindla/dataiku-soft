@@ -1,0 +1,171 @@
+<div class="cell-header folded" ng-show="!cell.$localState.unfolded" ng-click="toggleCell();focusQueryAfter()" ui-keydown="{'right':'toggleCell()'}">
+    <div class="cell-tools pull-right" stop-propagation>
+        <span class="cell-status">
+            <span ng-show="!isQueryEmpty() && !cell.$tmpState.runningQuery && !cell.$tmpState.results">Ready</span>
+            <span ng-show="cell.$tmpState.runningQuery">Running</span>
+            <span ng-show="!cell.$tmpState.runningQuery && cell.$tmpState.results.success" class="text-success">Success</span>
+            <span ng-show="!cell.$tmpState.runningQuery && cell.$tmpState.results && !cell.$tmpState.results.success" class="text-error">Failed</span>
+        </span>
+
+        <button type="button" class="btn btn--success btn-run-main" ng-click="run()" ng-show="!cell.$tmpState.runningQuery" title="Hint: use ctrl+enter to run">
+            <i class="icon-play" /> &nbsp; Run
+        </button>
+
+        <button type="button" class="btn btn--danger" ng-click="abort()" ng-show="cell.$tmpState.runningQuery" title="Hint: use ctrl+esc to abort">
+            Abort
+        </button>
+
+        <a ng-click="duplicateCell($index)" class="cell-tool link-std">
+            <i class="icon-copy" />
+        </a>
+
+        <a ng-click="removeCell($index)" class="cell-tool link-std">
+            <i class="icon-trash" />
+        </a>
+    </div>
+    <span class="cell-title">
+        <i class="icon-caret-right"/>
+        {{cell.name || (cell.$localState.query.sql && cell.$localState.query.sql.trim()) || 'Empty query'}}
+    </span>
+</div>
+
+<form class="dkuform-std-vertical" style="margin:0">
+    <div class="cell-header unfolded" ng-if="cell.$localState.unfolded" ng-click="toggleCell()">
+        <div include-no-scope="/templates/notebooks/sql-notebook-query-toolsl.html" class="pull-right" stop-propagation></div>
+
+        <span class="cell-title">
+            <i class="icon-caret-down"/>
+            <input type="text" ng-model="cell.name" placeholder="Click to name this query..." class="in-place-edit" ng-focus="selectCell(getSelectedCellIndex())" blur-on-enter stop-propagation/>
+        </span>
+    </div>
+</form>
+
+<div class="cell-body" ng-if="cell.$localState.unfolded">
+    <div local-api-error class="local-api-error">
+        <div block-api-error />
+    </div>
+
+    <div class="cell-code secondary-scroll"
+        ui-keydown="{'ctrl-enter meta-enter':'run()', 'ctrl-esc meta-esc':'abort()'}"
+        ng-if="!cell.$localState.foldQuery">
+        <textarea ng-model="cell.$localState.query.sql" ui-codemirror="editorOptions()" ui-refresh="reflow"></textarea>
+    </div>
+
+    <div class="folded-query" ng-if="cell.$localState.foldQuery" ng-click="foldQuery(false)">
+        <i class="icon-caret-right"/> {{cell.$localState.query.sql.trim() || '[empty query]'}}
+    </div>
+
+    <div ng-show="cell.$tmpState.results && !cell.$tmpState.results.success && !cell.$tmpState.runningQuery">
+        <div class="alert alert-error" style="margin: 0;">
+            <h4><i class="icon-dku-error"></i> An error occurred</h4>
+            <p>{{cell.$tmpState.results.errorMessage}}</p>
+        </div>
+    </div>
+
+
+    <div class="sql-results-header" ng-show="cell.$tmpState.results.rows.length || cell.$tmpState.runningQuery">
+        <span class="btn-group" ng-show="cell.$tmpState.logs && connectionDetails.type == 'Hive'">
+            <button class="btn btn--secondary" ng-class="{'btn--active': cell.$tmpState.resultsTab == 'LOGS'}" ng-click="cell.$tmpState.resultsTab = 'LOGS'" title="Logs">
+                <i class="icon-th-list"/>
+            </button>
+            <button class="btn btn--secondary" ng-class="{'btn--active': cell.$tmpState.resultsTab != 'LOGS'}" ng-click="cell.$tmpState.resultsTab = 'RESULTS'" title="Results">
+                <i class="icon-table"/>
+            </button>
+        </span>
+
+        <span ng-show="cell.$tmpState.runningQuery">
+            <i class="icon-spin icon-spinner" /> Started {{cell.$tmpState.runningQuery.runOn|friendlyTimeDelta}}
+            <span ng-show="cell.$tmpState.lastQuery.runIn">
+                (last run took {{(cell.$tmpState.lastQuery.runIn)/1000 | friendlyDurationSec}})
+            </span>
+        </span>
+        <span ng-show="!cell.$tmpState.runningQuery && cell.$tmpState.results">
+            <span ng-show="cell.$tmpState.results.success">
+                <i class="icon-ok-circle"/> Executed
+            </span>
+            <span ng-show="!cell.$tmpState.results.success">
+                <i class="icon-remove-circle"/> Failed
+            </span>
+            on {{cell.$tmpState.lastQuery.runOn|date:'yyyy/MM/dd HH:mm'}}
+            <span ng-show="cell.$tmpState.lastQuery.runIn">
+                (in {{(cell.$tmpState.lastQuery.runIn)/1000 | friendlyDurationSec}})
+            </span>
+            <span ng-show="cell.$tmpState.results.successMessage">
+                - {{cell.$tmpState.results.successMessage}}
+            </span>
+        </span>
+
+        <div class="pull-right" ng-show="cell.$tmpState.results.rows.length">
+            <span class="resultset-count">
+                {{cell.$tmpState.results.columns.length}} columns.
+                Showing {{cell.$tmpState.results.rows.length}} of {{cell.$tmpState.results.totalRows}}<span ng-show="cell.$tmpState.results.totalRowsClipped">+</span> rows
+            </span>
+            <span class="tools pull-right" ng-show="!cell.$tmpState.runningQuery">
+                    <a ng-show="cell.$tmpState.results.totalRowsClipped" ng-click="computeFullCount()" class="btn btn--secondary">
+                        <i class="icon-refresh" /> &nbsp;Compute full count
+                    </a>
+                     <a ng-click="exportCurrent()" class="btn btn--success" ng-disabled="!projectSummary.canExportDatasetsData">
+                        <i class="icon-download-alt" /> &nbsp;Download
+                    </a>
+                </span>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div class="results-placeholder placeholder-block" style="margin: 0;" ng-if="cell.$tmpState.lastQuery && cell.$tmpState.lastQuery.state == 'DONE' && !cell.$tmpState.runningQuery && !cell.$tmpState.results">
+        Last run {{cell.$tmpState.lastQuery.runOn|friendlyTimeDelta}}
+        <a class="btn btn--secondary" ng-click="fetchLastResults(cell, cell.$tmpState.lastQuery.id)" ng-disabled="fetchingResults[cell.id]"> <i class="icon-refresh" /> Fetch results </a>
+    </div>
+
+
+    <div class="cell-results secondary-scroll"
+        ng-class="{unfolded: cell.$localState.unfoldTable}"
+        ng-if="cell.$tmpState.results.success && cell.$tmpState.results.rows.length"
+        ng-show="cell.$tmpState.resultsTab != 'LOGS' || !cell.$tmpState.logs">
+        <div class="sql-results-side" ng-click="toggleUnfoldTable();" ng-class="{unfolded: cell.$localState.unfoldTable}">
+            <i class="icon-caret-right" ng-show="!cell.$localState.unfoldTable" title="Unfold table"/>
+            <i class="icon-caret-down" ng-show="cell.$localState.unfoldTable" title="Fold table"/>
+        </div>
+
+        <div class="running-query-overlay">
+            <i class="icon-spin icon-spinner" />
+        </div>
+
+        <div fat-table
+            headers="cell.$tmpState.results.columns"
+            rows="cell.$tmpState.results.rows"
+            cell-template="/templates/notebooks/sql-notebook-result-cell.html"
+            header-template="/templates/notebooks/sql-notebook-result-header.html"
+            header-height="50"
+            print-new-lines-as-symbols="true"
+            row-height="25"
+            as="cell"
+            digest-child-only="true"
+            row-index-as="rowIndex"
+            column-widths="columnWidths"
+
+            ng-show="cell.$tmpState.results.success && cell.$tmpState.results.rows.length"
+            class="sql-results-table"
+            ng-class="{unfolded: cell.$localState.unfoldTable}">
+        </div>
+
+        <div ng-show="cell.$tmpState.results.success && cell.$tmpState.results.hasResultset && cell.$tmpState.results.rows.length==0">
+            <div class="alert alert-info">
+                <h4><i class="icon-info-sign"></i> Empty resultset</h4>
+                <p>Your query succeeded but returned an empty resultset.</p>
+            </div>
+        </div>
+
+        <div ng-show="cell.$tmpState.results.success && !cell.$tmpState.results.hasResultset && cell.$tmpState.results.rows.length==0">
+            <div class="alert alert-info">
+                <h4><i class="icon-info-sign"></i> Empty resultset</h4>
+                <p>Your query succeeded but didn't returned any resultset.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="logs secondary-scroll" ng-class="{folded: cell.$localState.foldLogs}" ng-show="cell.$tmpState.resultsTab == 'LOGS' && cell.$tmpState.logs"><!--
+         --><div ng-show="cell.$tmpState.logs"><i class="icon-caret-right" ng-if="cell.$localState.foldLogs" />{{cell.$tmpState.logs}}</div><!--
+     --></div>
+</div>

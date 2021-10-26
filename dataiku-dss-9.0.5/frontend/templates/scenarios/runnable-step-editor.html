@@ -1,0 +1,33 @@
+<div ng-controller="ExecuteRunnableStepController">
+	<div ng-include="'/templates/scenarios/fragments/step-header.html'"></div>
+    <div class="alert alert-info">
+        This step runs a macro
+    </div>
+	<form name="setupForm" class="dkuform-horizontal">
+		<div class="control-group">
+			<label class="control-label">Macro</label>
+
+			<div class="controls">
+				<select required dku-bs-select="{liveSearch:true,size:'auto'}" ng-model="step.params.runnableType"
+					ng-options="runnable.runnableType as (runnable.desc.meta.label||runnable.runnableType) group by runnable.desc.meta.category for runnable in appConfig.customRunnables">
+				</select>
+			</div>
+		</div>
+        <div class="control-group" ng-if="hasSettings">
+            <div plugin-settings-alert plugin-desc="pluginDesc" component-type="step" has-settings="pluginDesc.hasSettings" app-config="appConfig" />
+            <div custom-params-form
+                    desc="desc"
+                    plugin-desc="pluginDesc"
+                    component-id="runnable.id"
+                    config="step.params.config" />
+            <div custom-admin-params-form ng-if="(desc.adminParams && desc.adminParams.length > 0) && isDSSAdmin()"
+                    desc="desc"
+                    plugin-desc="pluginDesc"
+                    component-id="runnable.id"
+                    config="step.params.adminConfig" ></div>
+        </div>
+	</form>
+    <hr />
+    <div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+
+</div>

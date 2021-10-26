@@ -1,0 +1,38 @@
+<table class="table table-head" ng-if="existingPinningList.length + pinningOrders.length > 0">
+    <tr>
+        <th><!-- Index --></th>
+        <th>Dashboards</th>
+        <th>Slides</th>
+        <th><!-- Actions --></th>
+    </tr>
+</table>
+<div class="table-wrapper" ng-if="existingPinningList.length + pinningOrders.length > 0">
+    <table class="table">
+        <tr ng-repeat="pinning in existingPinningList">
+            <td>{{$index + 1}}.</td>
+            <td class="align-with-select">
+                {{pinning.dashboard.name}}  
+                <span class="pull-right">
+                    <i ng-if="pinning.dashboard.listed" class="icon-dku-promote universe-color dashboard"></i>
+                    <span class="dash">-</span>
+                </span>
+            </td>
+            <td class="align-with-select"><span ng-if="pinning.page.title">{{'#' + (pinning.page.index + 1) + ' ' + pinning.page.title}}</span><span ng-if="!pinning.page.title">{{'Slide ' + (pinning.page.index + 1)}}</span></td>
+            <td><!-- Actions --></td>
+        </tr>
+         <tr id="qa_insight-dashboard-row" ng-repeat="pinningOrder in pinningOrders" scroll-to-me="{{$index + 1 == pinningOrders.length ? 'true' : 'false'}}">
+            <td>{{existingPinningList.length + $index + 1}}.</td>
+            <td>
+                <select dku-bs-select="{liveSearch:true}" ng-model="pinningOrder.dashboard" ng-options="dashboard as dashboard.name for dashboard in dashboards" ng-change="pinningOrder.page = pinningOrder.dashboard.pages[0]"></select>
+                <span class="dash pull-right">-</span>
+            </td>
+            <td class="width-of-select">
+                <select dku-bs-select ng-model="pinningOrder.page" ng-options="page as getPageLabel(pinningOrder.dashboard, page) for page in pinningOrder.dashboard.pages"></select>
+            </td>
+            <td><span ng-click="removePinningOrder($index)" class="action-btn"><i class="icon-trash"></i></span></td>
+         </tr>
+    </table>
+</div>
+
+<a ng-click="addPinningOrder()" class="add-multipin-btn" ng-if="dashboards.length > 0"><i class="icon-plus-sign"></i> ADD TO ANOTHER DASHBOARD</a>
+ 

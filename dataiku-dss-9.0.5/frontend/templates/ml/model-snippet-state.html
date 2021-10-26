@@ -1,0 +1,18 @@
+<span ng-if="model.fullModelId && !state.includes('DONE')">
+    <a target="_blank" ng-href="/dip/api/analysis/mlcommon/cat-activity-log/?fullModelId={{model.fullModelId}}"
+       class="partitioned-model__link" ng-class="state.includes('FAILED') ? 'partitioned-model__link--error' : ''"
+       title="Open partitioned model logs" stop-propagation>
+        <span ng-if="displayDiagnostics && model.trainDiagnostics.diagnostics" diagnostics-modal diagnostics="model.trainDiagnostics.diagnostics" display-popup="displayDiagnosticsPopup" icon-placement="left" text-content="{{ state | niceModelState }}" icon-size="small"/>
+    </a>
+</span>
+<span ng-if="model.fullModelId && state.includes('DONE')">
+    <a ng-href="{{$state.href(sRefPrefix ? sRefPrefix : '.', {fullModelId: model.fullModelId, '#': 'train'})}}"
+       class="partitioned-model__link" ng-class="displayDiagnostics && model.trainDiagnostics.diagnostics ? 'text-diagnostics' : ''"
+       title="Open partitioned model training information" stop-propagation>
+        <span ng-if="!displayDiagnostics || !model.trainDiagnostics.diagnostics">{{ state | niceModelState }}</span>
+        <span ng-if="displayDiagnostics && model.trainDiagnostics.diagnostics" diagnostics-modal diagnostics="model.trainDiagnostics.diagnostics" display-popup="displayDiagnosticsPopup" icon-placement="left" text-content="{{ state | niceModelState }}" icon-size="small"/>
+    </a>
+</span>
+<span ng-if="!model.fullModelId" ng-class="state.includes('FAILED') ? 'partitioned-model__link--error' : ''">
+    {{ state | niceModelState }}
+</span>

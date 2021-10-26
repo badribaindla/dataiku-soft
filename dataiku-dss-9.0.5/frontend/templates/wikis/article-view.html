@@ -1,0 +1,149 @@
+<div class="h100" ng-switch="article.layout" style="padding-right: 20px;">
+    <div ng-switch-when="FOLDER" class="horizontal-flex h100">
+
+        <div class="flex vertical-flex">
+            <div class="wiki-article-preview" ng-class="{expanded: uiState.expandedPreview}" ng-init="uiState.expandedPreview = false;" ng-if="uiState.editedPayload || (isProjectAnalystRW() && isDirty())">
+                <div class="wiki-article-preview-content">
+                    <div class="wiki-article-content-unsaved-notif alert alert-warning" ng-if="isProjectAnalystRW() && isDirty()">
+                        Preview of unsaved changes
+                        <span object-save-button
+                            class="pull-right"
+                            save="saveArticlePayload"
+                            can-save="true"
+                            can-write-override="true"
+                            is-dirty="isDirty()"
+                            object-id="article.id"
+                            object-type="ARTICLE"
+                            dropdown-align-right="true"
+                            />
+                    </div>
+                    <div class="markdown-std markdown-bigger-text reader-friendly-article noflex" from-markdown="uiState.editedPayload" enable-anchors="true" md-callback="markdownCallback"></div>
+                </div>
+                <div class="wiki-article-preview-overlay" ng-click="uiState.expandedPreview = true;"></div>
+                <div class="wiki-article-preview-btn">
+                        <a ng-click="uiState.expandedPreview = !uiState.expandedPreview">
+                        {{ uiState.expandedPreview ? 'Fold article' : 'Unfold article' }} <i class="{{ uiState.expandedPreview ? 'icon-caret-up' : 'icon-caret-down' }}" />
+                    </a>
+                </div>
+            </div>
+            <div class="wiki-article-body-main flex vertical-flex">
+                <div class="wiki-article-folder-header horizontal-flex noflex">
+                    <div style="width: 30%;">Item</div>
+                    <div style="width: 25%;">Project</div>
+                    <div style="width: 10%;">Type</div>
+                    <div style="width: 10%;">Size</div>
+                    <div style="width: 20%;">Added</div>
+                    <div style="width: 5%;"></div>
+                </div>
+                <div class="wiki-article-folder-content oa" ng-class="{flex: !article.attachments.length}">
+                    <div ng-repeat="item in article.attachments track by $index" class="horizontal-flex wiki-article-attachment" ng-init="ref = SmartId.resolve(item.smartId)">
+                        <div style="width: 30%;" title="{{item.details.objectDisplayName || item.smartId}}">
+                            <a ng-if="item.attachmentType == 'DSS_OBJECT'" href="{{ StateUtils.href.dssObject(item.taggableType, item.smartId) }}" class="link-std" >
+                                <i class="{{ getAttachmentIcon(item) }}" />
+                                {{ item.details.objectDisplayName || ref.id }}
+                            </a>
+                            <a ng-if="item.attachmentType != 'DSS_OBJECT' " href="{{getUploadHref(item)}}" target="_blank" class="link-std" >
+                                <i class="{{ getAttachmentIcon(item) }}" />
+                                {{ item.details.objectDisplayName || item.smartId }}
+                            </a>
+                        </div>
+                        <div style="width: 25%;" title="{{ ref.projectKey }}" ng-if="item.attachmentType == 'DSS_OBJECT'">
+                            {{ ref.projectKey }}
+                        </div>
+                        <div style="width: 25%;" ng-if="item.attachmentType != 'DSS_OBJECT'">-</div>
+                        <div style="width: 10%;" title="{{ item.attachmentType == 'DSS_OBJECT' ? item.taggableType.charAt(0).toUpperCase() + item.taggableType.substr(1).toLowerCase() : item.details.mimeType }}">
+                            {{ item.attachmentType == 'DSS_OBJECT' ? item.taggableType.charAt(0).toUpperCase() + item.taggableType.substr(1).toLowerCase() : item.details.mimeType }}
+                        </div>
+                        <div style="width: 10%;" title="{{ item.attachmentType == 'DSS_OBJECT' ? '-' : (item.details.size | filesize) }}">
+                            {{ item.attachmentType == 'DSS_OBJECT' ? '-' : (item.details.size | filesize) }}
+                        </div>
+                        <div style="width: 20%;" title="{{ (item.attachedOn ? (item.attachedOn | friendlyTimeDeltaShort) : '') + (item.attachedBy ? (' by ' + (item.details.userDisplayName || item.attachedBy)) : '')}}">
+                            <span ng-if="item.attachedOn">
+                                {{ item.attachedOn | friendlyTimeDeltaShort }}
+                            </span>
+                            <span ng-if="item.attachedBy">
+                                by
+                                <a href="/profile/{{item.attachedBy}}/"
+                                    title="{{ item.details.userDisplayName || item.attachedBy }}"
+                                    class="avatar"
+                                    style="margin-left: 5px;"
+                                    toggle="tooltip"
+                                    placement="left"
+                                    animation="false"
+                                    >
+                                    <span user-picture="item.attachedBy" size="24" class="avatar24"></span>
+                                </a>
+                            </span>
+                        </div>
+                        <div style="width: 5%;">
+                            <a class="wiki-article-attachment-action link-std" ng-click="deleteAttachment($index)">
+                                <i class="icon-trash" />
+                            </a>
+                        </div>
+                    </div>
+                    <div ng-if="!article.attachments.length" class="empty-list-cta w100">
+                        <h1>No attachment</h1>
+                        <p>Link DSS objects or upload files in your documentation</p>
+                        <div>
+                            <a disabled-if-ro class="btn btn--success btn--large btn--wiki" ng-click="startAddAttachments()">
+                                <span plus-icon />&nbsp;Add your first attachment
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: center;" class="noflex" ng-if="article.attachments.length">
+                    <a class="btn btn--secondary" ng-click="startAddAttachments()" disabled-if-ro>+ add attachment</a>
+                </div>
+            </div>
+        </div>
+        <div class="wiki-article-right-nav oa noflex vertical-flex">
+            <div include-no-scope="/templates/wikis/article-details.html"></div>
+        </div>
+    </div>
+
+    <div ng-switch-default class="horizontal-flex">
+        <div class="wiki-article-content wiki-article-body-main vertical-flex" ng-class="{'oa': !isFullScreen()}">
+            <h1 class="wiki-article-nav-header centered-title" ng-if="isFullScreen()" >{{ article.name }}</h1>
+            <div class="wiki-article-content-unsaved-notif alert alert-warning" ng-if="isProjectAnalystRW() && isDirty()">
+                Preview of unsaved changes
+                <span object-save-button
+                    class="pull-right"
+                    save="saveArticlePayload"
+                    can-save="true"
+                    can-write-override="true"
+                    is-dirty="isDirty()"
+                    object-id="article.id"
+                    object-type="ARTICLE"
+                    dropdown-align-right="true"
+                    />
+            </div>
+            <div class="markdown-std markdown-bigger-text reader-friendly-article" from-markdown="uiState.editedPayload" enable-anchors="true" ng-if="uiState.editedPayload" md-callback="markdownCallback"></div>
+            <div ng-if="!uiState.editedPayload" class="empty-list-cta w100" ng-style="{'margin-top': articleNode.children.length ? '0' : '110px'}">
+                <h1>Empty article</h1>
+                <p ng-if="!isFullScreen()">Add content using Markdown syntax</p>
+                <div>
+                    <a disabled-if-ro class="btn btn--contained btn--wiki btn--large" ng-if="!isFullScreen()" href="{{StateUtils.href.article($stateParams.articleId, $stateParams.projectKey, {tab: 'edit', articleName: $stateParams.articleName})}}">
+                        <i class="icon-pencil" />&nbsp;edit it
+                    </a>
+                </div>
+            </div>
+            <div ng-if="!uiState.editedPayload && articleNode.children.length">
+                <hr />
+                <h6>
+                    Children articles:
+                </h6>
+                <ul class="list-std" style="margin-left: 20px">
+                    <li ng-repeat="child in articleNode.children">
+                        <a class="link-std" href="{{StateUtils.href.article(child.id, $stateParams.projectKey)}}">
+                            <i class="{{'ARTICLE' |typeToIcon}}" /> {{articleMapping[child.id]}}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="wiki-article-right-nav oa noflex vertical-flex" ng-if="!isFullScreen()">
+            <div include-no-scope="/templates/wikis/article-details.html"></div>
+            <div include-no-scope="/templates/wikis/article-attachments.html" class="flex vertical-flex" style="min-height: 150px;"></div>
+        </div>
+    </div>
+</div>

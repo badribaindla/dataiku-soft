@@ -1,0 +1,51 @@
+<div ng-controller="ScatterMapChartController">
+    <div class="chartdef-line horizontal-flex">
+        <div class="noflex chartdef-line-header" style="width: 53px">Show</div>
+
+        <!-- Geo -->
+        <div class="noflex chartdef-dropzone chartdef-dropzone-mono" ng-class="{'empty':chart.def.geometry.length==0, 'notempty': chart.def.geometry.length != 0}">
+            <div class="chartdef-dropzone-header">
+                <div>
+                    <span class="header-btn">Geo</span>
+                </div>
+            </div>
+            <div class="empty-placeholder">
+                Drop to set the Geo info
+            </div>
+            <div class="chartdef-dropzone-main qa_charts_geo-dropzone" geo-noopts-zone list="chart.def.geometry" accept-callback="acceptGeo" />
+        </div>
+    </div>
+
+    <div class="chartdef-line horizontal-flex" style="margin-top: 10px">
+        <div class="noflex chartdef-line-header" style="width: 53px">Details</div>
+
+        <!-- Color -->
+        <div class="noflex chartdef-dropzone chartdef-dropzone-mono" ng-class="{'empty':chart.def.uaColor.length==0, 'notempty': chart.def.uaColor.length != 0}">
+            <div class="chartdef-dropzone-header">
+                <div contextual-menu ng-click="toggleContextualMenu($event)" style="cursor:pointer; position:relative">
+                    <span class="header-btn">
+                        <i class="icon-dku-color_picker_2 qa_charts_color-options-dropdown" />
+                        <i class="icon-caret-down" />
+                    </span>
+                    <div class="contextualMenu fixed-contextual-menu-align-left" ng-show="contextualMenu">
+                        <div ng-if="!chart.def.uaColor.length">
+                            <div include-no-scope="/templates/simple_report/config/single-color-menu.html" />
+                        </div>
+                        <div ng-if="chart.def.uaColor.length && (ChartUADimension.isTrueNumerical(chart.def.uaColor[0]) || ChartUADimension.isDateRange(chart.def.uaColor[0]))">
+                            <div include-no-scope="/templates/simple_report/config/continuous-color-menu.html" />
+                        </div>
+                        <div ng-if="chart.def.uaColor.length && (ChartUADimension.isAlphanumLike(chart.def.uaColor[0]) || ChartUADimension.isDiscreteDate(chart.def.uaColor[0]))">
+                            <div include-no-scope="/templates/simple_report/config/discrete-color-menu.html" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="empty-placeholder">
+                Drop to color the features
+            </div>
+
+            <div class="chartdef-dropzone-main qa_charts_color-dropzone" scatter-detail-zone list="chart.def.uaColor" accept-callback="acceptMeasure" />
+        </div>
+
+    </div>
+</div>

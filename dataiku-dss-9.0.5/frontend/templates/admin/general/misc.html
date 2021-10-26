@@ -1,0 +1,380 @@
+<div class="paned-settings-page-pane" ng-if="generalSettings">
+    <h1>Miscellaneous settings</h1>
+    
+    <form class="dkuform-horizontal">
+        
+        
+        <div class="section">
+            <h2 id="http-proxy">HTTP proxy</h2>
+            <div class="alert alert-info">
+                <p>The proxy configured here applies to:</p>
+                <ul>
+                    <li>HTTP and FTP datasets</li>
+                    <li>ElasticSearch dataset</li>
+                    <li>Download recipe</li>
+                    <li>Downloading plugins, tutorials and samples from Dataiku</li>
+                </ul>
+                <p style="margin-bottom: 0">It does not apply to code envs (see below) or code recipes</p>
+            </div>
+            <div class="control-group">
+                <label for="proxyHost" class="control-label">HTTP proxy host</label>
+                <div class="controls">
+                    <input type="text" id="proxyHost" ng-model="generalSettings.proxySettings.host" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="proxyPort" class="control-label">HTTP proxy port</label>
+                <div class="controls">
+                    <input type="number" id="proxyPort" min="0" max="65535" step="1" ng-model="generalSettings.proxySettings.port" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="proxyUsername" class="control-label">HTTP proxy username</label>
+                <div class="controls">
+                    <input type="text" id="proxyUsername" ng-model="generalSettings.proxySettings.username" />
+                    <span class="help-inline">If this HTTP proxy requires authentication</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="proxyPassword" class="control-label">HTTP proxy password</label>
+                <div class="controls">
+                    <input type="text" id="proxyPassword" ng-model="generalSettings.proxySettings.password" />
+                    <span class="help-inline">If this HTTP proxy requires authentication</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 id="code-envs">Code envs</h2>
+
+            <h3>Global defaults</h3>
+
+            <div class="control-group">
+                <label for="" class="control-label">Default Python code env</label>
+                <div class="controls">
+                    <input type="text" ng-model="generalSettings.codeEnvs.defaultPythonEnv"/>
+                    <span class="help-inline">Must be the name of a Python code env (case-sensitive)</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Default R code env</label>
+                <div class="controls">
+                    <input type="text" ng-model="generalSettings.codeEnvs.defaultREnv"/>
+                    <span class="help-inline">Must be the name of a R code env (case-sensitive)</span>
+                </div>
+            </div>
+
+            <h3>Extra options</h3>
+
+            <div class="control-group">
+                <label for="" class="control-label">Extra options for 'pip install'</label>
+                <div class="controls">
+                    <span class="help-inline">One item per option (so "-i /stuff" must be two items)</span>
+                    <ng2-values-list [(items)]="generalSettings.codeEnvs.pipInstallExtraOptions" add-label="Add option for 'pip install'" value-placeholder="E.g. -i, --trusted-host..."/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Extra options for 'virtualenv'</label>
+                <div class="controls">
+                    <span class="help-inline">One item per option (so "-i /stuff" must be two items)</span>
+                    <ng2-values-list [(items)]="generalSettings.codeEnvs.virtualenvCreateExtraOptions" add-label="Add option for 'virtualenv'" value-placeholder="E.g. -p, --system-site-packages..."/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Extra options for 'conda create'</label>
+                <div class="controls">
+                    <span class="help-inline">One item per option (so "-i /stuff" must be two items)</span>
+                    <ng2-values-list [(items)]="generalSettings.codeEnvs.condaCreateExtraOptions" add-label="Add option for 'conda create'" value-placeholder="E.g. --clone, --dev..."/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Extra options for 'conda install'</label>
+                <div class="controls">
+                    <span class="help-inline">One item per option (so "-i /stuff" must be two items)</span>
+                    <ng2-values-list [(items)]="generalSettings.codeEnvs.condaInstallExtraOptions" add-label="Add option for 'conda install'" value-placeholder="E.g. -n, -p..."/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">CRAN mirror URL</label>
+                <div class="controls">
+                    <input type="text" ng-model="generalSettings.codeEnvs.cranMirrorURL" />
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="section">
+
+            <h2 id="graphite">Graphite reporting</h2>
+            <div class="control-group">
+                <label for="" class="control-label">Server</label>
+                <div class="controls" >
+                    <input type="text" ng-model="generalSettings.graphiteServerUrl" />
+                    <span class="help-inline">
+                        Mirror metrics computed on datasets to this server.
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Metrics prefix</label>
+                <div class="controls" >
+                    <input type="text" ng-model="generalSettings.graphiteMetricPrefix" />
+                    <span class="help-inline">
+                        Prefix for metrics sent to graphite. If left empty, the DSS instance's id is used.
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Frequency</label>
+                <div class="controls" >
+                    <input type="number" min="0" step="1" ng-model="generalSettings.graphiteReportingDelay" />
+                    <span class="help-inline">
+                        If positive, send DSS metrics to Graphite every ... minutes.
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 id="scenario-triggers">Scenario triggers</h2>
+            <div class="control-group">
+                <label for="" class="control-label">Trigger countdown duration</label>
+                <div class="controls" >
+                    <input type="number" min="1" step="1" ng-model="generalSettings.triggerCountdownDuration" />
+                    <span class="help-inline">
+                        For custom triggers, or triggers based on change detection, delay to wait before actually starting a scenario run
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Disable automatic triggers</label>
+                <div class="controls" >
+                    <input type="checkbox" ng-model="generalSettings.disableAutomaticTriggers" />
+                    <span class="help-inline">
+                        Scenarios can only be started manually.
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 id="cors">Public API CORS headers</h2>
+
+            <div class="control-group" style="margin-bottom: 30px">
+                <label for="proxyHost" class="control-label">Access-Control-Allow-Origin</label>
+                <div class="controls" style="width: 234px">
+                    <ng2-values-list [(items)]="generalSettings.corsSettings.accessControlAllowOriginRegExps" value-placeholder="E.g *, https://www.google.com..."/>
+                </div>
+            </div>
+            <div class="control-group" style="margin-bottom: 30px">
+                <label for="proxyHost" class="control-label">Access-Control-Allow-Headers</label>
+                <div class="controls" style="width: 234px">
+                    <ng2-values-list [(items)]="generalSettings.corsSettings.accessControlAllowHeaders" value-placeholder="E.g. Accept, X-Custom-Header..."/>
+                </div>
+            </div>
+            <div class="control-group" style="margin-bottom: 30px">
+                <label for="proxyHost" class="control-label">Access-Control-Expose-Headers</label>
+                <div class="controls" style="width: 234px">
+                    <ng2-values-list [(items)]="generalSettings.corsSettings.accessControlExposeHeaders" value-placeholder="E.g. Content-Length, Authorization..."/>
+                </div>
+            </div>
+            <div class="control-group" style="margin-bottom: 30px">
+                <label for="proxyHost" class="control-label">Access-Control-Allow-Methods</label>
+                <div class="controls" style="width: 234px">
+                    <ng2-values-list [(items)]="generalSettings.corsSettings.accessControlAllowMethods" value-placeholder="E.g. GET, POST, PUT, DELETE..."/>
+                </div>
+            </div>
+            <div class="control-group" style="margin-bottom: 30px">
+                <label for="proxyHost" class="control-label">Access-Control-Allow-Credentials</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="generalSettings.corsSettings.accessControlAllowCredentials" />
+                    </label>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label for="proxyHost" class="control-label">Access-Control-Max-Age</label>
+                <div class="controls" >
+                    <input type="number" min="0" step="1" ng-model="generalSettings.corsSettings.accessControlMaxAge" />
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 id="alation">Alation integration</h2>
+
+            <div class="control-group">
+                <label for="" class="control-label">Enable</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="generalSettings.alationSettings.enabled" />
+                </div>
+            </div>
+            
+            <div class="control-group" ng-if="generalSettings.alationSettings.enabled">
+                <label for="" class="control-label">Alation server URL</label>
+                <div class="controls">
+                    <input type="text" ng-model="generalSettings.alationSettings.alationURL" />
+                </div>
+            </div>
+            
+            <div class="control-group" ng-if="generalSettings.alationSettings.enabled" style="padding: 10px; border: 1px #ddd solid; margin: 10px">
+                <label for="" class="control-label">'Open In' registration</label>
+                <div class="controls">
+                    <input type="text" ng-model="alationRegister.alationAPIToken" placeholder="Alation Admin API token (not saved)" />
+                    <button class="btn btn--primary" ng-click="registerAlationOpener()" ng-disabled="!alationRegister.alationAPIToken">Register</button>
+                </div>
+                <div block-api-error />
+            </div>
+        </div>
+        
+        
+        <div class="section" ng-show="appConfig.pluginDevGitMode === 'PLUGIN'">
+            <h2 id="plugins">Plugin development</h2>
+
+            <div class="control-group">
+                <div>
+                    <label class="control-label">Commit mode</label>
+                    <div class="controls">
+                        <label>
+                            <input type="radio" ng-model="generalSettings.pluginDevExplicitCommit" ng-value="false"/>
+                            Auto
+                            <span class="help-inline">Generate a commit for every user action.</span>
+                        </label>
+                        <label>
+                            <input type="radio" ng-model="generalSettings.pluginDevExplicitCommit" ng-value="true"/>
+                            Explicit
+                            <span class="help-inline">Commits are manually done by the user.</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Configuration cache</h2>
+            <div class="control-group">
+                <label for="" class="control-label">Invalidate config cache</label>
+                <div class="controls">
+                    <button class="btn btn--secondary" ng-click="invalidateConfigCache()" type="button">invalidate</button>
+                </div>
+            </div>
+            <div ng-if="cacheInvalidationError" closable="true" api-error-alert="cacheInvalidationError.fatalAPIError"></div>
+        </div>
+
+        <div class="section">
+            <h2 id="dataset-deletion">Dataset deletion</h2>
+            <div class="control-group">
+                <label for="" class="control-label">"Drop data" checked by default</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="generalSettings.dropDataWithDatasetDeleteEnabled"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 id="dataset-deletion">Kubernetes resource usage reporting</h2>
+            <div class="control-group">
+                <label for="" class="control-label">Enable</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="generalSettings.computeResourceUsageReportingSettings.periodicKubernetesUsageReporting"/>
+                        <span class="help-inline">Changing this setting requires a DSS restart</span>
+                    </label>
+                </div>
+            </div>
+            <div ng-if="generalSettings.computeResourceUsageReportingSettings.periodicKubernetesUsageReporting">
+                <div class="control-group">
+                    <label class="control-label">Include the builtin cluster</label>
+                    <div class="controls">
+                        <input type="checkbox" ng-model="generalSettings.computeResourceUsageReportingSettings.includeBuiltinCluster"/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Namespaces pattern</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.computeResourceUsageReportingSettings.namespacePattern"/>
+                        <span class="help-inline">Regular expression</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 id="other">Other</h2>
+            <div class="control-group">
+                <label for="" class="control-label">Usage reporting</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="generalSettings.udr" ng-if="!appConfig.communityEdition && !appConfig.licensedFeatures.lockedTracking && !appConfig.licensedFeatures.forbiddenTracking" />
+                        <input type="checkbox" checked disabled ng-if="appConfig.communityEdition || appConfig.licensedFeatures.lockedTracking" title="Locked by license" />
+                        <input type="checkbox" disabled ng-if="appConfig.licensedFeatures.forbiddenTracking" title="Locked by license" />
+                        <span class="help-inline">
+                            Submit usage information to Dataiku. Collected data is only used to help us improve DSS.
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="control-group" ng-if="generalSettings.customFieldsPluginComponentOrder && generalSettings.customFieldsPluginComponentOrder.length">
+                <label for="" class="control-label">CF plugin component order</label>
+                <div class="controls">
+                    <label>
+                        <editable-list ng-model="generalSettings.customFieldsPluginComponentOrder" sortable="true" disable-add="true" disable-remove="true">
+                            <span class="flex" style="margin-left: 10px;">{{$index+1}}. <strong>{{it.componentId}}</strong> (plugin: {{it.pluginId}})</span>
+                        </editable-list>
+                        <span class="help-inline">
+                            Choose the order of priority / execution between plugins that add custom fields.
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="control-group" ng-if="generalSettings.customPolicyHooksPluginComponentOrder && generalSettings.customPolicyHooksPluginComponentOrder.length">
+                <label for="" class="control-label">CPH plugin component order</label>
+                <div class="controls">
+                    <label>
+                        <editable-list ng-model="generalSettings.customPolicyHooksPluginComponentOrder" sortable="true" disable-add="true" disable-remove="true">
+                            <span class="flex" style="margin-left: 10px;">{{$index+1}}. <strong>{{it.componentId}}</strong> (plugin: {{it.pluginId}})</span>
+                        </editable-list>
+                        <span class="help-inline">
+                            Choose the order of priority / execution between plugins that add custom policy hooks.
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">NPS Feedback Survey</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="generalSettings.npsSurveyEnabled" />
+                        <span class="help-inline">
+                            Allow Dataiku to periodically ask users to rate their experience with DSS.
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Enable Help integration</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-if="appConfig.whiteLabeling.contextualHelpSearchEnabled && !appConfig.offlineFrontend" ng-model="generalSettings.helpIntegrationEnabled"/>
+                        <input type="checkbox" disabled ng-if="!appConfig.whiteLabeling.contextualHelpSearchEnabled || appConfig.offlineFrontend"/>
+                        <span class="help-inline">
+                            Allow Dataiku to check Documentation, Learn articles and Dataiku Community to have more help
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Enable streaming</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="generalSettings.streamingEnabled"/>
+                        <span class="help-inline">
+                            Allow integration with streaming sources and sinks
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

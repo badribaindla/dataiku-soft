@@ -1,0 +1,58 @@
+<div style="position: relative">
+    <div class="row-fluid h100" puppeteer-hook puppeteer-hook-element-content-loaded>
+        <div id="treeContainer" class="span10 h100" style="overflow-y: scroll; text-align: center">
+            <div>
+                <div class="btn btn--secondary" ng-click="expandAll()" style="display: inline-block">Expand all</div>
+                <div class="btn btn--secondary" ng-click="reset()" style="display: inline-block">Reset</div>
+            </div>
+            <svg width="100%" height="10000" class="chart-std-font">
+                <g width="100%" transform="translate(0,50)"></g>
+            </svg>
+        </div>
+        <div class="span2 h100" style="overflow-y: scroll; text-align:center">
+            <div  class="alert alert-warning" ng-if="warningMessage">
+                {{ warningMessage }}
+            </div>
+            <div style="width: 30px; height: 30px;" ng-style="{'background-color': currentNodeColor}"></div>
+            <div ng-if="predict">
+                <div class="settings-section-title">Prediction</div>
+                <div><b>{{predict}}</b></div>
+            </div>
+            <div ng-if="probabilities">
+                <div class="settings-section-title">Probabilities</div>
+                <div ng-repeat="class in classes" style="text-align: left">
+                    <span style="text-align: left">
+                        <div ng-style="{'background-color': colors($index), 'width': '10px', 'height': '10px', 'display': 'inline-block'}"></div>
+                        {{class}} : <em>{{(probabilities[$index]*100).toFixed(2)}}%</em>
+                    </span>
+                </div>
+            </div>
+            <div ng-if="targetClassesProportions">
+                <div class="settings-section-title">Target classes</div>
+                <div ng-repeat="class in classes" style="text-align: left">
+                    <span style="text-align: left">
+                        <div ng-style="{'background-color': colors($index), 'width': '10px', 'height': '10px', 'display': 'inline-block'}"></div>
+                        {{class}} : <em>{{(targetClassesProportions[$index]*100).toFixed(2)}}%</em>
+                    </span>
+                </div>
+            </div>
+            <div ng-if="breadcrumb">
+                <div class="settings-section-title">Decision rules</div>
+                <div ng-repeat="bc in breadcrumb">
+                    <span ng-if="!$first"><i class="icon-caret-down"></i></span>
+                    <div style="padding-left: 3px}">
+                        <span>{{bc.rule.left}}<b> {{bc.rule.operator}} </b>{{bc.rule.right}}</span>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="nSamples">
+                <div class="settings-section-title">Samples Count</div>
+                <span>{{nSamples | number : 0}} <em>({{proportion}})</em></span>
+            </div>
+            <div ng-if="nSamplesWeighted">
+                <div class="settings-section-title">Weighted Samples Count</div>
+                <span>{{nSamplesWeighted | number : 2}} <em>({{proportionWeighted}})</em></span>
+            </div>
+        </div>
+    </div>
+</div>

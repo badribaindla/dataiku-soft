@@ -1,0 +1,48 @@
+<div class="external-table__sample h100 vertical-flex">
+    <div class="empty-list-cta" ng-if="!sample">
+        <p>Preview your table</p>
+        <p class="small">Click to load the first few lines of data</p>
+        <button class="btn btn--primary btn--large" ng-click="reloadSample()">
+            Load sample
+        </button>
+
+    </div>
+
+    <div ng-if="sample.connectionErrorMsg" class="alert alert-error" data-block="empty">
+        <h4>Failed to connect</h4>
+        <h5>{{sample.connectionErrorMsg}}</h5>
+    </div>
+    <div ng-if="sample.previewErrorMsg" class="alert alert-error" data-block="empty">
+        <h4></h4>
+        <h5>{{sample.previewErrorMsg}}</h5>
+    </div>
+    <div ng-if="sample.connectionError" class="alert alert-danger">Failed to get sample: <span summary-of-error="sample.connectionError"/></div>
+
+    <div style="display: flex; flex-direction: column; flex: 1;">
+        <div ng-if="sample" style="margin-bottom: 10px">
+            <button class="btn btn--secondary" ng-click="reloadSample()"
+                    style="vertical-align: bottom;"><i class="icon-refresh"/>&nbsp;Reload
+            </button>
+        </div>
+        <div class="cell-results secondary-scroll" ng-if="sample && sample.success && sample.rows.length">
+            <div fat-table
+                 headers="sample.columns"
+                 rows="sample.rows"
+                 cell-template="/templates/notebooks/sql-notebook-result-cell.html"
+                 header-template="/templates/notebooks/sql-notebook-result-header.html"
+                 header-height="50"
+                 row-height="25"
+                 as="cell"
+                 digest-child-only="true"
+                 row-index-as="rowIndex"
+                 column-widths="sampleColumnsWidths"
+
+                 class="sql-results-table">
+            </div>
+        </div>
+    </div>
+
+    <div class="empty-list-cta" ng-if="sample && sample.preview && sample.preview.totalRows == 0">
+        <p>Table is empty</p>
+    </div>
+</div>

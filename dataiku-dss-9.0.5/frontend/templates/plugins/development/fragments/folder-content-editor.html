@@ -1,0 +1,146 @@
+<div class="h100 vertical-flex">
+    <div block-api-error class="no-flex no-margin-alert" />
+
+    <div class="flex horizontal-flex" style="align-items: stretch;">
+        <div class="noflex content-list vertical-flex" >
+            <div class="content-list-header horizontal-flex">
+                <div class="flex">
+                    <button type="button" class="btn btn--secondary" ng-click="openAddMenu($event)" id="qa_plugindev_folder-file-btn">
+                        <i class="icon-plus-sign"></i>&nbsp;Add
+                    </button>
+                    <button type="button" class="btn btn--secondary" ng-click="openGitMenu($event)" ng-show="gitRefCallbacks">
+                        <i class="icon-dku-git" style="font-size: 1.1em;"></i>&nbsp;Git
+                    </button>
+                </div>
+
+                <a class="button no-flex" ng-click="focusOnFile(getCurrentContent().path)" title="Find current tab file">
+                    <i class="icon icon-bullseye"></i>
+                </a>
+                <a class="button no-flex" ng-click="openRootMenu($event)" title="More options">
+                    <i class="icon icon-ellipsis-vertical"></i>
+                </a>
+            </div>
+            <div class="flex oa">
+                <div class="content-row horizontal-flex" style="height: auto; padding-left: {{getMarginFromDepth(0)}}px;cursor:pointer;" full-click>
+                    <i class="icon" ng-class="{'icon-caret-down': !uiState.foldRoot, 'icon-caret-right': uiState.foldRoot}" ng-if="devContents !== undefined" style="left: {{getCarretLeftPosition(0)}}px;"></i>
+                    <a class="name-with-icon flex" ng-right-click="openAddMenu($event)" ng-click="uiState.foldRoot = !uiState.foldRoot;" main-click>
+                        <i class="icon icon-folder-close  colored-folder-icon"></i>
+                        <span class="name">{{description}}</span>
+                    </a>
+                    <div class="dropdown no-flex" style="display: inline-block;">
+                        <a class="close tool-button tool-button-color" ng-click="openAddMenu($event)"><i class="icon icon-ellipsis-vertical"></i></a>
+                    </div>
+                </div>
+                <ul ng-if="devContents !== undefined && !uiState.foldRoot"> <!-- so that the ng-init are not undefined -->
+                    <li ng-repeat="content in sortFolder(devContents)" >
+                        <div include-no-scope="/templates/plugins/development/fragments/folder-content.html" />
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="flex oh">
+            <div class="h100 vertical-flex content-editor">
+                <div class="noflex button-bar horizontal-flex" dku-arrow-slider slider-selector="#tabs-slider" frame-selector="#tabs-frame" model-list-name="tabsList" ng-class="{'sliding-mode' : needSlider()}">
+
+                    <!-- Filter slider -->
+                    <div class="arrow-slider left no-flex" ng-class="{active: canSlideLeftFlag}" ng-click="canSlideLeft() && slideLeftClickHandler()" ng-show="needSlider()">
+                        <i class="icon-chevron-left"></i>
+                    </div>
+
+                    <div class="flex oh" id="tabs-frame">
+                        <ul class="tabs" id="tabs-slider">
+                            <li ng-repeat="file in tabsList" ng-click="updateActiveTab($index)" ng-right-click="openTabMenu(file, $event)" ng-class="{'active-tab': $index == activeTabIndex}" id="{{file.path}}">
+                                <span class="file-name">{{file.name}}</span>
+                                <span class="close-file" ng-click="closeFile(file)" ng-mouseover="tabHovered = true" ng-mouseleave="tabHovered = false">
+                                    <span ng-show="!isContentDirty(file) || tabHovered">✕</span>
+                                    <i class="icon icon-circle-blank" ng-show="isContentDirty(file) && !tabHovered"></i>
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="arrow-slider right no-flex" ng-class="{active: canSlideRightFlag}" ng-click="canSlideRight() && slideRightClickHandler()" ng-show="needSlider()">
+                        <i class="icon-chevron-right"></i>
+                    </div>
+
+                    <div class="save-wrapper no-flex">
+                        <button ng-if="!hasDirtyContent()" type="button" class="btn btn--outline btn--primary" disabled>
+                            <i class="icon-save" />&nbsp;Saved
+                        </button>
+                        <button ng-if="hasDirtyContent()" type="button" class="btn btn--outline btn--primary" ng-click="saveAll()">
+                            <i class="icon-save" />&nbsp;Save All
+                        </button>
+                        <button ng-if="canCommit" class="btn btn--outline btn--success" ng-click="commitFn()">
+                            Commit
+                        </button>
+                        <span ng-if="canCommit === false" toggle="tooltip" title="Go to instance settings to switch to manual git commit mode">
+                            <button class="btn btn--outline btn--success" disabled-if="true" >
+                                Auto git commit
+                            </button>
+                        </span>
+                    </div>
+                </div>
+                <div class="no-flex active-tab-path horizontal-flex" ng-if="getCurrentContent().data || getCurrentContent().data.length == 0" style="height: auto;">
+                    <label class="flex">{{pluginData.installedDesc.desc.id}}/{{getCurrentContent().path}}</label>
+                </div>
+                <div class="no-flex horizontal-flex" ng-if="isContentFromGit()" style="height: auto;">
+                    <label class="flex text-warning alert-warning" style="margin: 0; padding: 8px;">
+                        <i class="icon-dku-warning text-warning"/>
+                        <strong>Warning</strong>
+                        This file is part of a Git reference, any changes will be lost in the next update from Git.
+                    </label>
+                </div>
+                <div class="flex" ng-if="getCurrentContent().data || getCurrentContent().data.length == 0">
+                    <div class="fh">
+                        <div class="h100" style="position: relative;" global-keydown="{'ctrl-s meta-s':'saveCurrentContent()'}" ng-switch="editorOptions" ng-if="!isImage(getCurrentContent())">
+                            <textarea ng-model="getCurrentContent().data"
+                                ui-codemirror="editorOptions"
+                                ui-refresh="reflow"
+                                ng-switch-default>
+                            </textarea>
+                        </div>
+                        <div class="h100 preview-image-wrapper" ng-if="isImage(getCurrentContent())">
+                            <img ng-src="{{folderEditCallbacks.previewImageURL(getCurrentContent())}}" />
+                        </div>
+                    </div>
+                </div>
+                <div class="flex" ng-if="getCurrentContent() && getCurrentContent().data == null && getCurrentContent().hasData == false" style="text-align: center;">
+                    <div>The file's contents may not be editable:</div>
+                    <div>{{getCurrentContent().reason}}</div>
+                    <button type="button" class="btn btn--secondary" ng-click="loadAndSetCurrentContent(getCurrentContent())" >Edit anyway</button>
+                </div>
+                <div class="flex empty-list-cta" ng-if="emptyCta && devContents.length == 0">
+                    <h1>
+                        {{emptyCta.title}}
+                    </h1>
+                    <p>{{emptyCta.text}}</p>
+                    <p class="small" ng-if="emptyCta.docLink">
+                        <span learn-link page="guide/{{emptyCta.docLink}}">Follow our tutorials</span> to learn more
+                    </p>
+                    <div class="import-first-dataset">
+                        <a class="btn btn--secondary btn--large" ng-click="emptyCtaBtnAction()">
+                            <span plus-icon="">+</span>
+                            &nbsp;{{emptyCta.btnLabel}}
+                        </a>
+                    </div>
+                </div>
+                <div class="flex empty-list-cta" ng-if="noTabsCta && tabsList.length == 0">
+                    <h1>
+                        {{noTabsCta.title}}
+                    </h1>
+                    <p>{{noTabsCta.text}}</p>
+                    <p class="small" ng-if="noTabsCta.docLink">
+                        <span learn-link page="guide/{{noTabsCta.docLink}}">Follow our tutorials</span> to learn more
+                    </p>
+                    <div class="import-first-dataset" ng-if="noTabsCta.btnAction">
+                        <a class="btn btn--secondary btn--large" ng-click="noTabsCtaBtnAction()">
+                            <span plus-icon="">+</span>
+                            &nbsp;{{noTabsCta.btnLabel}}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

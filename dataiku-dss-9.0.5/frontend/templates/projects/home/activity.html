@@ -1,0 +1,85 @@
+<div ng-controller="ProjectActivityDashboardController" class="dss-page row-fluid">
+
+    <div block-api-error />
+
+    <div class="span2 offset0 nav-list-sidebar sidebar-admin modal-footer-std-buttons" tab-model="uiState.settingsPane">
+        <ul>
+            <li sidebar-tab-l1-link tab-name="summary" label="Summary" />
+            <li sidebar-tab-l1-link tab-name="contributors" label="Contributors" />
+            <li sidebar-tab-l1-link tab-name="punchcard" label="Punch card" />
+        </ul>
+    </div>
+
+    <div class="span10 h100 offset0 boxed-next-to-sidebar" ng-switch="uiState.settingsPane" ng-if="activitySummary">
+        <div ng-switch-when="summary" class="h100 oa" style="padding: 20px">
+            <h3>Summary</h3>
+            <span style="font-size: 1.1em; padding-right: 1em">Show</span>
+            <select ng-model="uiState.summaryChart" dku-bs-select>
+                <option value="commits">Commits</option>
+                <option value="writeHours">Users activity (write)</option>
+                <option value="presenceHours">Users activity (all)</option>
+            </select>
+            <span style="font-size: 1.1em; padding: 0 1em">for</span>
+            <select ng-model="uiState.timeSpan" dku-bs-select>
+                <option value="week">Last week</option>
+                <option value="month">Last month</option>
+                <option value="year">Last year</option>
+                <option value="all">All time</option>
+            </select>
+            <svg week-day-heatmap data="dailyData[uiState.summaryChart]"
+                    svg-titles formatter="uiState.summaryChart === 'presenceHours' ? niceHours : null"
+                    style="margin-top: 1em"></svg>
+
+            <hr class="splitter" style="margin: 10px -20px 20px" />
+            <h3>Contributors activity</h3>
+            <p style="font-size: 1.1em">
+                {{ uiState.timeSpan === 'all' ? '' : 'During last ' + uiState.timeSpan + ',' }}
+                <strong>{{activitySummary.commitsSummary.nbAuthors | pluralize :'author' :'authors'}}</strong>
+                {{activitySummary.commitsSummary.nbAuthors > 1 ? 'have' : 'has'}} created
+                <strong>{{activitySummary.commitsSummary.nbCommits | longSmartNumber}} commits</strong>,
+                <strong>{{activitySummary.commitsSummary.added     | longSmartNumber}} additions</strong> and
+                <strong>{{activitySummary.commitsSummary.removed   | longSmartNumber}} deletions</strong>.
+            </p>
+            <svg user-leaderboard data="activitySummary.contributorsSummary"
+                    prop="uiState.summaryChart" svg-titles></svg>
+        </div>
+        <div ng-switch-when="contributors" class="h100 oa" style="padding: 20px">
+            <h3>
+                Contributors on
+                <select ng-model="uiState.contributorsChart" dku-bs-select>
+                    <option value="commits">Commits</option>
+                    <option value="added">Additions</option>
+                    <option value="removed">Deletions</option>
+                </select>
+            </h3>
+            <div>
+                <strong style="font-size: 17px">Global</strong>
+                <svg simple-time-area-chart ts="activitySummary.contributorsChart.dates"
+                    values="activitySummary.contributorsChart.global[uiState.contributorsChart].data"
+                    scale="setContributorsChartScale" color="#EC407A" width="100%"></svg>
+            </div>
+            <hr class="splitter" style="margin: 10px -20px 20px" />
+            <div class="simple-columns simple-columns--gutter">
+                <div ng-repeat="data in activitySummary.contributorsChart.perContributor | orderBy:'totalCommits':true"
+                         class="simple-columns__item simple-columns__item--half" style="margin-top: 1em">
+                    <a href="/profile/{{data.contributor}}/" class="mx-link-nodecoration"
+                            style="color: inherit; font-weight: bold; font-size: 17px">
+                        &nbsp; <span user-picture="data.contributor" size="24"/>
+                        &nbsp; {{data.contributor}}
+                    </a>
+                    <span class="pull-right" ng-show="uiState.contributorsChart==='commits'" style="margin: 0 2em">{{ data.totalCommits | pluralize :'commit' :'commits' :',' :true }}<br></span>
+                    <span class="pull-right" ng-show="uiState.contributorsChart==='added'" style="margin: 0 2em">{{ data.totalAddedLines | pluralize :'addition' :'additions' :',' :true }}<br></span>
+                    <span class="pull-right" ng-show="uiState.contributorsChart==='removed'" style="margin: 0 2em">{{ data.totalRemovedLines | pluralize :'deletion' :'deletions' :',' :true }}<br></span>
+
+                    <svg simple-time-area-chart ts="activitySummary.contributorsChart.dates"
+                        values="data[uiState.contributorsChart].data"
+                        scale="activitySummary.contributorsChart.scale" width="100%"
+                        color="#F8BBD0"></svg>
+                </div>
+            </div>
+        </div>
+        <div ng-switch-when="punchcard" class="h100 oa">
+            <svg week-punch-card data="totalCommitsPerHour" style="width: 100%;" svg-titles></svg>
+        </div>
+    </div>
+</div>

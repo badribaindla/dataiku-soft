@@ -1,0 +1,1 @@
+The function ifelse takes three inputs: a condition, the return value if the result is true and the return value if the result if false. All three of the inputs can be vectors. 

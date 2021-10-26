@@ -1,0 +1,109 @@
+<div ng-show="dataset" class="h100 " ng-class="{'all-panes': !dataset.name}">
+    <div include-no-scope="/templates/datasets/fragments/settings-save.html" />
+    <div ng-show="dataset" class="h100">
+
+        <div include-no-scope="/templates/datasets/fragments/settings-save.html" />
+        <tabs class="tabs-with-margin vertical-flex">
+            <pane title="Connection">
+                <div class="container-fluid h100 oa page-top-padding">
+                    <form class="container-fluid page-top-padding dkuform-horizontal">
+                        <div class="control-group">
+                            <label class="control-label">Type</label>
+                            <div class="controls">
+                                <select required ng-model="dataset.params.view" ng-options="view.name as view.displayName for view in viewTypes"/>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="dataset.params.view == 'CLUSTER_TASKS'">
+                            <label class="control-label">Restrict to project key</label>
+                            <div class="controls">
+                                <input type="text" ng-model="dataset.params.clusterTasks.projectKey" />
+                                <span class="help-inline">
+                                    Leave empty for all projects
+                                </span>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="dataset.params.view == 'CLUSTER_TASKS'">
+                            <label class="control-label">Restrict to connection</label>
+                            <div class="controls">
+                                <input type="text" ng-model="dataset.params.clusterTasks.connection" />
+                                <span class="help-inline">
+                                    Leave empty for all connections
+                                </span>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="dataset.params.view == 'COMMITS'">
+                            <label class="control-label">Restrict to project key</label>
+                            <div class="controls">
+                                <input type="text" ng-model="dataset.params.commits.projectKey" />
+                                <span class="help-inline">
+                                    Leave empty for all projects
+                                </span>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="dataset.params.view == 'JOBS'">
+                            <label class="control-label">Restrict to project key</label>
+                            <div class="controls">
+                                <input type="text" ng-model="dataset.params.jobs.projectKey" />
+                                <span class="help-inline">
+                                    Leave empty for all projects
+                                </span>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="dataset.params.view == 'SCENARIO_RUNS'">
+                            <label class="control-label">Restrict to project key</label>
+                            <div class="controls">
+                                <input type="text" ng-model="dataset.params.scenarioRuns.projectKey" />
+                                <span class="help-inline">
+                                    Leave empty for all projects
+                                </span>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="dataset.params.view == 'FLOW_ACTIONS'">
+                            <label class="control-label">Restrict to project key</label>
+                            <div class="controls">
+                                <input type="text" ng-model="dataset.params.flowActions.projectKey" />
+                                <span class="help-inline">
+                                    Leave empty for all projects
+                                </span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Order by date (slower)</label>
+                            <div class="controls">
+                                <label>
+                                    <input type="checkbox" ng-model="dataset.params.orderByDate" />
+                                    <span class="help-inline">
+                                        Default = no ordering guarantee
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button style="margin-top: 20px" ng-disabled="testing" class="btn btn--primary" ng-click="test()">
+                            <i class="icon-refresh" />&nbsp;
+                            <span ng-show="testResult.preview || testResult.previewErrorMsg">Update</span> Preview
+                        </button>
+
+                        <div class="control-group" ng-show="testResult.preview || testResult.previewErrorMsg">
+                            <label class="control-label">Preview</label>
+                            <div class="controls">
+                                <div ng-show="testResult.previewErrorMsg" class="alert alert-error">{{testResult.previewErrorMsg}}</div>
+                                <div class="oa" ng-if="testResult.preview">
+				                    <div simple-detection-preview-table dataset="dataset" table="testResult.preview" headers="testResult.preview.headers" 
+				                                                        schema-is-user-editable="false"/>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </pane>
+
+            <pane title="Advanced" >
+                <div class="container-fluid h100 page-top-padding">
+                    <div include-no-scope="/templates/datasets/advanced-override-table.html" />
+                </div>
+            </pane>
+        </tabs>
+    </div>
+</div>

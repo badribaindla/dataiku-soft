@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: dataiku-exec-__DKU_EXECUTION_ID__
+  # __DKU_LABELS_AND_ANNOTATIONS__
+  # To add labels to pods and jobs, set a dku.kubernetes.jobs.extraLabels key
+  # To add annotations to pods and jobs, set a dku.kubernetes.jobs.extraAnnotations key
+spec:
+  selector:
+    matchLabels:
+      dataiku.com/dku-execution-id: __DKU_EXECUTION_ID__
+  replicas: __NB_REPLICAS__
+  template:
+    metadata:
+      name: dataiku-exec
+      # __DKU_LABELS_AND_ANNOTATIONS__
+      # To add labels to pods and jobs, set a dku.kubernetes.jobs.extraLabels key
+      # To add annotations to pods and jobs, set a dku.kubernetes.jobs.extraAnnotations key
+    spec:
+      containers:
+      - name: c
+        image: __DKU_IMAGE_ID__
+        imagePullPolicy: IfNotPresent # local image
+        env:
+        - name: DKU_EXECUTION_ID
+          value: "__DKU_EXECUTION_ID__"
+        - name: DKU_BACKEND_PORT
+          value: "__DKU_BACKEND_PORT__"
+        - name: DKU_BACKEND_HOST
+          value: "__DKU_BACKEND_HOST__"
+        - name: DKU_SERVER_PORT
+          value: "__DKU_SERVER_PORT__"
+        - name: DKU_SERVER_HOST
+          value: "__DKU_SERVER_HOST__"
+        - name: DKU_SERVER_KIND
+          value: "__DKU_SERVER_KIND__"
+        - name: "DKU_API_TICKET"
+          valueFrom:
+            secretKeyRef:
+              name: dkusecret-__DKU_EXECUTION_ID__
+              key: apiticket
+        # __DKU_ENV__
+        # __DKU_KUBERNETES_RESOURCES__
+        # __DKU_KUBERNETES_HOSTPATH_VOLUME_MOUNTS__
+        args: ["$(DKU_EXECUTION_ID)"]
+      # __DKU_KUBERNETES_HOSTPATH_HOST_VOLUMES__
+      # __DKU_KUBERNETES_NODESELECTOR__
+      # __DKU_KUBERNETES_AFFINITY__
+      # __DKU_KUBERNETES_TOLERATIONS__
+      

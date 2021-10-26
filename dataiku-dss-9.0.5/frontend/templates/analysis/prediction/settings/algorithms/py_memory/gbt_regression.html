@@ -1,0 +1,95 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Gradient Boosted Trees
+    </div>
+    <div data-block="algorithm-description">
+        <p>
+            <strong>Gradient boosting</strong> is a technique which produces a prediction model in the form of an ensemble of "weak" prediction models (small decision trees).
+        </p>
+        <p>The concept is to train a set of decision trees (weak learners) to create a final strong learner. This is an iterative method. After each
+            tree is trained, the data is reweighted: samples that were misclassified gain weight while the correctly classified ones lose weight.
+            This allows future weak learners to focus on the "difficult" examples that the previous weak learners missed.
+        </p>
+        <p>
+            <em>Gradient Boosted Trees</em> is a generalization of boosting to arbitrary differentiable loss functions. GBT is an accurate and effective off-the-shelf procedure that can be used for both regression and classification problems. Gradient Boosted Trees models are used in a variety of areas including Web search ranking and ecology. The advantages of GBRT are:
+        </p>
+        <ul>
+            <li>Natural handling of data of mixed type (= heterogeneous features)</li>
+            <li>Predictive power</li>
+            <li>Robustness to outliers in output space (via robust loss functions)</li>
+        </ul>
+        <p>Due to the iterative nature of boosting, it is not very parallelizable and is less scalable than other algorithms.</p>
+    </div>
+    <div data-block="algorithm-params">
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.gbt_regression.n_estimators"
+                         required
+                         label="Number of boosting stages"
+                         help-inline="The number of boosting stages to perform.
+                         <br/> Gradient boosting is fairly robust to over-fitting so a large number usually results in better performance."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <div class="control-group">
+            <label class="control-label">Feature sampling strategy</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.gbt_regression.selection_mode" options-descriptions="['Automatic will select 30% of the features.',
+                    'Square root will select the square root of the number of features',
+                    'Logarithm will select the base 2 logarithm of the number of features',
+                    'Fixed number will select the given number of features',
+                    'Fixed proportion will select the given proportion of features']">
+                    <option value="auto">Automatic</option>
+                    <option value="sqrt">Square root</option>
+                    <option value="log2">Logarithm</option>
+                    <option value="number">Fixed number</option>
+                    <option value="prop">Fixed proportion</option>
+                </select>
+                <div class="help-inline">Adjusts the number of features to sample at each split.</div>
+            </div>
+        </div>
+        <ml-hp-numerical ng-show="mlTaskDesign.modeling.gbt_regression.selection_mode == 'number'"
+                         ng-model="mlTaskDesign.modeling.gbt_regression.max_features"
+                         label="Number of features to sample"
+                         help-inline="The number of features to sample at each split."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-show="mlTaskDesign.modeling.gbt_regression.selection_mode == 'prop'"
+                         ng-model="mlTaskDesign.modeling.gbt_regression.max_feature_prop"
+                         decimal
+                         label="Proportion of features to sample"
+                         help-inline="The proportion of features to sample at each split."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.gbt_regression.learning_rate"
+                         decimal
+                         label="Learning rate"
+                         help-inline="Learning rate shrinks the contribution of each tree by `learning_rate`.
+                         <br/> There is a trade-off between learning_rate and n_estimators."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <div class="control-group">
+            <label class="control-label">Loss</label>
+            <div class="controls">
+                <div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.gbt_regression.loss.values.ls.enabled" />Try Least Square
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.gbt_regression.loss.values.lad.enabled" />Try Least Absolute Deviation
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.gbt_regression.loss.values.huber.enabled" />Try Huber
+                    </label>
+                </div>
+                <div class="help-inline">
+                    Huber is a combination of Least Square and Least Absolute Deviation.
+                </div>
+            </div>
+        </div>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.gbt_regression.max_depth"
+                         label="Maximum depth of tree"
+                         help-inline="Maximum depth of the individual regression estimators.
+                         <br/> The maximum depth limits the number of nodes in the tree.
+                         <br/> Tune this parameter for best performance; the best value depends on the interaction of the input variables."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+    </div>
+</div>

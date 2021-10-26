@@ -1,0 +1,81 @@
+<div ng-if="$containerInfo && $containerInfo.type == 'KUBERNETES'" ng-scope="{{errorScope = this}}">
+    <div class="control-group" ng-if="$containerInfo && $containerInfo.type == 'KUBERNETES'">
+        <label class="control-label">Autoscaler</label>
+        <div class="controls">
+            <label class="dku-toggle" style="margin-left: 0;">
+                <input type="checkbox" ng-model="scaling.hpa" />
+                <span/>
+            </label>
+            <span class="help-inline">Enable Kubernetes Horizontal Pod Autoscaler</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="scaling.hpa">
+        <label class="control-label">HPA CPU%</label>
+        <div class="controls">
+            <input type="number" ng-model="scaling.hpaTargetCPUPercent" min="0"/>
+            <span class="help-inline">Target CPU percentage for Horizontal Pod Autoscaler</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="scaling.hpa && $containerInfo.k8sVersion >= 1.10">
+        <label class="control-label">HPA metrics</label>
+        <div style="margin-left: 200px;"> <!-- no class="controls" so that we may force the width of the dku-bs-select -->
+            <editable-list ng-model="scaling.hpaMetrics" 
+                           add-label="Add metric" 
+                           template="{type:'Pods', utilization:false}">
+                <div>
+                    <select dku-bs-select="{width:100}" ng-model="it.type">
+                        <option value="Resource">Resource</option>
+                        <option value="Pods">Pods</option>
+                    </select>
+                </div>
+                <span>:</span>
+                <input type="text" ng-model="it.name" placeholder="Metric name" />
+                <span>should be</span>
+                <input type="text" ng-model="it.value" placeholder="Target value" />
+                <span>(</span>
+                <label for="utilization_{{$index}}">
+                    <input id="utilization_{{$index}}" type="checkbox" force-integer ng-model="it.utilization" /> as utilisation
+                </label>
+                <span>)</span>
+            </editable-list>
+        </div>        
+        <div class="controls">
+            <span class="help-inline">Target metrics (other than CPU) for Horizontal Pod Autoscaler</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="scaling.hpa && $containerInfo.k8sVersion >= 1.10">
+        <label class="control-label">HPA extra metrics</label>
+        <div class="controls with-codemirror-h200-borders" ng-if="areExtraMetricsShown()">
+            <textarea ng-model="scaling.hpaExtraMetrics" ui-codemirror="codeMirrorSettingService.get('text/x-yaml')"></textarea>
+        </div>
+        <div class="controls" ng-if="!areExtraMetricsShown()">
+            <a ng-click="showExtraMetrics()">Write the metrics spec manually</a>
+        </div>
+    </div>
+    
+    <div class="control-group" ng-if="scaling.hpa">
+        <label class="control-label">HPA annotations</label>
+        <div class="controls">
+            <ng2-key-values-list 
+                [(items)]="scaling.hpaAnnotations"
+                key-placeholder="Key"
+                value-placeholder="Value"
+                add-label="Add annotation">
+            </ng2-key-values-list>
+        </div>
+    </div>
+    <div class="control-group" ng-if="scaling.hpa">
+        <label class="control-label">HPA min pods</label>
+        <div class="controls">
+            <input type="number" ng-model="scaling.hpaMinPods" />
+            <span class="help-inline">Min number of pods</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="scaling.hpa">
+        <label class="control-label">HPA max pods</label>
+        <div class="controls">
+            <input type="number" ng-model="scaling.hpaMaxPods" />
+            <span class="help-inline">Max number of pods</span>
+        </div>
+    </div>
+</div>

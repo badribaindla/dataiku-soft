@@ -1,0 +1,498 @@
+<div class="pivot-recipe visual-recipe-with-steps" ng-show="topNav.tab == 'settings'" close-tooltips-on-exit>
+    <div class="main-recipe-content dss-page vertical-flex">
+        <div block-api-error />
+        <div class="flex" style="position: relative;">
+            <div class="leftPane vertical-flex">
+                <div class="steps flex">
+                    <div recipe-step class="inputs"/>
+                    <div recipe-step="preFilter" step-label="Pre-filter"/>
+                    <div recipe-step="computedColumns" step-label="Computed columns"/>
+                    <div recipe-step="pivot" step-label="Pivot"/>
+                    <div recipe-step="otherColumns" step-label="Other columns"/>
+                    <div recipe-step="output" step-label="Output"/>
+                    <div ng-if="recipeStatus.topLevelMessages.anyMessage" recipe-step="topLevelMessages" step-label="Warnings" />
+                </div>
+                <div class="run noflex" ng-if="params">
+                    <div include-no-scope="/templates/recipes/visual-recipes-fragments/visual-recipe-run.html"/>
+                    <div engine-selector-button
+                        recipe-status="recipeStatus"
+                        recipe-params="params"
+                        update-status="hooks.updateRecipeStatus"
+                        can-change-engine="canChangeEngine" />
+                </div>
+            </div>
+
+            <div class="mainPane fh oa" ng-if="params && computablesMap">
+                <!-- the most important part : the pivots -->
+                <div ng-if="uiState.currentStep == 'pivot' && params.pivots && params.pivots.length > 0" class="padded-step-settings main-step h100 oa" style="padding: 10px 20px;">
+                    <table class="pivot-setup-table" ng-init="pivot = params.pivots[0];">
+                        <!-- titles of the upper part -->
+                        <tr class="box-title">
+                            <td class="left">
+                                <span class="description" style="font-size: 16px;"><i class="icon-question-sign" />&nbsp;Examples</span>
+                            </td>
+                            <td class="middle">
+                            </td>
+                            <td class="right">
+                                <div class="illustration">
+                                    <div class="color-to-background" style="width: 15px; height: 4px; margin-bottom: 2px;"></div><!--
+                                 --><div class="color-to-background" style="width: 15px; height: 10px;"></div>
+                                </div>
+                                <span class="description">Create columns with</span>
+                            </td>
+                        </tr>
+                        <!-- help box + pivoted columns -->
+                        <tr class="top">
+                            <td class="left">
+                                <div pivot-help ></div>
+                            </td>
+                            <td class="middle">
+                            </td>
+                            <td class="right boxed">
+                                <ul class="key-columns-selection-wrapper oa">
+                                    <li ng-repeat="keyColumn in pivot.keyColumns track by $index" class="dib">
+                                        <span class="multipleColumnSelection--item col-desc dib">
+                                            <span class="horizontal-flex">
+                                                <span class="col-name flex qa_recipe_pivot-selected-column" title="{{keyColumn}}">{{keyColumn}}</span>
+                                                <span class="multipleColumnSelection--action noflex"><a ng-click="removeKeyColumn(pivot, keyColumn);hooks.updateRecipeStatus();" class="qa_recipe_pivot-remove-key-col"><i class="icon-trash"/></a></span>
+                                            </span>
+                                        </span>
+                                    </li>
+                                    <li class="dib" ng-if="pivot.keyColumns.length==0">
+                                        <span class="multipleColumnSelection--item alert alert-danger dib">Choose at least one column</span>
+                                    </li>
+                                    <li class="dib">
+                                        <select dku-bs-select="{liveSearch:true,width:200,noneSelectedText:'Add new column'}" id="qa_recipe_pivot-add-column"
+                                        ng-model="pivot.$keyColumnToAdd"
+                                        ng-options="val.name as val.name for val in pivot.$candidateKeyColumns" watch-model="pivot.$candidateKeyColumns"
+                                        ng-change="addKeyColumn(pivot, pivot.$keyColumnToAdd);pivot.$keyColumnToAdd=null;"
+                                        options-annotations="listTypesOf(pivot.$candidateKeyColumns)"/>
+                                    </li>
+                                </ul>
+
+                                <div ng-if="pivot.keyColumns.length>0">
+                                    <div class="pull-left">
+                                        <div class="explanation" style="margin-right: 10px; margin-top: 2px;">
+                                            Pivoted values
+                                        </div>
+                                    </div>
+                                    <div class="dib">
+                                        <select dku-bs-select="{liveSearch:false,width:200,noneSelectedText:'Select a selection method'}" id="qa_recipe_pivot-value-select"
+                                        ng-model="pivot.valueLimit"
+                                        ng-options="v.val as v.label for v in [{val:'NO_LIMIT',label:'all'},{val:'TOP_N',label:'most frequent'},{val:'AT_LEAST_N_OCC',label:'occurring more than'},{val:'EXPLICIT',label:'explicit list'}]"/>
+
+                                        <span ng-if="pivot.valueLimit == 'TOP_N'">
+                                            <input type="number" min="1" force-integer ng-model="pivot.topnLimit" style="width: 80px;" class="qa_recipe_pivot-value-limit"/>
+                                            <span>values</span>
+                                        </span>
+
+                                        <span ng-if="pivot.valueLimit == 'AT_LEAST_N_OCC'">
+                                            <input type="number" min="1" force-integer ng-model="pivot.minOccLimit" style="width: 80px;" class="qa_recipe_pivot-value-limit"/>
+                                            <span>times</span>
+                                        </span>
+
+                                    </div>
+                                    <div class="table-explicit-values-wrapper oa" ng-if="pivot.valueLimit == 'EXPLICIT'">
+                                        <table class="table table-explicit-values">
+                                            <tr ng-if="pivot.explicitValues.length == 0">
+                                                <td class="noitem-placeholder">No value</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr ng-repeat="keyValues in pivot.explicitValues track by $index">
+                                                <td ng-repeat="key in pivot.keyColumns track by $index" style="white-space:nowrap; font-size: 0.8em;">
+                                                    <input class="qa_recipe_pivot-mod-value" type="text" ng-model="keyValues[$index]" placeholder="{{pivot.keyColumns[$index]}} value" style="width: 100%;"/>
+                                                </td>
+                                                <td style="text-align: center;">
+                                                    <a style="width: 20px;" ng-click="removeModality(pivot, keyValues)"><i class="icon-trash"></i></a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="table-explicit-values-actions" ng-if="pivot.valueLimit == 'EXPLICIT'">
+                                        <div ng-if="!uiState.displayImportFromDataset">
+                                            <button class="btn btn--secondary" ng-click="addModality(pivot)" id="qa_recipe_pivot-add-value-modality"><i class="icon-plus add"/> Add value</button>
+                                            <button class="btn btn--secondary" ng-click="uiState.displayImportFromDataset = true" id="qa_recipe_pivot-import-modality-from-dataset"><i class="icon-plus add"/> Values from Dataset</button>
+                                        </div>
+                                        <div ng-if="uiState.displayImportFromDataset">
+                                            <div object-picker="uiState.modalitiesDatasetSmartName" type="DATASET" style="display: inline-block;" id="qa_recipe_pivot-mod-dataset-dropdown"></div>
+                                            <button class="btn btn--secondary" id="qa_recipe_pivot-mod-dataset-load" ng-click="loadModalitiesFromDataset(pivot, uiState.modalitiesDatasetSmartName); uiState.displayImportFromDataset = false;" ng-disabled="!uiState.modalitiesDatasetSmartName">Load from dataset</button>
+                                            <button class="btn btn--secondary" ng-click="uiState.displayImportFromDataset = false">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- titles of the lower part -->
+                        <tr class="box-title">
+                            <td class="left">
+                                <div class="illustration">
+                                    <div class="color-to-background" style="display: inline-block; height: 15px; width: 4px; margin-right: 2px;"></div><!--
+                                 --><div class="color-to-background" style="display: inline-block; height: 15px; width: 10px;"></div>
+                                </div>
+                                <span class="description">Row identifiers</span>
+                                <select class="select-in-title" id="qa_recipe_pivot-row-identifier-selector" dku-bs-select="{liveSearch:false,width:140,noneSelectedText:'Select a mode'}"
+                                ng-model="params.identifierColumnsSelection"
+                                ng-options="v.val as v.label for v in [{val:'ALL_BUT_USED',label:'all other columns'},{val:'EXPLICIT',label:'explicit list'}]" />
+                            </td>
+                            <td class="middle">
+                            </td>
+                            <td class="right">
+                                <div class="illustration">&Sigma;</div>
+                                <span class="description">Populate content with</span>
+                            </td>
+                        </tr>
+                        <!-- identifier columns + pivoted values -->
+                        <tr class="bottom">
+                            <td class="left boxed">
+                                <ul class="identifier-columns-selection-wrapper">
+                                    <li ng-if="params.identifierColumnsSelection == 'ALL_BUT_USED' && !recipeStatus.identifiers">
+                                        <span class="alert alert-danger dib">Recipe status failed, list cannot be computed</span>
+                                    </li>
+                                    <li ng-if="params.identifierColumnsSelection == 'EXPLICIT' && params.explicitIdentifiers.length == 0">
+                                        <span class="alert alert-warning dib">Nothing selected, output will be a single row</span>
+                                    </li>
+                                    <li ng-repeat="identifier in params.identifierColumnsSelection == 'EXPLICIT' ? params.explicitIdentifiers : recipeStatus.identifiers">
+                                        <span class="multipleOrderSelection--coldesc col-desc dib">
+                                            <span class="horizontal-flex">
+                                                <span class="col-name flex qa_recipe_pivot-selected-row-id" title="{{identifier}}">{{identifier}}</span>
+                                                <span class="multipleColumnSelection--action noflex" ng-if="params.identifierColumnsSelection == 'EXPLICIT'"><a ng-click="removeIdentifier(identifier);hooks.updateRecipeStatus()"><i class="icon-trash"/></a></span>
+                                            </span>
+                                        </span>
+                                    </li>
+                                </ul>
+                                <div class="multipleOrderSelection--add" ng-if="params.identifierColumnsSelection == 'EXPLICIT'">
+                                    <select dku-bs-select="{liveSearch:true,width:200,noneSelectedText:'Add new column'}" id="qa_recipe_pivot-add-row-id"
+                                    ng-model="identifierToAdd"
+                                    ng-options="val.name as val.name for val in $candidateExplicitIdentifierColumns" watch-model="$candidateExplicitIdentifierColumns"
+                                    ng-change="addIdentifier(identifierToAdd);identifierToAdd=null;" 
+                                    options-annotations="listTypesOf($candidateExplicitIdentifierColumns)"/>
+                                </div>
+                            </td>
+                            <td class="middle">
+                            </td>
+                            <td class="right boxed">
+                                <div style="padding-left: 10px">
+                                    <ul class="content-selection-wrapper">
+                                        <li ng-if="!pivot.globalCount && (!pivot.valueColumns || pivot.valueColumns.length == 0)">
+                                            <span class="multipleOrderSelection--coldesc alert alert-danger dib">Choose at least one aggregation</span>
+                                        </li>
+                                        <li>
+                                            <input id="globalCountCheckbox" type="checkbox" ng-model="pivot.globalCount" class="qa_recipe_pivot-global-count-checkbox" />
+                                            <span class="multipleOrderSelection--coldesc col-desc dib qa_recipe_pivot-populating-content" ng-class="{'not-selected': !pivot.globalCount}">
+                                                <span class="horizontal-flex">
+                                                    <span class="col-name flex" title="Count of records">Count of records</span>
+                                                </span>
+                                            </span>
+                                        </li>
+                                        <li ng-repeat="valueColumn in pivot.valueColumns track by $index" custom-element-popup cep-position="align-left-top">
+                                            <div class="mainzone">
+                                                <span class="multipleOrderSelection--coldesc col-desc dib qa_recipe_pivot-populating-content">
+                                                    <span class="horizontal-flex">
+                                                        <span class="flex">
+                                                            <a ng-click="togglePopover()" class="qa_recipe_pivot-populating-col-dropdown">
+                                                                <i class="icon-caret-down" />
+                                                                <span title="{{getAggregationLabel(valueColumn, false)}}" ng-bind-html="getAggregationLabel(valueColumn, true)"></span>
+                                                            </a>
+                                                        </span>
+                                                        <span class="multipleColumnSelection--action noflex"><a ng-click="removeValueColumn(pivot, valueColumn);hooks.updateRecipeStatus()"><i class="icon-trash" /></a></span>
+                                                    </span>
+
+                                                    <div class="visual-recipe-with-steps pivot-recipe-aggregation-details popover custom-element-popup-popover">
+                                                        <div>Column</div>
+                                                        <span class="multipleOrderSelection--coldesc col-desc dib qa_recipe_pivot-populating-content" style="background-color: white;">
+                                                            <span class="horizontal-flex">
+                                                                <span class="col-name flex" title="{{valueColumn.column}}">{{valueColumn.column}}</span>
+                                                                <span class="col-type noflex">{{valueColumn.type}}</span>
+                                                            </span>
+                                                        </span>
+                                                        <div>Aggregation</div>
+                                                        <div>
+                                                            <select class="noflex qa_recipe_pivot-custom-aggr"
+                                                            dku-bs-select="{width: '100%'}" ng-model="valueColumn.$agg"
+                                                            ng-change="updateAgg(valueColumn)"
+                                                            watch-model="params.customAggregates">
+                                                                <option ng-repeat="agg in aggregationTypes"
+                                                                value="{{agg.name}}"
+                                                                ng-disabled="!colCanAggr(valueColumn, agg)">{{agg.label + (!engineCanAggr(agg) ? ' (Not supported by this engine)' : (!colCanAggr(valueColumn, agg) ? (' (Not available with type '+valueColumn.type +')') : '')) }}</option>
+                                                                <option ng-repeat="agg in params.customAggregates"
+                                                                value="{{agg.name}}" >{{agg.label || agg.name}}</option>
+                                                            </select>
+                                                        </div>
+                                                        <div ng-if="valueColumn.first || valueColumn.last">Ordered by</div>
+                                                        <div ng-if="valueColumn.first || valueColumn.last">
+                                                            <select dku-bs-select="{liveSearch:true, width: '50%'}"
+                                                            ng-model="valueColumn.orderColumn"
+                                                            ng-options="column.name as column.name for column in getColumnsForOrder()"
+                                                            watch-model="recipeStatus.pivotStageSchema"/>
+                                                        </div>
+                                                        <div ng-if="valueColumn.first || valueColumn.last">Not null&nbsp;&nbsp;<input type="checkbox" ng-model="valueColumn.firstLastNotNull"/></div>
+                                                        <div ng-if="valueColumn.concat" ng-init="initColumnExtraFields(valueColumn)">Separated by&nbsp;&nbsp;<input type="text" ng-trim="false" ng-model="valueColumn.concatSeparator" style="width: 30px" /></div>
+                                                        <div ng-if="valueColumn.concat">Distinct&nbsp;&nbsp;<input type="checkbox" ng-model="valueColumn.concatDistinct"/></div>
+                                                    </div>
+                                                </span>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                    <div class="horizontal-flex">
+                                        <div class="flex multipleOrderSelection--add" style="margin-top: 0">
+                                            <select dku-bs-select="{liveSearch:true,width:'200px',noneSelectedText:'Add new'}" id="qa_recipe_pivot-populate-select"
+                                            ng-model="pivot.$valueColumnToAdd"
+                                            ng-options="val as val.name for val in pivot.$candidateKeyColumns" watch-model="pivot.$candidateKeyColumns"
+                                            ng-change="addValueColumn(pivot, pivot.$valueColumnToAdd);pivot.$valueColumnToAdd=null;"
+                                            options-annotations="listTypesOf(pivot.$candidateKeyColumns)">
+                                            </select>
+                                        </div>
+                                        <div class="noflex">
+                                            <button class="btn btn--secondary" id="qa_recipe_pivot-custom-aggr-button" ng-click="showEditCustomAggregatesModal()">Custom aggregates...</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- pre-filter, before everything else -->
+                <div ng-if="uiState.currentStep == 'preFilter'" class="padded-step-settings h100 oa" fields-for-filter-desc>
+                    <div ng-include="'/templates/recipes/visual-recipes-fragments/inline-filter.html'"></div>
+                    <div class="text-error" ng-show="InfoMessagesUtils.getMessageAtLine(recipeStatus.preFilter, 1)">
+                        Database error: {{InfoMessagesUtils.getMessageAtLine(recipeStatus.preFilter, 1).message}}
+                    </div>
+                    <div ng-show="params.preFilter.enabled && params.preFilter.uiData.mode == 'CUSTOM'" grel-reference-and-examples></div>
+                </div>
+
+                <!-- columns computed on the input, after filtering -->
+                <div ng-if="uiState.currentStep == 'computedColumns'"
+                    class="padded-step-settings h100 oa"
+                    computed-column-step
+                    computed-column-list-desc="uiState.computedColumns"
+                    dataset="recipe.inputs['main'].items[0].ref"
+                    schema="computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema"
+                    computed-column-list-update-callback="onComputedColumnListUpdate"
+                    allow-retrieve-columns="false">
+                </div>
+
+                <!-- what to do with the rest of the columns, that are not pivot keys or values -->
+                <div ng-show="uiState.currentStep == 'otherColumns'" class="padded-step-settings main-step h100 oa">
+                    <div class="pivots h100">
+                        <div class="recipe-settings-section1 h100 vertical-flex">
+                            <h1 class="recipe-settings-section1-title">
+                                Other columns
+                                <span class="explanation">
+                                    Pick the columns whose values you want to keep alongside the pivoted columns, and how to aggregate them
+                                </span>
+                            </h1>
+
+                            <div class="recipe-settings-section2 flex-expand" ng-if="true"> <!-- create a scope -->
+
+                                <div ng-init="selection = selection || {}" class="h100">
+                                    <div class="recipe-settings-field-agg h100 vertical-flex" filtered-multi-select-rows ng-model="params.otherColumns">
+                                        <div class="fattable-default-header">
+                                            <div>
+                                                <div custom-element-popup class="mass-action-btn" cep-position="align-left-bottom" cep-offset-left="-26" close-on-click="false" style="margin-left: -5px; margin-right: 5px;">
+                                                    <input type="checkbox"
+                                                        ng-model="selection.all"
+                                                        dku-indeterminate="selection.some"
+                                                        ng-change="updateMassSelectionCheckbox();">
+
+                                                    <a class="mainzone dropdown-toggle" id="qa_recipe_pivot-other-col-mass-button"
+                                                        ng-click="recomputeAggregationStates(selection.selectedObjects);togglePopover()"
+                                                        ng-class="{disabled:selection.none}">
+                                                        <span ng-hide='selection.none'>ACTIONS</span>
+                                                        <b class="caret"></b>
+                                                    </a>
+                                                    <ul class="popover custom-element-popup-popover dropdown-menu">
+                                                        <div class="section">
+                                                            <div class="section-content">
+                                                                <ul class="nav dropdown" style="padding: 10px 10px;margin: 0;">
+                                                                    <li>
+                                                                        <small>Enable/disable aggregations</small>
+                                                                    </li>
+                                                                    <li ng-repeat="agg in aggregationTypes track by agg.name">
+                                                                        <label>
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                class="qa_recipe_pivot-other-col-aggr-checkbox"
+                                                                                ng-model="aggregation.all[agg.name]"
+                                                                                ng-disabled="aggregation.disabled[agg.name]"
+                                                                                dku-indeterminate="aggregation.some[agg.name]"
+                                                                                ng-change="massAction(agg, selection.selectedObjects)"
+                                                                                style="margin: 0 4px" />
+                                                                            <span ng-class="{disabled:aggregation.disabled[agg.name]}">{{agg.tooltip || agg.label}}</span>
+                                                                        </label>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </ul>
+                                                </div>
+
+                                                <div>
+                                                    {{selection.selectedObjects.length}} / {{selection.allObjects.length}}
+                                                </div>
+
+                                                <div class="filter std-list-search-box">
+                                                    <span class="add-on"><i class="icon-dku-search"/></span>
+                                                    <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Filter column..." style="width: 250px">
+                                                </div>
+                                               <h1 class="recipe-settings-section1-title dib" style="padding-left: 0;">
+                                                    <span>Select at most one <span class="greenbtn">Aggregation</span> to be computed for each field</span>
+                                                </h1>
+                                             </div>
+                                        </div>
+
+                                        <div class="aggregations fattable-default-style flex-expand" fat-repeat="selection.filteredObjects" as="column" row-height="35" tabindex="0" style="outline:none" ng-keydown="multiSelectKeydown($event, true)">
+                                            <div class="aggregation" ng-class="{selected: column.$selected}" full-click>
+                                                <div class="unselectable column-checkbox">
+                                                    <span style="display:none;" main-click ng-click="objectClicked(column, $event)"></span> <!-- because checkbox click is prioritary -->
+                                                    <div class="mass unselectable">
+                                                        <input type="checkbox" ng-model="column.$selected" ng-click="checkBoxChanged(column, $event)" class="qa_recipe_pivot-other-col-checkbox">
+                                                    </div>
+                                                </div>
+                                                <div class="unselectable column-name">
+                                                    <div class="mx-textellipsis" ng-bind-html="column.column | boldify:selection.filterParams.userQueryResult"></div>
+                                                </div>
+                                                <div class="column-type border-right">
+                                                    <div style="width: 50px; padding-right: 5px;">{{column.type}}</div>
+                                                </div>
+                                                <div ng-repeat="agg in aggregationTypes track by agg.name" class="column-agg agg-{{agg.name}}">
+                                                    <label class="dku-labelled-toggle"
+                                                        container="body"
+                                                        toggle="tooltip"
+                                                        placement="left"
+                                                        title="{{
+                                                            !engineCanAggr(agg) ? 'Not supported by this engine' :
+                                                            !colCanAggr(column, agg) ? 'Not available with type '+column.type :
+                                                            agg.tooltip}}">
+                                                        <input type="checkbox" ng-model="column[agg.name]" ng-change="updateRecipeStatusLater(700)" ng-disabled="!colCanAggr(column, agg)"/>
+                                                        <span>{{agg.label}}</span>
+                                                    </label>
+                                                </div>
+                                                <div class="agg-options">
+                                                    <span custom-element-popup cep-position="align-right-bottom" ng-if="column.first || column.last || column.concat">
+                                                        <a class="mainzone dropdown-toggle" ng-click="togglePopover()" ng-init="initColumnExtraFields(column)">
+                                                            <i class="icon-cog" style="color:#999;margin-left: 4px;position: relative;top: 1px;"/>
+                                                        </a>
+                                                        <div class="popover custom-element-popup-popover dropdown-menu pull-right simple dkuform-horizontal" style="padding: 10px 20px; z-index: 10;">
+                                                            <div class="aggregate-popup fattable-popup">
+                                                                <div class="ordered-by" ng-if="column.first || column.last" style="margin-bottom: 10px;">
+                                                                    Ordered by:
+                                                                    <select dku-bs-select="{liveSearch:true,width:150}"
+                                                                        ng-model="column.orderColumn"
+                                                                        ng-options="column.name as column.name for column in getColumns()"
+                                                                        />
+                                                                </div>
+                                                                <div class="concat-separator" ng-if="column.concat">
+                                                                    Separator:
+                                                                    <input type="text" ng-trim="false" ng-model="column.concatSeparator" style="width: 30px;"/>
+                                                                </div>
+                                                                <div class="concat-distinct" ng-if="column.concat" ng-disabled="!engineCanAggrType('CONCAT_DISTINCT')">
+                                                                    Distinct:
+                                                                    <input type="checkbox" ng-model="column.concatDistinct"/>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-show="uiState.currentStep == 'output'" class="h100 oa">
+                    <div data-extend-template="/templates/recipes/visual-recipes-fragments/run-summary.html" class="h100">
+                        <div class="recipe-settings-section1" data-block="columns-zone">
+                            <h1 class="recipe-settings-section1-title">
+                                Output column names
+                                <span>(may change at each run)</span>
+                                <div class="pull-right">
+                                    <input id="recompute" type="checkbox" ng-model="params.schemaComputation" ng-true-value="'ALWAYS'" ng-false-value="'ONLY_IF_NO_METADATA'"/>
+                                    <label for="recompute" class="dib">Recompute schema at each run</label>
+                                </div>
+                            </h1>
+                            <div class="recipe-settings-section2"> <!-- to get the selection inside this element in a different scope -->
+                                <div class="alert alert-warning" ng-if="params.schemaComputation == 'ONLY_IF_NO_METADATA' && recipeStatus.pivotModalities != null">
+                                    <strong>Warning</strong> if label columns have changed in your dataset, your schema may be out of date<span ng-if="recipeStatus.modalitiesComputedOnDifferentEngine == false">. Additionally, the modalities were computed on a different engine, so the handling of null vs. blank can be different.</span>
+                                    <button type="button" class="btn btn--secondary" ng-click="dropOutputSchema()">Drop</button>
+                                </div>
+                                <form class="dkuform-horizontal" style="margin-top: 5px;">
+                                    <div class="control-group">
+                                        <label class="control-label">Modality name simplification</label>
+                                        <div class="controls">
+                                            <select dku-bs-select ng-model="params.modalitySlugification" ng-options="x[0] as x[1] for x in modalitySlugifications" options-descriptions="modalitySlugificationsDesc" />
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Truncate modality names</label>
+                                        <div class="controls">
+                                            <input type="checkbox" ng-model="params.$withModalityMaxLength" id="qa_recipe_pivot-truncate-output-col-checkbox" />
+                                            <span class="help-inline">If not, truncation will depend on engine (128 for Hive/Impala) or on output dataset database (for SQL datasets)</span>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" ng-if="params.$withModalityMaxLength">
+                                        <label class="control-label">Max modality name length</label>
+                                        <div class="controls">
+                                            <input type="number" force-integer ng-model="params.modalityMaxLength" id="qa_recipe_pivot-truncate-output-col-nb" />
+                                        </div>
+                                    </div>
+                                    <div class="control-group" style="margin-bottom: 0;">
+                                        <label class="control-label">Sort modalities by name</label>
+                                        <div class="controls">
+                                            <input type="checkbox" ng-model="params.sortModalities" />
+                                        </div>
+                                    </div>
+                                </form>
+                                <div ng-show="!recipeStateUpdateInProgress && (!recipeStatus || !recipeStatus.outputSchema || !recipeStatus.outputSchema.columns.length)">
+                                    <div class="center-children" ng-switch="params.schemaComputation">
+                                        <h2 class="recipe-settings-section2-title" ng-switch-when="ALWAYS">Schema will be computed at runtime</h2>
+                                        <h2 class="recipe-settings-section2-title" ng-switch-when="ONLY_IF_NO_METADATA" style="text-align: center">
+                                            Schema could not be inferred
+                                            <br/>
+                                            (no previous run with the current parameters computed the modalities)
+                                        </h2>
+                                    </div>
+                                </div>
+                                <div ng-show="recipeStateUpdateInProgress && (!recipeStatus || !recipeStatus.outputSchema || !recipeStatus.outputSchema.columns.length)">
+                                    <i class="icon-spinner icon-spin"/>
+                                </div>
+                                <div ng-if="recipeStatus && recipeStatus.outputSchema && recipeStatus.outputSchema.columns.length > 0" style="margin-top: 20px;">
+                                    <div ng-controller="PivotRecipeOutputColumnsController">
+                                        <div class="pivoted-schema-fattable" filtered-multi-select-rows ng-model="recipeStatus.outputSchema.columns">
+                                            <div class="fattable-default-header">
+                                                <div>
+                                                    <div class="filter std-list-search-box">
+                                                        <span class="add-on"><i class="icon-dku-search"/></span>
+                                                        <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Filter column..." style="width: 250px">
+                                                    </div>
+                                                    <small>{{selection.filteredObjects.length}} / {{selection.allObjects.length}}</small> columns
+                                                </div>
+                                            </div>
+                
+                                            <div class="column-rows" fat-repeat="selection.filteredObjects" as="column" row-height="30" tabindex="0" style="height: 300px; outline:none">
+                                                <div class="column-row horizontal-flex" full-click>
+                                                    <div class="column-type border-right noflex">
+                                                        <span>({{column.type}})</span>
+                                                    </div>
+                                                    <div class="unselectable column-name flex mx-textellipsis">
+                                                        <span ng-bind-html="column.name | boldify:selection.filterParams.userQueryResult"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>               
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-extend-template="/templates/recipes/visual-recipes-fragments/visual-sql-top-level-messages.html" />
+            </div>
+        </div>
+    </div>
+</div>

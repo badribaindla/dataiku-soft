@@ -1,0 +1,54 @@
+<div class="h100 w100">
+    <div class="body vertical-flex">
+        <span class="title noflex horizontal-flex">
+            <h3 class="flex">
+                <i class="icon-folder-close fl"></i>
+                <div show-tooltip-on-text-overflow text-tooltip="item.name"></div>
+            </h3>
+            <div class="icon-folder-link"><i class="no-flex icon-angle-right"></i></div>
+        </span>
+        <div class="flex description" ng-if="item.nbProjects > 0 || item.nbFolders > 0">
+            <p>
+                <span ng-if="item.nbProjects > 0">
+                    <span ng-if="isFiltering()() && item.nbFilteredProjects != item.nbProjects">{{item.nbFilteredProjects}} / </span>
+                    {{item.nbProjects}} {{'project' | plurify: item.nbProjects}}
+                </span>
+                <span ng-if="item.nbFolders > 0 && item.nbProjects > 0">, </span>
+                <span ng-if="item.nbFolders > 0">
+                <span ng-if="isFiltering()() && item.nbFilteredFolders != item.nbFolders">{{item.nbFilteredFolders}} / </span>
+                    {{item.nbFolders}} {{'folder' | plurify: item.nbFolders}}
+                </span>
+            </p>
+        </div>
+        <div class="project-folder-cells" class="flex">
+            <div class="empty-folder centered-grey-lg-text" ng-if="item.nbProjects == 0 && item.nbFolders == 0">Folder is empty</div>
+            <div ng-repeat="itemInFolder in item.filteredItems" class="project-folder-cell">
+                <totem ng-if="itemInFolder.itemType === 'project'" project-name="itemInFolder.name"
+                    project-key="itemInFolder.projectKey"
+                    object-type="'PROJECT'"
+                    object-id="itemInFolder.projectKey"
+                    object-img-hash = "itemInFolder.objectImgHash"
+                    sizeX="33" sizeY="84"
+                    editable="false",
+                    img-color="itemInFolder.imgColor",
+                    img-pattern="itemInFolder.imgPattern",
+                    show-initials="itemInFolder.showInitials",
+                    is-project-img="itemInFolder.isProjectImg",
+                    default-img-color="itemInFolder.defaultImgColor"/>
+                <div ng-if="itemInFolder.itemType === 'folder'" class="project-sub-folder" title="{{itemInFolder.name}}">
+                    <i class="icon-folder-close text-prompt" style="font-size: 20px; position: relative; top: 4px;" />
+                </div>
+            </div>
+            <div ng-if="item.nbExtraItems > 0" class="overflowCount project-folder-cell">
+                +{{item.nbExtraItems}}
+            </div>
+            <div ng-if="item.nbExtraItems === 0 && item.filteredProjects.length === 0" class="project-folder-cell" />
+        </div>
+    </div>
+    <div class="tile-menu tile-menu-secondary popover-btn" ng-click="displayProjectFolderPermissionsModal()(item); $event.stopPropagation();" ng-if="item.noPermissions && item.isAdmin" title="{{ NO_PERMISSION_TOOLTIP_MSG }}" toggle="tooltip" placement="bottom" container="body" >
+        <i class="icon-eye-close" />
+    </div>
+    <div class="tile-menu popover-btn" ng-click="toggleMenu()(item, $event, openFolderMenu(), isFolderSelected());" ng-if="disableMenu === false">
+        <i class="compute-cog icon-ellipsis-vertical mainzone cursor-pointer"></i>
+    </div>
+</div>

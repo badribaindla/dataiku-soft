@@ -1,0 +1,148 @@
+<div automation-edit-overlay />
+<div class="fh vertical-flex">
+	<div block-api-error />
+
+	<div class="flex" global-keydown="{'ctrl-s meta-s':'saveStreamingEndpoint()'}" >
+        <div class="fh">
+        <div ng-show="streamingEndpoint" class="h100" tab-model="uiState.activeTab">
+            <div include-no-scope="/templates/streaming-endpoints/settings/save.html" />
+            <div class="vertical-flex h100">
+                <ul class="nav nav-tabs noflex">
+                    <li class="tab" tab-active="basic">
+                        <a tab-set="basic">Basic</a>
+                    </li>
+                    <li class="tab" tab-active="schema">
+                        <a tab-set="schema">Schema</a>
+                    </li>
+                    <li class="tab" tab-active="advanced">
+                        <a tab-set="advanced">Advanced</a>
+                    </li>
+                </ul>
+                <div class="oh vertical-flex flex" ng-if="uiState.activeTab == 'basic'">
+                    <div class="fh">
+                        <div class="container-fluid page-top-padding h100 oa" ng-switch on="streamingEndpoint.type">
+                            <div ng-switch-when="kafka">
+                                <div include-no-scope="/templates/streaming-endpoints/settings/kafka.html" />
+                            </div>
+                            <div ng-switch-when="sqs">
+                                <div include-no-scope="/templates/streaming-endpoints/settings/sqs.html" />
+                            </div>
+                            <div ng-switch-when="httpsse">
+                                <div include-no-scope="/templates/streaming-endpoints/settings/httpsse.html" />
+                            </div>
+                            <div ng-switch-when="kdbplustick">
+                                <div include-no-scope="/templates/streaming-endpoints/settings/kdbplustick.html" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="flex" ng-if="uiState.activeTab == 'schema'">
+                    <div class="fh">
+                        <div include-no-scope="/templates/streaming-endpoints/schema.html" class="h100" />
+                    </div>
+                </div>
+        
+                <div class="flex" ng-if="uiState.activeTab == 'advanced'" ng-controller="StreamingEndpointAdvancedController">
+                    <div class="fh">
+                        <div block-api-error ></div>
+                        <div class="small-lr-padding page-top-padding h100 oa">
+                            <div class="generic-white-box">
+                                <div class="container-fluid">
+                                    <div ng-if="streamingEndpoint.type != 'kafka'">
+                                        No settings
+                                    </div>
+                                    <div ng-if="streamingEndpoint.type == 'kafka'">
+                                        <form class="dkuform-horizontal">
+                                            <h2 class="settings-section-title">Ksql settings</h2>
+                                            <div class="control-group">
+                                                <label class="control-label">Sync in Ksql as</label>
+                                                <div class="controls">
+                                                    <select dku-bs-select ng-model="streamingEndpoint.params.ksqlParams.syncAs" >
+                                                        <option value="STREAM">Stream</option>
+                                                        <option value="TABLE">Table</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="control-group">
+                                                <label class="control-label">ROWKEY type</label>
+                                                <div class="controls">
+                                                    <select dku-bs-select ng-model="streamingEndpoint.params.ksqlParams.keyType" >
+                                                        <option value="">Same as Kafka key</option>
+                                                        <option value="STRING">String</option>
+                                                        <option value="DOUBLE">Double</option>
+                                                        <option value="LONG">Long</option>
+                                                        <option value="INTEGER">Integer</option>
+                                                        <option value="BYTEARRAY">Binary</option>
+                                                    </select>
+                                                    <span class="help-inline">Key type in Ksql (can differ from Kafka key type for windowed tables)</span>
+                                                </div>
+                                            </div>
+                                            <div class="control-group">
+                                                <label class="control-label">Window type</label>
+                                                <div class="controls">
+                                                    <select dku-bs-select ng-model="streamingEndpoint.params.ksqlParams.windowType" >
+                                                        <option value="NONE">None</option>
+                                                        <option value="TUMBLING">Tumbling</option>
+                                                        <option value="HOPPING">Hopping</option>
+                                                        <option value="SESSION">Session</option>
+                                                    </select>
+                                                    <span class="help-inline">Defining a WINDOW_SIZE property is needed for manual synchronization</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="control-group">
+                                                <label class="control-label">Timestamp column</label>
+                                                <div class="controls">
+                                                    <input type="text" ng-model="streamingEndpoint.params.ksqlParams.timestamp"></input>
+                                                    <span class="help-inline">Column to use for windowing operations. If empty the message timestamp is used</span>
+                                                </div>
+                                            </div>
+                                            <div class="control-group" ng-if="streamingEndpoint.params.ksqlParams.timestamp">
+                                                <label class="control-label">Timestamp format</label>
+                                                <div class="controls">
+                                                    <input type="text" ng-model="streamingEndpoint.params.ksqlParams.timestampFormat"></input>
+                                                    <span class="help-inline">Optional format to use to parse the timestamp column. If empty, the column should be a unix timestamp</span>
+                                                </div>
+                                            </div>
+                                            <div class="control-group">
+                                                <label  class="control-label">Properties</label>
+                                                <div class="controls">
+                                                    <ng2-key-values-list 
+                                                        [(items)]="streamingEndpoint.params.ksqlParams.properties"
+                                                        key-placeholder="Property key"
+                                                        value-placeholder="Property value"
+                                                        add-label="Add property">
+                                                    </ng2-key-values-list>
+                                                    <span class="inline-help">Passed to KSQL in the WITH clause of the creation statement</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="control-group">
+                                                <div class="control-label">
+                                                    <button type="button" class="btn btn--secondary" ng-click="syncKsql(false)" ng-if="!uiState.syncNotDoneReason" ng-disabled="!streamingEndpointFullInfo.connectionCanKsql" title="{{streamingEndpointFullInfo.connectionCanKsql ? '' : 'No KSQL url defined on connection'}}">Sync KSQL stream</button>
+                                                    <button type="button" class="btn btn--secondary" ng-click="syncKsql(true)" ng-if="uiState.syncNotDoneReason">Terminate queries and sync KSQL stream</button>
+                                                </div>
+                                                <div class="controls">
+                                                    <span ng-if="uiState.syncDone" class="streaming-advanced__sync-ok"><i class="icon-check-sign"></i> Successfully synchronized</span>
+                                                    <div ng-if="!uiState.syncDone && uiState.syncNotDoneReason" class="streaming-advanced__sync-warn">Sync not done: {{uiState.syncNotDoneReason}}</div>
+                                                    <div ng-if="!uiState.syncDone && uiState.syncNotDoneFailure" class="streaming-advanced__sync-ko">Sync failed: {{uiState.syncNotDoneFailure}}</div>
+                                                </div>
+                                            </div>
+                                            <div class="alert alert-warning" ng-if="streamingEndpointIsDirty()">
+                                                <i class="icon-warning-sign"></i>&nbsp;There are unsaved changes
+                                            </div>
+                                        </form>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+	</div>
+</div>

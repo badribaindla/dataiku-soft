@@ -1,0 +1,80 @@
+<div class="list-page-4 flex dss-home-page list-page--flat-design">
+<div data-extend-template="/templates/layouts/list-items-2.html" class="vertical-flex scenarios-list-page h100 main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+    <span data-block="counter-name">
+        Continuous activities
+    </span>
+
+    <div data-block="empty">
+        <h1>
+            No continuous activity in this project.
+        </h1>
+        <p>
+            You can create continuous activities from the Flow.
+        </p>
+        <p class="small">
+        	<span doclink-wrapper page="streaming/index">Read the documentation</span> to learn more
+        </p>
+    </div>
+
+    <div data-block="additional-filter-type" class="noflex list-page__filter">
+        <div custom-element-popup close-on-click="true" class="sort-box list-control-widget list-control-dropdown">
+            <button class="dku-select-button mainzone has-caret" ng-click="togglePopover()">
+                <span>{{(selection.filterQuery.desiredState || 'Any State').toLowerCase()|capitalize}}</span>
+                <span class="caret" />
+            </button>
+            <div class="popover sort-box-menu checkable-items">
+                <ul>
+                    <li ng-class="{'selected' : selection.filterQuery.desiredState === ''}" ng-click="selection.filterQuery.desiredState = '';">
+                        <span>Any State</span>
+                    </li>
+                    <li ng-class="{'selected' : selection.filterQuery.desiredState === 'STARTED'}" ng-click="selection.filterQuery.desiredState = 'STARTED';">
+                        <span>Started</span>
+                    </li>
+                    <li ng-class="{'selected' : selection.filterQuery.desiredState === 'STOPPED'}" ng-click="selection.filterQuery.desiredState = 'STOPPED';">
+                        <span>Stopped</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div data-block="item" class="h100">
+        <label>
+        	<span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+        	<input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+        </label>
+        <div class="hit h100" dataset="item">
+            <div class="illustration">
+                <i class="icon-list universe-color streaming-endpoint"></i>
+            </div>
+            <div class="hitContent horizontal-flex h100">
+                <div class="hit-content-main" style="width: 100%;">
+	                <div class="horizontal-flex">
+                        <div class="flex" style="flex-basis: 3px; overflow: hidden;"> <!-- ask pierre why -->
+		                    <h4 class="hit-content-main__title dib" style="width: 100%;">
+		                        <a class="mx-textellipsis" ui-sref="projects.project.continuous-activities.continuous-activity.runs({projectKey: $stateParams.projectKey, continuousActivityId: item.recipeId})"
+		                           title="{{ item.recipeId }}" ng-bind-html="(item.recipeId || item.id) + ' (' + item.recipeType + ')' | boldify:selection.filterParams.userQueryResult" />
+                               </a>
+		                    </h4>
+		                    <div class="hit-content-main__subtitle">
+		                        (state: {{item.desiredState}}{{item.loopParams.abortAfterCrashes > 0 ? (' with max ' + item.loopParams.abortAfterCrashes + ' restart'):''}} / {{!item.mainLoopState.futureInfo ? 'not running' : (!item.mainLoopState.futureInfo.hasResult ? 'running' : 'finished')}})
+		                    </div>
+                        </div>
+
+                        <div class="hit-content__tags flex">
+                            <responsive-tags-list items="item.tags" tags-map="projectTagsMap" object-type="'CONTINUOUS_ACTIVITY'"></responsive-tags-list>
+                        </div>
+					</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN PREVIEW -->
+    <!--<div class="h100" data-block="preview" right-column-tab="details">
+        <div class="h100" ng-if="selection.confirmedItem.id" include-no-scope="/templates/scenarios/right-column-summary.html"></div>
+    </div> -->
+</div>
+    <standardized-side-panel page="objects_list" object-type="{{ (selection.selectedObjects.length > 0) ? 'CONTINUOUS_ACTIVITY' : '' }}" single-type="CONTINUOUS_ACTIVITY">
+    </standardized-side-panel>
+</div>

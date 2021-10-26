@@ -1,0 +1,253 @@
+<div class="dss-page small-lr-padding page-top-padding code-env" global-keydown="{'ctrl-s meta-s':'saveAndMaybePerformChanges(false)'}">
+    <div class="h100 row-fluid">
+        <div class="span2 offset0 nav-list-sidebar sidebar-admin" style="padding-top: 0;">
+            <div class="horizontal-flex" style="height: auto;">
+                <div class="flex mx-textellipsis">
+                    <h4 class="mx-textellipsis" title="{{codeEnv.envName}}">{{codeEnv.envName}}</h4>
+                </div>
+                <div class="noflex center-children" style="font-size: 14px; opacity: 0.8;" ng-if="codeEnv.canUpdateCodeEnv">
+                    <div custom-element-popup cep-position="align-right-bottom" close-on-click="true">
+                        <i class="icon-cog mainzone cursor-pointer" ng-click="togglePopover()"></i>
+                        <ul class="popover custom-element-popup-popover dropdown-menu">
+                            <li ng-if="codeEnv.canUpdateCodeEnv">
+                                <a ng-click="openDeleteEnvModal(envLang, codeEnv.envName)"><i class="icon-trash"></i>&nbsp;Delete</a>
+                            </li>
+                            <li>
+                                <a ng-click="getEnvDiagnostic(envLang, codeEnv.envName)"><i class="icon-download"></i>&nbsp;Get diagnostic</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <ul>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'info'}" full-click>
+                    <a ng-click="uiState.active = 'info'" main-click>General</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'permissions'}" full-click ng-if="codeEnv.canManageUsersCodeEnv">
+                    <a ng-click="uiState.active = 'permissions'" main-click>Permissions</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'packages'}" full-click ng-if="codeEnv.deploymentMode == 'AUTOMATION_NON_MANAGED_PATH' || codeEnv.deploymentMode == 'PLUGIN_NON_MANAGED' || codeEnv.deploymentMode == 'EXTERNAL_CONDA_NAMED'">
+                    <a ng-click="uiState.active = 'packages'" main-click>Packages</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'versions'}" full-click ng-if="codeEnv.deploymentMode == 'AUTOMATION_VERSIONED'">
+                    <a ng-click="uiState.active = 'versions'" main-click>Versions</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'managed'}" full-click ng-if="codeEnv.deploymentMode == 'PLUGIN_MANAGED'">
+                    <a ng-click="uiState.active = 'managed'" main-click>Packages</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'single'}" full-click ng-if="codeEnv.deploymentMode == 'AUTOMATION_SINGLE'">
+                    <a ng-click="uiState.active = 'single'" main-click>Current version</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'containers'}" full-click ng-if="codeEnv.deploymentMode == 'AUTOMATION_VERSIONED' || codeEnv.deploymentMode == 'AUTOMATION_SINGLE' || codeEnv.deploymentMode == 'PLUGIN_MANAGED'">
+                    <a ng-click="uiState.active = 'containers'" main-click>Containerized execution</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'logs'}" full-click>
+                    <a ng-click="uiState.active = 'logs'" main-click>Logs</a>
+                </li>
+            </ul>
+            <div ng-include="'/templates/admin/code-envs/common/save-update-buttons.html'" />
+        </div>
+        <div class="span10 h100 offset0 boxed-next-to-sidebar no-padding" ng-switch="uiState.active">
+            <div ng-switch-when="info" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Code env</h1>
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div class="section">
+                    <h2>General env info</h2>
+                    <div class="control-group">
+                        <label for="" class="control-label">Mode</label>
+                        <div class="controls">
+                            <div>{{codeEnv.deploymentMode}}</div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Owner</label>
+                        <div class="controls">
+                            <div>{{codeEnv.owner}}</div>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="['AUTOMATION_NON_MANAGED_PATH', 'PLUGIN_NON_MANAGED'].indexOf(codeEnv.deploymentMode) >= 0">
+                        <label for="" class="control-label">Location of the environment</label>
+                        <div class="controls">
+                            <div>{{codeEnv.noVersion.path}}</div>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="codeEnv.deploymentMode == 'EXTERNAL_CONDA_NAMED'">
+                        <label for="" class="control-label">Conda environment</label>
+                        <div class="controls">
+                            <input type="text" ng-model="codeEnv.noVersion.desc.externalCondaEnvName" />
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="section">
+                    <h2  ng-if="appConfig.sparkEnabled">Spark</h2>
+                    <div class="control-group" ng-if="appConfig.sparkEnabled && ['AUTOMATION_NON_MANAGED_PATH', 'PLUGIN_NON_MANAGED', 'EXTERNAL_CONDA_NAMED'].indexOf(codeEnv.deploymentMode) >= 0">
+                        <label for="" class="control-label">Yarn R executable</label>
+                        <div class="controls">
+                            <input type="text" ng-model="codeEnv.noVersion.desc.yarnRBin" />
+                            <span class="help-inline">R binary on the Yarn nodes for SparkR</span>
+                        </div>
+                    </div>
+                    </div>
+
+
+                    <div class="section">
+                    <h2>Extra options</h2>
+
+                    <div ng-if="codeEnv">
+                        <div class="control-group">
+                            <label for="" class="control-label">Override imported settings</label>
+                            <div class="controls">
+                                <label>
+                                    <input type="checkbox" ng-model="codeEnv.envSettings.overrideImportedEnvSettings" />
+                                </label>
+                             </div>
+                        </div>
+
+                        <div class="control-group" ng-show="codeEnv.envSettings.overrideImportedEnvSettings && codeEnv.desc.conda">
+                            <label for="" class="control-label">Extra options for 'conda create'</label>
+                            <div class="controls">
+                                <span class="help-inline">One item per option (so "-i /stuff" must be two items)</span>
+                                <ng2-values-list [(items)]="codeEnv.envSettings.condaCreateExtraOptions" add-label="Add option for 'conda create'" value-placeholder="E.g. --clone, --dev..."/>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-show="codeEnv.envSettings.overrideImportedEnvSettings && codeEnv.desc.conda">
+                            <label for="" class="control-label">Extra options for 'conda install'</label>
+                            <div class="controls">
+                                <span class="help-inline">One item per option (so "-i /stuff" must be two items)</span>
+                                <ng2-values-list [(items)]="codeEnv.envSettings.condaInstallExtraOptions" add-label="Add option for 'conda install'" value-placeholder="E.g. -n, -p..."/>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-show="codeEnv.envSettings.overrideImportedEnvSettings">
+                            <label for="" class="control-label">CRAN mirror URL</label>
+                            <div class="controls">
+                                <input type="text" ng-model="codeEnv.envSettings.cranMirrorURL"/>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="section">
+                    <h2>Jupyter</h2>
+                    <div class="control-group" ng-if="codeEnv.noVersion != null && !codeEnv.unknownKernelSpecStatus">
+                        <label for="" class="control-label">Jupyter kernel</label>
+                        <div class="controls">
+                            <div>{{codeEnv.noVersion.kernelSpecName || 'not installed'}}</div>
+                        </div>
+                    </div>
+                     <div class="control-group" ng-if="codeEnv.currentVersion != null && !codeEnv.unknownKernelSpecStatus">
+                        <label for="" class="control-label">Jupyter kernel</label>
+                        <div class="controls">
+                            <div>{{codeEnv.currentVersion.kernelSpecName || 'not installed'}}</div>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="codeEnv.unknownKernelSpecStatus">
+                        <label for="" class="control-label">Jupyter kernel</label>
+                        <div class="controls">
+                            <div>Unable to check status</div>
+                             <div ng-if="codeEnv.kernelSpecsListingError" api-error-alert="codeEnv.kernelSpecsListingError" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="codeEnv.noVersion != null">
+                        <div class="controls">
+                            <button type="button" class="btn btn--secondary" ng-click="installJupyterSupport()">(Re)install Jupyter support</button>
+                            <button type="button" class="btn btn--secondary" ng-click="removeJupyterSupport()">Remove Jupyter support</button>
+                            <span class="help-inline">(needs IRkernel)</span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="codeEnv.currentVersion != null">
+                        <div class="controls">
+                            <button type="button" class="btn btn--secondary" ng-click="installJupyterSupport()">(Re)install Jupyter support</button>
+                            <button type="button" class="btn btn--secondary" ng-click="removeJupyterSupport()">Remove Jupyter support</button>
+                            <span class="help-inline">(needs IRkernel)</span>
+                        </div>
+                    </div>
+                    </div>
+                </form>
+
+                <!-- <pre class="debug">{{codeEnv|json}}</pre> -->
+            </div>
+
+            <div ng-switch-when="permissions" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Permissions</h1>
+                <div class="section">
+                    <div code-env-security-permissions code-env="codeEnv" />
+                </div>
+            </div>
+
+            <div ng-switch-when="managed" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Packages</h1>
+                <div block-api-error />
+                <div class="section">
+                    <div r-version="codeEnv.noVersion" update-env="updateEnv" editable="false"/>
+                </div>
+            </div>
+            <div ng-switch-when="single" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Version</h1>
+                <div block-api-error />
+                <div class="section">
+                    <div r-version="codeEnv.currentVersion" update-env="updateEnv" editable="true"/>
+                </div>
+            </div>
+
+            <div ng-switch-when="versions" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Versions</h1>
+                <div block-api-error />
+                <div class="section">
+                <div>
+                    <button class="btn btn--secondary" ng-click="openImportEnvVersionModal()">Import new version</button>
+                </div>
+                <div ng-repeat="version in codeEnv.versions | orderBy: '-versionId'" ng-class="{'version-separator' : $index > 0}">
+                    <div r-version="version" version-spec-is-dirty="versionSpecIsDirty" save-version="saveVersionAndMaybePerformChanges" update-env="updateEnv" install-jupyter-support="installJupyterSupport" remove-jupyter-support="removeJupyterSupport" editable="true" with-save-update="true" can-version-be-updated="canVersionBeUpdated"/>
+                </div>
+                </div>
+            </div>
+
+            <div ng-switch-when="packages" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Packages</h1>
+                <div block-api-error />
+                <div class="section">
+                <button class="btn btn--secondary" ng-click="fetchNonManagedEnvDetails()">Fetch packages list</button>
+
+                <div class="row-fluid" ng-if="nonManagedEnvDetails">
+                    <div class="span6" ng-if="nonManagedEnvDetails.conda">
+                        <legend class="settings-section-title" style="margin-top: 10px;">Packages (Conda)</legend>
+                        <pre class="package-list">{{nonManagedEnvDetails.condaEnvSpec}}</pre>
+                    </div>
+                    <div class="span6">
+                        <legend class="settings-section-title" style="margin-top: 10px;">Packages (R)</legend>
+                        <pre class="package-list">{{nonManagedEnvDetails.nocondaEnvSpec}}</pre>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <div ng-switch-when="logs" class="h100 vertical-flex paned-settings-page-pane" style="position: relative;">
+                <h1>Code env logs</h1>
+                <div class="flex">
+                    <div class="section fh">
+                        <div code-env-logs logs="logs" env-name="envName" env-lang="envLang" get-log="getLog" download-log="downloadLog"/>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-switch-when="containers" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Containerized execution</h1>
+                <div class="section">
+                <div ng-if="codeEnv.deploymentMode == 'AUTOMATION_VERSIONED'">
+                    <div ng-repeat="version in codeEnv.versions | orderBy: '-versionId'" ng-class="{'version-separator' : $index > 0}">
+                        <div container-version="version" set-for-all-versions="setContainerConfForAllVersions" version-spec-is-dirty="versionSpecIsDirty" save-version="saveVersionAndMaybePerformChanges" update-env="updateEnv" can-version-be-updated="canVersionBeUpdated" with-save-update="true"/>
+                    </div>
+                </div>
+                <div ng-if="codeEnv.deploymentMode == 'AUTOMATION_SINGLE'">
+                    <div code-env-containers code-env="codeEnv.currentVersion.desc" />
+                </div>
+                <div ng-if="codeEnv.deploymentMode == 'PLUGIN_MANAGED'">
+                    <div code-env-containers code-env="codeEnv.noVersion.desc" />
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

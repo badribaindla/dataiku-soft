@@ -1,0 +1,64 @@
+<div class="modal modal3">
+	<div dku-modal-header modal-title="New R env" />
+
+	<form class="dkuform-modal-wrapper dkuform-modal-horizontal" name="newCodeEnvForm">
+		<div class="modal-body">
+            <div block-api-error />
+
+			<div class="control-group">
+				<label for="" class="control-label">Deployment type</label>
+				<div class="controls">
+					<select dku-bs-select ng-model="newEnv.deploymentMode" ng-options="x[0] as x[1] for x in deploymentModes" />
+				</div>
+			</div>
+			<div class="control-group">
+				<label for="" class="control-label">Name</label>
+				<div class="controls">
+					<input type="text" ng-model="newEnv.envName" ng-pattern="/^[_A-Za-z0-9-]+$/"/>
+				</div>
+			</div>
+
+
+			<div class="control-group" ng-if="newEnv.deploymentMode == 'EXTERNAL_CONDA_NAMED'">
+				<label for="" class="control-label">External Conda env name</label>
+				<div class="controls">
+					<input type="text" required ng-model="newEnv.externalCondaEnvName"  />
+				</div>
+			</div>
+
+			<div class="control-group" ng-if="newEnv.deploymentMode == 'DESIGN_MANAGED'">
+				<label for="" class="control-label">Conda</label>
+				<div class="controls">
+					<label>
+						<input type="checkbox" ng-model="newEnv.conda" />
+						<span class="help-inline">Use Conda</span>
+					</label>
+				</div>
+			</div>
+			<div class="control-group" ng-if="newEnv.deploymentMode == 'DESIGN_MANAGED'">
+				<label for="" class="control-label">Mandatory packages</label>
+				<div class="controls">
+					<label>
+						<input type="checkbox" ng-model="newEnv.installCorePackages" />
+						<span class="help-inline">Install mandatory set of packages (you won't be able to use Dataiku APIs without this)</span>
+					</label>
+				</div>
+			</div>
+			<div class="control-group" ng-if="newEnv.deploymentMode == 'DESIGN_MANAGED'">
+				<label for="" class="control-label">Jupyter</label>
+				<div class="controls">
+					<label>
+						<input type="checkbox" ng-model="newEnv.installJupyterSupport" />
+						<span class="help-inline">Install support for Jupyter notebooks</span>
+					</label>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="create()" ng-disabled="newCodeEnvForm.$invalid">Create</button>
+		</div>
+	</form>
+
+</div>

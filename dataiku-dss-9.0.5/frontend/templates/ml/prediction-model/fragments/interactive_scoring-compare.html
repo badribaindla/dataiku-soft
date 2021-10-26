@@ -1,0 +1,103 @@
+<div class="interactive-scoring__compare-heading simple-columns">
+    <div class="horizontal-flex">
+        <h4 class="interactive-scoring__subheader">Comparator</h4>
+        <span class="computation-params-gear" style="margin-right: auto;"ng-click="toggleExplanationParamsPopin($event)">
+            <i class="icon-gear"></i>
+        </span>
+        <button type="button" class="btn btn--text btn--primary mleft16" ng-disabled="bucket.length === 0" ng-click="copyValues(bucket)">Copy All</button>
+        <button type="button" class="btn btn--text btn--primary" ng-click="openPasteDialog(SCORE_VIEW.COMPARE)">Paste...</button>
+        <button type="button" class="btn btn--text btn--primary" ng-disabled="bucket.length === 0" ng-click="removeAllFromBucket()">Clear All</button>
+    </div>
+    <div class="interactive-scoring__compare-menu">
+        <button type="button" class="btn btn--secondary" ng-click="exportComparator()">Export</button>
+        <button type="button" class="btn btn--text btn--primary" ng-click="changeView(SCORE_VIEW.COMPUTE)">Close</button>
+    </div>
+</div>
+<div class="interactive-scoring__bucket horizontal-flex">
+    <div ng-if="bucket.length === 0" class="interactive-scoring__empty-bucket post-train-empty-state">
+        <div class="post-train-empty-state__title">Nothing to compare yet</div>
+        <p class="post-train-empty-state__explanation">Add or paste items to compare them.</p>
+    </div>
+
+    <div class="interactive-scoring__bucket-item" ng-class="{'interactive-scoring__bucket-item--removing': item.removing }" ng-repeat="item in bucket" scroll-to-me="{{ $index === bucket.length - 1 && scrollToLastItem;}}">
+        <div class="padleftright24 dku-border-right minh100">
+            <div class="interactive-scoring__bucket-section">
+                <div class="interactive-scoring__bucket-title">
+                    <h4 class="interactive-scoring__subheader font-weight-normal">
+                        <editable-text-field default-value="'Score ' + ($index + 1)" ng-model="item.name"></editable-text-field>
+                    </h4>
+                    <div class="interactive-scoring__info-text mx-textellipsis">Prediction:
+                        <span ng-if="item.score" class="interactive-scoring__prediction" toggle="tooltip" title="{{ item.score.prediction }}">{{formatPrediction(item.score.prediction)}}</span>
+                        <span ng-if="!item.score" class="interactive-scoring__prediction interactive-scoring--greyed">None</span>
+                        <div ng-if="item.score && isClassification()" class="interactive-scoring__info-text horizontal-flex">
+                            <span class="mx-textellipsis" ng-if="!isMulticlass()">Proba for <span class="font-weight-semi-bold">{{getPositiveClass()}}</span>:</span>
+                            <span class="mx-textellipsis" ng-if="isMulticlass()">Probability:</span>
+                            <span class="interactive-scoring__prediction mleft4" toggle="tooltip" title="{{getProbaForBucketItem(item.score)}}%">{{getProbaForBucketItem(item.score)}}%</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn--icon btn--secondary btn--text" ng-click="removeFromBucket($index)">
+                    <i class="icon-trash"></i>
+                </button>
+            </div>
+
+            <div class="interactive-scoring__bucket-section" ng-if="!isRegression()" style="justify-content: center;">
+                <div ng-if="item.score === null" class="interactive-scoring--greyed interactive-scoring__bucket-empty-item">
+                    No prediction
+                </div>
+                <div ng-if="item.score" class="interactive-scoring__bucket-chart">
+                    <div ng-repeat="prediction in bucketCharts[$index]" ng-style="{ 'background-color': prediction.color, 'width': (prediction.value * 100) + '%', 'height': '100%', 'display': 'inline-block' }" toggle="tooltip" title="{{ prediction.name + ': ' + formatProba(prediction.value) + '%' }}"></div>
+                </div>
+            </div>
+            <div class="interactive-scoring__bucket-body">
+                <h5 class="m0 mbot16 font-weight-semi-bold">Most influential features <span class="text-weak">({{ explanationParams.method }})</span></h5>
+                <div ng-if="getExplanationIncompatibility() || item.explanation === null" class="interactive-scoring--greyed interactive-scoring__bucket-empty-item">
+                    No explanations
+                </div>
+
+                <table ng-if="item.explanation" class="table table-striped explanations-table explanations-table--centered explanations-table" ng-init="topExplanationValue = item.explanation[0].value">
+                    <tr ng-repeat="explanation in item.explanation">
+                        <th ng-style="{'width': compareBarContainerWidth + 'px'}" title="{{explanation.value | number: 3}}" >
+                            <div class="explanation-card__explanation-bar explanation-bar" 
+                                ng-style="{ 'width' : explanation.barWidthRatio*compareBarMaxWidth+ 'px', 'background-color': explanation.value > 0 ? '#29AF5D' : '#F44336', 'margin-left': getCompareExplanationXBarPosition(topExplanationValue, explanation.value) + 'px'}"> <div>
+                        </th>
+                        <th class="explanations-cell" ng-style="{ 'max-width' : barMaxWidth + 'px'}"> <span show-tooltip-on-text-overflow text-tooltip="explanation.feature">{{ explanation.feature }}</span> </th>
+                    </tr>
+                </table> 
+            </div>
+            <div class="interactive-scoring__bucket-section interactive-scoring__bucket-section--sub mx-center-children">
+                <div>
+                    <h5 class="m0 font-weight-semi-bold">Features</h5>
+                </div>
+                <div>
+                    <button class="btn btn--text btn--primary" ng-click="copyValues([item])">
+                        Copy
+                    </button>
+                </div>
+            </div>
+            <div class="interactive-scoring__bucket-body">
+                <div ng-repeat="feature in item.features | filter:keepOnlyPartDimensions"> 
+                    <div include-no-scope="/templates/ml/prediction-model/fragments/interactive_scoring-feature-value.html"
+                    ng-class="{'interactive_scoring__greyed-feature': feature.greyed}"></div>
+                </div>
+                <div ng-repeat="feature in item.features | filter:keepOnlyMainFeatures | orderBy:getFeatureOrderingExpression():isSortReversed():getFeatureComparator()"
+                    ng-class="{'interactive_scoring__greyed-feature': feature.greyed}"> 
+                    <div include-no-scope="/templates/ml/prediction-model/fragments/interactive_scoring-feature-value.html"></div>
+                </div>
+                <div ng-if="hasFilteredOutFeatures()" class="interactive-scoring__other-features">
+                    <div class="interactive-scoring__features-caret interactive-scoring__features-caret--comparator" ng-click="toggleOtherFeatures()">
+                        <i class="icon-caret-down" ng-if="showOtherFeatures"></i> 
+                        <i class="icon-caret-right" ng-if="!showOtherFeatures"></i> 
+                        Other features
+                    </div>
+                    <div ng-if="showOtherFeatures">
+                        <div class="interactive-scoring__feature"
+                        ng-repeat="feature in item.features | filter:keepOtherFeatures | filter:search:strict | orderBy:getFeatureOrderingExpression(false):isSortReversed(false):getFeatureComparator(false)" ng-class="{'interactive_scoring__greyed-feature': feature.greyed}">
+                            <div include-no-scope="/templates/ml/prediction-model/fragments/interactive_scoring-feature-value.html"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

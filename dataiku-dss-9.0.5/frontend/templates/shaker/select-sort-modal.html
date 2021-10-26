@@ -1,0 +1,63 @@
+<div class="modal modal3 modal-fixed-height400 ping-pong-modal" auto-size="false" ng-controller="ShakerSelectSortController">
+    <div dku-modal-header modal-title="Sort" />
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body no-padding" style="overflow: hidden"> <!-- otherwise dragging row to sort them overflows this div -->
+            <div class="vertical-flex">
+                <div class="noflex" block-api-error />
+
+                <div class="row-fluid  border-bottom">
+                    <div class="span6 offset0">
+                        <h5>Columns available ({{choicesLeft.length}})</h5>
+                        <div class="std-list-search-box horizontal-flex" ng-class="{error: error}">
+                            <span class="add-on noflex"> <i class="icon-dku-search"></i></span>
+                            <input class="flex" type="text" ng-model="uiState.query" placeholder="Filter columns…">
+                        </div>
+                    </div>
+
+                    <div class="span6 offset0">
+                        <div class="pull-right"><a ng-click="removeAll()">Remove all</a></div>
+                        <h5>Columns sorted ({{choicesMade.length}})</h5>
+                    </div>
+                </div>
+
+                <div class="lists">
+                    <div class="half-pane oa">
+                        <ul class="dku-colored-list">
+                            <li ng-repeat="m in choicesLeft | filter:uiState.query" class="list-item horizontal-flex" full-click>
+                                <div class="flex mx-textellipsis">{{m.column}}</div>
+                                <a class="add noflex" ng-click="add(m)" main-click>&rarr;</a>
+                            </li>
+                        </ul>
+                    </div><!-- eat the space between the div to make it possible to use 2x50% width divs
+                 --><div class="half-pane oa">
+                            <p  class="centered-info" ng-if="!choicesMade.length">
+                                <small>No sort</small>
+                            </p>
+
+                        <ul class="dku-colored-list" ui-sortable="{axis:'y', cursor: 'move', cancel:'', handle: '.full-item-row'}" ng-model="choicesMade">
+                            <li ng-repeat="m in choicesMade" class="list-item">
+                                <div class="horizontal-flex full-item-row">
+                                    <span class="order-handle noflex"><i class="icon-reorder"></i></span>
+                                    <div class="flex mx-textellipsis">{{m.column}}</div>
+                                    <a class="sort noflex" ng-click="toggle(m)">
+                                        <i class="icon-sort-by-attributes-alt" ng-if="!m.ascending"></i>
+                                        <i class="icon-sort-by-attributes" ng-if="m.ascending"></i>
+                                    </a>
+                                    <a class="remove noflex" ng-click="remove(m)">
+                                        <i class="icon-trash"></i>
+                                    </a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+    <div class="modal-footer modal-footer-std-buttons">
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+        <button type="submit" class="btn btn--text btn--primary" ng-click="ok()">OK</button>
+    </div>
+</div>

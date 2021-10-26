@@ -1,0 +1,39 @@
+<div ng-controller="ShellChannelController">
+	<form name="descriptionForm" class="dkuform-horizontal">
+		<div class="control-group">
+			<label for="" class="control-label">Id</label>
+			<div class="controls" ng-if="channel.$creation">
+				<input type="text" ng-model="channel.id" />
+				<span class="help-inline">Must be unique.</span>
+			</div>
+			<div class="controls" ng-if="!channel.$creation">
+				{{channel.id}}
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Type</label>
+			<div class="controls">
+				<select ng-model="channel.configuration.type" ng-options="shellSenderType.type as shellSenderType.name for shellSenderType in shellSenderTypes"></select>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Command</label>
+			<div class="controls">
+				<span ng-if="channel.configuration.type == 'FILE'" class="help-inline">Leave empty for 'sh'</span>
+				<input type="text" ng-model="channel.configuration.command"></input>
+			</div>
+		</div>
+		<div class="control-group" ng-if="channel.configuration.type == 'FILE'">
+			<label class="control-label">Script</label>
+			<div class="controls">
+				<textarea ng-model="channel.configuration.script" ui-codemirror="editorOptions" ></textarea>
+ 			</div>
+		</div>
+		<div class="control-group">
+			<div class="controls">
+				<span class="help-inline">The command that will be executed. The actual reporter can define environment variables to pass data.</span>
+				<pre> {{getCommandLine()}}</pre>
+ 			</div>
+		</div>
+	</form>
+</div>

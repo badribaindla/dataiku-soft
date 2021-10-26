@@ -1,0 +1,80 @@
+<div class="main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+
+    <div class="object-nav modelevaluationstore-top-tabs no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width" navigator-object>
+
+        <div ng-if="topNav.tabsType=='MODEL_EVALUATION_STORE'" class="horizontal-flex">
+            <div std-object-breadcrumb class="flex oh" />
+            <div class="tabs noflex">
+                <a class="tab"  ng-class="{'enabled': topNav.tab == 'summary'}"  href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.summary')}}" fw500-width>Summary</a>
+                <a class="tab"  ng-class="{'enabled': topNav.tab == 'evaluations'}"  href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.evaluations')}}" fw500-width>Evaluations</a>
+                <a class="tab"  ng-class="{'enabled': topNav.tab == 'perfdrift'}"  href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.perfdrift')}}" fw500-width>Performance drift</a>
+                <a class="tab"  ng-class="{'enabled': topNav.tab == 'settings'}" ui-sref="projects.project.modelevaluationstores.modelevaluationstore.settings" fw500-width>Settings</a>
+
+                <div class="otherLinks">
+                    <a ng-show="modelEvaluationStoreFullInfo.creatingRecipe"
+                    class="btn btn--contained btn--alt btn--flow"
+                    href="{{$state.href('projects.project.recipes.recipe', {projectKey: modelEvaluationStoreFullInfo.creatingRecipe.projectKey, recipeName: modelEvaluationStoreFullInfo.creatingRecipe.name })}}">
+                        <i class="{{modelEvaluationStoreFullInfo.creatingRecipe.type|recipeTypeToIcon}}" />
+                        <span>Parent recipe</span>
+                    </a>
+                    <div class="dib">
+                        <button class="mainzone btn btn--secondary" id="qa_generic_actions-dropdown" onfocus="this.blur();" ng-click="standardizedSidePanel.toogleTab('actions')">
+                            Actions
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div ng-if="topNav.tabsType=='MODEL_EVALUATION_STORE-EVALUATION'" class="horizontal-flex">
+            <div class="object-breadcrumb noflex">
+                <a class="item evaluation-store" title="{{ topNav.item.data.name }}" href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.evaluations')}}">
+                    <i class="icon icon-model-evaluation-store"></i>
+                    <span class="title ellipsis" title="{{topNav.item.data.name}}">{{topNav.item.data.name}}</span>
+                </a>
+            </div>
+            <div class="evaluations-intermediate-link noflex" style="margin-left: 15px">/</div>
+            <div class="evaluations-intermediate-link noflex">
+                <a ui-sref="projects.project.modelevaluationstores.modelevaluationstore.evaluations">Evaluations</a>
+            </div>
+            <div class="evaluations-intermediate-link noflex">/</div>
+            <div class="evaluations-intermediate-link flex">
+                 <span class="title ellipsis" title="{{topNav.item.data.name}}">{{topNav.item.data.runId.replace('_', '_&shy;')}}</span>
+            </div>
+            
+            <div class="tabs noflex">
+                <a class="tab" ng-class="{'enabled': $state.includes('projects.project.modelevaluationstores.modelevaluationstore.evaluation.report')}" href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.evaluation.report')}}" fw500-width>Report</a>
+                <a class="tab" ng-class="{'enabled': $state.includes('projects.project.modelevaluationstores.modelevaluationstore.evaluation.statistics')}" href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.evaluation.statistics')}}" fw500-width>Data</a>
+
+                <div class="otherLinks">
+                    <a class="btn btn--contained btn--alt btn--analysis" ng-click="goToEvaluatedModel()" ng-if="mesContext.evaluationFullInfo && mesContext.evaluationFullInfo.evaluation.modelType == 'SAVED_MODEL' && mesContext.evaluationFullInfo.backingModelDeleted == false && mesContext.evaluationFullInfo.backingModelVersionDeleted == true">
+                        <i class="icon-machine_learning_regression"/>
+                        <span>View model</span>
+                    </a>
+
+                    <a class="btn btn--contained btn--alt btn--analysis" ng-click="goToEvaluatedModelVersion()" ng-if="mesContext.evaluationFullInfo && mesContext.evaluationFullInfo.evaluation.modelType == 'SAVED_MODEL' && mesContext.evaluationFullInfo.backingModelDeleted == false && mesContext.evaluationFullInfo.backingModelVersionDeleted == false">
+                        <i class="icon-machine_learning_regression"/>
+                        <span>View model version</span>
+                    </a>
+                    
+                    <a class="btn btn--secondary" ng-click="goToEvaluatedDataset()" ng-if="mesContext.evaluationFullInfo && mesContext.evaluationFullInfo.evaluation.dataType == 'DATASET' && mesContext.evaluationFullInfo.evaluatedDatasetDeleted == false">
+                        <i class="{{mesContext.evaluationFullInfo.evaluatedDatasetType | datasetTypeToIcon}}"/>
+                        <span>View dataset</span>
+                    </a>
+
+                    <div class="dib">
+                        <button class="mainzone btn btn--secondary" id="qa_generic_actions-dropdown" onfocus="this.blur();" ng-click="standardizedSidePanel.toogleTab('actions')">
+                            Actions
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div ui-view class="dss-page"></div>
+
+</div>
+
+<standardized-side-panel page="object" object-type="MODEL_EVALUATION_STORE" toogle-tab="{{ standardizedSidePanel.tabToToogle }}" close-on-click-outside="true">
+</standardized-side-panel>

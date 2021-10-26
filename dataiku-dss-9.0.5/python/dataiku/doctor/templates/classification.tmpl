@@ -1,0 +1,239 @@
+{% extends "prediction.tmpl" %}
+
+{% block target_variable %}
+## We are now going to handle the target variable and store it in a new variable:
+target_map = {{ target_map }}
+ml_dataset['__target__'] = ml_dataset['{{target}}'].map(str).map(target_map)
+del ml_dataset['{{ target }}']
+{% endblock %}
+
+{% block converting_target %}
+ml_dataset['__target__'] = ml_dataset['__target__'].astype(np.int64) {# If there were unknown values, the type is float, which breaks mroc_auc_score #}
+{% endblock %}
+
+# Train model
+
+{% block model_definition %}
+
+{% if algorithm == "RANDOM_FOREST_CLASSIFICATION" %}
+from sklearn.ensemble import RandomForestClassifier
+clf = RandomForestClassifier(n_estimators={{ post_train.rf.estimators }},
+    random_state=1337,
+    max_depth={{ post_train.rf.max_tree_depth if post_train.rf.max_tree_depth > 0 else None }},
+    min_samples_leaf={{ post_train.rf.min_samples_leaf }},
+    verbose=2)
+
+
+{% elif algorithm == "EXTRA_TREES" %}
+from sklearn.ensemble import ExtraTreesClassifier
+clf = ExtraTreesClassifier(
+                    n_estimators={{ post_train.extra_trees.estimators }},
+                    random_state=1337,
+                    max_depth={{ post_train.extra_trees.max_tree_depth if post_train.extra_trees.max_tree_depth > 0 else None }},
+                    min_samples_leaf={{ post_train.extra_trees.min_samples_leaf }},
+                    verbose=2
+                   )
+
+{% elif algorithm == "KNN" %}
+from sklearn.neighbors import KNeighborsClassifier
+clf = KNeighborsClassifier(n_neighbors={{post_train.knn.k}},
+                          weights={{"'distance'" if pre_train.knn_grid.distance_weighting else "'uniform'"}},
+                          algorithm='{{pre_train.knn_grid.algorithm}}',
+                          leaf_size={{pre_train.knn_grid.leaf_size}},
+                          p={{pre_train.knn_grid.p}})
+
+{% elif algorithm == "NEURAL_NETWORK" %}
+from sklearn.neural_network import MLPClassifier
+clf = MLPClassifier(hidden_layer_sizes={{ pre_train.neural_network_grid.layer_sizes.get("values")[0] }},
+                     activation='{{ pre_train.neural_network_grid.activation }}',
+                     solver='{{ pre_train.neural_network_grid.solver }}',
+                     alpha={{ pre_train.neural_network_grid.alpha }},
+                     batch_size={{ "'auto'" if pre_train.neural_network_grid.auto_batch else pre_train.neural_network_grid.batch_size }},
+                     max_iter={{ pre_train.neural_network_grid.max_iter }},
+                     random_state={{ pre_train.neural_network_grid.seed }},
+                     tol={{ pre_train.neural_network_grid.tol }},
+                     early_stopping={{ pre_train.neural_network_grid.early_stopping }},
+                     validation_fraction={{ pre_train.neural_network_grid.validation_fraction }},
+                     beta_1={{ pre_train.neural_network_grid.beta_1 }},
+                     beta_2={{ pre_train.neural_network_grid.beta_2 }},
+                     epsilon={{ pre_train.neural_network_grid.epsilon }},
+                     learning_rate='{{ pre_train.neural_network_grid.learning_rate }}',
+                     power_t={{ pre_train.neural_network_grid.power_t }},
+                     momentum={{ pre_train.neural_network_grid.momentum }},
+                     nesterovs_momentum={{ pre_train.neural_network_grid.nesterovs_momentum }},
+                     shuffle={{ pre_train.neural_network_grid.shuffle }},
+                     learning_rate_init={{ pre_train.neural_network_grid.learning_rate_init }})
+
+
+{% elif algorithm == "GBT_CLASSIFICATION" %}
+from sklearn.ensemble import GradientBoostingClassifier
+clf = GradientBoostingClassifier(
+                    random_state = 1337,
+                    verbose = 0,
+                    n_estimators = {{ post_train.gbt.n_estimators }},
+                    learning_rate = {{ post_train.gbt.learning_rate }},
+                    loss = '{{ post_train.gbt.loss }}',
+                    max_depth = {{ post_train.gbt.max_depth }}
+                   )
+
+{% elif algorithm == "XGBOOST_CLASSIFICATION" %}
+import xgboost as xgb
+clf = xgb.XGBClassifier(
+                    max_depth={{ post_train.xgboost.max_depth }},
+                    learning_rate={{ post_train.xgboost.learning_rate }},
+                    gamma={{ post_train.xgboost.gamma }},
+                    min_child_weight={{ post_train.xgboost.min_child_weight }},
+                    max_delta_step={{ post_train.xgboost.max_delta_step }},
+                    subsample={{ post_train.xgboost.subsample }},
+                    colsample_bytree={{ post_train.xgboost.colsample_bytree }},
+                    colsample_bylevel={{ post_train.xgboost.colsample_bylevel }},
+                    reg_alpha={{ post_train.xgboost.alpha }},
+                    reg_lambda={{ post_train.xgboost.lambda }},
+                    n_estimators={{ post_train.xgboost.n_estimators }},
+                    silent=0,
+                    nthread={{ post_train.xgboost.nthread }},
+                    scale_pos_weight={{ post_train.xgboost.scale_pos_weight }},
+                    base_score={{ post_train.xgboost.base_score }},
+                    seed={{ post_train.xgboost.seed }},
+                    missing={{post_train.xgboost.missing if post_train.xgboost.impute_missing else None}},
+                  )
+
+{% elif algorithm == "DECISION_TREE_CLASSIFICATION" %}
+from sklearn.tree import DecisionTreeClassifier
+clf = DecisionTreeClassifier(
+                     random_state = 1337,
+                     criterion = '{{ post_train.dt.criterion }}',
+                     splitter = '{{ post_train.dt.splitter }}',
+                     max_depth = {{ post_train.dt.max_depth }},
+                     min_samples_leaf = {{ post_train.dt.min_samples_leaf }}
+            )
+
+{% elif algorithm == "LOGISTIC_REGRESSION" %}
+from sklearn.linear_model import LogisticRegression
+clf = LogisticRegression(penalty="{{ post_train.logit.penalty }}",random_state=1337)
+
+{% elif algorithm == "SVC_CLASSIFICATION" %}
+from sklearn.svm import SVC
+clf = SVC(C={{ post_train.svm.C }},
+          kernel='{{ post_train.svm.kernel }}',
+          {%-if post_train.svm.kernel != "linear"%}
+          gamma={{ "'%s'" % post_train.svm.gamma if post_train.svm.gamma != "custom" else post_train.svm.custom_gamma }},{%endif%}
+          coef0={{ post_train.svm.coef0 }},
+          tol={{ post_train.svm.tol }},
+          probability=True,
+          max_iter={{ pre_train.svc_grid.max_iter }})
+
+{% elif algorithm == "SGD_CLASSIFICATION" %}
+from sklearn.linear_model import SGDClassifier
+clf= SGDClassifier(alpha={{ post_train.sgd.alpha if post_train.sgd.alpha > 0.001 else 0.001 }},
+    l1_ratio={{post_train.sgd.l1_ratio}},
+    loss='{{ post_train.sgd.loss }}',
+    penalty='{{ post_train.sgd.penalty }}',
+    shuffle=True,
+    n_iter = 5,
+    n_jobs={{pre_train.sgd_grid.n_jobs}})
+
+{% elif algorithm == "LARS" %}
+from dataiku.doctor.prediction.lars import DkuLassoLarsClassifier
+clf = DkuLassoLarsClassifier(max_var={{pre_train.lars_grid.max_features}}, K={{pre_train.lars_grid.K}})
+
+{% elif algorithm == "SCIKIT_MODEL" %}
+{{pre_train.custom_python.code}}
+{% else %}
+# Algorithm unsupported: {{ algorithm }}!
+{% endif %}
+{% endblock %}
+
+
+{% block weighting %}
+{% if weight_method == "CLASS_WEIGHT" %}
+{% if algorithm == "XGBOOST_CLASSIFICATION" %}
+## We chose "class weight" as the weighting strategy, but XGBClassifier doesn't handle the `class_weight` attribute, so we compute the class weight manually
+## and transform it into a sample_weight vector:
+from sklearn.utils.class_weight import compute_class_weight
+classes = list(target_map.values())
+class_weight = compute_class_weight('balanced', classes, y_train)
+class_weight_vector = np.vectorize(dict(zip(classes, class_weight)).get)(y_train)
+{% else %}
+## We set "class_weight" as the weighting strategy:
+{#
+    Since sklearn 0.17, using:
+    clf.class_weight = "balanced"
+
+    is equivalent to the calculation that we do manually in DSS:
+    clf.class_weight = {
+        label: float(len(y)) / (np.unique(y).size * np.sum(y == label))
+        for label in np.unique(y)
+    }
+
+    Which is also equivalent to using sklearn.utils.compute_class_weight.
+#}
+clf.class_weight = "balanced"
+{% endif %}
+{% endif %}
+
+{# Init sample weight: (can be reg. or classif.) #}
+{{ super() }}
+
+{% if weight_method == "CLASS_AND_SAMPLE_WEIGHT" %}
+## We apply the class weight to the sample weight:
+from sklearn.utils.class_weight import compute_class_weight
+classes = list(target_map.values())
+class_weight = compute_class_weight('balanced', classes, y_train)
+class_weight_vector = np.vectorize(dict(zip(classes, class_weight)).get)(y_train)
+train_sample_weight *= class_weight_vector
+{% endif %}
+{% endblock %}
+
+
+{% block calibration %}
+{% if calibration_method == "sigmoid" or calibration_method == "isotonic" %}
+## We can now calibrate the model probabilities:
+from sklearn.calibration import CalibratedClassifierCV
+calibrated_clf = CalibratedClassifierCV(clf, cv="prefit", method="{{calibration_method}}")
+calibrated_clf.fit(X_test, y_test)
+clf = calibrated_clf
+{% endif %}
+{% endblock %}
+
+
+{% block prediction %}
+## The model is now trained, we can apply it to our test set:
+%time _predictions = clf.predict(X_test)
+%time _probas = clf.predict_proba(X_test)
+predictions = pd.Series(data=_predictions, index=X_test.index, name='predicted_value')
+cols = [
+    u'probability_of_value_%s' % label
+    for (_, label) in sorted([(int(target_map[label]), label) for label in target_map])
+]
+probabilities = pd.DataFrame(data=_probas, index=X_test.index, columns=cols)
+
+# Build scored dataset
+results_test = X_test.join(predictions, how='left')
+results_test = results_test.join(probabilities, how='left')
+results_test = results_test.join(test['__target__'], how='left')
+results_test = results_test.rename(columns= {'__target__': '{{ target }}'})
+{% endblock %}
+
+
+{% block evaluation %}
+## You can measure the model's accuracy:
+from dataiku.doctor.utils.metrics import mroc_auc_score
+y_test_ser = pd.Series(y_test)
+{% if weight_method in ["SAMPLE_WEIGHT", "CLASS_AND_SAMPLE_WEIGHT"] %}
+print ('AUC value:', mroc_auc_score(y_test_ser, _probas, sample_weight=test_sample_weight))
+{% else %} {#
+    NB: If the weight_method is CLASS_WEIGHT, providing the sample_weight parameter to
+    the function mroc_auc_score is useless. Because the formula for roc_auc gives
+    that sample_weight has no effect when sample_weight=class_weight.
+#}
+print ('AUC value:', mroc_auc_score(y_test_ser, _probas))
+{% endif %}
+
+
+## We can also view the predictions directly.
+## Since scikit-learn only predicts numericals, the labels have been mapped to 0,1,2 ...
+## We need to 'reverse' the mapping to display the initial labels.
+inv_map = { target_map[label] : label for label in target_map}
+predictions.map(inv_map)
+{% endblock %}

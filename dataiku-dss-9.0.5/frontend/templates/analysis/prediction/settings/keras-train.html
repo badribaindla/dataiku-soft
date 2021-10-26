@@ -1,0 +1,60 @@
+<div class="vertical-flex" style="height: 100%">
+    <div class="design-tab-title">
+        Model training
+        <div class="pull-right" style="font-size: 13px;">
+            <a class="no-text-decoration-on-hover" ng-click="switchFitMode()">{{mlTaskDesign.modeling.keras.advancedFitMode ? "Standard mode" : "Advanced mode"}}</a>
+        </div>
+    </div>
+    <div ng-if="mlTaskDesign.modeling.keras.advancedFitMode" class="control-group" style="flex: 1;">
+        <div code-snippet-editor code="mlTaskDesign.modeling.keras.fitCode" sample-type="'python'" categories="['py-keras-training']" save-category="'py-keras-training'"/>
+    </div>
+    <div ng-if="!mlTaskDesign.modeling.keras.advancedFitMode" class="doctor-settings-page">
+        <form class="dkuform-horizontal">
+
+            <div class="control-group">
+                <label class="control-label">Number of epochs</label>
+                <div class="controls">
+                    <input type="number" min="1" required ng-model="mlTaskDesign.modeling.keras.epochs" ng-model-options="{allowInvalid: true}"/>
+                    <div class="help-inline">The number of epochs for learning. Higher values lead to better convergence, but take more time.</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Batch size</label>
+                <div class="controls">
+                    <input type="number" min="1" required ng-model="mlTaskDesign.modeling.keras.batchSize" ng-model-options="{allowInvalid: true}"/>
+                    <div class="help-inline">The number of samples to include in each mini-batch.</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Train on all data</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="mlTaskDesign.modeling.keras.trainOnAllData" />
+                    <div class="help-inline">Whether one epoch should contain all the training data.</div>
+                </div>
+            </div>
+
+            <div ng-if="!mlTaskDesign.modeling.keras.trainOnAllData">
+                <div class="control-group">
+                    <label class="control-label">Steps per epoch</label>
+                    <div class="controls">
+                        <input type="number" min="1" required ng-model="mlTaskDesign.modeling.keras.stepsPerEpoch" ng-model-options="{allowInvalid: true}"/>
+                        <div class="help-inline">The number of batches used for training one epoch.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Shuffle data</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="mlTaskDesign.modeling.keras.shuffleData" />
+                    <div class="help-inline">Whether the data should be shuffled between epochs (recommended, unless the data is already in random order).</div>
+                </div>
+            </div>
+
+        </form>
+
+
+    </div>
+</div>

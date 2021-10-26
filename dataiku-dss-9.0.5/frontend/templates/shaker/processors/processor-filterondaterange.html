@@ -1,0 +1,66 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-parent="processorForm">
+
+    <ng-include src="'/templates/shaker/processors/processor-filter-and-flag.html'"></ng-include>
+
+    <fieldset>
+        <span class="fieldLabel">Date</span>
+        <input
+                type='text'
+                bs-typeahead='step.$stepState.change.columnsBeforeStep'
+                autocomplete='off'
+                ng-trim="false"
+                ng-required="true"
+                required="required"
+                data-min-length='0'
+                ng-model='step.params.columns[0]    '
+                class="submit-on-blur"
+                next-on-enter/>
+    </fieldset>
+
+    <fieldset>
+        <span class="fieldLabel">between</span>
+        <input
+                type='text'
+                ng-model='step.params.min'
+                class="submit-on-blur"
+                placeholder="yyyy-MM-ddTHH:mm:ss"
+                next-on-enter/>
+    </fieldset>
+
+    <fieldset>
+        <span class="fieldLabel">and</span>
+        <input
+                type='text'
+                ng-model='step.params.max'
+                class="submit-on-blur"
+                placeholder="yyyy-MM-ddTHH:mm:ss"
+                next-on-enter/>
+    </fieldset>
+
+    <div class="help-inline">
+        Both dates in ISO 8601 format. Partial dates are supported.
+        <ul>
+            <li><em>2016-05-22</em></li>
+            <li><em>2016-05-22T13</em></li>
+            <li><em>2016-05-22T14:28:53</em></li>
+            <li><em>2016-05-22T14:28:53.927Z</em></li>
+        </ul>
+    </div>
+
+    <fieldset>
+        <span class="fieldLabel">Default timezone</span>
+        <select
+                dku-bs-select
+                ng-model="step.params.timezone_id"
+                ng-options="item.value as item.label for item in processor.params[2].advancedChoices"
+                class="submit-on-blur"
+                next-on-enter
+                required>
+        </select>
+        <span class="help-inline">
+            Used if timezone info is not present in the date specifier
+        </span>
+    </fieldset>
+
+</form>
+

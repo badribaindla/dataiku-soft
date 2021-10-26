@@ -1,0 +1,36 @@
+MAINTAINER Dataiku <dss@dataiku.com>
+
+COPY server-config /home/dataiku/data/config/
+COPY server-resources /home/dataiku/data/resources/
+COPY prebuilt-services /home/dataiku/data/services
+COPY lib-jdbc /home/dataiku/data/lib/jdbc
+COPY install-details /home/dataiku/install-details
+COPY docker-entrypoint.sh /usr/local/bin/
+
+# Make sure the entrypoint is executable even when faced with restrictive installdir permissions
+RUN chmod 755 /usr/local/bin/docker-entrypoint.sh
+
+# OpenShift compatibility:
+# OpenShift runs containers with an arbitrary uid as an additional security measure
+# Thus, we are not "dataiku" and cannot write inside /home/dataiku
+# However, we are always gid=0, so we give /home/dataiku to gid 0 and make sure group can
+# write into it.
+# This is the official recommendation:
+#.https://docs.openshift.com/container-platform/4.3/openshift_images/create-images.html#images-create-guide-openshift_create-images
+#  "Support arbitrary user ids"
+#
+# More details:
+# This is enforced through a Security Context Constraint - see
+# https://docs.openshift.com/container-platform/4.3/authentication/managing-security-context-constraints.html
+# One of the SCC says
+#  Run As User Strategy: MustRunAsRange
+#    UID:                    <none>
+#    UID Range Min:              <none>
+#    UID Range Max:              <none>
+# with the range given by an annotation on the project: openshift.io/sa.scc.uid-range=1000540000/10000
+#
+RUN chown -Rh dataiku:0 /home/dataiku && chmod -R 775 /home/dataiku
+USER dataiku
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+EXPOSE 12000

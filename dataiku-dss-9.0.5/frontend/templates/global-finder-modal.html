@@ -1,0 +1,181 @@
+<div help-menu in-modal="true" class="modal global-finder-modal list-page-4" ng-style="{height: globalfinder.advancedSearch === false ? 'auto' : '97vh'}" selected-index="openItem(item)" ng-model="globalfinder.allData" ui-keypress="{enter:'openItem(selected.item)'}" initial-index="{{initial.index}}">
+    <div class="global-finder-modal__search">
+        <i class="global-finder-modal__search-icon icon-dku-search"></i>
+        <input type="search" placeholder="Search {{::wl.productShortName}} items, settings and help" class="global-finder-modal__search-input" ng-model="globalfinder.q" ng-change="onSmartInputChange()" />
+
+        <span class="global-finder-modal__top-right-actions">
+            <span ng-if="!!globalfinder.q">
+                <a class="global-finder-modal__top-right-action global-finder-modal__top-right-action--middle" ng-click="emptySearch()">Clear</a>
+            </span>
+
+            <a class="global-finder-modal__top-right-action" ng-click="dismiss()">
+                <i class="icon-dku-close"></i>
+            </a>
+        </span>
+
+    </div>
+    <div class="tasks-list" ng-show="globalfinder.searching" style="position: absolute; top: 42px; left: 0; right: 0;">
+        <div class="future-body">
+            <div class="state" future-progress-bar="true" style="margin-top: 0px">
+                <div class="perpetual-bar ng-scope">
+                    <div class="done"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="main-list-zone vertical-flex oys hide-scrollbars" ng-if="globalfinder.advancedSearch === false && !!globalfinder.results && globalfinder.results.length > 0">
+        <ul class="list-items global-finder-modal__list"
+            filtered-multi-select-rows
+            ng-model="globalfinder.results"
+            select-click-behaviour="select-add"
+            remember-selection
+            remember-selection-comparator="'_id'"
+            is-item-selectable-predicate="isItemSelectable"
+        >
+
+            <li ng-repeat="item in selection.filteredObjects"
+                class="list-item global-finder-modal__line global-finder-modal__line--non-advanced-search horizontal-flex w100"
+                ng-mousemove="selectItem(item)"
+                ng-class="{
+                    'global-finder-modal__line--focused': selected.item === item,
+                    'global-finder-modal__line-nothoverable': selected.item !== item
+                }">
+                <div class="mx-center-children-vertically flex-no-shrink object-fit">
+                    <div ng-if="::item._type === 'no-data'" class="m0 flex-no-shrink mx-center-children w100">
+                        <p class="m0 flex-no-shrink mx-center-children-vertically text-prompt">Your recent searches will appear here</p>
+                    </div>
+                    <p class="m0 flex-no-shrink mx-center-children-vertically text-prompt" ng-if="::item._type === 'search-separator'">{{::item._source.name}}</p>
+                    <a class="flex-no-shrink object-fit" href="{{::item.url}}" ng-click="clickItem(item)" ng-if="::item._type !== 'search' && item._type !== 'search-separator'" ng-attr-target="{{::item.isHelp ? '_blank' : undefined}}" ng-attr-rel="{{::item.isHelp ? 'noopener noreferrer' : undefined}}">
+                        <div class="m0 mx-center-children-vertically w100">
+                            <div class="horizontal-flex w100" style="justify-content: flex-start">
+                                <i class="mright8 global-finder-modal__search-type-icon--nomargin type-icon {{::itemToIcon(item, true)}} universe-color {{::itemToColor(item)}} {{::disableItemIcon(item)}} noflex"></i>
+                                <div class="global-finder-modal__inbox-closed-tag noflex" ng-if="::item._source.closed">closed</div>
+
+                                <p class="global-finder-modal__line-maintext" ng-if="::!item.isHelp">{{::formatItemName(item)}}</p>
+                                <p class="global-finder-modal__line-maintext" ng-if="::item.isHelp">
+                                        <span ng-if="::item.category"><span ng-bind-html="::item.category" /> ›</span>
+                                        <span ng-if="::item.subcategory"><span ng-bind-html="::item.subcategory" /> ›</span>
+                                        <span ng-bind-html="::item.title"></span>
+                                </p>
+                                <span class="global-finder-modal__line-subtitle" ng-if="::!item.isHelp">{{::formatItemPath(item) ? '- ' + formatItemPath(item) : '' }}</span>
+                                <span class="global-finder-modal__line-subtitle" ng-if="::item.isHelp"> - {{::formatItemHelpType(item)}}</span>
+                            </div>
+                        </div>
+                    </a>
+                    <a class="m0 text-important flex-no-shrink object-fit horizontal-flex" ng-if="::item._type === 'search'" ng-click="clickItem(item)" style="justify-content: space-between">
+                        <i ng-if="::!!item.icon" class="{{::item.icon}} flex-no-grow mright8"></i>
+                        <p class="m0 text-important mx-textellipsis" ng-class="{'flex-no-grow': item._type === 'search' && (item._category !== 'recent' || selected.item === item), 'flex': (!(item._type === 'search' && (item._category !== 'recent' || selected.item === item)))}">{{::item._source.name }}</p>
+                        <span class="flex-no-shrink mright8" ng-class="{'text-prompt': item._category === 'recent', 'global-finder-modal__text-prompt': item._category !== 'recent'}" ng-if="item._type === 'search' && (item._category !== 'recent' || selected.item === item)">&nbsp;- Search {{::wl.productShortName}}</span>
+                        <p class="m0 mright8 text-prompt noflex">
+                            {{::(item._type === 'search' && !!item._source.time) ? (item._source.time | friendlyTimeDeltaShort) : '' }}
+                        </p>
+                    </a>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div class="global-finder-modal__main-vertical-flexbox vertical-flex" ng-if="globalfinder.advancedSearch === true">
+        <div class="object-nav global-finder-modal__object-nav" style="position: unset">
+            <a ng-repeat="tab in ::tabs.availables" class="tab ellipsed" text-content="{{::tab.value}}" fw500-width="" ng-class="{'enabled': tabs.current.id === tab.id}" ng-click="enableTab(tab)">
+                {{::tab.value}}
+            </a>
+        </div>
+            <div class="global-finder-modal__main-horizontal-flexbox horizontal-flex main-list-zone">
+                <div class="left-sidebar global-finder-modal__left-sidebar oys hide-scrollbars" ng-if="globalfinder.aggregations && (globalfinder.aggregations | toArrayWithKey).length > 0">
+                    <div class="facet type-selection global-finder-modal__left-sidebar-type-selection" ng-repeat="agg in globalfinder.aggregations | toArrayWithKey | orderBy:'_key'" ng-show="!(agg._key === 'projectKey.raw' && tabs.current.id === 'project')">
+                        <h4 class="mx-facet-h4">{{::getAggregationTitle(agg._key)}}</h4>
+                        <div class="mx-value-list">
+                            <div class="facet-filterable-list__value-list__items">
+                                <label class="all horizontal-flex mx-center-children-vertically">
+                                    <input type="checkbox" ng-disabled="hasFilterWithValue(getFilter(agg._key) + ':all')  || !hasFilter(getFilter(agg._key) + ':')" ng-checked="hasFilterWithValue(getFilter(agg._key) + ':all') || !hasFilter(getFilter(agg._key) + ':')" ng-click="toggleFilter(getFilter(agg._key), 'all', true)"/>
+                                    <span class="flex text">All</span>
+                                    <span ng-if="!isHelpTabSelected()">{{::agg.doc_count}}</span>
+                                </label>
+                                <label ng-repeat="item in agg.agg.buckets | orderBy:'key'"
+                                    ng-if="item.doc_count > 0 || item.doc_count == 0 && isHelpTabSelected()"
+                                    ng-show="$index < getAggCollapsing(agg)"
+                                    class="horizontal-flex mx-center-children-vertically mx-facet-type-icon-colored">
+                                        <input type="checkbox" ng-checked="hasFilterWithValue(getFilter(agg._key) + ':' + buildFilterValue(item.key))" ng-click="toggleFilter(getFilter(agg._key), buildFilterValue(item.key))"/>
+                                        <i class="type-icon {{::item.key | typeToIcon }} {{::item.key}} mright8" ng-if="::agg._key === '_type'"></i>
+                                        <div ng-if="::agg._key === 'user'" user-picture="item.key" size=16 class="global-finder-modal__search-type-icon avatar16"></div>
+                                        <span ng-if="agg._key !== 'tag.raw'" class="flex text"> {{::getAggregationText(item.key, agg._key, item)}}</span>
+                                        <span ng-if="agg._key === 'tag.raw'" class="flex text" ui-global-tag="item.key" object-type="'TAGGABLE_OBJECT'"/>
+                                        <span ng-if="item.doc_count > 0">{{::item.doc_count}}</span>
+                                </label>
+                                <label ng-if="agg.agg.buckets.length > getAggCollapsing(agg)">
+                                    <a ng-click="setAggCollapsing(agg)" class="global-finder-modal__left-sidebar-show-more">+</a>
+                                    <a ng-click="setAggCollapsing(agg)">{{agg.agg.buckets.length - getAggCollapsing(agg)}} more...</a>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="vertical-flex h100" ng-if="!globalfinder.searching && globalfinder.results && globalfinder.results.length">
+                    <ul class="list-items flex-expand h100"
+                        ng-model="globalfinder.results"
+                        fat-repeat="globalfinder.results"
+                        enable-async="isHelpTabSelected()"
+                        chunk-size="chunkSize()"
+                        nb-rows="getListRowNumber()"
+                        get-row-chunk="getRowChunk"
+                        page-from-data="transformPage"
+                        as="item"
+                        row-height="50"
+                    >
+                        <li ng-show="item" class="list-item global-finder-modal__line global-finder-modal__line--advanced-search horizontal-flex object-fit"
+                            ng-mousemove="selectItem(item)"
+                            ng-class="{
+                                'global-finder-modal__line--focused': selected.item === item,
+                                'global-finder-modal__line-nothoverable': selected.item !== item,
+                            }">
+                            <div class="mx-center-children-vertically flex-no-shrink object-fit horizontal-flex">
+                                <a href="{{item.url}}" ng-click="clickItem(item)" class="m0 flex h100 mx-center-children-vertically oh" ng-attr-target="{{item.isHelp ? '_blank' : undefined}}" ng-attr-rel="{{item.isHelp ? 'noopener noreferrer' : undefined}}">
+                                    <i class="global-finder-modal__search-type-icon--nomargin mright16 type-icon {{itemToIcon(item, true)}} universe-color {{itemToColor(item)}} {{disableItemIcon(item)}} noflex"></i>
+                                    <div class="vertical-flex flex-no-basis oh">
+                                        <div class="horizontal-flex flex">
+                                            <div class="global-finder-modal__inbox-closed-tag noflex" ng-if="item._source.closed">closed</div>
+                                            <p class="m0 text-important mx-textellipsis flex" ng-if="!item.isHelp">{{formatItemName(item)}}</p>
+
+                                            <p class="text-important m0 w100 mx-textellipsis" ng-if="item.isHelp">
+                                                <span ng-if="item.category"><span ng-bind-html="item.category" /> ›</span>
+                                                <span ng-if="item.subcategory"><span ng-bind-html="item.subcategory" /> ›</span>
+                                                <span ng-bind-html="item.htmlTitle"></span>
+                                            </p>
+                                        </div>
+                                        <p class="text-weak m0 mx-textellipsis flex" ng-if="!item.isHelp">{{formatItemPath(item)}}</p>
+                                        <p class="text-weak m0 mx-textellipsis" ng-if="item.isHelp">{{formatItemHelpType(item)}}</p>
+                                    </div>
+                                </a>
+                                <p class="m0 mright8 text-prompt noflex">
+                                    {{getLastModifiedDate(item)}}
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="h100 global-finder-modal__empty_search" ng-if="!globalfinder.searching && globalfinder.results && globalfinder.results.length === 0">
+                    <div>
+                         <p class="global-finder-modal__empty_search_title">
+                             No results
+                         </p>
+                        <p class="global-finder-modal__empty_search_body">
+                            We couldn't find items matching your search.
+                        </p>
+                        <p class="global-finder-modal__empty_search_hint">
+                            You may want to try...
+                        </p>
+                         <ul>
+                             <li>Using different keywords.</li>
+                             <li>Making sure all words are spelled correctly.</li>
+                             <li>Adjusting your filters.</li>
+                         </ul>
+                    </div>
+                 </div>
+            </div>
+            <div class="h100" ng-if="globalfinder.searching"></div>
+        <div ng-if="isHelpTabSelected()" class="global-finder-modal__help-more">
+            <span style="margin: 0px 0px 0px 22px">Still lost?</span>
+            <button class="btn btn--primary mleft16" ng-click="getHelp()" wt1-click-id="get_help">Get help with {{::wl.productShortName}}</button>
+        </div>
+    </div>
+</div>

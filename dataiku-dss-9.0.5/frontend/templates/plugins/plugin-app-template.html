@@ -1,0 +1,42 @@
+<div class="section" ng-scope="{{errorScope = this}}">
+    <div block-api-error />
+    <div ng-if="appTemplateDesc.desc.meta.description" class="alert alert-info">
+        {{appTemplateDesc.desc.meta.description}}
+    </div>
+
+    <form name="remappingsEditor" class="page-top-padding small-lr-padding dkuform-horizontal">
+
+        <h2>Connections</h2>
+        <ul class="raw-unstyled-ul" add-remove ng-model="appTemplate.remapping.connections" >
+            <li ng-repeat="connectionRemapping in appTemplate.remapping.connections" class="app-designer__remappings-row">
+                <input ng-model="connectionRemapping.source" type="text"/>
+                <i class="icon-long-arrow-right" />
+                <select ng-model="connectionRemapping.target"
+                        dku-bs-select="{liveSearch:true,size:'auto'}"
+                        ng-options="item.name as item.name group by item.type for item in availableConnections | orderBy:'type + name'" />
+                <a ng-click="remove($index)"> <i class="icon-trash btn-close"></i></a>
+            </li>
+            <li class="app-designer__remappings-add-button app-designer__remappings-row">
+                <span ng-click="addConnectionRemapping()"><i class="icon-plus-sign" /> Add new connection</span>
+            </li>
+        </ul>
+
+        <h2>Code envs</h2>
+        <ul class="raw-unstyled-ul" add-remove ng-model="appTemplate.remapping.codeEnvs" >
+            <li ng-repeat="codeEnvRemapping in appTemplate.remapping.codeEnvs" class="app-designer__remappings-row">
+                <input ng-model="codeEnvRemapping.source" type="text"/>
+                <i class="icon-long-arrow-right" />
+                <select ng-model="codeEnvRemapping.target"
+                        dku-bs-select="{liveSearch:true,size:'auto'}"
+                        ng-options="item.envName as item.envName group by item.envLang for item in availableCodeEnvs | orderBy:'envLang + envName'" />
+                <a ng-click="remove($index)"> <i class="icon-trash btn-close"></i></a>
+            </li>
+            <li class="app-designer__remappings-add-button app-designer__remappings-row">
+                <span ng-click="addCodeEnvRemapping()"><i class="icon-plus-sign" /> Add new code env</span>
+            </li>
+        </ul>
+
+
+    </form>
+
+</div>

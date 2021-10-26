@@ -1,0 +1,37 @@
+<div class="main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+    <div class="horizontal-flex row-fluid object-nav no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width" navigator-object>
+        <div class="flex oh" std-object-breadcrumb />
+        <div class="noflex">
+            
+            <a top-level-tab-state tab-name="summary" label="Summary" sref="projects.project.managedfolders.managedfolder.summary" />
+            <a top-level-tab-state tab-name="view" label="View" sref="projects.project.managedfolders.managedfolder.view" />
+            <a top-level-tab-state tab-name="status" label="Status" sref="projects.project.managedfolders.managedfolder.status.metrics" />
+            <a top-level-tab-state tab-name="settings" label="Settings" sref="projects.project.managedfolders.managedfolder.settings" />
+            
+            <div class="otherLinks">
+                <a ng-show="baseOdb.creatingRecipe"
+                    class="btn btn--contained btn--alt btn--flow"
+                    href="{{$state.href('projects.project.recipes.recipe', {projectKey: baseOdb.creatingRecipe.projectKey, recipeName: baseOdb.creatingRecipe.name })}}">
+                    <i class="{{baseOdb.creatingRecipe.type|recipeTypeToIcon}}" />
+                    <span>Parent recipe</span>
+                </a>
+                <a ng-show="baseOdb.creatingContinuousRecipe"
+                    class="btn btn--contained btn--alt btn--flow"
+                    href="{{$state.href('projects.project.recipes.recipe', {projectKey: baseOdb.creatingContinuousRecipe.projectKey, recipeName: baseOdb.creatingContinuousRecipe.name })}}">
+                    <i class="{{baseOdb.creatingContinuousRecipe.type|recipeTypeToIcon}}" />
+                    <span>Parent continuous recipe</span>
+                </a>
+                <div class="dib">
+                    <button class="mainzone btn btn--secondary" id="qa_generic_actions-dropdown" onfocus="this.blur();" ng-click="standardizedSidePanel.toggleTab('actions')">
+                        Actions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div ui-view class="dss-page" ></div>
+</div>
+
+<standardized-side-panel page="object" object-type="MANAGED_FOLDER" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" close-on-click-outside="true">
+</standardized-side-panel>

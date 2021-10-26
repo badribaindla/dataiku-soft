@@ -1,0 +1,159 @@
+<div class="horizontal-flex h100">
+	<div class="flex graph-zone">
+        <div class="graph-body fh">
+            <div class="horizontal-flex">
+                <div class="project-keys noflex" ng-if="projectKey == null">
+                    <ul class="fh">
+                        <li >
+                            <div class="project-key">
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="scenario-names noflex" style="position: relative;">
+                    <ul class="fh">
+                        <li >
+                            <div class="scenario-name">
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="past-runs noflex">
+                    <ul class="fh">
+                        <li >
+                            <div class="run-count" >
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="graph flex">
+                    <ul class="cell-pane fh" style="position: absolute;">
+                    </ul>
+                </div>
+            </div>
+        </div>
+		<div class="fh oa">
+			<div class="graph-header">
+				<div class="horizontal-flex">
+					<div class="project-keys noflex" ng-if="projectKey == null">
+						Project
+					</div>
+					<div class="scenario-names noflex">
+						Scenario
+					</div>
+					<div class="past-runs noflex">
+						Past runs
+					</div>
+					<div class="graph flex">
+						<div class="cell-pane">
+							<div class="tick-label" ng-repeat="column in displayedColumns" style=" width: {{100 / displayedColumns.length}}%; left: {{100 * ($index + 0.5) / displayedColumns.length}}%">
+								<div ng-if="column.dow == 0 && column.date != hovered.date" class="date-label" >{{column.dateFormatted}}</div>
+								<div ng-if="column.date == hovered.date" class="hovered-date-label" >
+								{{column.dateDay}}<br/>{{column.dateFormatted}}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="graph-body">
+				<div class="horizontal-flex">
+					<div class="project-keys noflex" ng-if="projectKey == null">
+						<ul>
+							<li ng-repeat="row in outcomes.rows | filter:scenarioSearch" style="position: relative;">
+								<div class="project-key" ng-class="{'activated' : scenarioIsActive(row), 'deactivated' : !scenarioIsActive(row)}" >
+									<a ui-sref="projects.project.monitoring.scenarios({projectKey: row.target.projectKey})">{{row.target.projectKey}}</a>
+									<div ng-show="row == hovered.row" class="fh hover-active"></div>
+								</div>
+							</li>
+						</ul>
+					</div>
+					<div class="scenario-names noflex" style="position: relative;">
+						<ul >
+							<li ng-repeat="row in outcomes.rows | filter:scenarioSearch">
+								<div class="scenario-name" ng-class="{'activated' : scenarioIsActive(row), 'deactivated' : !scenarioIsActive(row)}">
+									<a ui-sref="projects.project.scenarios.scenario.runs.list({projectKey: row.target.projectKey, scenarioId: row.target.scenarioId})">{{row.info.name || row.target.scenarioId}}</a>
+                                    <div ng-show="row == hovered.row" class="fh hover-active"></div>
+								</div>
+							</li>
+						</ul>
+					</div>
+					<div class="past-runs noflex">
+						<ul>
+							<li ng-repeat="row in outcomes.rows | filter:scenarioSearch">
+								<div class="run-count" ng-class="{'activated' : scenarioIsActive(row), 'deactivated' : !scenarioIsActive(row)}">
+									<span>{{row.info.totalRunCount}}</span>
+                                    <div ng-show="row == hovered.row" class="fh hover-active"></div>
+								</div>
+							</li>
+						</ul>
+					</div>
+					<div class="graph flex">
+                        <ul class="cell-pane" outcome-cells ng-model="outcomes.rows"></ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="details noflex" style="position: relative;">
+		<div class="fh">
+            <div class="h100" ng-if="!(selected.row || selected.column || selected.scenario)">
+                <div class="click-cta">Click in the timeline to view details</div>
+            </div>          
+			<div class="h100 vertical-flex" ng-if="selected.row || selected.column || selected.scenario">
+    			<div class="noflex header">
+    			    <div class="horizontal-flex">
+    					<div class="noflex icon"><i class="icon-list"></i></div>
+    					<span ng-if="selected.actions" ng-switch="getCellGlobalOutcome(selected.actions).toUpperCase()" class="noflex scenario-results" style="width: .6em">
+    						<i ng-switch-when="SUCCESS" class="icon-check-sign success" />
+    						<i ng-switch-when="WARNING" class="icon-warning-sign warning" />
+    						<i ng-switch-when="FAILED" class="icon-remove-sign failed" />
+    						<i ng-switch-default class="icon-ban-circle aborted" />
+    					</span>
+    					<span class="flex name">{{selected.scenario.name || selected.scenario.id}}</span>
+    					<span class="noflex date">{{selected.formattedDate}}</span>
+    			    </div>
+    			</div>
+    			<div class="flex body">
+                    <div class="fh">
+                        <div class="h100 vertical-flex">
+            				<div class="noflex info"><div class="key">Project</div><div class="value">{{selected.scenario.projectKey}}</div></div>
+            				<div class="noflex info"><div class="key">Name</div><div class="value">{{selected.scenario.name}}</div></div>
+            				<div class="noflex info"><div class="key">Type</div><div class="value">{{selected.scenario.type}}</div></div>
+            				<div class="noflex info" ng-if="selected.scenario.type == 'step_based'"><div class="key">Steps</div><div class="value">{{selected.scenario.stepCount}}</div></div>
+            				<div class="noflex actions-header" ng-if="selected.scenario.runs">
+            					<div class="key" style="margin-top: 10px;">
+            						<span ng-click="selected.scenario.$collapsed = !selected.scenario.$collapsed" style="width: 20px; display: inline-block; font-size: 11px;">
+            							<i ng-class="{'icon-chevron-down' : selected.scenario.$collapsed != true, 'icon-chevron-right' : selected.scenario.$collapsed == true}"></i>
+            						</span>
+            						Runs
+            					</div>
+                            </div>
+                            <div class="flex actions-body" ng-if="selected.scenario.runs && !selected.scenario.$collapsed">
+                                <div class="fh">
+            						<ul fat-repeat="selected.scenario.runs" as="run" row-height="24" class="h100">
+                                        <li>
+                							<a ui-sref="projects.project.scenarios.scenario.runs.list.run({
+                									projectKey:selected.scenario.projectKey, scenarioId: selected.scenario.id, runId: run.runId})"
+                									class="db mx-link-nodecoration horizontal-flex" > <!-- style="color: inherit" -->
+                								<span ng-switch="run.result.outcome" class="noflex scenario-results" style="width: 1em">
+                									<i ng-switch-when="SUCCESS" class="icon-check-sign success" />
+                									<i ng-switch-when="WARNING" class="icon-warning-sign warning" />
+                									<i ng-switch-when="FAILED" class="icon-remove-sign failed" />
+                									<i ng-switch-default class="icon-ban-circle aborted" />
+                								</span>
+                								<span class="flex trigger">{{run.trigger.trigger.name || run.trigger.trigger.id}}</span>
+                								<span class="noflex duration" ng-if="run.end > 0">at {{(run.start)|date:'HH:mm:ss'}} for {{(run.end-run.start)| durationHHMMSS}}</span>
+                								<span class="noflex duration" ng-if="!(run.end > 0)">at {{(run.start)|date:'HH:mm:ss'}}</span>
+                							</a>
+                                        </li>
+            						</ul>
+                                </div>
+            				</div>
+                        </div>
+                    </div>
+    			</div>
+			</div>
+		</div>
+	</div>
+</div>

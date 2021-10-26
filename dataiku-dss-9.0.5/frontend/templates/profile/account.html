@@ -1,0 +1,84 @@
+<div class="boxed-next-to-sidebar"  global-keydown="{'ctrl-s meta-s':'saveUser()'}">
+    <div>
+        <div block-api-error />
+
+        <h1 class="page-title">My Account</h1>
+
+        <form name="userDescriptionForm" class="dkuform-horizontal">
+            <h5>General</h5>
+            <div class="control-group" >
+                <label class="control-label">Type</label>
+                <div class="controls">{{ user.sourceType }}</div>
+            </div>
+
+            <div class="control-group" >
+                <label class="control-label">Display name</label>
+                <div class="controls">
+                <input type="text" required ng-model="user.displayName" name="displayName"/>
+                <span class="text-error" ng-show="userDescriptionForm.displayName.$invalid">Display name is mandatory</span>
+                </div>
+            </div>
+
+            <div class="control-group" >
+                <label class="control-label">Email</label>
+                <div class="controls">
+                <input type="text" ng-model="user.email" />
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">User properties</label>
+                <div class="controls">
+                    <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+                        <textarea json-object-pretty-view name="userProps" ui-codemirror="codeMirrorSettingService.get('text/json')" ng-model="user.userProperties"></textarea>
+                    </div>
+                </div>
+            </div>
+
+			<h5>Other credentials</h5>
+
+	        <div class="alert alert-info">
+	            These credentials can be retrieved in recipe code or by plugins
+	        </div>
+
+            <div class="control-group">
+                <ng2-credentials-list
+                    [(items)]="user.secrets"
+                    key-identifier="name"
+                    [can-be-final]="false"
+                    add-label="Add a credential">
+                </ng2-credentials-list>
+            </div>
+
+        	<div class="control-group" ng-show="user.sourceType == 'LOCAL'">
+        		<h5>Change your password</h5>
+        		<div class="control-group">
+        			<label class="control-label">Old password</label>
+        			<div class="controls">
+        				<input type="password" ng-model="user.oldPassword" />
+        			</div>
+        		</div>
+
+        		<div class="control-group">
+        			<label class="control-label">New password</label>
+        			<div class="controls">
+                <input name="password" type="password" ng-model="user.password" autocomplete="new-password" ng-minlength="5" ng-required="false" />
+                <span class="text-error" ng-show="userDescriptionForm.password.$invalid">Password must be at least 5 characters</span>
+        			</div>
+        		</div>
+
+        		<div class="control-group">
+        			<label class="control-label">Confirm password</label>
+        			<div class="controls">
+                <input type="password" ng-model="user.passwordConfirmation" autocomplete="new-password" password-match="user.password" name="passwordConfirmation" />
+                <span class="text-error" ng-show="userDescriptionForm.passwordConfirmation.$invalid">Passwords don't match</span>
+                    </div>
+                </div>
+        	</div>
+
+            <div class="alert alert-error" ng-show="errorMessage" style="margin-top:15px;">
+                <i class="icon-dku-error"></i>&nbsp;{{errorMessage}}
+            </div>
+        </form>
+    </div>
+</div>

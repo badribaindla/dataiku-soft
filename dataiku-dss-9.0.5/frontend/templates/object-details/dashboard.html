@@ -1,0 +1,101 @@
+<div data-extend-template="/templates/object-details/item-template.html" ng-controller="DashboardDetailsController">
+    <div data-block="item-header"
+        item-header
+        color="dashboard"
+        icon="icon-dku-dashboard"
+        title="{{data.dashboard.name}}"
+        href="StateUtils.href.dashboard(data.dashboard.id, data.dashboard.projectKey, {name: data.dashboard.name})"
+        ng-mouseleave="hoverIntentCallback.hide()"
+        >
+        {{data.dashboard.name}}
+    </div>
+
+    <div ng-if="!isOnDashboardObjectPage()" data-block-prepend="left">
+        <div dashboard-miniature dashboard="data.dashboard" ng-if="data.dashboard.pages" class="dku-border oh dashboard-miniature-rh-preview"></div>
+    </div>
+
+    <div data-block-append="left">
+        <div class="line" ng-if="data.ownerDisplayName">
+            <h4>Owner</h4>
+            <p style="overflow: visible">
+                <span>{{data.ownerDisplayName}}</span>
+                <span>
+                    <a href="/profile/{{data.dashboard.owner}}/"
+                        title="{{ data.ownerDisplayName }}"
+                        class="avatar"
+                        style="margin-left: 5px;"
+                        toggle="tooltip"
+                        placement="left"
+                        animation="false">
+                        <span user-picture="data.dashboard.owner" size="24" class="avatar24"></span>
+                    </a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <div data-block="right">
+        <div class="accordion" dku-foldable dku-foldable-right-panel name="details.insights" open="true" ng-if="data.insights.length">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Insights ({{data.insights.length}})
+            </h4>
+            <ul class="insights-list" ng-show="foldableOpen" ng-mouseleave="hoverIntentCallback.hide()">
+                <li ng-repeat="insight in data.insights">
+                    <span class="mx-textellipsis">
+                        <i class="object-icon universe-background {{insight.type |insightTypeToIcon}} {{insight.type | insightTypeToColor}}"></i>
+                        <a href="{{StateUtils.href.insight(insight.id, insight.projectKey, {name: insight.name})}}" ng-click="hoverIntentCallback.setLoading();">
+                            {{insight.name}}
+                        </a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Custom Fields -->
+        <div custom-fields-in-side-panel ng-if="appConfig.customFieldsMap[objectType].length > 0 && object && object.customFields" custom-fields="object.customFields" object-type="objectType" save-fn="saveCustomFields" edit-custom-fields="editCustomFields" editable="canWriteProject()"></div>
+
+        <!-- Checklists -->
+        <div class="accordion" ng-if="editable || object.checklists.checklists.length > 0" dku-foldable dku-foldable-right-panel="details.checklists" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Todo Lists <em ng-if="object.checklists.checklists.length > 0">({{ object.checklists.checklists.length }})</em>
+            </h4>
+            <div ng-show="foldableOpen" style="padding:0 15px;">
+                <div ng-repeat="x in object.checklists.checklists">
+                    <div class="checklist">
+                        <div class="pull-right">
+                            <a class="link-danger" ng-click="deleteChecklist($index)"
+                               title="Delete todo list"
+                               style="display:inline-block;margin: 10px;"
+                               ng-if="editable">
+                                <i class="icon-trash" />
+                            </a>
+                        </div>
+                        <h4 class="checklist-title">
+                            <div ng-if="!x.editingTitle">
+                                {{x.title}}
+                                <a class="link-std edit-button" ng-click="startEditChecklistTitle(x)" ng-if="editable">
+                                    <i class="icon-pencil" />
+                                </a>
+                            </div>
+                            <div ng-if="x.editingTitle" class="common-styles-only">
+                                <input type="text" ng-model="state.checklistTitle.newVal" placeHolder="New name" required />
+                                <div style="margin-top: 3px">
+                                    <button class="btn btn--success" ng-click="validateChecklistTitleEdit()">Save</button>
+                                    <button class="btn btn--secondary" ng-click="cancelChecklistTitleEdit()">Cancel</button>
+                                </div>
+                            </div>
+                        </h4>
+                        <p> <span ng-bind-html="x|singleChecklistState" /></p>
+                        <div object-checklist checklist="x" items-only="true" read-only="!editable" />
+                    </div>
+                </div>
+                <div ng-if="editable" class="new-checklist"
+                     style="margin-top: 15px; margin-bottom: 15px">
+                    <a class="std-greylink" ng-click="addChecklist()">
+                        Add a todo list
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

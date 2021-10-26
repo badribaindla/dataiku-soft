@@ -1,0 +1,38 @@
+<div>
+	<div ng-show="testing" class="alert alert-info"> <i class="icon-spinner icon-spin icon-large"></i>
+		Please wait, testing connection ...
+	</div>
+
+	<div ng-show="testResult">
+		<div ng-show="!testResult.connectionOK" class="alert alert-error">
+			<span>Failed to connect : {{testResult.connectionErrorMsg}}</span>
+			<button class="btn btn--secondary" ng-click="test(true)">Retry</button>
+		</div>
+		<div ng-show="testResult.connectionOK">
+			<div ng-show="!testResult.tableExists" class="alert alert-info">
+				Connection OK. Table does not yet exist.
+				<button class="btn btn--primary" ng-click="createTable()">Create table now</button>
+				<button class="btn btn--primary" ng-click="test(false)">Test again</button>
+			</div>
+			<div ng-show="testResult.tableExists && !testResult.schemaMatchesTable" class="alert alert-error">
+				Connection OK. Table exists, but schema does not match : {{testResult.schemaMismatchMsg}}
+				<br />
+				<button class="btn btn--primary" ng-click="test(false)">Test table</button>
+				<button class="btn btn--primary" ng-click="overwriteSchemaFromTable()">Reload schema from table</button>
+				<div class="actions pull-right">
+					<button class="btn btn--danger" ng-click="dropTable()">Drop table</button>
+				</div>
+			</div>
+			<div ng-show="testResult.tableExists && testResult.schemaMatchesTable" class="alert alert-info">
+				Connection OK. Table exists.
+				<button class="btn btn--primary" ng-click="test(false)">Test table</button>
+				<div class="actions pull-right">
+					<button class="btn btn--danger" ng-click="dropTable()">Drop table</button>
+				</div>
+			</div>
+			<div ng-show="!testResult.testedConnectionOnly && !testResult.preview" class="alert alert-error">
+				Preview failed : {{testResult.previewErrorMsg}}
+			</div>
+		</div>
+	</div>
+</div>

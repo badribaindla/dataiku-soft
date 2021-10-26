@@ -1,0 +1,144 @@
+<div class="object-right-column-summary h100 vertical-flex" ng-if="selection.selectedObject">
+
+    <div item-header
+        class="noflex"
+        href="$state.href('projects.project.reports.report.view', {reportId: selection.selectedObject.id})"
+        color="notebook"
+        icon="{{'report' |typeToIcon}}"
+        title="{{selection.selectedObject.name}}">
+        {{selection.selectedObject.name}}
+    </div>
+
+    <div class="column-header-tabs noflex" ng-if="!$state.current.name.startsWith('projects.project.reports.list') && !$state.current.name.startsWith('projects.project.reports.report')">
+        <div class="tab" ng-class="{'tab' : true, 'active' : uiState.activeTab == 'details'}"
+             ng-click="uiState.activeTab = 'details'">
+            <div class="title">Details</div>
+        </div>
+        <div class="tab" ng-class="{active: uiState.activeTab == 'discussions'}" ng-click="uiState.activeTab = 'discussions'">
+            <div class="title">Discussions</div>
+        </div>
+        <div class="tab" ng-class="{'tab' : true, 'active' : uiState.activeTab == 'actions'}"
+             ng-click="uiState.activeTab = 'actions'">
+            <div class="title">Actions</div>
+        </div>
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex oa">
+        <div class="h100" ng-switch="uiState.activeTab">
+            <div ng-switch-when="details" class="details-tab h100 oa">
+                <object-details
+                    object-type="REPORT"
+                    object-data="reportFullInfo"
+                    context="right-column"
+                    hover-intent-callback="QuickView"
+                    editable="canWriteProject()"
+                    edit-custom-fields="editCustomFields">
+                </object-details>
+            </div>
+
+            <!-- DISCUSSIONS tab -->
+            <div ng-switch-when="discussions" class="object-summary-tab-content discussions-tab h100 oa">
+                <div class="h100" discussions-widget watch-object="selection.selectedObject" selected-item="{projectKey: selection.selectedObject.projectKey, type: 'REPORT', id: selection.selectedObject.id}" />
+            </div>
+
+            <div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+                <div class="icons-section icons-grey icons-main">
+                    <div simple-right-col-action-href
+                        ng-if="mayCreateActiveWebContent()"
+                        href="{{$state.href('projects.project.reports.report.edit', {reportId: selection.selectedObject.id})}}"
+                        label="Edit"
+                        icon="icon-edit" />
+
+                    <div simple-right-col-action-click
+                        ng-if="canWriteDashboards()"
+                        on-click="publish(selection.selectedObject)"
+                        label="Publish"
+                        icon="icon-dku-publish"
+                        title="Make this report available on the dashboard"  />
+
+                    <div simple-right-col-action-click
+                        ng-if="projectSummary.canManageExposedElements"
+                        ng-inject="ExposedObjectsService"
+                        on-click="ExposedObjectsService.exposeSingleObject('REPORT', selection.selectedObject.id, selection.selectedObject.name)"
+                        label="Share"
+                        icon="icon-dku-share" />
+
+                    <div simple-right-col-action-click
+                        on-click="download(report)"
+                        label="Download"
+                        icon="icon-download"
+                    />
+
+                    <div simple-right-col-action-click
+                        on-click="createSnapshot()"
+                        label="Snapshot"
+                        icon="icon-camera"
+                    />
+
+                    <div simple-right-col-action-click
+                        ng-if="mayCreateActiveWebContent()"
+                        on-click="copy(selection.selectedObject)"
+                        label="Copy"
+                        title="Copy"
+                        icon="icon-copy"
+                        disabled-if-ro />
+
+                    <div simple-right-col-action-click
+                         ng-show="!isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(true)"
+                         label="{{ actionLabels.WATCH }}"
+                         icon="icon-eye-open"
+                         ng-attr-title="{{ actionTooltips.WATCH }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-show="isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(false)"
+                         label="{{ actionLabels.UNWATCH }}"
+                         icon="icon-eye-close"
+                         ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-show="!selection.selectedObject.interest.starred"
+                         on-click="starObjects(true)"
+                         label="{{ actionLabels.STAR }}"
+                         icon="icon-star"
+                         ng-attr-title="{{ actionTooltips.STAR }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-show="selection.selectedObject.interest.starred"
+                         on-click="starObjects(false)"
+                         label="{{ actionLabels.UNSTAR }}"
+                         icon="icon-star-empty"
+                         ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-if="mayCreateActiveWebContent() && isProjectAnalystRW() &&  appConfig.customFieldsPluginComponentRefs.length"
+                         on-click="editCustomFields()"
+                         label="Metadata"
+                         icon="icon-dku-fields"
+                    />
+
+                    <div simple-right-col-action-click
+                        on-click="isProjectAnalystRW() && GlobalProjectActions.deleteTaggableObject(this, 'REPORT', selection.selectedObject.id, selection.selectedObject.name)"
+                        label="Delete"
+                        title="Delete"
+                        icon="icon-trash"
+                        ng-class="{'icons-danger': isProjectAnalystRW()}"
+                        disabled-if-ro />
+
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

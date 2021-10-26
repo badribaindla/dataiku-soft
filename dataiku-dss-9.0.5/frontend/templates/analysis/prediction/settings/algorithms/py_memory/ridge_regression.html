@@ -1,0 +1,31 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Ridge Regression
+    </div>
+    <div data-block="algorithm-description">
+        <p><strong>Ridge Regression</strong> is a linear model that addresses some problems of Ordinary Least Squares by imposing a
+        <em>penalty</em> (or <em>regularization term</em>) to the weights
+        </p>
+        <p> Ridge regression uses a <em>L2 regularization</em></p>
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group required">
+            <label class="control-label">Regularization term</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.ridge_regression.alphaMode">
+                    <option value="AUTO">Let the algorithm auto-optimize</option>
+                    <option value="MANUAL">Specify values to test</option>
+                </select>
+                <div class="help-inline">
+                    Auto-optimization is generally faster than trying multiple values, but it does not support sparse features (like text hashing)
+                </div>
+            </div>
+        </div>
+        <ml-hp-numerical ng-if="mlTaskDesign.modeling.ridge_regression.alphaMode == 'MANUAL'"
+                         ng-model="mlTaskDesign.modeling.ridge_regression.alpha"
+                         decimal
+                         label="Alpha"
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+    </div>
+</div>

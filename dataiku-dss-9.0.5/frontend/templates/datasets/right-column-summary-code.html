@@ -1,0 +1,270 @@
+<div dku-foldable dku-foldable-right-panel name="codeRecipes" open="true" class="accordion">
+    <h4 class="accordion-title" ng-click="foldableToggle()">
+        <i class="{{foldableChevronClazz}}"></i>
+        Code recipes
+    </h4>
+
+    <div ng-show="foldableOpen" class="icons-section icons-code" disabled-block-if-ro >
+
+        <div class="action-icon disabled" ng-if="!usability.recipes.python.ok">
+            <div toggle="tooltip" container="body" title="Python not available: {{usability.recipes.python.reason.iconDisabledReason}}">
+                <i class="icon-code_python_recipe icon-3x"></i>
+                <label>Python</label>
+            </div>
+        </div>
+        <div ng-if="usability.recipes.python.ok"
+            simple-right-col-action-click
+            on-click="showCreateCodeBasedModal('python', getSmartNames(), getCommonZone())"
+            title="Python" label="Python"
+            icon="icon-code_python_recipe"
+            wt1-click-id="rightpaneldataset_actions_recipepython"
+            />
+
+        <div ng-if="!usability.recipes.r.ok && appConfig.uiCustomization.showR"
+            class="action-icon disabled"
+            >
+            <div toggle="tooltip" container="body" title="R not available: {{usability.recipes.r.reason.iconDisabledReason}}">
+                <i class="icon-code_r_recipe icon-3x"></i>
+                <label>R</label>
+            </div>
+        </div>
+        <div ng-if="usability.recipes.r.ok && appConfig.uiCustomization.showR"
+            simple-right-col-action-click
+            on-click="showCreateCodeBasedModal('r', getSmartNames(), getCommonZone())"
+            title="R" label="R"
+            icon="icon-code_r_recipe"
+            wt1-click-id="rightpaneldataset_actions_reciper"
+            />
+
+        <div class="action-icon disabled" ng-if="!usability.recipes.julia.ok" ng-if="featureFlagEnabled('julia')">
+            <div toggle="tooltip" container="body" title="Julia not available: {{usability.recipes.julia.reason.iconDisabledReason}}">
+                <i class="icon-visual_prep_group_recipe icon-3x"></i>
+                <label>Julia</label>
+            </div>
+        </div>
+        <div ng-if="usability.recipes.julia.ok && featureFlagEnabled('julia')"
+             simple-right-col-action-click
+             on-click="showCreateCodeBasedModal('julia', getSmartNames())"
+             title="Julia" label="Julia"
+             icon="icon-code_julia_recipe"
+             wt1-click-id="rightpaneldataset_actions_recipepython"
+        />
+
+        <div simple-right-col-action-click
+            ng-if="usability.things.sql.ok && isAllDatasets()"
+            on-click="showSQLRecipeModal(getSmartNames(), getCommonZone())"
+            title="SQL" label="SQL"
+            icon="icon-code_sql_recipe"
+            wt1-click-id="rightpaneldataset_actions_recipesql"
+            />
+        <div class="action-icon disabled" ng-if="!usability.things.sql.ok && isAllDatasets()">
+            <div toggle="tooltip" container="body" title="SQL recipes not available: {{usability.things.sql.reason.iconDisabledReason}}">
+                <i class="icon-code_sql_recipe icon-3x"></i>
+                <label>SQL</label>
+            </div>
+        </div>
+
+        <div class="action-icon disabled" ng-if="!usability.recipes.shell.ok">
+            <div toggle="tooltip" container="body" title="Shell not available: {{usability.recipes.shell.reason.iconDisabledReason}}">
+                <i class="icon-code_shell_recipe icon-3x"></i>
+                <label>Shell</label>
+            </div>
+        </div>
+        <div ng-if="usability.recipes.shell.ok"
+            simple-right-col-action-click
+            on-click="showCreateCodeBasedModal('shell', getSmartNames(), getCommonZone())"
+            title="Shell" label="Shell"
+            icon="icon-code_shell_recipe"
+            wt1-click-id="rightpaneldataset_actions_recipeshell"
+            />
+        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+    </div>
+
+    <div ng-if="isAllDatasets()" ng-show="foldableOpen" class="icons-section icons-code" disabled-block-if-ro >
+
+        <!-- Hive -->
+        <div ng-if="appConfig.uiCustomization.showTraditionalHadoop && usability.recipes.hive.ok && usability.recipes.hive.details.enableStatus == 'NOT_LICENSED_EE'"
+         simple-right-col-action-click
+            on-click="showEERestrictionModal('Hadoop / Hive')" title="Hive" label="Hive" icon="icon-code_hive_recipe" />
+        <div ng-if="appConfig.uiCustomization.showTraditionalHadoop && usability.recipes.hive.ok && usability.recipes.hive.details.enableStatus == 'NOT_LICENSED_CE'"
+         simple-right-col-action-click
+            on-click="showCERestrictionModal('Hadoop / Hive')" title="Hive" label="Hive" icon="icon-code_hive_recipe" />
+        <div ng-if="appConfig.uiCustomization.showTraditionalHadoop && usability.recipes.hive.ok && usability.recipes.hive.details.enableStatus == 'OK'"
+         simple-right-col-action-click
+            on-click="showCreateCodeBasedModal('hive', getSmartNames(), getCommonZone())" title="Hive" label="Hive" icon="icon-code_hive_recipe"
+            wt1-click-id="rightpaneldataset_actions_recipehive" />
+        <div class="action-icon disabled" ng-if="appConfig.uiCustomization.showTraditionalHadoop && !usability.recipes.hive.ok">
+            <div toggle="tooltip" container="body" title="Hive not available: {{usability.recipes.hive.reason}}">
+                <i class="icon-code_hive_recipe icon-3x"></i>
+                <label>Hive</label>
+            </div>
+        </div>
+
+        <!-- Impala -->
+        <div ng-if="appConfig.uiCustomization.showTraditionalHadoop && usability.recipes.impala.ok && usability.recipes.impala.details.enableStatus == 'NOT_LICENSED_EE'"
+            simple-right-col-action-click
+            on-click="showEERestrictionModal('Hadoop / Impala')"
+            title="Impala" label="Impala"
+            icon="icon-code_impala_recipe"
+            />
+        <div ng-if="appConfig.uiCustomization.showTraditionalHadoop && usability.recipes.impala.ok && usability.recipes.impala.details.enableStatus == 'NOT_LICENSED_CE'"
+            simple-right-col-action-click
+            on-click="showCERestrictionModal('Hadoop / Impala')"
+            title="Impala" label="Impala"
+            icon="icon-code_impala_recipe"
+            />
+        <div ng-if="appConfig.uiCustomization.showTraditionalHadoop && usability.recipes.impala.ok && usability.recipes.impala.details.enableStatus == 'OK'"
+            simple-right-col-action-click
+            on-click="showCreateCodeBasedModal('impala', getSmartNames(), getCommonZone())"
+            title="Impala" label="Impala"
+            icon="icon-code_impala_recipe"
+            wt1-click-id="rightpaneldataset_actions_recipeimpala"
+            />
+        <div class="action-icon disabled" ng-if="appConfig.uiCustomization.showTraditionalHadoop && !usability.recipes.impala.ok">
+            <div toggle="tooltip" container="body" title="Impala not available: {{usability.recipes.impala.reason}}">
+                <i class="icon-code_impala_recipe icon-3x"></i>
+                <label>Impala</label>
+            </div>
+        </div>
+
+        <!-- The 3 Spark recipes. Unfortunately, Flex layout means that we can't nest, so huge repetition -->
+
+        <div ng-if="usability.recipes.spark_sql_query.ok && usability.recipes.spark_sql_query.details.enableStatus == 'NOT_LICENSED_EE'"
+            simple-right-col-action-click
+            on-click="showSparkNotLicensedModal()"
+            title="Spark SQL" label="Spark SQL"
+            icon="icon-code_sparksql_recipe"
+            />
+        <div ng-if="usability.recipes.spark_scala.ok && usability.recipes.spark_scala.details.enableStatus == 'NOT_LICENSED_EE' && appConfig.uiCustomization.showScala"
+            simple-right-col-action-click
+            on-click="showSparkNotLicensedModal()"
+            title="Spark Scala" label="Spark Scala"
+            icon="icon-code_spark_scala_recipe"
+            />
+        <div ng-if="usability.recipes.pyspark.ok && usability.recipes.pyspark.details.enableStatus == 'NOT_LICENSED_EE'"
+            simple-right-col-action-click
+            on-click="showSparkNotLicensedModal()"
+            title="PySpark" label="PySpark"
+            icon="icon-code_pyspark_recipe"
+            />
+        <div ng-if="usability.recipes.sparkr.ok && usability.recipes.sparkr.details.enableStatus == 'NOT_LICENSED_EE' && appConfig.uiCustomization.showR"
+            simple-right-col-action-click
+            on-click="showSparkNotLicensedModal()"
+            title="Spark R" label="Spark R"
+            icon="icon-code_sparkr_recipe"
+            />
+
+        <div ng-if="usability.recipes.spark_sql_query.ok && usability.recipes.spark_sql_query.details.enableStatus == 'NOT_LICENSED_CE'"
+            simple-right-col-action-click
+            on-click="showCERestrictionModal('Spark')"
+            title="Spark SQL" label="Spark SQL"
+            icon="icon-code_sparksql_recipe"
+            />
+        <div ng-if="usability.recipes.spark_scala.ok && usability.recipes.spark_scala.details.enableStatus == 'NOT_LICENSED_CE' && appConfig.uiCustomization.showScala"
+            simple-right-col-action-click
+            on-click="showCERestrictionModal('Spark')"
+            title="Spark Scala" label="Spark Scala"
+            icon="icon-code_spark_scala_recipe"
+            />
+        <div ng-if="usability.recipes.pyspark.ok && usability.recipes.pyspark.details.enableStatus == 'NOT_LICENSED_CE'"
+            simple-right-col-action-click
+            on-click="showCERestrictionModal('Spark')"
+            title="PySpark" label="PySpark"
+            icon="icon-code_pyspark_recipe"
+            />
+        <div ng-if="usability.recipes.sparkr.ok && usability.recipes.sparkr.details.enableStatus == 'NOT_LICENSED_CE' && appConfig.uiCustomization.showR"
+            simple-right-col-action-click
+            on-click="showCERestrictionModal('Spark')"
+            title="Spark R" label="Spark R"
+            icon="icon-code_sparkr_recipe"
+            />
+
+        <div ng-if="usability.recipes.spark_sql_query.details.enableStatus == 'OK'"
+            simple-right-col-action-click
+            on-click="showCreateCodeBasedModal('spark_sql_query', getSmartNames(), getCommonZone())"
+            title="Spark SQL" label="Spark SQL"
+            icon="icon-code_sparksql_recipe"
+            wt1-click-id="rightpaneldataset_actions_recipesparksql"
+            />
+        <div ng-if="usability.recipes.spark_scala.details.enableStatus == 'OK' && appConfig.uiCustomization.showScala"
+            simple-right-col-action-click
+            on-click="showCreateCodeBasedModal('spark_scala', getSmartNames(), getCommonZone())"
+            title="Spark Scala" label="Spark Scala"
+            icon="icon-code_spark_scala_recipe"
+            wt1-click-id="rightpaneldataset_actions_recipesparkscala"
+            />
+        <div ng-if="usability.recipes.pyspark.details.enableStatus == 'OK'"
+            simple-right-col-action-click
+            on-click="showCreateCodeBasedModal('pyspark', getSmartNames(), getCommonZone())"
+            title="PySpark" label="PySpark"
+            icon="icon-code_pyspark_recipe"
+            wt1-click-id="rightpaneldataset_actions_recipesparkpython"
+            />
+        <div ng-if="usability.recipes.sparkr.details.enableStatus == 'OK' && appConfig.uiCustomization.showR"
+            simple-right-col-action-click
+            on-click="showCreateCodeBasedModal('sparkr', getSmartNames(), getCommonZone())"
+            title="Spark R" label="Spark R"
+            icon="icon-code_sparkr_recipe"
+            wt1-click-id="rightpaneldataset_actions_recipesparkr"
+            />
+
+        <div ng-if="!usability.recipes.spark_sql_query.ok" class="action-icon disabled">
+            <div toggle="tooltip" container="body" title="Spark not available: {{usability.recipes.spark_sql_query.reason.iconDisabledReason}}">
+                <i class="icon-code_sparksql_recipe icon-3x"></i>
+                <label>Spark SQL</label>
+            </div>
+        </div>
+        <div ng-if="!usability.recipes.spark_scala.ok && appConfig.uiCustomization.showScala" class="action-icon disabled">
+            <div toggle="tooltip" container="body" title="Spark not available: {{usability.recipes.spark_scala.reason.iconDisabledReason}}">
+                <i class="icon-code_spark_scala_recipe icon-3x"></i>
+                <label>Spark Scala</label>
+            </div>
+        </div>
+        <div ng-if="!usability.recipes.pyspark.ok" class="action-icon disabled">
+            <div toggle="tooltip" container="body" title="Spark not available: {{usability.recipes.pyspark.reason.iconDisabledReason}}">
+                <i class="icon-code_pyspark_recipe icon-3x"></i>
+                <label>PySpark</label>
+
+            </div>
+        </div>
+        <div ng-if="!usability.recipes.sparkr.ok && appConfig.uiCustomization.showR" class="action-icon disabled">
+            <div toggle="tooltip" container="body" title="Spark not available: {{usability.recipes.sparkr.reason.iconDisabledReason}}">
+                <i class="icon-code_sparkr_recipe icon-3x"></i>
+                <label>Spark R</label>
+            </div>
+        </div>
+        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+    </div>
+
+    <div ng-if="isAllDatasets() && appConfig.streamingEnabled" ng-show="foldableOpen" class="icons-section icons-continuous" disabled-block-if-ro >
+        <div class="action-icon disabled" ng-if="!usability.recipes.python.ok">
+            <div toggle="tooltip" container="body" title="Python not available: {{usability.recipes.python.reason.iconDisabledReason}}">
+                <i class="icon-continuous_python_recipe icon-3x" />
+                <label>Streaming Python</label>
+            </div>
+        </div>
+        <div ng-if="usability.recipes.python.ok"
+            simple-right-col-action-click
+            on-click="showCreateCodeBasedModal('cpython', getSmartNames(), getCommonZone())"
+            label="Streaming Python"
+            icon="icon-continuous_python_recipe"
+            wt1-click-id="rightpaneldataset_actions_recipecpython"
+            />
+
+        <div ng-if="usability.recipes.spark_scala.details.enableStatus == 'OK'"
+            simple-right-col-action-click
+            on-click="showCreateCodeBasedModal('streaming_spark_scala', getSmartNames(), getCommonZone())"
+            label="Streaming Spark"
+            icon="icon-continuous_spark_scala_recipe"
+            wt1-click-id="rightpaneldataset_actions_recipestreamingsparkscala"
+            />
+        <div ng-if="!usability.recipes.spark_scala.ok" class="action-icon disabled">
+            <div toggle="tooltip" container="body" title="Spark not available: {{usability.recipes.spark_scala.reason.iconDisabledReason}}">
+                <i class="icon-continuous_spark_scala_recipe icon-3x" />
+                <label>Streaming Spark</label>
+            </div>
+        </div>
+        <div class="action-icon" ng-repeat="i in ([4] | range)"></div> <!-- flexbox filler, see CSS -->
+
+    </div>
+</div>

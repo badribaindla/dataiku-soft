@@ -1,0 +1,46 @@
+<div class="accordion-body collapse ff-group in" ng-class="{'disabled':!ffGroup.active}">
+    <div class="accordion-inner ff-popover">
+        <!-- When filter is disabled -->
+        <div class="ff-disable-content" ng-if="!ffGroup.active">
+            <div class="ff-overlay" ></div>
+            <div class="ff-toggle">
+                <h4>DISABLED</h4></br>
+                <span class="disable-switch" ng-class="{'active': ffGroup.active}" ng-click="ffGroup.active = !ffGroup.active"><i class="icon-off">&nbsp; ENABLE</i></span>
+            </div>
+        </div>
+        <!-- Actions line -->
+        <div class="ff-header">
+            <div ng-if="ffGroup.facet.columnType != 'DATE'">
+                <div style="display: inline-block; text-align: right; font-size:0.85em; margin-right: 10px">
+                    <div class="btn-group">
+                        <button class="btn btn--secondary" title='Numerical Facet Filter' ng-class="{'btn--active': isFacetNumerical()}" ng-click="!isFacetNumerical() && switchToFacetNumerical()" ng-if="ffGroup.facet.columnType == 'NUMERICAL'">
+                            <i class="icon-bar-chart" />
+                        </button>
+                        <button class="btn btn--secondary" title='Textual Facet Filter' ng-class="{'btn--active': isFacetAlphanum()}" ng-click="!isFacetAlphanum() && switchToFacetAlphanum()">
+                            <i class="icon-list-ul" />
+                        </button>
+                        <button class="btn btn--secondary" title='Simple Textual Filter' ng-class="{'btn--active': isSimpleAlphanum()}" ng-click="!isSimpleAlphanum() && switchToSimpleAlphanum()">
+                            <i class="icon-dku-filter_text_view" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="ff-content">
+            <div ng-if="ffGroup.currentMode == 'FACET'" class="filter">
+                <span ng-init="facet=ffGroup.facet" />
+                <shaker-facet />
+            </div>
+            <div ng-if="ffGroup.currentMode == 'SIMPLE_ALPHANUM'" class="filter">
+                <span ng-init="filter=ffGroup.alphanumFilter" />
+                <simple-alphanum-filter />
+            </div>
+        </div>
+        
+        <div class="ff-footer">
+            <span ng-init="filter=ffGroup.validityFilter" />
+            <validity-filter />
+        </div>
+    </div>
+</div>

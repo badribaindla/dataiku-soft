@@ -1,0 +1,186 @@
+<div class="web-app-editor-pane">
+    <div class="header">
+        <div class="pull-right" >
+
+            <div ng-show="state.activeTab != 'OUTPUT' && state.activeTab != 'SETTINGS' && state.activeTab != 'BACKEND_LOG'" style="display: inline-block; margin-right: 10px; margin-top: 4px">
+                <div code-snippet-editor-switch code-samples-selector-visible="uiState.codeSamplesSelectorVisible" style="display:inline"/>
+            </div>
+
+            <div style="display: inline-block; margin-right: 10px; margin-top: 4px">
+                <div ng-show="state.activeTab == 'BACKEND_LOG'" style="display: inline-block">
+                    <button class="btn btn--secondary"
+                        toggle="tooltip"
+                        title="Refresh backend log"
+                        ng-click="refreshBackendLog()">
+                        <i class="icon-refresh" /> Log
+                    </button>
+                </div>
+                <div ng-show="state.activeTab == 'PYTHON' || state.activeTab == 'SHINY_UI' || state.activeTab == 'SHINY_SERVER'" style="display: inline-block">
+                    <button class="btn btn--danger"
+                        toggle="tooltip"
+                        title="Restart backend"
+                        ng-click="restartBackend(app)"
+                        ng-show="backendEnabled(app)">
+                        <i class="icon-refresh" /> Backend
+                    </button>
+                </div>
+                <div ng-show="state.activeTab == 'OUTPUT'" style="display: inline-block">
+                    <button class="btn btn--secondary"
+                        ng-click="startUpdatePreview()"
+                        title="Reload preview"
+                        toggle="tooltip">
+                        <i class="icon-refresh" /> Preview
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div ng-if="state.rightmost" style="display: inline-block; float: left; margin:8px 6px 0 10px">
+            <a ng-if="editorState == 'splitted'" ng-click="maximize()"> <i class="icon-resize-full" /></a>
+            <a ng-if="editorState != 'splitted'" ng-click="splitEditor()">
+                <i class="icon-resize-small" />
+            </a>
+        </div>
+        <ul class="nav nav-tabs">
+            <li class="output" id="qa_webapp_tab-output" ng-if="outputTabEnabled" ng-class="{active: state.activeTab == 'OUTPUT'}">
+                <a ng-click="state.activeTab = 'OUTPUT'">Preview</a>
+            </li>
+            <li class="html" id="qa_webapp_tab-html" ng-class="{active: state.activeTab == 'HTML'}" ng-show="showFrontendTabs(app)">
+                <a ng-click="state.activeTab = 'HTML'">HTML</a>
+            </li>
+            <li class="css" id="qa_webapp_tab-css" ng-class="{active: state.activeTab == 'CSS'}" ng-show="showFrontendTabs(app)">
+                <a ng-click="state.activeTab = 'CSS'">CSS</a>
+            </li>
+            <li class="js" id="qa_webapp_tab-js" ng-class="{active: state.activeTab == 'JS'}" ng-show="showFrontendTabs(app)">
+                <a ng-click="state.activeTab = 'JS'">JS</a>
+            </li>
+            <li class="python" id="qa_webapp_tab-python" ng-class="{active: state.activeTab == 'PYTHON'}" ng-show="app.type != 'SHINY'">
+                <a ng-click="state.activeTab = 'PYTHON'">Python</a>
+            </li>
+            <li class="shiny_ui" id="qa_webapp_tab-shiny-ui" ng-class="{active: state.activeTab == 'SHINY_UI'}" ng-show="app.type == 'SHINY'">
+                <a ng-click="state.activeTab = 'SHINY_UI'">UI</a>
+            </li>
+            <li class="shiny_server" id="qa_webapp_tab-shiny-server" ng-class="{active: state.activeTab == 'SHINY_SERVER'}" ng-show="app.type == 'SHINY'">
+                <a ng-click="state.activeTab = 'SHINY_SERVER'">Server</a>
+            </li>
+            <li class="log" id="qa_webapp_tab-backend-log" ng-class="{active: state.activeTab == 'BACKEND_LOG'}" ng-if="state.rightmost" ng-show="backendEnabled(app)">
+                <a ng-click="state.activeTab = 'BACKEND_LOG'">Log</a>
+            </li>
+            <li class="settings" id="qa_webapp_tab-settings" ng-if="state.rightmost" ng-class="{active : state.activeTab == 'SETTINGS'}">
+                <a ng-click="state.activeTab = 'SETTINGS'">Settings</a>
+            </li>
+        </ul>
+    </div>
+    <div class="body fh oa">
+        <code-snippet-sample-selector
+            ng-show="state.activeTab != 'OUTPUT' && state.activeTab != 'SETTINGS' && state.activeTab != 'BACKEND_LOG'"
+            insert-code-func="app.type.toLowerCase() === 'bokeh' || app.type.toLowerCase() === 'dash' ? insertPythonSnippet_ : insertSnippet_"
+            code-samples-selector-visible="uiState.codeSamplesSelectorVisible"
+            sample-type="'webapp_'+app.type.toLowerCase()"
+            categories="[]"
+            save-category="'na'"
+            class="fh">
+        </code-snippet-sample-selector>
+
+        <div class="h100 html" ng-if="state.activeTab == 'HTML'">
+            <!-- Switching to application/xml because of a bug in codemirror HTML mode -->
+            <textarea ng-model="app.params.html" class="qa_webapp_html-textarea"
+                ui-codemirror="createEditorOptions('application/xml')"
+                ui-refresh="struct.selected">
+            </textarea>
+        </div>
+
+        <div class="h100 python" ng-if="state.activeTab == 'PYTHON'">
+            <div ng-show="backendEnabled(app)" class="h100">
+                <textarea ng-model="app.params.python" class="qa_webapp_python-textarea"
+                    ui-codemirror="createEditorOptions('text/x-python')"
+                    ui-refresh="app.params.backendEnabled + '' + struct.selected">
+                </textarea>
+            </div>
+            <div class="fh" ng-show="app.type == 'STANDARD' && !backendEnabled(app)">
+                <div style="width: 50%; margin: 50px auto; text-align: center">
+                    Click to enable Python backend for this app.<br />
+                    <a ng-click="enablePythonBackend()" class="qa_webapp_enable-backend-button">Enable</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings h100 oa" ng-if="state.activeTab == 'SETTINGS'">
+             <div ng-show="state.activeTab == 'PYTHON'" style="display: inline-block">
+                    <button class="btn btn--danger btn--icon" toggle="tooltip" title="Disable Python backend" ng-click="disablePythonBackend()">
+                        &times;
+                    </button>
+                </div>
+            <div include-no-scope="/templates/webapps/web-app-settings.html" />
+        </div>
+
+        <div class="js h100" ng-if="state.activeTab == 'JS'">
+            <textarea ng-model="app.params.js" class="qa_webapp_js-textarea"
+                ui-codemirror="createEditorOptions('text/javascript')"
+                ui-refresh="struct.selected">
+            </textarea>
+        </div>
+
+        <div class="ui h100" ng-if="state.activeTab == 'SHINY_UI'">
+            <textarea ng-model="app.params.ui"
+                ui-codemirror="createEditorOptions('text/x-rsrc')"
+                ui-refresh="struct.selected">
+            </textarea>
+        </div>
+
+        <div class="server h100" ng-if="state.activeTab == 'SHINY_SERVER'">
+            <textarea ng-model="app.params.server"
+                ui-codemirror="createEditorOptions('text/x-rsrc')"
+                ui-refresh="struct.selected">
+            </textarea>
+        </div>
+
+        <div class="css h100" ng-if="state.activeTab == 'CSS'">
+            <textarea ng-model="app.params.css" class="qa_webapp_css-textarea"
+                ui-codemirror="createEditorOptions('text/css')"
+                ui-refresh="struct.selected">
+            </textarea>
+        </div>
+
+        <div class="output h100" ng-if="outputTabEnabled" ng-show="state.activeTab == 'OUTPUT'">
+            <div ng-if="backendEnabled(app) && sharedState.backendRunning === false" class="alert" style="z-index: 2; position: absolute; width: 100%; box-sizing: border-box;">
+                This webapp requires a backend but it does not seem to be running
+                <a class="btn btn--secondary" ng-click="restartBackend(app)" style="margin-left: 20px">
+                    <i class="icon-play" /> &nbsp; Start backend
+                </a>
+            </div>
+            <div class="iframe-wrapper" ng-if='!safeMode'>
+                <iframe detect-iframe-clicks style="width:100%;height:100%;" class="htmlResult" src='about:blank'></iframe>
+            </div>
+            <div ng-if='safeMode' class="alert" style="z-index: 2; position: absolute; width: 100%; box-sizing: border-box;">
+                This webapp is in safe edition mode meaning the frontend is not loaded. You can still edit it.
+                <a class="btn btn--secondary" ng-click="disableSafeMode()" style="margin-left: 20px">
+                    <i class="icon-refresh" /> &nbsp; Load webapp
+                </a>
+            </div>
+        </div>
+
+        <div class="log h100" ng-if="state.activeTab == 'BACKEND_LOG'">
+            <div class="fh oa">
+                <div class="vertical-flex h100">
+                    <div class="noflex" ng-if="sharedState.backendFatalError" api-error-alert="sharedState.backendFatalError"/>
+
+                    <div class="noflex alert" ng-if="backendEnabled(app) && sharedState.backendRunning === false" style="width: 100%; box-sizing: border-box;">
+                        The backend does not seem to be currently running
+                        <a class="btn btn--secondary" ng-click="restartBackend(app)" style="margin-left: 20px">
+                            <i class="icon-play" /> &nbsp; Start backend
+                        </a>
+                    </div>
+
+                    <div class="flex" ng-if="backendEnabled(app) && !sharedState.backendLogTail" style="text-align: center; padding-top: 60px;">
+                        No log available at the moment. <br />
+                        <button class="btn btn--secondary" toggle="tooltip" title="Refresh" ng-click="refreshBackendLog()">
+                            <i class="icon-refresh" />
+                        </button>
+                    </div>
+
+                    <pre ng-if="backendEnabled(app) && sharedState.backendLogTail" smart-log-tail="sharedState.backendLogTail" class="flex"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

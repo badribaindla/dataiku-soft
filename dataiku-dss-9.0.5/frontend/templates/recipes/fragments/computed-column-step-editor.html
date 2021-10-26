@@ -1,0 +1,92 @@
+<div class="computed-column-step-editor">
+    <div class="computed-column-header mbot16">
+        <fieldset>
+            <span class="dku-text-sb mright8">
+                Name
+            </span>
+            <input type="text" class="computed-column-name qa_recipe_computed-col-name" ng-model="computedColumnDesc.name" ng-model-options="{allowInvalid: true}" required/>
+            <span class="mleft16 dku-text-sb mright8">Store as</span>
+            <select dku-bs-select
+                ng-model="computedColumnDesc.type"
+                class="qa_recipe_store-computed-col-as"
+                ng-options="type.name as type.label for type in ColumnTypeConstants.types"
+                ng-init="computedColumnDesc.type = computedColumnDesc.type || 'double'"
+                />
+            <span class="mleft16 dku-text-sb mright8">Mode</span>
+            <select dku-bs-select
+                ng-model="computedColumnDesc.mode"
+                class="qa_recipe_computed-col-dss-formula"
+                ng-options="mode.name as mode.label for mode in [{name: 'SQL', label: 'SQL Expression'},{name: 'GREL', label: 'DSS formula'}]"
+                ng-init="computedColumnDesc.mode = computedColumnDesc.mode || 'GREL'"
+                ng-blur="hooks.updateRecipeStatus()"
+                />
+            <span ng-show="computedColumnDesc.mode == 'SQL'" custom-element-popup>
+                <a class="mainzone dropdown-toggle link-std" ng-click="togglePopover()">
+                    <i class="icon-info-sign"/>
+                </a>
+                <ul class="popover custom-element-popup-popover dropdown-menu simple connection-info-popup" style="padding: 10px 20px;">
+                    <li>
+                        <span class="label">Quote strings: </span>
+                        <span class="value">
+                            {{recipeStatus.selectedEngine.stringQuotingCharacter}}
+                            string value
+                            {{recipeStatus.selectedEngine.stringQuotingCharacter}}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="label">Quote identifiers: </span>
+                        <span class="value">
+                            {{recipeStatus.selectedEngine.identifierQuotingCharacter}}
+                            column_name
+                            {{recipeStatus.selectedEngine.identifierQuotingCharacter}}
+                        </span>
+                    </li>
+                </ul>
+            </span>
+        </fieldset>
+    </div>
+    <fieldset style="margin: 15px 0">
+        <div>
+            <div class="var-col-selector" style="float: left; width: 240px; height: 140px; margin-right: 10px;">
+                <tabs>
+                    <pane title="Columns">
+                        <div class="selector-list" style="overflow: auto; height: 104px;">
+                            <a ng-repeat="col in getColumns() track by col.name"
+                                class="column-name-line"
+                                ng-click="clickedOnColumnName(col.name)"
+                                title="{{col.name}} ({{col.type}})"
+                                >
+                                <span class="column-name"> {{col.name}} </span>
+                                <span class="column-type"> {{col.type}} </span>
+                            </a>
+                        </div>
+                    </pane>
+                    <pane title="Variables">
+                        <div class="selector-list" style="overflow: auto; height: 104px;">
+                            <a ng-repeat="(var, value) in recipeVariables"
+                                class="variable-name-line"
+                                ng-click="clickedOnVariableName(var)"
+                                title="{{var}}: {{value}}"
+                                >
+                                <span class="variable-name"> {{var}} </span>
+                                <span class="variable-value"> {{value}} </span>
+                            </a>
+                        </div>
+                    </pane>
+                </tabs>
+            </div>
+            <textarea
+                ng-if="computedColumnDesc.mode == 'SQL'"
+                id='grel-editor'
+                ng-model="computedColumnDesc.expr"
+                ng-change="onSQLChange()"
+                ui-codemirror="sqlEditorOptions"
+                required
+            />
+            <div style="padding-left: 240px;">
+                <grel-editor ng-if="computedColumnDesc.mode == 'GREL'" columns="getColumns()" on-expression-change="onExpressionChanged" scope-variables="recipeVariables" expression="computedColumnDesc.expr"></grel-editor>
+            </div>
+        </div>
+    </fieldset>
+    <div class="alert" style="margin-bottom: 10px" ng-repeat="msg in recipeStatusMessages" ng-class="{'alert-error': msg.severity == 'ERROR', 'alert-warning': msg.severity == 'WARNING', 'alert-info': msg.severity == 'INFO'}"><strong>{{msg.severity}}</strong> {{msg.message}}</div>
+</div>

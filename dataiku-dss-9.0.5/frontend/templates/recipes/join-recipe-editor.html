@@ -1,0 +1,59 @@
+<div visual-recipe ng-controller="JoinRecipeController">
+    <!-- Load behaviors -->
+    <!-- The read-params-behavior is split from the read-params UI directive because we want the
+    behavior to always execute, not only when we go to advanced tab -->
+    <div ng-if="recipeStatus.selectedEngine.type == 'SPARK'">
+        <div spark-datasets-read-params-behavior read-params="params.engineParams.sparkSQL.readParams" />
+    </div>
+
+    <div class="top-level-tabs objecttype-recipe">
+        <div include-no-scope="/templates/recipes/fragments/simple-recipe-top-tabs.html" />
+    </div>
+
+    <!-- Generic tabs -->
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html"/>
+    <div include-no-scope="/templates/recipes/fragments/recipe-io-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+    <div ng-if="topNav.tab == 'advanced'" class="small-lr-padding dss-page oa">
+        <div block-api-error />
+
+        <div class="horizontal-centerer">
+
+            <div class="recipe-settings-section1 w800"><!-- TODO @joinRecipe ngif querybased -->
+                <form class="dkuform-horizontal recipe-settings-section2">
+                    <div class="control-group" style="margin-bottom: 0;">
+                        <label for="" class="control-label">Enable auto type cast</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="params.enableAutoCastInJoinConditions" />
+                            <span class="help-inline" style="display: inline">Automatically cast types as needed in join conditions</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div include-no-scope="/templates/recipes/visual-recipes-fragments/visual-sql-engines-settings.html" />
+
+            <div class="recipe-settings-section1 w800" ng-if="recipeStatus.selectedEngine.lowercasesColumnNames">
+                <h1 class="recipe-settings-section1-title">Backward compatibility</h1>
+                <form class="dkuform-horizontal recipe-settings-section2">
+                    <div class="control-group">
+                        <label for="" class="control-label">Lower case output schema</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="params.engineParams.lowerCaseSchemaIfEngineRequiresIt" />
+                            <span class="help-inline" style="display: inline">
+							The selected engine will not preserve column names case.
+							This option should be checked so that {{wl.productLongName}} is kept consistent with the data store.
+						</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+        </div>
+    </div>
+
+
+    <div include-no-scope="/templates/recipes/join-recipe-main.html" />
+</div>

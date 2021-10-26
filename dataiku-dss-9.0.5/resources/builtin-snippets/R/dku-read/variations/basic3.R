@@ -1,0 +1,1 @@
+df <- dkuReadDataset("iris", samplingMethod="fixed", nbRows=100)

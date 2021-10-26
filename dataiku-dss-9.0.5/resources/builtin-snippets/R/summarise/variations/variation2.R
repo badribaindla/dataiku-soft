@@ -1,0 +1,1 @@
+summarise(group_by(df, col_0), mean(col_1))

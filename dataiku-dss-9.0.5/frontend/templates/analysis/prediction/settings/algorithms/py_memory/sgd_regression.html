@@ -1,0 +1,107 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Stochastic Gradient Descent
+    </div>
+    <div data-block="algorithm-description">
+        <p><strong>SGD</strong> is a family of algorithms that reuse concepts from Support Vector Machines and Linear Regressions.</p>
+        <p>SGD uses an optimized method to minimize the cost (or
+        <em>loss</em>) function, making it particularly suitable for large datasets (or datasets with large number of features).</p>
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group">
+            <label class="control-label">Loss function</label>
+            <div class="controls">
+                <div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.sgd_regression.loss.values.squared_loss.enabled" /> Try squared loss
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.sgd_regression.loss.values.huber.enabled" /> Try Huber loss
+                    </label>
+                    <!--label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.sgd_regression.loss.values.epsilon_insensitive.enabled" /> Try epsilon-insensitive loss
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.sgd_regression.loss.values.squared_epsilon_insensitive.enabled" /> Try squared epsilon-insensitive loss
+                    </label-->
+                </div>
+                <div class="help-inline">
+                    Selecting 'squared' loss will make the SGD behave like a Linear (OLS, LASSO and Ridge) Regression.
+                    <br /> Enabling 'Huber' loss will make the SGD more robust to outliers.
+                    <!--br /> Enabling 'epsilon-insensitive' loss will make the SGD behave quite like a Support Vector Machine.
+                    -->
+                </div>
+            </div>
+        </div>
+
+        <ml-hp-numerical ng-if="mlTaskDesign.modeling.sgd_regression.loss.values.huber.enabled"
+                         ng-model="mlTaskDesign.modeling.sgd_regression.epsilon"
+                         decimal
+                         label="Epsilon"
+                         help-inline="Threshold under which Huber loss is equal to squared loss."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <div class="control-group">
+            <label class="control-label">Max. Iterations</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.sgd_regression.max_iter" step="1" />
+                <div class="help-inline">Maximum number of iterations on the train data
+                    <br />
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label">Tolerance</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.sgd_regression.tol" step="0.0001" />
+                <div class="help-inline">Tolerance for stopping criterion, i.e. variation on loss below which the algorithm stops training. Should be a positive number.</div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Regularization</label>
+            <div class="controls">
+                <div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.sgd_regression.penalty.values.l1.enabled" /> Try L1 regularization
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.sgd_regression.penalty.values.l2.enabled" /> Try L2 regularization
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.sgd_regression.penalty.values.elasticnet.enabled" /> Try ElasticNet regularization
+                    </label>
+                </div>
+                <div class="help-inline">
+                    L1 regularization is used in Lasso regression and L2 regularization is used in ridge Regressions.
+                    <br /> ElasticNet regularization combines both a L1 and L2 regularization.
+                </div>
+            </div>
+        </div>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.sgd_regression.alpha"
+                         decimal
+                         label="Alpha"
+                         help-inline="Regularization parameter.
+                         <br /> A high value of alpha (ie, more regularization) will generate a smoother regressor (higher bias) while a lower value (less regularization) aims at correctly predicting all training examples, at the risk of overfitting (higher variance)."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <div class="control-group" ng-show="mlTaskDesign.modeling.sgd_regression.penalty.values.elasticnet.enabled">
+            <label class="control-label">L1 ratio</label>
+            <div class="controls">
+                <input type="number" min="0" max="1" ng-model="mlTaskDesign.modeling.sgd_regression.l1_ratio" step="0.01" />
+                <div class="help-inline">
+                    Used for elasticNet regularization, this ratio controls the proportion of L1 in the mix. (ie: 1 corresponds to L1-only, 0 corresponds to L2-only). Defaults to 0.15 (15% L1, 85% L2).
+                </div>
+            </div>
+        </div>
+        <!--div class="control-group">
+            <label class="control-label">Parallelism</label>
+            <div class="controls">
+                <input type="number" force-integer min="-1" max="100" ng-model="mlTaskDesign.modeling.sgd_regression.n_jobs" />
+                <div class="help-inline">
+                    Number of cores used for parallel training. Using more cores leads to faster training but at the expense of more memory consumption, especially for large training datasets. (-1 means 'all cores')
+                </div>
+            </div>
+        </div-->
+    </div>
+</div>

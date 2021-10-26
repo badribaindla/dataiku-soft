@@ -1,0 +1,86 @@
+<div class="modal modal3 dku-modal" ng-controller="ProjectDeployerDeploymentCreationModalController">
+    <div dku-modal-header-with-totem modal-title="New deployment" modal-totem="icon-plus" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="uiState.deploymentForm">
+        <div class="modal-body">
+            <div block-api-error />
+            <div class="alert alert-info">
+                Only the source bundle can be changed after a deployment is created.
+            </div>
+            <div class="control-group">
+                <label class="control-label">Source project</label>
+                <div class="controls">
+                    <select dku-bs-select="{ liveSearch: true }"
+                        ng-options="projectStatus.projectBasicInfo.id as (projectStatus.projectBasicInfo.name + ' (' + projectStatus.projectBasicInfo.id + ')') for projectStatus in deployableProjectStatusList"
+                        ng-model="deploymentSettings.publishedProjectKey"
+                        ng-disabled="fromBundle"
+                        required />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Source bundle</label>
+                <div class="controls">
+                    <select dku-bs-select="{ liveSearch: true }"
+                        ng-options="bundle.id as bundle.id for bundle in bundles"
+                        ng-model="deploymentSettings.bundleId"
+                        ng-disabled="fromBundle"
+                        required />
+                    <span class="help-inline">
+                        <span ng-if="deploymentSettings.publishedProjectKey && bundles && !bundles.length" class="text-error">
+                            No available version
+                        </span>
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Target infrastructure</label>
+                <div class="controls">
+                    <select dku-bs-select="{ liveSearch: true }"
+                        ng-options="infraStatus.infraBasicInfo.id as infraStatus.infraBasicInfo.id group by infraStatus.infraBasicInfo.stage for infraStatus in deployableInfraStatusList"
+                        ng-model="deploymentSettings.infraId"
+                        required />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Deployment ID</label>
+                <div class="controls">
+                    <input type="text"
+                        ng-model="deploymentSettings.id"
+                        ng-pattern="/^[_A-Za-z0-9-]+$/"
+                        custom-validation="doesDeploymentIdExist"
+                        required />
+                    <span class="help-inline">alphanumeric characters, hyphens and underscores</span>
+                </div>
+            </div>
+            <div class="alert alert-info mtop16" ng-show="publishedProjectKeyExistsOnAutomationNode">
+                A project with project key {{ deploymentSettings.publishedProjectKey }} already exists on infra {{ deploymentSettings.infraId }}. An alternative project key has been suggested.
+            </div>
+            <div class="control-group">
+                <label class="control-label">Target project key</label>
+                <div class="controls">
+                    <input type="text" 
+                    ng-model="deploymentSettings.deployedProjectKey" 
+                    ng-pattern="/^\w+$/" 
+                    required />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Target project folder {{ !projectFolderHierarchy.id ? 'ID' : 'path' }}</label>
+                <div class="controls">
+                    <input type="text" ng-if="!projectFolderHierarchy.id" ng-model="deploymentSettings.projectFolderId" />
+                    <folder-path-input ng-if="projectFolderHierarchy.id" input-id="targetProjectFolderId" input-enabled="canEditFolder()" browse-fn="browse" folder="uiState.selectedFolder" path="deploymentSettings.projectFolderId" can-select-fn="canSelect" display-item-fn="getProjectFolderName" show-root-folder-path="true" cant-write-content-verb="The target project cannot be placed in this folder."></folder-path-input>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit"
+                class="btn btn--text btn--primary"
+                ng-disabled="!uiState.deploymentForm.$valid"
+                ng-click="ok()">
+                Create
+            </button>
+        </div>
+    </form>
+</div>

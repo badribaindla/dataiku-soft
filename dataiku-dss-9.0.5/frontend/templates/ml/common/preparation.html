@@ -1,0 +1,20 @@
+<div ng-controller="MLReportPreparationController" class="preparation-page" ng-if="modelData">
+
+    <h2 class="settings-section-title" style="margin-top: 5px">Data preparation</h2>
+
+    <p ng-if="!(steps | filter: {disabled: false}).length" class="placeholder-block" puppeteer-hook>
+        <em>No preparation</em>
+    </p>
+
+    <table ng-if="steps.length" class="table" puppeteer-hook>
+        <tr ng-repeat="step in (steps | filter: {disabled: false})">
+            <td ng-if="step.metaType != 'GROUP'"><i class="icon {{ getStepIcon(step.type, step.params) }}" /></td>
+            <td ng-if="step.metaType != 'GROUP'" ng-bind-html="getStepDescription(null, step.type, step.params)" />
+
+            <td ng-if="step.metaType == 'GROUP'"><i class="icon icon-folder-open" /></td>
+            <td ng-if="step.metaType == 'GROUP'">{{step.name}} ({{step.steps.length}} step{{ step.steps.length > 1 ? 's' : '' }})</td>
+
+        </tr>
+    </table>
+
+</div>

@@ -1,0 +1,36 @@
+<div class="modal modal3 modal-w800" ng-controller="DatasetFromPluginCreationController">
+
+    <dku-modal-header modal-class="has-border">
+        <dku-modal-title>
+            <span>
+                {{datasets.length}} {{'dataset' | plurify: datasets.length}} in "{{plugin.label}}" plugin
+            </span>
+        </dku-modal-title>
+    </dku-modal-header>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body">
+
+            <div block-api-error/>
+
+            <p from-markdown="plugin.description"/>
+            <p ng-if="plugin.url">
+                <a href="{{ plugin.url }}" target="_blank" rel="noopener noreferrer">
+                    Plugin documentation&nbsp;<i class="icon-external-link"></i>
+                </a>
+            </p>
+
+            <div ng-repeat="dataset in datasets" class="big-click-zone-inline selectable custom-recipe-element" ng-click="create(dataset)">
+                <div class="custom-recipe-icon">
+                    <i class="recipe-custom universe-background {{dataset.icon}}"></i>
+                </div>
+                <div class="custom-recipe-label">
+                    <h1 class="title">{{dataset.label}}</h1>
+                    <p ng-if="dataset.description" from-markdown="dataset.description"></p>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+</div>

@@ -1,0 +1,48 @@
+<div class="modal modal3 move-item-modal move-project-modal" auto-size="false">
+    <dku-modal-header >
+        <dku-modal-title>
+            Move
+            <span ng-if="movingFolders.length === 0">
+                <span ng-if="movingProjects.length > 1">{{movingProjects.length}}</span>
+                {{'project' | plurify: movingProjects.length}}
+                <span ng-if="movingProjects.length === 1">"{{movingProjects[0].name}}"</span>
+            </span>
+            <span ng-if="movingProjects.length === 0">
+                <span ng-if="movingFolders.length > 1">{{movingFolders.length}}</span>
+                {{'folder' | plurify: movingFolders.length}}
+                <span ng-if="movingFolders.length === 1">"{{movingFolders[0].name}}"</span>
+            </span>
+            <span ng-if="movingProjects.length > 0 && movingFolders.length > 0">
+                {{movingProjects.length + movingFolders.length}} items
+            </span>
+        </dku-modal-title>
+    </dku-modal-header>
+    <div class="modal-body vertical-flex" >
+        <div block-api-error class="noflex"></div>
+        <div class="flex">
+            <div class="fh">
+                <browse-path
+                    class="h100 vertical-flex"
+                    browse-fn="browse"
+                    title="Projects"
+                    path="newFolderId"
+                    can-select-fn="canSelect"
+                    can-browse-fn="canBrowse"
+                    display-item-fn="getName"
+                    on-browse-done-fn="browseDoneFn"
+                    cant-write-content-verb="You don't have permissions to write in this project folder"
+                    searchable="false"
+                    destination-label="to"
+                    items-are-projects="true">
+                </browse-path>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer modal-footer-std-buttons has-border">
+        <p ng-if="currentFolder.canWriteContents === false" class="text-error pull-left margin-bottom-none">You don't have permissions to write in this project folder</p>
+        <div class="pull-right">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="confirm()" ng-disabled="(!ProjectFolderContext.getCurrentProjectFolderId() && !destination) || ProjectFolderContext.getCurrentProjectFolderId() === destination || currentFolder.canWriteContents === false">Move</button>
+        </div>
+    </div>
+</div>

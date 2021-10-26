@@ -1,0 +1,80 @@
+<form class="dkuform-horizontal" ng-controller="XmlFormatController">
+	<div on-smart-change="onFormatParamsChanged()">
+		<div class="row-fluid" style="position: relative">
+
+			<div class="span7">
+				<div class="control-group">
+					<label class="control-label">Root element XPath</label>
+					<div class="controls">
+						<input ng-trim="false" ng-model="dataset.formatParams.rootPath" type="text" ng-required="field.mandatory" xpath-field="root" />
+					</div>
+				</div>
+				
+				<form-template-element model="dataset.formatParams" field="formatsAsMap[dataset.formatType].retrievalMode"></form-template-element>
+				<div class="control-group" ng-show="dataset.formatParams.retrievalMode == 'explicit'">
+					<div class="control-group">
+						<label class="control-label">XPaths to columns</label>
+						<!-- bound the div to the right with a right wall to prevent the buttons from floating all the way to the window edge -->
+						<div class="controls right-wall">
+							<editable-list ng-model="dataset.formatParams.cellContentMapping" add-label="Add XPath/column"
+								transcope="{xpathFieldGotFocus: xpathFieldGotFocus}">
+								<div><input type="text" ng-model="it.from" placeholder="No XPath" xpath-field="child" /></div>
+								<i class="editable-list__arrow-icon icon-long-arrow-right"></i>
+								<div><input type="text" ng-model="it.to" placeholder="No name" /></div>
+								<div><label style="white-space: nowrap">
+										<input type="checkbox" ng-model="it.unique" />
+										is unique
+								</label></div>
+							</editable-list>
+						</div>
+					</div>
+				</div>
+				<form-template-element model="dataset.formatParams" field="formatsAsMap[dataset.formatType].shortTextMode"></form-template-element>
+
+				<form-template-element model="dataset.formatParams" field="formatsAsMap[dataset.formatType].ancestorCapture"></form-template-element>
+				<div class="control-group" ng-show="dataset.formatParams.ancestorCapture == 'explicit'">
+					<div class="control-group">
+						<label class="control-label">XPaths to context</label>
+						<div class="controls">
+							<editable-list ng-model="dataset.formatParams.ancestorMapping" add-label="Add XPath/column"
+									transcope="{xpathFieldGotFocus: xpathFieldGotFocus}">
+								<div><input type="text" ng-model="it.from" placeholder="No XPath" xpath-field="parent" /></div>
+								<i class="editable-list__arrow-icon icon-long-arrow-right"></i>
+								<div><input type="text" ng-model="it.to" placeholder="No name" /></div>
+								<div><label style="white-space: nowrap">
+										<input type="checkbox" ng-model="it.unique" />
+										is unique
+								</label></div>
+							</editable-list>
+						</div>
+					</div>
+				</div>
+				<div class="control-group" ng-show="dataset.formatParams.ancestorCapture == 'array' || dataset.formatParams.ancestorCapture == 'object' || dataset.formatParams.ancestorCapture == 'full_object'">
+					<form-template-element model="dataset.formatParams" field="formatsAsMap[dataset.formatType].ancestorCaptureColumn"></form-template-element>
+				</div>
+
+				<form-template-element model="dataset.formatParams" field="formatsAsMap[dataset.formatType].hasNoTopLevelElement"></form-template-element>
+
+				<div class="control-group" ng-show="dataset.formatParams.hasNoTopLevelElement == true">
+					<form-template-element model="dataset.formatParams" field="formatsAsMap[dataset.formatType].charset"></form-template-element>
+				</div>
+
+				<div class="control-group" ng-show="dataset.formatParams.hasNoTopLevelElement == false">
+					<form-template-element model="dataset.formatParams" field="formatsAsMap[dataset.formatType].overrideFileCharset"></form-template-element>
+
+					<div class="control-group" ng-show="dataset.formatParams.overrideFileCharset == true">
+						<form-template-element model="dataset.formatParams" field="formatsAsMap[dataset.formatType].charset"></form-template-element>
+					</div>
+				</div>
+
+
+				<form-template-element model="dataset.formatParams" field="formatsAsMap[dataset.formatType].compress"></form-template-element>
+			</div>
+
+			<div class="span5" >
+				<div>Suggestions for the XPaths:</div>
+				<possible-xpaths style="position: absolute; overflow-y:scroll; height: 100%; border: 1px #ccc solid;" />
+			</div>
+		</div>
+	</div>
+</form>

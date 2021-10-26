@@ -1,0 +1,20 @@
+<div class="metric-plot h100">
+	<svg class="chart h100" svg-tooltip tooltip-class="metrics-history-tooltip" container="{{tooltipsContainer}}" ng-show="displayedData.$isPlotted"></svg>
+	<div ng-if="!displayedData.$isPlotted" class="horizontal-list h100" ng-class="{array: displayedData.$isArray}">
+		<div ng-repeat="point in displayedData.values | filter:pointFilter track by $index" class="point vertical-flex">
+			<h4 class="tile-header noflex" ng-if="displayedData.$isArray">
+				<div class="date">{{displayedPartitions ? point.partition : (point.time | date:'yyyy-MM-dd HH:mm')}}</div>
+			</h4>
+			<div ng-if="displayedPartitions" class="partition-date">
+				Computed on {{point.time | date:"yyyy-MM-dd 'at' HH:mm"}}
+			</div>
+			<div class="tile-body flex">
+			    <div ng-include="'/templates/metrics/one-' + displayedData.$displayType + '-representation.html'"></div>
+			</div>
+			<div class="tile-footer noflex">
+				<div class="date" ng-if="!displayedData.$isArray">{{displayedPartitions ? point.partition : (point.time | date:'yyyy-MM-dd HH:mm')}}</div>
+			</div>
+		</div>
+	</div>
+	
+</div>

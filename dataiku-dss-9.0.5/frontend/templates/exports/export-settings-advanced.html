@@ -1,0 +1,47 @@
+<fieldset ng-show="exportModal.advancedMode">
+    <div ng-show="exportModal.datasetDefinition && exportModal.DatasetUtils.isSQLTable(exportModal.datasetDefinition)">
+        <legend class="settings-section-title">Ordering</legend>
+        <div class="control-group">
+            <label for="" class="control-label">Enforce ordering</label>
+            <div class="controls">
+                <label for=""><input type="checkbox" ng-model="exportParams.selection.ordering.enabled">
+                    <small>Order the rows of the dataset</small>
+                </label>
+                <div ng-show="exportParams.selection.ordering.enabled" ordering-rules-form rules="exportParams.selection.ordering.rules"></div>
+            </div>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset ng-show="exportModal.advancedMode">
+    <legend>Input sampling  <small style="display:inline-block; margin-left: 2em"><doclink page="/preparation/sampling" title="Help" /></small></legend>
+    <div sampling-form-without-partitions selection="exportParams.selection" />
+    <div class="control-group required" ng-show="!!exportModal.partitionListLoader">
+        <label for="sampling-partition-method" class="control-label">Use partitions</label>
+        <div class="controls">
+            <select ng-model="exportParams.selection.partitionSelectionMethod" dku-bs-select id="sampling-partition-method">
+             <option value="ALL">Use all partitions</option>
+             <option value="SELECTED">Explicitly select partitions</option>
+            </select>
+        </div>
+    </div>
+    <div class="control-group required" ng-show="!!exportModal.partitionListLoader && exportParams.selection.partitionSelectionMethod=='SELECTED'">
+        <label for="sampling-partition-choice" class="control-label">Partitions</label>
+        <div class="controls">
+            <span ng-show="!exportModal.partitionListLoaded">
+                <input type="text" style="font-size:14px;" ng-model="exportModal.selectedPartitionsText" id="sampling-partition-choice" />
+                <button  class="btn btn--secondary" ng-click="exportModal.loadPartitions()">
+                 <i class="icon-list"  style="cursor:pointer"></i>
+                 List partitions
+                </button>
+            </span>
+            <span class="help-inline" ng-show="!exportModal.partitionListLoaded">Comma-separated list</span>
+
+            <span ng-show="exportModal.partitionListLoaded">
+                <select dku-bs-select data-actions-box="true" data-live-search="true" ng-model="exportParams.selection.selectedPartitions"
+             ng-options="part for part in exportModal.partitionList" multiple="multiple" />
+            </span>
+
+        </div>
+    </div>
+</fieldset>

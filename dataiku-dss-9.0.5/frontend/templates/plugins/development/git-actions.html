@@ -1,0 +1,120 @@
+<!-- template from plugins/development/git-actions.html -->
+<div style="display: inline-block; margin-left: 40px;">
+    <div custom-element-popup on-show-callback="focusBranchSearchInput" class="list-customfilter-box list-control-dropdown" style="display: inline-block" id="qa_plugindev_git-branches">
+        <button class="button--git-action mainzone" disabled-if="!canChangeBranch" ng-class="{'has-caret' : canChangeBranch, 'disabled' : !canChangeBranch }" ng-click="togglePopover()">
+            <i class="icon-dku-git"></i>
+            <span class="button__branch-name">{{ gitStatus.currentBranch }}</span>
+            <i class="caret" ng-if="canChangeBranch"></i>
+        </button>
+
+        <div class="popover custom-element-popup-popover popover_style_no_border tags-list-popover">
+            <div ng-click="$event.stopPropagation()">
+                <div style="max-height:300px" class="dropdown open">
+                    <ul class="dropdown-menu text-left" style="width: 250px;">
+                        <li style="margin: 6px 12px 0;">
+                            <div class="std-list-search-box">
+                                <span class="search-icon" style="position: absolute; right: 12px; top: 9px; font-size: 15px; color: #bbbdbf;"><i class="icon-dku-search"></i></span>
+                                <input type="text" placeholder="Search branches..." ng-model="filterBranchesQuery" ng-change="filterBranches(filterBranchesQuery)" id="branch-search-input" class="qa_plugindev_branch-search-input" style="width: 150px; border: 0">
+                            </div>
+                        </li>
+                        <li class="divider" style="margin-top: 5px"></li>
+                        <li class="nav-header popover__elt_no_bg_hover" style="padding: 0 5px 0 16px;">
+                            Existing branches
+                            <a ng-click="modalFetch()" class="pull-right" style="line-height: 0" ng-show="gitStatus.remotes.length">
+                                <i class="icon icon-refresh" style="font-size: 12px;"></i>
+                            </a>
+                        </li>
+                        <li ng-repeat="branch in gitBranchesFiltered">
+                            <a style="padding-left: 16px; padding-right: 10px" ng-click="switchToBranch(branch)" class="break-hyphens" ng-style="branch === gitStatus.currentBranch && {'font-weight': '500'}">
+                                {{ branch }}
+                                <i class="icon icon-ok pull-right" ng-show="branch === gitStatus.currentBranch" style="font-size: 12px; line-height: 18px;"></i>
+                            </a>
+                        </li>
+                        <li ng-if="gitBranchesFiltered.length === 0">
+                            <a style="padding-left: 16px; padding-right: 10px" class="disabled popover__elt_no_bg_hover">None found.</a>
+                        </li>
+                        <li class="divider" style="margin-top: 7px; margin-bottom: 3px"></li>
+                        <li id="qa_plugindev_git-new-branch" style="margin: 0;">
+                            <a style="padding: 6px 16px;" ng-click="modalCreateBranch()" ng-if="gitBranchesFiltered.length > 0">Create new branch...</a>
+                            <a style="padding: 6px 16px;" ng-click="modalCreateBranch(filterBranchesQuery)" class="break-hyphens" ng-if="gitBranchesFiltered.length === 0">
+                                Create new branch <strong>{{ filterBranchesQuery }}</strong> from {{ gitStatus.currentBranch }}...
+                            </a>
+                        </li>
+                        <li style="margin: 0" ng-if="gitBranches.length > 1">
+                            <a style="padding: 6px 16px;" ng-click="modalDeleteLocalBranches()">Delete branches...</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="display: inline-block; margin-left: 5px;" ng-if="canUpdateContent">
+    <div custom-element-popup class="list-customfilter-box list-control-dropdown" style="display: inline-block;">
+        <button class="button--git-action mainzone has-caret" ng-click="togglePopover()" style="padding-right: 20px;" id="qa_plugindev_git-actions">
+            <span style="padding: 2px;" id="qa_plugindev_tracking-count">
+                {{ formatTrackingCount(gitStatus.trackingCount.ahead) }} <i class="icon icon-long-arrow-up" style="font-size: 14px;"></i> {{ formatTrackingCount(gitStatus.trackingCount.behind) }} <i class="icon icon-long-arrow-down" style="font-size: 14px;"></i>
+            </span>
+            <b class="caret"/>
+        </button>
+
+        <div class="popover custom-element-popup-popover popover_style_no_border tags-list-popover">
+            <div ng-click="$event.stopPropagation()">
+                <div style="max-height:300px" class="dropdown open">
+                    <ul class="dropdown-menu text-left" style="width: 255px;">
+                        <li>
+                            <a class="disabled popover__elt_no_bg_hover break-hyphens" style="font-size: 12px; white-space: normal;" ng-if="gitStatus.hasRemoteOrigin && gitStatus.hasTrackingCount">
+                                <i class="icon-fixed-width icon-info-sign"/> Your branch is {{ gitStatus.trackingCount.ahead }} {{ "commit" | plurify: gitStatus.trackingCount.ahead }} ahead, {{ gitStatus.trackingCount.behind }} {{ "commit" | plurify: gitStatus.trackingCount.behind }} behind of the remote tracking
+                                branch.
+                            </a>
+                            <a class="disabled popover__elt_no_bg_hover break-hyphens" style="font-size: 12px; white-space: normal;" ng-if="!gitStatus.hasRemoteOrigin && !gitStatus.hasTrackingCount">
+                                <i class="icon-fixed-width icon-info-sign"/> Add a remote to get tracking information and Git remote actions.
+                            </a>
+                            <a class="disabled popover__elt_no_bg_hover break-hyphens" style="font-size: 12px; white-space: normal;" ng-if="gitStatus.hasRemoteOrigin && !gitStatus.hasTrackingCount">
+                                <i class="icon-fixed-width icon-info-sign"/> Push this local branch to get remote tracking information.
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li ng-show="needsExplicitCommit()">
+                            <a ng-click="modalCommit()" id="qa_plugindev_commit">
+                                <i class="icon-fixed-width icon-long-arrow-right"/> Commit
+                            </a>
+                        </li>
+                        <li>
+                            <a ng-click="gitStatus.hasRemoteOrigin && modalFetch()" ng-class="{disabled: !gitStatus.hasRemoteOrigin}" id="qa_plugindev_fetch">
+                                <i class="icon-fixed-width icon-refresh"/> Fetch
+                            </a>
+                        </li>
+                        <li>
+                            <a ng-click="gitStatus.hasRemoteOrigin && modalPush()" ng-class="{disabled: !gitStatus.hasRemoteOrigin}" id="qa_plugindev_push">
+                                <i class="icon-fixed-width icon-upload-alt"/> Push
+                            </a>
+                        </li>
+                        <li>
+                            <a ng-click="gitStatus.hasRemoteOrigin && modalPull()" ng-class="{disabled: !gitStatus.hasRemoteOrigin}" id="qa_plugindev_pull">
+                                <i class="icon-fixed-width icon-download-alt"/> Pull
+                            </a>
+                        </li>
+                        <li>
+                            <a ng-click="getResetModes().length > 0 && modalReset()" class="text-error" ng-class="{disabled: getResetModes().length === 0 }" id="qa_plugindev_drop-changes">
+                                <span class="text-error">
+                                    <i class="icon-fixed-width icon-remove"/> Drop changes
+                                </span>
+                            </a>
+                        </li>
+                        <li ng-if="canChangeRemote">
+                            <a ng-click="modalAddOrEditRemote()" id="qa_plugindev_edit-remote">
+                                <i class="icon-fixed-width icon-cog"/> {{ gitStatus.hasRemoteOrigin ? "Edit" : "Add" }} remote
+                            </a>
+                        </li>
+                        <li ng-if="canChangeRemote && gitStatus.hasRemoteOrigin">
+                            <a ng-click="modalRemoveRemote()" id="qa_plugindev_remove-remote">
+                                <i class="icon-fixed-width icon-unlink"/> Remove remote
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

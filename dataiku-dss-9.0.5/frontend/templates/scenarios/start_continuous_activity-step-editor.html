@@ -1,0 +1,43 @@
+<div ng-controller="StartContinuousActivityStepController">
+	<div ng-include ="'/templates/scenarios/fragments/step-header.html'" style="display: inline-block;"></div>
+    <div class="alert alert-info">
+        This step changes the desired state of continuous activities to 'started' and kicks off their run loop
+    </div>
+
+    <form name="setupForm" class="dkuform-horizontal" >
+        <div class="control-group">
+            <step-continuous-activities-table items="step.params.continuousActivityIds" continuous-activities="continuousActivities" action-verb="to start"></step-continuous-activities-table>
+        </div>
+        <hr />
+        <div class="control-group">
+             <label for="" class="control-label">Max nb. attempts</label>
+             <div class="controls">
+                 <input type="number" force-integer ng-model="step.params.loopParams.abortAfterCrashes"/>
+                 <span class="help-inline">Use -1 for no bound</span>
+             </div>
+         </div>
+         <div class="control-group">
+             <label for="" class="control-label">Min delay between attemps</label>
+             <div class="controls">
+                 <input type="number" force-integer ng-model="step.params.loopParams.initialRestartDelayMS" min="0"/>
+             </div>
+         </div>
+         <div class="control-group">
+             <label for="" class="control-label">Max delay between attemps</label>
+             <div class="controls">
+                 <input type="number" force-integer ng-model="step.params.loopParams.maxRestartDelayMS" min="0"/>
+             </div>
+         </div>
+         <div class="control-group">
+             <label for="" class="control-label">Delay increase between attemps</label>
+             <div class="controls">
+                 <input type="number" force-integer ng-model="step.params.loopParams.restartDelayIncMS" min="0"/>
+             </div>
+         </div>
+        <hr />
+    
+    </form>
+
+    <div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+
+</div>

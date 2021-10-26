@@ -1,0 +1,1 @@
+This macro installs or reinstalls the "dataiku" R package in the personal library directory of the user. This is designed to be used by a RStudio Server running on the DSS server.

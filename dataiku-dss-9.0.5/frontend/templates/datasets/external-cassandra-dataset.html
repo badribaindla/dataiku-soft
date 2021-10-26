@@ -1,0 +1,118 @@
+<div ng-show="dataset" class="h100">
+	<div include-no-scope="/templates/datasets/fragments/settings-save.html" />
+	<tabs class="tabs-with-margin vertical-flex">
+		<pane title="Connection">
+			<div class="container-fluid page-top-padding h100 oa">
+			<fieldset ng-show="connections && !connections.length">
+				You do not yet have any connection for {{dataset.type|datasetTypeToName}}.
+				You need to <a target="_blank" href="{{$state.href('admin.connections.list')}}">create a new connection</a>
+				before creating datasets on this connection.
+			</fieldset>
+			<fieldset ng-show="connections && connections.length">
+				<form class="dkuform-horizontal">
+					<div on-smart-change="test(true)">
+						<div class="control-group">
+							<label for="" class="control-label">Connection</label>
+							<div class="controls">
+								<select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="dataset.params.connection" ng-options="connection for connection in connections"></select>
+								<a target="_blank" href="{{$state.href('admin.connections.list')}}">Manage connections</a>
+							</div>
+						</div>
+						<fieldset ng-disabled="!testResult.connectionOK">
+							<div class="control-group">
+								<label for="" class="control-label">Table</label>
+								<div class="controls">
+									<select ng-model="dataset.params.table" ng-if="testResult.tableList != null"
+										ng-options="table for table in testResult.tableList"></select>
+									<input type="text" ng-model="dataset.params.table" ng-if="testResult.tableList == null"/>
+								</div>
+							</div>
+						</fieldset>
+					</div>
+					<div class="control-group" ng-if="!appConfig.communityEdition">
+						<div class="controls">
+							<label class="checkbox">
+								<input ng-model="dataset.params.partitioned" type="checkbox" />
+								Partitioned
+							</label>
+						</div>
+					</div>
+					<div ng-show="dataset.params.partitioned" >
+						<div class="control-group">
+							<label for="" class="control-label">Partitioning column</label>
+							<div class="controls">
+								<input type="text" ng-model="dataset.params.partitioningColumn" ng-required="dataset.params.partitioned"/>
+							</div>
+						</div>
+						<div include-no-scope="/templates/flow-editor/fragments/mini-1fixeddim-partitioning-widget.html" />
+						<div class="control-group">
+							<label class="control-label">Delete before write</label>
+							<div class="controls">
+								<input type="checkbox" ng-model="dataset.params.deleteBeforeWrite" />
+								<span class="help-inline">
+									Delete existing partition contents before rebuild.
+								</span>
+							</div>
+						</div>
+						<div class="control-group">
+							<label for="" class="control-label">Forced list of partitions</label>
+							<div class="controls">
+								<input type="text" ng-model="dataset.params.explicitPartitionsList" />
+								<span class="help-inline">
+									Optional, forces the partitions to this predefined list. Use if listing partitions is not possible.
+								</span>
+							</div>
+						</div>
+					</div>
+					<div class="control-group">
+						<label for="" class="control-label">Fetch size</label>
+						<div class="controls">
+							<input type="text" ng-model="dataset.params.fetchSize" />
+							<span class="help-inline">
+								If non-zero, specifies non-default fetch size for SELECT queries against this table.
+							</span>
+						</div>
+					</div>
+				</form>
+				<div include-no-scope="/templates/datasets/external-cassandra-dataset-test.html" />
+			</fieldset>
+
+			<fieldset ng-show="testResult && ! testResult.testedConnectionOnly" style="min-width: inherit">
+				<legend>Preview</legend>
+				<div class="scroll dataset-preview-scroll">
+				 	<div dku-if="testResult.preview">
+	                    <div simple-detection-preview-table dataset="dataset" table="testResult.preview" headers="testResult.preview.headers" 
+	                                                        schema-is-user-editable="false"/>
+					</div>
+				</div>
+			</fieldset>
+			</div>
+		</pane>
+
+		<pane title="Preview">
+			<div class="container-fluid page-top-padding h100 oa">
+			<div class="scroll dataset-preview-scroll">
+				<div ng-show="testResult.previewErrorMsg" class="alert alert-error">{{testResult.previewErrorMsg}}</div>
+				<div dku-if="testResult.preview">
+	                <div simple-detection-preview-table dataset="dataset" table="testResult.preview" headers="testResult.preview.headers" 
+	                                                    schema-is-user-editable="false"/>
+				</div>
+			</div>
+				<div include-no-scope="/templates/datasets/external-cassandra-dataset-test.html" />
+			</div>
+		</pane>
+
+		<pane title="Schema">
+			<div class="container-fluid page-top-padding h100 vertical-flex" style="position: relative;">
+            	<div include-no-scope="/templates/datasets/schema-edition.html" class="flex" />
+            </div>
+		</pane>
+		<pane title="Advanced" visible-pane="{{dataset.name.length > 0 || detectionResults != null}}">
+			<div class="h100 oa">
+				<div include-no-scope="/templates/datasets/advanced-fieldset-flow.html" />
+			    <div include-no-scope="/templates/datasets/advanced-override-table.html" />
+			    <div include-no-scope="/templates/datasets/advanced-fieldset-danger.html" />
+			</div>
+		</pane>
+	</tabs>
+</div>

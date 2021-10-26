@@ -1,0 +1,1 @@
+This macro creates a RStudio project corresponding to the current project in the home directory of the user. This is designed to be used by a RStudio Server running on the DSS server.

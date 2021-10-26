@@ -1,0 +1,64 @@
+<div class="container-fluid new-dataset-page dss-home-page fh oa" new-dataset-page-alignment-manager>
+	<div class="new-dataset-page__centered-container">
+
+		<div class="main-title-row">
+			<p class="main-title-row__admin-links">
+				<a ng-show="isDSSAdmin() || appConfig.globalPermissions.mayCreateAuthenticatedConnections" ui-sref="admin.connections.list">Go to connection settings</a>
+				<br/>
+				<a ng-show="isDSSAdmin()" ui-sref="admin.general.engines">Customize visible dataset types</a>
+			</p>
+			<h1>New dataset</h1>
+		</div>
+
+		<div class="wells" ng-if="datasetTiles">
+			<div class="well"
+				ng-repeat="tile in datasetTiles"
+			>
+				<h3>
+					<i ng-class="tile.icon" />
+					{{tile.title}}
+				</h3>
+				<div class="pull-left" ng-class="tile.types2 ? 'half-well' : 'full-well'">
+					<ul>
+						<li ng-repeat="datasetType in tile.types"
+							dataset-type type="datasetType"
+						></li>
+					</ul>
+				</div>
+				<div class="pull-left half-well" ng-if="tile.types2">
+					<ul>
+						<li ng-repeat="datasetType in tile.types2"
+							dataset-type type="datasetType"
+						></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<div class="secondary-title-row">
+			<div class="secondary-title-row__title">
+				<h2>Plugin</h2>
+			</div>
+			<div class="secondary-title-row__links">
+				<a ui-sref="plugins.store" main-click>Browse plugins</a>
+			</div>
+		</div>
+
+		<div class="wells">
+			<div class="well vertical-flex" ng-repeat="customConnectorPlugin in customConnectorPlugins">
+				<div>
+					<h3>
+						<i class="{{customConnectorPlugin.icon}}" />
+						<span ng-click="displayPluginInfo(customConnectorPlugin.plugin.id, true, false)">{{customConnectorPlugin.label}}</span>
+					</h3>
+				</div>
+				<ul class="flex">
+					<li ng-repeat="connector in customConnectorPlugin.connectors">
+						<a ui-sref="projects.project.datasets.new_with_type.settings({type:connector.type, zoneId:$stateParams.zoneId})" title="{{connector.label}}">{{connector.label}}</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+</div>

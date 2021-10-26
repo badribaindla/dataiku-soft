@@ -1,0 +1,132 @@
+<div class="fh" evaluated-data-statistics>
+    <div class="h100 vertical-flex" filtered-multi-select-rows ng-model="columnList" select-click-behaviour="select-one" ng-if="selection">
+        <div block-api-error />
+
+        <div class="evaluated-data__summary noflex">
+            <table class="table table-small">
+                <tr>
+                    <th>Type</th>
+                    <td ng-bind="evaluation.evaluation.dataType" />
+                </tr>
+                <tr ng-if="evaluation.evaluation.dataType == 'DATASET'">
+                    <th>Name</th>
+                    <td ng-bind="evaluation.evaluation.dataParams.ref" />
+                </tr>
+                <tr ng-if="evaluation.evaluation.dataType == 'DATASET'">
+                    <th>Version</th>
+                    <td ng-bind="evaluation.evaluation.dataParams.versionId || 'n/a'" />
+                </tr>
+                <tr ng-if="evaluation.evaluation.dataType == 'DATASET'">
+                    <th>Partitions</th>
+                    <td ng-bind="evaluation.evaluation.dataParams.partitions || 'n/a'" />
+                </tr>
+                <tr>
+                    <th>Nb rows</th>
+                    <td ng-bind="evaluatedDataStatistics.nbRows" />
+                </tr>
+            </table>
+        </div>
+        
+        <div class="evaluated-data__headers noflex">
+            <div class="horizontal-flex">
+                <h2 class="noflex evaluated-data__count" ng-if="selection.filteredObjects.length == selection.allObjects.length">
+                    {{selection.allObjects.length}} column{{selection.allObjects.length > 1 ? 's' : ''}}
+                </h2>
+                <h2 class="noflex evaluated-data__count" ng-if="selection.filteredObjects.length != selection.allObjects.length">
+                    {{selection.filteredObjects.length}} of {{selection.allObjects.length}} column{{selection.allObjects.length > 1 ? 's' : ''}}
+                </h2>
+        
+                <div class="noflex std-list-search-box list-control-widget evaluated-data__textual-filter">
+                    <span class="add-on">
+                        <i class="icon-dku-search"></i>
+                    </span>
+                    <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Search..." style="width: 130px" >
+                </div>
+    
+                <div class="noflex list-customfilter-box list-control-widget evaluated-data__sort">
+                    <span class="add-on" ng-click="selection.orderReversed = !selection.orderReversed;">
+                        <i ng-class="{'icon-sort-by-attributes' : selection.orderReversed, 'icon-sort-by-attributes-alt' : !selection.orderReversed}"></i>
+                    </span>
+                    <select dku-bs-select="{'style':'sort-button dku-select-button'}" ng-model="selection.orderQuery" >
+                        <option value="column">Name</option>
+                        <option value="featureType">Type</option>
+                        <option value="featureRole">Role</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="evaluated-data__univariates flex">
+            <div class="fh">
+                <div class="horizontal-flex">
+                    <!-- column list on the left -->
+                    <div class="evaluated-data__columns-selector noflex">
+                        <div class="fh oa">
+                            <div fat-repeat="selection.filteredObjects"
+                                 as="univariateColumn"
+                                 class="h100 evaluated-data__columns-selector-list"
+                                 row-height="40"
+                                 digest-child-only="true"
+                                 ng-keydown="multiSelectKeydown($event, true)"
+                                 tabindex="0"
+                                 style="outline:none;">
+                                <li class="evaluated-data__column-selector horizontal-flex" full-click>
+                                    <div class="noflex evaluated-data__column-checkbox">
+                                        <input type="checkbox" ng-model="univariateColumn.$selected" ng-click="checkBoxChanged(univariateColumn, $event)" />
+                                    </div>
+
+                                    <div class="noflex evaluated-data__column-feature-type" ng-click="objectClicked(univariateColumn, $event)" main-click>
+                                        <span ng-show="univariateColumn.featureType=='NUMERIC'">#</span>
+                                        <i class="icon-font" ng-show="univariateColumn.featureType=='CATEGORY'"></i>
+                                        <i class="icon-italic" ng-show="univariateColumn.featureType=='TEXT'"></i>
+                                        <span style="font-size: 14px" ng-show="univariateColumn.featureType=='VECTOR'">[ ]</span>
+                                        <i class="icon-picture" ng-show="univariateColumn.featureType=='IMAGE'"></i>
+                                    </div>
+                                    
+                                    <div class="flex evaluated-data__column-feature-name mx-textellipsis">
+                                        <span ng-bind-html="univariateColumn.column | boldify:selection.filterParams.userQueryResult"></span>
+                                    </div>
+                                </li>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- display of the statistics of the columns on the left -->
+                    <div class="evaluated-data__columns-statistics flex">
+                        <div class="fh oa">
+                            <div ng-if="selection.selectedObjects && selection.selectedObjects.length===0" class="h100 evaluated-data__list-empty">
+                                <div class="flex empty-list-cta section" ng-if="selection.allObjects.length===0">
+                                     <h1>
+                                        No column statistics in this model evaluation
+                                    </h1>
+                                </div>
+                
+                                <div class="alert alert-info" ng-if="selection.filteredObjects.length == 0 && selection.allObjects.length>0" sytle="margin-top: 8px;">
+                                    <h4>No column matches match your filter</h4>
+                                    <div style="margin: 10px 0">
+                                        <a class="btn btn--secondary" ng-click="clearFilters()">Clear filters</a>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info" ng-if="selection.filteredObjects.length > 0" sytle="margin-top: 8px;">
+                                    <h4>Select one or more columns</h4>
+                                </div>
+                            </div>
+            
+                            <ul class="evaluated-data__univariates-list features-page"> <!-- the features-page is here to reuse the css of the features handling tab in visual ml -->
+                                <li class="evaluated-data__univariate" ng-repeat="univariate in selection.selectedObjects">
+                                    <div class="evaluated-data__univariate-header">
+                                        Column {{univariate.column}} handled as {{univariateColumn.type}}
+                                        {{univariateColumn.featureRole == 'WEIGHT' ? ' (weight)' : ''}}
+                                        {{univariateColumn.featureRole == 'TARGET' ? ' (target)' : ''}}
+                                    </div>
+                                    <div column-analysis column="univariate.column" cache="univariatesMap[univariate.column].cache" is-numeric="univariatesMap[univariate.column].isNumeric" is-date="univariatesMap[univariate.column].isDate" />
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

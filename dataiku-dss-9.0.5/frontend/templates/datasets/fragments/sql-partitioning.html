@@ -1,0 +1,114 @@
+<div class="control-group" ng-if="!appConfig.communityEdition">
+    <label for="" class="control-label">Partitioned</label>
+    <div class="controls">
+        <button class="btn btn--secondary"
+            ng-if="!(dataset.partitioning && dataset.partitioning.dimensions && dataset.partitioning.dimensions.length > 0)"
+            ng-click="setPartitioned(true)">
+            Activate partitioning
+        </button>
+        <button class="btn btn--secondary"
+            ng-if="dataset.partitioning && dataset.partitioning.dimensions && dataset.partitioning.dimensions.length > 0"
+            ng-click="setPartitioned(false)">
+            Deactivate partitioning
+        </button>
+    </div>
+</div>
+
+<div ng-show="!appConfig.communityEdition && isPartitioned()">
+    <div ng-if="dataset.type == 'BigQuery' && !dataset.params.useBigQueryPartitioning" class="alert alert-warning">
+        Beware: DSS will not create BigQuery partitioned tables. Go to <strong>Advanced</strong> to configure BigQuery native partitioning.
+    </div>
+	<div class="control-group" ng-show="dataset.managed && supportsNativePartitioning()">
+	    <label class="control-label">Partitioning kind</label>
+	    <div class="controls">
+	        <label class="radio inline">
+	            <input type="radio" name="partitioningTypeRadio" ng-model="dataset.params.partitioningType" value="native">
+	            Use native DB partitioning
+	        </label>
+	        <label class="radio inline">
+	            <input type="radio" name="partitioningTypeRadio" ng-model="dataset.params.partitioningType" value="custom">
+	            Column-based partitioning
+	        </label>
+	    </div>
+	</div>
+
+    <!-- Note: be careful about layout for external SQL datasets -->
+    <div class="well partitioningDimensions">
+        <h6>Configure dimensions</h6>
+        <!-- Show the full partitioning widget -->
+        <ul class="items">
+            <li class="item" ng-repeat="dimension in dataset.partitioning.dimensions">
+                <div class="actions pull-right">
+                    <a ng-click="removeDimension($index)"> <i class="icon-trash" /></a>
+                </div>
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label for="" class="control-label">Dimension name</label>
+                        <div class="controls">
+                            <input type="text" ng-model="dimension.name"></div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Dimension type</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="dimension.type" ng-options="v.type as v.label for v in dimensionTypes" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-show="dimension.type == 'time'">
+                        <label for="" class="control-label">Range</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="dimension.params.period" ng-options="v for v in timeDimensionPeriods" />
+                        </div>
+                    </div>
+                </form>
+            </li>
+        </ul>
+        <button type="button" class="btn btn--secondary" ng-click="addDimension()">Add dimension</button>
+    </div>
+
+    <div ng-show="dataset.params.mode == 'table'">
+        <div class="control-group">
+            <label for="" class="control-label">Forced list of partitions</label>
+            <div class="controls">
+                <input type="text" ng-model="dataset.params.explicitPartitionsList" />
+                <span class="help-inline">
+                    Optional, forces the partitions to this predefined list. Use if listing partitions is too expensive.
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div ng-show="dataset.params.mode == 'query'">
+        <div class="control-group">
+            <label for="" class="control-label">Query listing partitions</label>
+            <div class="controls">
+                <div style="height:210px; position: relative;">
+                    <div class="fh codemirror sql-code-mirror ">
+                        <textarea ng-model="dataset.params.partitionsQuery" ui-codemirror="codeMirrorSettingService.get('text/x-sql')" ui-refresh="connections.length> 0 && struct.displayed"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="" class="control-label">Forced list of partitions</label>
+            <div class="controls">
+                <input type="text" ng-model="dataset.params.explicitPartitionsList" />
+                <span class="help-inline">Optional, forces the partitions to this predefined list. Use if listing partitions is too expensive.</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label for="" class="control-label">Partition for preview</label>
+            <div class="controls">
+                <div ng-show="!partitionsList.list">
+                    <input type="text" ng-model="dataset.params.previewPartition" />
+                    <button type="button" class="btn btn--secondary" ng-click="listPartitions()">Retrieve list</button>
+                </div>
+                <div ng-show="partitionsList.list != null">
+                    <select dku-bs-select ng-model="dataset.params.previewPartition" ng-options="v for v in partitionsList.list" />
+                    <button type="button" class="btn btn--secondary" ng-click="partitionsList.list = null; partitionsList.error = null;">Enter custom</button>
+                </div>
+            </div>
+        </div>
+        <div ng-show="partitionsList.error" class="alert alert-danger">Failed to list partitions: <span summary-of-error="partitionsList.error" /></div>
+    </div> <!-- End partitioned.query -->
+</div><!-- End partitioned -->

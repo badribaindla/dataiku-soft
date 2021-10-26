@@ -1,0 +1,20 @@
+<div>
+    <div block-api-error />
+    <button class="btn btn--success" ng-click="runNow()" ng-disabled="uiState.running">
+        <span ng-if="uiState.running == true"><i class="icon-spin icon-spinner"></i>&nbsp;Running</span>
+        <span ng-if="uiState.running != true">{{tile.buttonText || 'Run now'}}</span>
+    </button>
+    <div class="app-tiles__run-scenario-state" ng-if="uiState.lastRun && !uiState.running">
+        <span ng-switch="uiState.lastRun.result.outcome">
+            <i ng-switch-when="SUCCESS" class="icon-check-sign success" />
+            <i ng-switch-when="WARNING" class="icon-warning-sign warning" />
+            <i ng-switch-when="FAILED" class="icon-remove-sign failed" />
+            <i ng-switch-default class="icon-ban-circle aborted" />
+        </span>
+        <span>{{uiState.running ? 'Running' : (uiState.lastRun.result.outcome.toLowerCase() || '?')}}</span>
+        <span class="lining-nums">{{uiState.lastRun.start | date: 'MMM. d HH:mm:ss'}}</span>
+    </div>
+    <button class="btn btn--secondary" ng-click="goToCurrentRun()" ng-if="!uiState.lastRun && uiState.running">Run details</button>
+    <button class="btn btn--secondary" ng-click="goToLastRun()" ng-if="uiState.lastRun">Run details</button>
+    <span ng-include="'/templates/apps/fragments/tile-help.html'"></span>
+</div>

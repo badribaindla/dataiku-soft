@@ -1,0 +1,44 @@
+<div class="modal modal3" ng-controller="NewManagedFolderController" >
+    <div dku-modal-header-with-totem modal-title="New folder" modal-totem="icon-box" />
+    <form name="newBoxForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body" >
+            <div block-api-error />
+            <div class="control-group">
+                <label class="control-label">Label</label>
+                <div class="controls">
+                    <input type="text" name="newBoxName" ng-model="newBox.name" check-new-managed-folder-label-unique required placeholder="Label"/>
+                </div>
+            </div>
+			<div class="alert alert-error" ng-show="newBoxForm.newBoxName.$error.boxNameUnique"> <i class="icon-warning-sign"></i>
+                This name is already used by another folder
+            </div>
+            <div class="control-group" ng-if="managedDatasetOptions.connections">
+                <label for="" class="control-label">Store into</label>
+                <div class="controls">
+                    <select ng-model="newBox.settings.$connection"
+                        dku-bs-select="{liveSearch:true,size:'auto'}"
+                        ng-options="item as item.connectionDisplayName group by item.connectionType for item in managedDatasetOptions.connections | orderBy:'connectionType + connectionName'" />
+                </div>
+            </div>
+            <div class="control-group" ng-if="newBox.settings.$connection.fsProviderTypes && newBox.settings.$connection.fsProviderTypes.length > 1">
+                <label for="" class="control-label">Store using</label>
+                <div class="controls">
+                    <select ng-model="newBox.settings.typeOptionId"
+                        dku-bs-select
+                        ng-options="t for t in newBox.settings.$connection.fsProviderTypes" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Partitioning</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="newBox.settings.partitioningOptionId" ng-options="x.id as x.label for x in partitioningOptions" />
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+        	<button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button><!-- 
+    	     --><button type="submit" ng-disabled="newBoxForm.$invalid" class="btn btn--text btn--primary" ng-click="create()">Create</button>
+        </div>
+    </form>
+
+</div>

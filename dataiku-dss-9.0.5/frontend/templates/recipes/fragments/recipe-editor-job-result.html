@@ -1,0 +1,94 @@
+<div ng-if="valCtx.preRunValidationError" class="alert alert-error pre-run-validation-error">
+    <div class="pull-right" style="padding: 5px">
+        <button class="btn btn--danger" ng-click="startSingleRecipeExecution(true)">Run anyway</button>
+        <a ng-click="hooks.resetScope()" style="text-decoration: none">
+            <span times-icon />
+        </a>
+    </div>
+    <h4>Cannot run this recipe</h4>
+    <p>Errors have been detected, please fix them before running this recipe</p>
+    <ul>
+        <li ng-repeat="error in valCtx.preRunValidationError.errors">{{error.message}}</li>
+    </ul>
+</div>
+
+<div ng-if="startedJob.jobId" class="recipe-editor-job-result">
+    <debug data="startedJob" />
+    <div ng-show="isJobRunning()" class="alert alert-info">
+        <a class="btn btn--danger pull-right" id="qa_recipe_abort-job-button"
+        ng-click="abortSingleRecipeExecution()" toggle="tooltip" title="Abort the running job"> <i class="icon-remove" />&nbsp;Abort
+        </a> <i class="icon-spin icon-spinner" />&nbsp;Job is running, please wait...
+
+        <div ng-repeat="(k,v) in startedJob.jobStatus.baseStatus.activities">
+            <div ng-show="v.message && v.state == 'RUNNING'">
+                {{k}} : {{v.message}}
+            </div>
+        </div>
+
+        <a ui-sref="projects.project.jobs.job({ jobId: startedJob.jobStatus.baseStatus.def.id, hideFlow: true })">View details</a>
+        <br />
+    </div>
+    <div ng-show="startedJob.jobStatus.baseStatus.state == 'DONE' && startedJob.jobStatus.totalWarningsCount == 0" class="alert alert-success">
+        <div class="pull-right" style="padding: 5px">
+            <a ng-click="discardStartedJob()">
+                <i class="icon-remove" />
+            </a>
+        </div>
+        <h4 id="qa_recipe_job-success">Job succeeded.</h4>
+        <a ui-sref="projects.project.jobs.job({ jobId: startedJob.jobStatus.baseStatus.def.id, hideFlow: true })">View details</a>
+        <br />
+        <span ng-repeat="computableSM in RecipesUtils.getFlatOutputsList(recipe)" ng-init="computable = computablesMap[computableSM.ref]">
+            <span ng-if="computable.type == 'DATASET'">
+                <a style="margin-right: 20px" href="{{$state.href('projects.project.datasets.dataset.explore', {datasetName : computableSM.ref})}}">Explore dataset {{computableSM.ref}}</a>
+            </span>
+            <span ng-if="computable.type == 'SAVED_MODEL'">
+                <a style="margin-right: 20px" href="{{$state.href('projects.project.savedmodels.savedmodel.versions', {smId : computableSM.ref})}}">View model {{computable.model.name}}</a>
+            </span>
+            <span ng-if="computable.type == 'MANAGED_FOLDER'">
+                <a style="margin-right: 20px" href="{{$state.href('projects.project.managedfolders.managedfolder.view', {odbId : computableSM.ref})}}">View folder {{computable.box.name}}</a>
+            </span>
+            <span ng-if="computable.type == 'MODEL_EVALUATION_STORE'">
+                <a style="margin-right: 20px" href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.evaluations', {mesId : computableSM.ref})}}">View evaluation store {{computable.evaluationStore.name}}</a>
+            </span>
+        </span>
+    </div>
+    <div ng-show="startedJob.jobStatus.baseStatus.state == 'DONE' && startedJob.jobStatus.totalWarningsCount > 0" class="alert alert-warning">
+        <div class="pull-right" style="padding: 5px">
+            <a ng-click="discardStartedJob()">
+                <i class="icon-remove" />
+            </a>
+        </div>
+        <h4>Job succeeded with warnings.</h4>
+        <a ui-sref="projects.project.jobs.job({ jobId: startedJob.jobStatus.baseStatus.def.id, hideFlow: true })">View details</a>
+        <br />
+        <span ng-repeat="computableSM in RecipesUtils.getFlatOutputsList(recipe)" ng-init="computable = computablesMap[computableSM.ref]">
+            <span ng-if="computable.type == 'DATASET'">
+                <a style="margin-right: 20px" href="{{$state.href('projects.project.datasets.dataset.explore', {datasetName : computableSM.ref})}}">Explore dataset {{computableSM.ref}}</a>
+            </span>
+            <span ng-if="computable.type == 'SAVED_MODEL'">
+                <a style="margin-right: 20px" href="{{$state.href('projects.project.savedmodels.savedmodel.versions', {smId : computableSM.ref})}}">View model {{computable.model.name}}</a>
+            </span>
+            <span ng-if="computable.type == 'MANAGED_FOLDER'">
+                <a style="margin-right: 20px" href="{{$state.href('projects.project.managedfolders.managedfolder.view', {odbId : computableSM.ref})}}">View folder {{computable.box.name}}</a>
+            </span>
+            <span ng-if="computable.type == 'MODEL_EVALUATION_STORE'">
+                <a style="margin-right: 20px" href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.evaluations', {mesId : computableSM.ref})}}">View evaluation store {{computable.evaluationStore.name}}</a>
+            </span>
+        </span>
+    </div>
+    <div ng-show="startedJob.jobStatus.baseStatus.state == 'FAILED' || startedJob.jobStatus.baseStatus.state =='ABORTED'" class="alert alert-error job-result">
+        <div class="pull-right" style="padding: 5px">
+            <a ng-click="discardStartedJob()">
+                <i class="icon-dku-error" />
+            </a>
+        </div>
+
+        <h4 style="font-size: 16px; font-weight: 400;">Job failed: <span summary-of-error="startedJob.jobStatus.error" /></h4>
+        <p>
+            <a ui-sref="projects.project.jobs.job({ jobId: startedJob.jobStatus.baseStatus.def.id, hideFlow: true })">View job details</a>
+        </p>
+
+        <pre ng-if="!startedJob.jobStatus.logTail">{{startedJob.jobStatus.errorDetails}}</pre>
+        <pre ng-if="startedJob.jobStatus.logTail" ng-bind-html="startedJob.jobStatus.logTailHTML"/>
+    </div>
+</div>

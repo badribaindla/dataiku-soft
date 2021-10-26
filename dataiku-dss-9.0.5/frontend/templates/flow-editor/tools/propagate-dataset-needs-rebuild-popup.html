@@ -1,0 +1,35 @@
+<div class="flow-tool-item-popover">
+	<div class="header">
+		<h5>Dataset should be rebuilt</h5>
+	</div>
+	<p ng-if="!nodeState.datasetRebuildData" style="margin: 0; padding: 10px;">
+		The schema of this dataset was just updated.
+	</p>
+    <p ng-if="nodeState.datasetRebuildData && nodeState.datasetRebuildData.needsForPredecessor" style="margin: 0; padding: 10px;">
+        The recipe generating this dataset may modify its output schema while running.
+    </p>
+	<ul>
+		<li ng-repeat="reason in nodeState.datasetRebuildData.predecessorReasons" style="list-style: none">
+			<i class="{{reason.recipeType|recipeTypeToIcon}}" />&nbsp;{{reason.recipeName}}
+		</li>
+	</ul>
+	<p ng-if="nodeState.datasetRebuildData.mightNeedForSuccessor && nodeState.datasetRebuildData.definitelyNeedsForSuccessor" style="margin: 0; padding: 10px;">
+		{{nodeState.datasetRebuildData.successorReasons.length}} recipe(s) using this dataset as input need (or might need) the actual data in the dataset to compute their output schemas.
+	</p>
+	<p ng-if="nodeState.datasetRebuildData.mightNeedForSuccessor && !nodeState.datasetRebuildData.definitelyNeedsForSuccessor" style="margin: 0; padding: 10px;">
+		{{nodeState.datasetRebuildData.successorReasons.length}} recipe(s) using this dataset as input might need the actual data in the dataset to compute their output schemas.
+	</p>
+	<ul>
+		<li ng-repeat="reason in nodeState.datasetRebuildData.successorReasons" style="list-style: none">
+			<i class="{{reason.recipeType|recipeTypeToIcon}}" />&nbsp;{{reason.recipeName}}
+		</li>
+	</ul>
+
+	<p style="margin: 0; padding: 10px;">
+		You should therefore build this dataset before moving further in the schema propagation.
+	</p>
+	<div class="buttons text-right modal-footer-std-buttons">
+		<button class="btn btn--text btn--danger" ng-click="ignoreSuggestion()">Ignore</button>
+		<button class="btn btn--text btn--primary" ng-click="build()">Build</button>
+	</div>
+</div>

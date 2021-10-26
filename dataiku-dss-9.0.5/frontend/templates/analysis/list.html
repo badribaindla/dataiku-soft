@@ -1,0 +1,92 @@
+<div class="list-page-4 flex dss-home-page list-page--flat-design">
+    <div data-extend-template="/templates/layouts/list-items-2.html" class="vertical-flex main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            Analyses
+        </span>
+
+        <!--  NEW   -->
+        <div style="display: inline-block"  data-block="newItem">
+           <a disabled-if-ro class="btn btn--secondary" ng-click="newAnalysis()">
+            <span plus-icon />&nbsp;New Analysis</a>
+        </div>
+
+        <div data-block="empty">
+            <h1>
+                No analysis in this project
+            </h1>
+            <p>
+                Analyses are visual workspaces for <br /> interactive data preparation and machine learning.
+            </p>
+            <p class="small">
+                Create analyses from a dataset's "Lab" button
+                <br />
+                <span academy-link page="page/core-concepts">Follow our tutorials</span> to learn more.
+            </p>
+        </div>
+
+        <!-- ITEM LAYOUT -->
+        <div data-block="item" class="h100">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit h100" dataset="item">
+                <div class="illustration">
+                    <i class="{{ item.computedIcon }} universe-color analysis"></i>
+                </div>
+                <div class="hitContent horizontal-flex h100">
+                    <div class="hit-content-main noflex">
+                        <h4 class="hit-content-main__title">
+                            <a ui-sref="projects.project.analyses.analysis.script({projectKey: $stateParams.projectKey, analysisId:item.id})"
+                                show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.name | boldify:selection.filterParams.userQueryResult">
+                            </a>
+                            <span class="hit-content-main__interests">
+                                <star-interest status="item.interest.starred"
+                                               on-toggle="starObject(nextStatus, item)"
+                                ></star-interest>
+                                <watch-interest status="item.interest.watching"
+                                                on-toggle="watchObject(nextStatus, item)"
+                                ></watch-interest>
+                            </span>
+                        </h4>
+                        <div class="hit-content-main__subtitle">
+                            <span class="ellipsed" style="max-width:500px">
+                                <i class="{{ item.inputDatasetType | datasetTypeToIcon }} dibvam mright4"></i>
+                                <span>{{ item.inputDatasetSmartName}}</span>
+                            </span>
+                            <span ng-if="item.lastModifiedOn">
+                                |
+                                <span>Modified {{ item.lastModifiedOn|friendlyTimeDeltaShort }}</span>
+                                - {{ item.createdBy.displayName}}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="hit-content__tags flex">
+                        <responsive-tags-list items="item.tags" tags-map="projectTagsMap" object-type="'ANALYSIS'"></responsive-tags-list>
+                    </div>
+                    <div class="hit-content__deployment-status" ng-if="item.hasActiveModel">
+                        <i toggle="tooltip" container="body" title="Deployed at least once with at least one active version" class="icon-train_recipe universe-color analysis"></i>
+                    </div>
+                    <div class="hit-content__deployment-status" ng-if="!item.hasActiveModel && item.hasSavedModel">
+                        <i toggle="tooltip" container="body" title="Deployed at least once with no active version" class="icon-train_recipe"></i>
+                    </div>
+                    <div class="hit-content__inline-stats">
+                        <div class="hit-content__inline-stat">
+                            <div class="hit-content__inline-stat-value">{{item.mlTasks.length}}</div>
+                            <div class="hit-content__inline-stat-label">{{ 'ML task' | plurify : item.mlTasks.length }}</div>
+                        </div>
+                        <div class="hit-content__inline-stat">
+                            <div class="hit-content__inline-stat-value">{{item.nbModels}}</div>
+                            <div class="hit-content__inline-stat-label">{{ 'model' | plurify : item.nbModels }}</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <standardized-side-panel page="objects_list" object-type="{{ (selection.selectedObjects.length <= 1) ? ((selection.selectedObject) ? 'ANALYSIS' : '') : 'MULTI' }}" single-type="ANALYSIS">
+    </standardized-side-panel>
+</div>

@@ -1,0 +1,58 @@
+<div class="horizontal-flex" ng-if="canDisplayDiagnostics()">
+    <div class="container w100">
+        <div class="span8">
+            <h2 class="settings-section-title span3" style="border: 0px; margin-top: 0px"><span class="mright8" diagnostic-icon size="large"></span>Diagnostics</h2>
+            <span class="w100" ng-if="$state.current.name.startsWith('projects.project.analyses.') && isMLBackendType('PY_MEMORY')"><a class="pull-right" ng-href="{{$state.href('projects.project.analyses.analysis.ml.' + (modelData.coreParams.taskType === 'PREDICTION' ? 'pred' : 'clust') + 'mltask.list.design', {'#': 'debugging.sessions'})}}">Go to the design to enable/disable diagnostics</a></span>
+            <table class="table" style="clear: both; max-width: none; width: 100%">
+                <tr ng-repeat="setting in modelData.coreParams.diagnosticsSettings.settings" ng-if="modelData.coreParams.diagnosticsSettings.enabled && isMLBackendType('PY_MEMORY')">
+                    <th class="ws-nowrap"><doclink page="/machine-learning/diagnostics#{{ diagnosticsDefinition[setting.type].documentationAnchor }}" title="{{diagnosticsDefinition[setting.type].displayableType}}" show-icon="true"/></th>
+                    <td class="w100">
+                        <div class="mh-0 small" ng-if="diagnostics[setting.type] && diagnostics[setting.type].length > 0 && setting.enabled" style="margin-top: 4px; margin-bottom: 4px;">
+                            <sidekick-alert>
+                                <div ng-repeat="message in diagnostics[setting.type] track by $index">
+                                    <div style="margin-bottom: 5px">{{message}}</div>
+                                </div>
+                            </sidekick-alert>
+                        </div>
+                        <div class="mh-0 small-gray" ng-if="!diagnostics[setting.type] && setting.enabled">
+                            Nothing to report
+                        </div>
+                        <div class="mh-0 small-gray"  ng-if="!setting.enabled">
+                            Disabled
+                        </div>
+                    </td>
+                </tr>
+                <tr ng-if="isMLBackendType('PY_MEMORY') && !modelData.coreParams.diagnosticsSettings.enabled"><th class="w100">
+                    <span class="diagnostic-text__disabled">Disabled for this session</span>
+                </th></tr>
+                <tr ng-if="!isMLBackendType('PY_MEMORY')"><th class="w100 diagnostic-text__disabled">
+                    <span class="diagnostic-text__disabled">Not available for this backend</span>
+                </th></tr>
+            </table>
+
+        </div>
+        <div class="span4">
+            <h2 class="settings-section-title span2" style="margin-top: 0px">Steps</h2>
+            <span class="mleft16 w100">
+                <a  target="_blank" href="/dip/api/analysis/mlcommon/cat-activity-log?fullModelId={{modelData.fullModelId}}">
+                    <button class="btn btn--outline btn--primary">
+                        Open full Logs
+                    </button>
+                </a>
+            </span>
+            <table class="table" style="clear: both" ng-if="mti.progress.top_level_done">
+                <tr ng-repeat="done in mti.progress.top_level_done">
+                    <th class="ws-nowrap">{{done.name}}</th>
+                    <td class="ws-nowrap">{{done.time/1000|number:1}}s</td>
+                </tr>
+            </table>
+            <div ng-if="!mti.progress.top_level_done">Training is not finished</div>
+        </div>
+    </div>
+</div>
+<a ng-if="!canDisplayDiagnostics()" target="_blank" href="/dip/api/analysis/mlcommon/cat-activity-log?fullModelId={{modelData.fullModelId}}">
+    <button class="btn btn--outline btn--primary">
+        Open full Logs
+    </button>
+</a>
+<hr/>

@@ -1,0 +1,55 @@
+<div class="recipe-settings-section1 w800" ng-if="['cpython', 'csync', 'streaming_spark_scala'].indexOf(recipe.type) < 0">
+    <h1 class="recipe-settings-section1-title">Parallelism</h1>
+    <form class="dkuform-horizontal recipe-settings-section2">
+        <h2 class="recipe-settings-section2-title">Concurrent activities</h2>
+        <div class="control-group">
+            <label class="control-label">Recipe limit</label>
+            <div class="controls">
+                <input type="number" ng-model="recipe.maxRunningActivities"/>
+                <span class="help-inline">Limit the number of concurrent activities for this recipe (zero for "unlimited").</span>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="recipe-settings-section1 w800">
+    <h1 class="recipe-settings-section1-title">Variables &amp; Properties</h1>
+    <form class="dkuform-horizontal recipe-settings-section2" name="variablesEditor">
+        <h2 class="recipe-settings-section2-title">Recipe variables</h2>
+        <div class="alert alert-info">
+            This allows you to setup per-recipe overrides of variables. The main use for per-recipe overrides is customization of connection properties
+        </div>
+        <!-- This is because these calls use a tintercom call which does not inherit from the JobActivity context -->
+        <div class="alert alert-warning" ng-if="recipe.type == 'python' && Object.keys(recipe.variables).length > 0">
+            These variables will not be taken into account for the <code>dataiku.get_custom_variables()</code> call.
+        </div>
+        <div class="alert alert-warning" ng-if="recipe.type == 'r' && Object.keys(recipe.variables).length > 0">
+            These variables will not be taken into account for the <code>dkuCustomVariable()</code> call.
+        </div>
+        <div class="control-group">
+            <label class="control-label">Recipe variables</label>
+            <div class="controls">
+                <textarea
+                    json-object-pretty-view
+                    name="variables"
+                    ui-codemirror="codeMirrorSettingService.get('text/json')"
+                    ng-model="recipe.variables">
+                </textarea>
+                <div class="alert alert-error" ng-show="variablesEditor.variables.dkuJSONError">
+                    JSON syntax error: <br/> {{variablesEditor.variables.dkuJSONError}}
+                </div>
+            </div>
+        </div>
+        <h2 class="recipe-settings-section2-title">Recipe properties</h2>
+        <div class="alert alert-info">
+            This allows you to configure advanced Dataiku-specific properties for this recipe. Usually used
+            at the direction of Dataiku Support
+        </div>
+        <div class="control-group">
+            <label class="control-label">Properties</label>
+            <div class="controls">
+                <ng2-connection-properties-list [(items)]="recipe.dkuProperties"></ng2-connection-properties-list>
+            </div>
+        </div>
+    </form>
+</div>

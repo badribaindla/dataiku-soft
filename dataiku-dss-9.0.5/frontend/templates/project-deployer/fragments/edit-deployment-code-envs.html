@@ -1,0 +1,37 @@
+<div ng-if="uiState.selectedBundle.usedCodeEnvs && uiState.selectedBundle.usedCodeEnvs.length">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Language</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="codeEnv in uiState.selectedBundle.usedCodeEnvs">
+                <td>{{ codeEnv.envName }}</td>
+                <td>{{ codeEnv.envLang }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="empty-list-cta" ng-if="!uiState.selectedBundle.usedCodeEnvs">
+    No bundle selected.
+</div>
+<div class="empty-list-cta" ng-if="uiState.selectedBundle.usedCodeEnvs && !uiState.selectedBundle.usedCodeEnvs.length">
+    This bundle does not contain any code envs.
+</div>
+<a class="no-underline" ng-init="open = uiState.selectedBundle.usedCodeEnvs && uiState.selectedBundle.usedCodeEnvs.length" ng-click="open = !open">Set code envs import mode<i class="mleft4 {{open ? 'icon-chevron-up' : 'icon-chevron-down'}}" /></a>
+<div class="mtop8" ng-show="open">
+    <div class="control-group">
+        <label class="control-label">Env import mode</label>
+        <div class="controls">
+            <select dku-bs-select type="checkbox" ng-model="deploymentSettings.bundleContainerSettings.codeEnvsBehavior.importTimeMode" ng-options="x[0] as x[1] for x in AutomationUtils.pythonEnvImportTimeModes" options-descriptions="AutomationUtils.pythonEnvImportTimeModeDescs" layout="list" />
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Package list source</label>
+        <div class="controls">
+            <select dku-bs-select type="checkbox" ng-model="deploymentSettings.bundleContainerSettings.codeEnvsBehavior.envImportSpecificationMode" ng-options="x[0] as x[1] for x in AutomationUtils.envImportSpecificationModes" options-descriptions="AutomationUtils.envImportSpecificationModeDescs" layout="list" />
+        </div>
+    </div>
+</div>

@@ -1,0 +1,64 @@
+<div class="shaker fixedPanes shaker-read-only"
+    shaker-facets
+    shaker-explore-base
+    shaker-on-streaming-endpoint
+    shaker-explore-streaming-endpoint
+    show-left-pane="false"
+    ng-class="{showLeftPane: showLeftPane, showRightPane: showRightPane}"
+    fixed-panes>
+    <div class="leftPane">
+        <div class="handle" ng-click="toggleLeftPane()"></div>
+        <tabs>
+            <pane title="Sample settings" subtitle="getSampleDesc()">
+                <div include-no-scope="/templates/streaming-endpoints/sampling-tab.html" />
+            </pane>
+        </tabs>
+    </div>
+
+    <div class="mainPane" ng-if="shakerState.activeView == 'table'">
+        <!-- Main pane top bar -->
+        <div class="table-view-header">
+            <!-- Big top bar -->
+            <div class="shaker-summary-wrapper">
+                 <!-- Step summury -->
+                <div include-no-scope="/templates/shaker/shaker-summary-stats.html" />
+
+                <!-- Views Buttons -->
+                <div class="view-buttons-wrapper">
+                    <a style="font-size: 27px; vertical-align: middle; text-decoration: none" ng-click="showWarningsDetails()" class="text-warning" ng-show="table.warnings.totalCount">
+                        <i class="icon-warning-sign" title="Warnings occurred while reading input" />
+                    </a>
+
+                    <div include-no-scope="/templates/shaker/display-mode-menu.html" class="dib"/>
+
+                    &emsp;
+                    <div include-no-scope="/templates/shaker/shaker-views-buttons.html" class="dib" />
+                </div>
+            </div>
+
+            <div block-api-error />
+
+            <!-- filters bar -->
+            <div ng-show="shaker && uiDisplayState.showUI && table" include-no-scope="/templates/shaker/filters-column.html"></div>
+        </div>
+
+        <!-- Main pane main zone -->
+        <div class="table-view" style="flex: 1; display: flex; flex-direction: column;">
+
+            <div class="v-centered-fit" include-no-scope="/templates/datasets/fragments/dataset-error-cta.html" ng-if="error" />
+
+            <div future-waiting response="future" dku-if="future && !future.hasResult"></div>
+
+            <div class="positionTable shakerTable coloring-{{table.coloringScheme}}" fattable fattable-data="table" fat-resizable ng-if="uiDisplayState.showUI && table"></div>
+
+            <spinner ng-show="pendingRequests.length && spinnerPosition == 'shaker'"></spinner>
+        </div>
+    </div>
+    
+    <!-- the use of ng-if here makes it so that long calls are not triggered whenever the sample is refreshed if the column view is not shown (ex: multiColumnAnalysis ) -->
+    <div class="mainPane h100" analysis-columns ng-if="shakerState.activeView == 'columns'">
+        <div class="h100" include-no-scope="/templates/streaming-endpoints/columns-view.html" />
+    </div>
+
+    <div quick-columns-view class="rightPane"></div>
+</div>

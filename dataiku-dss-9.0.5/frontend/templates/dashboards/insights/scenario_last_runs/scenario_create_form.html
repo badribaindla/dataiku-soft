@@ -1,0 +1,29 @@
+<div class="dku-block-selector-list" style="margin-top: 10px;">
+    <div class="selectable item" ng-click="insight.type = 'scenario_last_runs'" ng-class="{selected: insight.type == 'scenario_last_runs'}">
+        <div class="image"><img src="/static/dataiku/images/dashboards/scenario-timeline.png" /></div>
+        <div class="name">Last runs</div>
+        <div class="description">Display last runs as an interactive timeline or a table</div>
+    </div>
+    <div class="selectable item" ng-click="insight.type = 'scenario_run_button'" ng-class="{selected: insight.type == 'scenario_run_button'}">
+        <div class="image"><img src="/static/dataiku/images/dashboards/scenario-run-button.png" /></div>
+        <div class="name">Run button</div>
+        <div class="description">Display a button to run a selected scenario</div>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label">Source scenario</label>
+    <div class="controls">
+        <div object-picker="insight.params.scenarioSmartId" type="SCENARIO" object="hook.sourceObject" error-scope="$parent.$parent" permission-mode="{{insight.type == 'scenario_run_button' ? 'RUN' : 'READ'}}"></div>
+        <input type="hidden" ng-model="insight.params.scenarioSmartId" required />
+
+        <div insight-source-info/>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="insightNameInput">Insight name</label>
+    <div class="controls">
+        <input type="text" ng-model="insight.name" placeholder="{{hook.defaultName}}" id="insightNameInput" />
+    </div>
+</div>

@@ -1,0 +1,34 @@
+<div class="infra-status fh">
+    <div block-api-error />
+    <div ng-if="infraStatus" class="oa pad16">
+        <div class="standard-container simple-columns">
+            <div class="standard-container__wrap standard-container__wrap--content-height pad24">
+                <div class="deployer-title">
+                    <span>Infrastructure details</span>
+                </div>
+                <table class="table table-hover table-fixed table-striped mbot0">
+                    <tr>
+                        <th style="width: 40%;">Type</th>
+                        <td>{{infraStatus.infraBasicInfo.type == 'K8S' ? 'Kubernetes' : 'Static (list of API nodes)'}}</td>
+                    </tr>
+                    <tr>
+                        <th>Lifecycle Stage</th>
+                        <td class="break-word">{{ DeployerUtils.stageDetails(stages, infraStatus.infraBasicInfo.stage) }}</td>
+                    </tr>
+                    <tr ng-if="infraStatus.infraBasicInfo.type == 'STATIC'">
+                        <th>API nodes</th>
+                        <td>
+                            <span ng-if="!infraStatus.infraBasicInfo.apiNodeUrls.length">There are no API nodes configured yet</span>
+                            <ul class="mleft16">
+                                <li ng-repeat="nodeUrl in infraStatus.infraBasicInfo.apiNodeUrls track by $index">{{ nodeUrl }}</li>
+                            </ul>
+                        </td>
+                    </tr>
+                </table>
+        </div>
+        <div class="standard-container__wrap pad24">
+            <div class="deployer-title">Deployments</div>
+            <div api-deployments-list-widget="infraStatus.deployments" health-map="healthMap" status-page="'infra'"></div>
+        </div>
+    </div>
+</div>

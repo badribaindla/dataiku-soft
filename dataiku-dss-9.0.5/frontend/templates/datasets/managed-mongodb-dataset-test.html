@@ -1,0 +1,44 @@
+<div>
+	<div ng-show="testing" class="alert alert-info"> <i class="icon-spinner icon-spin icon-large"></i>
+		Please wait, testing connection ...
+	</div>
+
+	<div ng-show="testResult">
+		<div ng-show="!testResult.connectionOK" class="alert alert-error">
+			<span>Failed to connect : {{testResult.connectionErrorMsg}}</span>
+			<button class="btn btn--secondary" ng-click="test(true)">Retry</button>
+		</div>
+		<div ng-show="testResult.connectionOK">
+			<div ng-show="testResult.testedConnectionOnly">
+				<div ng-show="!testResult.collectionExists" class="alert alert-info">
+					Connection OK. Collection does not yet exist.
+					<button class="btn btn--primary" ng-click="createCollection()">Create collection now</button>
+					<button class="btn btn--primary" ng-click="test(false)">Test again</button>
+				</div>
+				<div ng-show="testResult.collectionExists" class="alert alert-info">
+					Connection OK. Collection exists.
+					<button class="btn btn--primary" ng-click="test(false)">Test collection</button>
+					<div class="actions pull-right">
+						<button class="btn btn--danger" ng-click="deleteCollection()">Delete collection</button>
+					</div>
+				</div>
+			</div>
+			<div ng-show="!testResult.testedConnectionOnly">
+				<div ng-show="!testResult.preview" class="alert alert-error">
+					Connection OK. Collection exists, but preview failed : {{testResult.previewErrorMsg}}
+					<button class="btn btn--primary" ng-click="test(false)">Test again</button>
+					<div class="actions pull-right">
+						<button class="btn btn--danger" ng-click="deleteCollection()">Delete collection</button>
+					</div>
+				</div>
+				<div ng-show="testResult.preview" class="alert alert-success">
+					Connection OK. Collection exists.
+					<button class="btn btn--primary" ng-click="test(false)">Test again</button>
+					<div class="actions pull-right">
+						<button class="btn btn--danger" ng-click="deleteCollection()">Delete collection</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

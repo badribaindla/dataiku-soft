@@ -1,0 +1,67 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html" class="h100">
+    <div data-block="algorithm-title">
+        Custom Python Model
+        <a style="padding-left: 10px;" class="link-std" ng-click="removeCustomAlgorithm(uiState.algorithm)" title="remove model">
+            <i class="icon-trash" />
+        </a>
+    </div>
+
+    <div data-block="algorithm-description">
+        <p>
+            For a <strong>Custom Model</strong>, you write Python code. Your Python code must create a 'clf' variable.<br/>
+            This clf must be a scikit-learn compatible model, ie, have at least fit(X), fit_predict(X) and predict(X)
+            methods, and follow the documentation on handling attributes.<br/>
+            Prediction should be an integer between 0 and (n_clusters - 1).
+        </p>
+        <p>
+            More information available in the <a href="https://doc.dataiku.com/dss/latest/machine-learning/algorithms/in-memory-python.html#custom-models" title="custom models documentation">documentation</a>.
+        </p>
+    </div>
+
+    <div data-block="algorithm-params" class="fh vertical-flex">
+        <div class="algorithm-params noflex">
+            <div class="control-group">
+                <label class="control-label">Model name</label>
+                <div class="controls">
+                    <input type="text" ng-model="getCustomAlgorithm(uiState.algorithm).name"/>
+                    <div class="help-inline">
+                        A name for your model.
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group required">
+                <label class="control-label">Number of clusters</label>
+                <div class="controls">
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="getCustomAlgorithm(uiState.algorithm).custom_has_k">
+                        Fixed number of clusters
+                    </label>
+                    <div class="help-inline">
+                        Enable to specify a set number of clusters for your model.
+                    </div>
+                </div>
+                <div class="controls" ng-show="getCustomAlgorithm(uiState.algorithm).custom_has_k">
+                    <div type="text" gs-field ng-model="getCustomAlgorithm(uiState.algorithm).k"></div>
+                        <span class="multi-valued-field-marker icon-list-ol" toggle="tooltip"
+                              title="You can specify several values (increases training time)"/>
+                    <div class="help-inline">
+                        In your code, you can access this value through the 'n_clusters' variable.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="code-snippet-editor-parent flex">
+            <div class="control-group fh" style="height: initial;">
+                <div code-snippet-editor
+                     code="getCustomAlgorithm(uiState.algorithm).code"
+                     sample-type="'python'"
+                     categories="['py-clustering']"
+                     save-category="'py-clustering'"
+                     displayed="getCustomAlgorithm(uiState.algorithm).enabled"
+                />
+            </div>
+        </div>
+    </div>
+</div>

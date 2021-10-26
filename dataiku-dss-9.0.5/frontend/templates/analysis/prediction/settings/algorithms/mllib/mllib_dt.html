@@ -1,0 +1,72 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Decision Tree
+    </div>
+    <div data-block="algorithm-description">
+        <strong>Decision tree <span ng-bind="isClassification() ? 'classification' : 'regression'" /></strong> is a simple algorithm which builds a decision tree. Each node of the decision tree includes a condition on one of the input features, which divides the feature space into two partitions.
+        <br /> The leaves of the tree are labeled with predictions. The deeper the tree, the more complicated the decision rule, which gives finer predictions, but quickly leads to overfitting.
+    </div>
+    <div data-block="algorithm-params">
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.mllib_dt.max_depth"
+                         label="Maximum depth of tree"
+                         required
+                         help-inline="Maximum depth of each tree in the forest. Higher values generally increase the quality of the prediction, but can lead to overfitting. High values also increase the training and prediction time."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <div class="control-group required">
+            <label class="control-label">Maximum number of bins</label>
+            <div class="controls">
+                <input type="number" force-integer min="2" ng-model="mlTaskDesign.modeling.mllib_dt.max_bins" />
+                <div class="help-inline">
+                    Used for discretizing continuous features and for choosing how to split on features at each node. More bins give higher granularity.
+                    <br /> Must be &ge; number of categories in any categorical feature.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Checkpoint interval</label>
+            <div class="controls">
+                <input type="number" force-integer min="1" ng-model="mlTaskDesign.modeling.mllib_dt.checkpoint_interval" />
+                <div class="help-inline">
+                    Specifies how often to checkpoint the cached node IDs. E.g. 10 means that the cache will get checkpointed every 10 iterations. This is only used if cacheNodeIds is true and if the checkpoint directory is set in the SparkContext.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Cache node IDs</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="mlTaskDesign.modeling.mllib_dt.cache_node_ids" />
+                <div class="help-inline">
+                    If false, the algorithm will pass trees to executors to match instances with nodes. If true, the algorithm will cache node IDs for each instance. Caching can speed up training of deeper trees.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Minimum information gain</label>
+            <div class="controls">
+                <input type="number" min="0" ng-model="mlTaskDesign.modeling.mllib_dt.min_info_gain" />
+                <div class="help-inline">
+                    Minimum information gain for a split to be considered at a tree node.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Minimum instance per node</label>
+            <div class="controls">
+                <input type="number" min="1" ng-model="mlTaskDesign.modeling.mllib_dt.min_instance_per_node" />
+                <div class="help-inline">
+                    Minimum number of instances each child must have after split. If a split causes the left or right child to have fewer than minInstancesPerNode, the split will be discarded as invalid.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Maximum memory (MB)</label>
+            <div class="controls">
+                <input type="number" force-integer min="0" ng-model="mlTaskDesign.modeling.mllib_dt.max_memory_mb" />
+                <div class="help-inline">
+                    Allocated to histogram aggregation
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

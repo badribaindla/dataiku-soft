@@ -1,0 +1,160 @@
+<div data-extend-template="/templates/object-details/item-template.html" ng-controller="DatasetDetailsController">
+    <div data-block="item-header"
+        item-header
+        color="saved-model"
+        icon="{{data.model.miniTask.taskType === 'CLUSTERING' ? 'icon-machine_learning_clustering' : 'icon-machine_learning_regression'}}"
+        title="{{data.dataset.name}}"
+        href="StateUtils.href.savedModel(data.model.id, data.dataset.projectKey)"
+        > <!-- TODO @navigator foreign model? -->
+        {{data.model.name}}
+    </div>
+
+    <div data-block-append="left">
+
+        <!-- Build info -->
+        <div class="line" ng-if="data.lastBuild && !data.currentBuildState">
+            <h4>Last build</h4>
+            <p>
+                <a href="/projects/{{data.lastBuild.jobProjectKey}}/jobs/{{data.lastBuild.jobId}}/">
+                    {{data.lastBuild.buildEndTime|friendlyTimeDeltaShort}}
+                </a>
+                (<!--
+                --><span ng-if="data.lastBuild.buildSuccess" class="text-success">Success</span><!--
+                --><span ng-if="!data.lastBuild.buildSuccess" class="text-error">Failed</span><!--
+                -->)
+            </p>
+        </div>
+
+        <div class="padded">
+            <table ng-if="data.currentBuildState">
+                <tr ng-if="data.currentBuildState">
+                    <th>Build</th>
+                    <td>
+                        <span ng-repeat="build in data.currentBuildState.beingBuilt">
+                            <a href="/projects/{{build.projectKey}}/jobs/{{build.jobId}}/">currently running</a>
+                            <br />
+                        </span>
+                        <span ng-repeat="build in data.currentBuildState.aboutToBeBuilt">
+                            <a href="/projects/{{build.projectKey}}/jobs/{{build.jobId}}/">about to run</a>
+                            <br />
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div data-block-append="details">
+        <div class="line" ng-if="data.status.task.taskType">
+            <h4>Type</h4>
+            <p>{{data.status.task.taskType | niceConst}}</p>
+        </div>
+
+        <div class="line" ng-if="data.status.task.backendType">
+            <h4>ML backend</h4>
+            <p>{{data.status.task.backendType | niceMLBackendType}}</p>
+        </div>
+    </div>
+
+    <div data-block="right">
+        <div class="accordion" ng-if="data.model.lastExportedFrom" dku-foldable dku-foldable-right-panel name="details.lab" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Lab
+            </h4>
+            <ul ng-show="foldableOpen">
+                <li>
+                    <i class="object-icon universe-color analysis icon-dku-nav_analysis"></i>
+                    <a href="{{data.model | savedModelMLTaskHref}}">View original analysis</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="accordion" ng-if="data.status.versions.length" dku-foldable dku-foldable-right-panel name="details.versions" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Versions <em>({{data.status.versions.length}})</em>
+            </h4>
+            <ul ng-show="foldableOpen">
+                <li ng-repeat="version in data.status.versions" class="horizontal-flex">
+                    <span class="flex mx-textellipsis">
+                        <a href="{{StateUtils.href.savedModelVersion(data.model.miniTask.taskType, data.model.id, version.snippet.fullModelId, data.model.projectKey)}}">{{version.snippet.userMeta.name}} </a>
+                    </span>
+                    <span class="info noflex" ng-if="!version.active">{{version.snippet.trainInfo.startTime | date:'yyyy-MM-dd HH:mm:ss'}}</span>
+                    <span class="info noflex" ng-if="version.active" style="color: forestgreen">active version</span>
+
+                </li>
+            </ul>
+        </div>
+
+        <!-- Recipes -->
+        <div class="accordion" ng-if="data.creatingRecipe || data.recipes.length" dku-foldable dku-foldable-right-panel name="details.recipes" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Recipes <em>({{(data.creatingRecipe ? 1 : 0) + data.recipes.length}})</em>
+            </h4>
+            <ul ng-show="foldableOpen">
+                <li ng-if="data.creatingRecipe" class="horizontal-flex">
+                    <span class="mx-textellipsis flex">
+                        <i class="object-icon universe-color {{data.creatingRecipe.type | recipeTypeToIcon}} {{data.creatingRecipe.type | recipeTypeToColor}}"></i>
+                        <a href="{{StateUtils.href.recipe(data.creatingRecipe.name, data.creatingRecipe.projectKey)}}">{{data.creatingRecipe.name}}</a>
+                    </span>
+                    <span class="info noflex">
+                        parent recipe
+                    </span>
+                </li>
+                <li ng-repeat="recipe in data.recipes">
+                    <span class="mx-textellipsis">
+                        <i class="object-icon universe-color {{recipe.type | recipeTypeToIcon}} {{recipe.type | recipeTypeToColor}}"></i>
+                        <a href="{{StateUtils.href.recipe(recipe.name, recipe.projectKey)}}">{{recipe.name}}</a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Custom Fields -->
+        <div custom-fields-in-side-panel ng-if="appConfig.customFieldsMap[objectType].length > 0 && object && object.customFields" custom-fields="object.customFields" object-type="objectType" save-fn="saveCustomFields" edit-custom-fields="editCustomFields" editable="canWriteProject()"></div>
+
+        <!-- Checklists -->
+
+        <div class="accordion" ng-if="editable || object.checklists.checklists.length > 0" dku-foldable dku-foldable-right-panel="details.checklists" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Todo Lists <em ng-if="object.checklists.checklists.length > 0">({{ object.checklists.checklists.length }})</em>
+            </h4>
+            <div ng-show="foldableOpen" style="padding:0 15px;">
+                <div ng-repeat="x in object.checklists.checklists">
+                    <div class="checklist">
+                        <div class="pull-right">
+                            <a class="link-danger" ng-click="deleteChecklist($index)"
+                               title="Delete todo list"
+                               style="display:inline-block;margin: 10px;"
+                               ng-if="editable">
+                                <i class="icon-trash" />
+                            </a>
+                        </div>
+                        <h4 class="checklist-title">
+                            <div ng-if="!x.editingTitle">
+                                {{x.title}}
+                                <a class="link-std edit-button" ng-click="startEditChecklistTitle(x)" ng-if="editable">
+                                    <i class="icon-pencil" />
+                                </a>
+                            </div>
+                            <div ng-if="x.editingTitle" class="common-styles-only">
+                                <input type="text" ng-model="state.checklistTitle.newVal" placeHolder="New name" required />
+                                <div style="margin-top: 3px">
+                                    <button class="btn btn--success" ng-click="validateChecklistTitleEdit()">Save</button>
+                                    <button class="btn btn--secondary" ng-click="cancelChecklistTitleEdit()">Cancel</button>
+                                </div>
+                            </div>
+                        </h4>
+                        <p> <span ng-bind-html="x|singleChecklistState" /></p>
+                        <div object-checklist checklist="x" items-only="true" read-only="!editable" />
+                    </div>
+                </div>
+                <div ng-if="editable" class="new-checklist"
+                     style="margin-top: 15px; margin-bottom: 15px">
+                    <a class="std-greylink" ng-click="addChecklist()">
+                        Add a todo list
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

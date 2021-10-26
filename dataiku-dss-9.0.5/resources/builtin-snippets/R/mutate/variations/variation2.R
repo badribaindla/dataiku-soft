@@ -1,0 +1,1 @@
+mutate(df, col_0 = NULL)

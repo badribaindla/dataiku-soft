@@ -1,0 +1,46 @@
+<div>
+    <div class="horizontal-flex" style="margin-bottom: 10px;">
+        <h4 class="flex mx-textellipsis">
+            <span>Version {{version.versionId}}</span>
+        </h4>
+        <div ng-if="withSaveUpdate" class="noflex">
+            <div ng-if="specIsDirty()" class="btn-group code-env__buttons" style="display: inline-block; width: 100px; margin-top: 5px;">
+                <button class="btn btn--primary w100" ng-click="saveVersionEnv(false)">
+                    <i class="icon-save"></i>
+                    &nbsp;Save
+                </button>
+            </div>
+            <div ng-if="!specIsDirty()" class="btn-group code-env__buttons" style="display: inline-block; width: 100px; margin-top: 5px;">
+                <button class="btn btn--primary w100" ng-disabled="true" >
+                    <i class="icon-save"></i>
+                    &nbsp;Saved!
+                </button>
+            </div>
+            <div style="display: inline-block; width: 10px;"></div> <!-- separation -->
+            <div ng-if="canBeUpdated() && specIsDirty()" class="btn-group code-env__buttons" style="display: inline-block; width: 150px; margin-top: 5px;">
+                <button class="btn btn--success w100" ng-click="saveVersionEnv(true)">
+                    <i class="icon-save"></i>
+                    &nbsp;Save and update
+                </button>
+            </div>
+            <div ng-if="canBeUpdated() && !specIsDirty()" class="btn-group code-env__buttons" style="display: inline-block; width: 150px; margin-top: 5px;">
+                <button class="btn btn--success w100" ng-click="updateVersionEnv(uiState.upgradeAllPackages, uiState.forceRebuildEnv)">
+                    Update
+                </button>
+            </div>
+        </div>
+        <div ng-if="canBeUpdated()" style="display: inline-block; width: 20px; margin-top: 5px;">
+            <span custom-element-popup cep-position="align-right-bottom">
+                <a class="mainzone dropdown-toggle" ng-click="togglePopover()">
+                    <i class="icon-cog" style="color:#999;margin-left: 4px;position: relative;top: 1px;"/>
+                </a>
+                <ul class="popover custom-element-popup-popover dropdown-menu">
+                <li>
+                    <a ng-click="setThisForAllVersions()"><i class="icon-copy"></i>&nbsp;Set for all versions</a>
+                </li>
+            </ul>
+            </span>
+        </div>
+    </div>
+    <div code-env-containers code-env="version.desc" />
+</div>

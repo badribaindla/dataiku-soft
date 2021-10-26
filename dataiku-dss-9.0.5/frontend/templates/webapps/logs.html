@@ -1,0 +1,37 @@
+<div class="fh oa" ng-if="app" ng-controller="WebAppLogsController">
+    <div future-waiting response="sharedState.backendFuture" ng-show="sharedState.backendFuture && !sharedState.backendFuture.hasResult"></div>
+
+    <div class="vertical-flex h100" ng-if="backendEnabled(app)">
+        <div class="noflex" ng-if="sharedState.backendFatalError" api-error-alert="sharedState.backendFatalError"/>
+
+        <div class="noflex alert" ng-if="sharedState.backendRunning === false" style="width: 100%; box-sizing: border-box;">
+            The backend does not seem to be currently running
+            <a class="btn btn--secondary" ng-click="restartBackend(app)" style="margin-left: 20px">
+                <i class="icon-play" /> &nbsp; Start backend
+            </a>
+        </div>
+
+        <div class="noflex" style="padding: 5px;">
+            <button class="btn btn--danger pull-right"
+                style="margin-left: 5px"
+                ng-click="stopBackendWithDialog(app)"
+                ng-show="sharedState.backendRunning === true"
+                >
+                <i class="icon-stop" /> Stop backend
+            </button>
+            <button class="btn btn--secondary pull-right" ng-if="sharedState.backendLogTail"
+                ng-click="refreshBackendLog()">
+                <i class="icon-refresh" /> Refresh
+            </button>
+        </div>
+
+        <div class="flex" ng-if="!sharedState.backendLogTail" style="text-align: center; padding-top: 60px;">
+            No log available at the moment. <br />
+            <button class="btn btn--secondary" toggle="tooltip" title="Refresh" ng-click="refreshBackendLog()">
+                <i class="icon-refresh" />
+            </button>
+        </div>
+
+        <pre ng-if="sharedState.backendLogTail" smart-log-tail="sharedState.backendLogTail" class="flex"></pre>
+    </div>
+</div>

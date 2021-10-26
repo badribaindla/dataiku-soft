@@ -1,0 +1,66 @@
+<div ng-controller="ExecuteSQLStepController">
+	<div ng-include ="'/templates/scenarios/fragments/step-header.html'"></div>
+	<div class="alert alert-info">
+        This step runs SQL code. Results can be made available to ulterior steps
+    </div>
+	
+	<form name="setupForm" class="dkuform-horizontal" >
+		<div class="control-group">
+			<label class="control-label">Connection</label>
+
+			<div class="controls">
+                  <select required dku-bs-select="{liveSearch:true,size:'auto'}" ng-model="step.params.connection" ng-options="connection.name as (connection.label + ' (' + connection.type + ')') group by connection.type for connection in connections | orderBy:'type + name'" />
+			</div>
+		</div>
+		<div class="control-group" ng-if="step.params.connection.indexOf('hive-hproxy') > 0 || step.params.connection.indexOf('hive-jdbc') > 0">
+			<label class="control-label">Additional configuration</label>
+
+			<div class="controls">
+				<span class="help-inline">Define here configuration keys passed to Hive.</span>
+				<ng2-key-values-list
+					[(items)]="step.params.extraConf"
+					add-label="Add extra configuration"
+					key-placeholder="Configuration key"
+					value-placeholder="Configuration value">
+				</ng2-key-values-list>
+			</div>
+		</div>
+        
+		<div class="control-group script-edition">
+			<label class="control-label">SQL Script</label>
+            <div class="controls">
+		        <textarea ng-model="step.params.sql" ui-codemirror="codeMirrorSettingService.get('text/x-sql')"></textarea>
+			</div>
+		</div>
+	</form>
+	<hr />
+	<form name="rowLimitForm" class="dkuform-horizontal" >
+		<div class="control-group">
+			<label class="control-label" for="overrideDefaultLimit">Override default limit</label>
+			<div class="controls">
+				<input id="overrideDefaultLimit" type="checkbox" ng-model="step.params.overrideDefaultLimit"/>
+				<span class="help-inline">Default limit is 10. Warning: high limits can lead to high memory usage.</span>
+			</div>
+		</div>
+
+		<div ng-if="step.params.overrideDefaultLimit" class="control-group">
+			<label class="control-label" for="maxRows">Row Limit</label>
+			<div class="controls">
+				<input id="maxRows" type="number" ng-model="step.params.maxRows" ng-min="1"/>
+				<span class="help-inline">Leave empty for no limit. </span>
+			</div>
+		</div>
+	</form>
+	<hr />
+	<form name="setupForm" class="dkuform-horizontal" >
+		<div class="control-group">
+            <label class="control-label">Ignore failure</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="step.params.proceedOnFailure"></input>
+                <span class="help-inline">Continue the scenario even if the query fails</span>
+            </div>
+        </div>
+    </form>
+	<div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+
+</div>

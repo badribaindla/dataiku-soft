@@ -1,0 +1,42 @@
+<div global-keydown="{ 'ctrl-enter meta-enter' : 'run(false)'}" class="sql-notebook sql-editor main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}" navigator-object>
+    <div class="object-nav horizontal-flex no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width">
+        <div std-object-breadcrumb class="flex oh" />
+        <div class="noflex">
+            <a fw500-width
+                class="tab"
+                ng-class="{enabled: topNav.tab == 'summary'}"
+                ng-click="topNav.tab = 'summary'" >
+                Summary
+            </a>
+            <a fw500-width
+                class="tab"
+                ng-class="{enabled: topNav.tab == 'query'}"
+                ng-click="topNav.tab = 'query'" >
+                Queries
+            </a>
+
+            <div class="otherLinks">
+
+                <a class="btn btn--primary" disabled>Auto-saved</a>
+
+                <div class="dropdown">
+                    <button class="mainzone btn btn--secondary" id="qa_generic_actions-dropdown" onfocus="this.blur();"
+                            ng-click="standardizedSidePanel.toggleTab('actions')">
+                        Actions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div  ng-if="topNav.tab == 'summary'" class="dss-page">
+        <div include-no-scope="/templates/notebooks/sql-notebook-summary-tab.html"></div>
+    </div>
+
+    <div class="dss-page page-top-padding" dku-if="topNav.tab == 'query'" style="padding:0">
+        <div include-no-scope="/templates/notebooks/sql-notebook-query.html"></div>
+    </div>
+</div>
+
+<standardized-side-panel page="object" object-type="SQL_NOTEBOOK" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" close-on-click-outside="true">
+</standardized-side-panel>

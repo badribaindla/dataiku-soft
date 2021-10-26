@@ -1,0 +1,22 @@
+<form class="dkuform-horizontal">
+    <div class="control-group">
+        <label for="" class="control-label">Mode</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="envSelection.mode" ng-options="x[0] as x[1] for x in [['USE_BUILTIN_MODE', 'Use DSS builtin env'], ['INHERIT', 'Inherit global settings'], ['EXPLICIT_ENV', 'Select an environment']]" />
+            <span class="help-inline">Which code environment to use by default in this project</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="envSelection.mode == 'EXPLICIT_ENV'">
+        <label for="" class="control-label">Environment</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="envSelection.envName" ng-options="env.envName as env.envName for env in envNamesWithDescs.envs" watch-model="envNamesWithDescs" data-live-search="true"></select>
+        </div>
+    </div>
+    <div class="control-group">
+        <label for="" class="control-label">Prevent override</label>
+        <div class="controls">
+            <input type="checkbox" ng-model="envSelection.preventOverride" />
+            <span class="help-inline">Prevent recipes from explicitly selecting a code environment</span>
+        </div>
+    </div>
+</form>

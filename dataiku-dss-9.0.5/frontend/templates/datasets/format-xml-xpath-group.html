@@ -1,0 +1,30 @@
+<!-- template for recursing -->
+
+<div class="xpath-tree-node" >
+	<!-- pad a bit more for each group -->
+	<div class="xpath-tree-row" style="padding-left: {{20 * elem.treeDepth}}px;" style="height: {{elem.showAttr ? 'auto' : '23px'}};">
+		<!-- collapse / expand button -->
+		<div ng-show="elem.xpaths.length > 0" style="display: inline; width: 10px;">
+	    	<i class="icon-caret-right" ng-show="elem.folded" ng-click="elem.folded = false"/>
+	    	<i class="icon-caret-down" ng-show="!elem.folded" ng-click="elem.folded = true"/>
+		</div>
+		<!-- invisible element to indent correctly, just as if the toggle was there -->
+		<div ng-show="elem.xpaths === undefined || elem.xpaths.length == 0" style="display: inline; padding-left: 10px;" />
+		<!-- show the use button, the xpath and some info -->
+		<a ng-click="selectXpath(elem.xpath)">{{elem.xpathSuffix || elem.xpath}}</a>
+		<span class="help-inline">(seen {{elem.count}} times at depth {{elem.depth}})</span>
+		<!-- show more of the element : its attributes -->
+		<a ng-show="!(elem.showAttrs)" ng-click="elem.showAttrs = true;" style="color: black;"><i class="icon-eye-open"></i></a>
+		<a ng-show="(elem.showAttrs)" ng-click="elem.showAttrs = false;" style="color: black;"><i class="icon-eye-close"></i></a>
+        <div ng-show="elem.showAttrs" class="xpath-attributes">
+        	<div>Attributes:</div>
+        	<ul>
+	        	<li ng-repeat="att in elem.attributes">{{att}}</li> 
+        	</ul>
+        </div>
+	</div>
+	<!-- recurse in the children -->
+	<div ng-show="!elem.folded" >
+		<div ng-repeat="elem in elem.xpaths" ng-include="'/templates/datasets/format-xml-xpath-group.html'" />
+	</div>
+</div>

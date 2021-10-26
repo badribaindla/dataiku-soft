@@ -1,0 +1,70 @@
+
+<div ng-class="{'main-panel': topNav.tabsType == 'DATASET', 'main-panel--reduced': standardizedSidePanel.opened}">
+    
+    <div ng-if="topNav.tabsType == 'DATASET'" class="horizontal-flex row-fluid object-nav no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width" navigator-object>
+        <div class="flex oh" std-object-breadcrumb />
+        <div class="noflex">
+            <a class="tab" id="qa_dataset-explore_summary-tab" ng-class="{'enabled': topNav.tab == 'summary'}" href="{{$state.href('projects.project.datasets.dataset.summary')}}" fw500-width>
+                Summary
+            </a>
+            <a class="tab" id="qa_dataset-explore_explore-tab" ng-class="{'enabled': topNav.tab == 'explore'}" href="{{$state.href('projects.project.datasets.dataset.explore')}}" fw500-width>
+                Explore
+            </a>
+            <a class="tab" id="qa_dataset-explore_edit-tab" ng-show="editableDataset" ng-class="{'enabled': topNav.tab == 'edit'}" href="{{$state.href('projects.project.datasets.dataset.edit')}}" fw500-width>
+                Edit
+            </a>
+            <a class="tab tab-charts" id="qa_dataset-explore_charts-tab" ng-class="{'enabled': topNav.tab == 'visualize'}" href="{{$state.href('projects.project.datasets.dataset.visualize')}}" fw500-width>
+                Charts
+            </a>
+            <a class="tab" id="qa_dataset-explore_statistics-tab" ng-class="{'enabled': topNav.tab == 'statistics'}" href="{{$state.href('projects.project.datasets.dataset.statistics')}}" fw500-width>
+                Statistics
+            </a>
+            <a class="tab" id="qa_dataset-explore_status-tab" ng-class="{'enabled': topNav.tab == 'status'}" href="{{$state.href('projects.project.datasets.dataset.status')}}" fw500-width>
+                Status
+            </a>
+            <a class="tab" id="qa_dataset-explore_history-tab" ng-class="{'enabled': topNav.tab == 'history'}" href="{{$state.href('projects.project.datasets.dataset.history')}}" fw500-width>
+                History
+            </a>
+            <a class="tab" id="qa_dataset-explore_settings-tab" ng-class="{'enabled': topNav.tab == 'settings'}" href="{{$state.href('projects.project.datasets.dataset.settings')}}" fw500-width>
+                Settings
+            </a>
+            
+            <div class="otherLinks" ng-class="{dataset:datasetFullInfo.creatingRecipe || datasetFullInfo.creatingContinuousRecipe}" ng-if="datasetFullInfo.name">
+                <a ng-show="datasetFullInfo.creatingRecipe"
+                class="btn btn--contained btn--alt btn--flow"
+                href="{{$state.href('projects.project.recipes.recipe', {projectKey: datasetFullInfo.creatingRecipe.projectKey, recipeName: datasetFullInfo.creatingRecipe.name })}}">
+                    <i class="{{datasetFullInfo.creatingRecipe.type|recipeTypeToIcon}}" />
+                    <span>Parent recipe</span>
+                </a>
+                <a ng-show="datasetFullInfo.creatingContinuousRecipe"
+                class="btn btn--contained btn--alt btn--flow"
+                href="{{$state.href('projects.project.recipes.recipe', {projectKey: datasetFullInfo.creatingContinuousRecipe.projectKey, recipeName: datasetFullInfo.creatingContinuousRecipe.name })}}">
+                    <i class="{{datasetFullInfo.creatingContinuousRecipe.type|recipeTypeToIcon}}" />
+                    <span>Parent continuous recipe</span>
+                </a>
+            
+                <div class="dib">
+                    <div coachmark-serie-caller serie-id="'explore-hello'" ng-if="topNav.tab == 'explore'" />
+                    <button class="mainzone btn btn--secondary" id="qa_generic_actions-dropdown" onfocus="this.blur();" ng-click="standardizedSidePanel.toggleTab('actions')">
+                        Actions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="topNav.tabsType == 'NEW-DATASET'" class="row-fluid object-nav">
+        <div class="object-breadcrumb">
+            <a class="item dataset">
+                <i class="icon {{topNav.item.data.newDatasetType|datasetTypeToIcon}}"></i>
+                <span class="title ellipsis">New {{topNav.item.data.newDatasetType | datasetTypeToName}} dataset</span>
+            </a>
+        </div>
+    </div>
+
+    <div ui-view class="dss-page"></div>
+
+</div>
+
+<standardized-side-panel ng-if="topNav.tabsType == 'DATASET'" page="object" object-type="DATASET" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" close-on-click-outside="true">
+</standardized-side-panel>

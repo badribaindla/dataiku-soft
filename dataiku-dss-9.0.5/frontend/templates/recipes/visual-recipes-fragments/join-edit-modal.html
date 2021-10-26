@@ -1,0 +1,289 @@
+<div id="join-condition-modal" tab-model="current.tab" class="modal modal3 join-modal modal-fixed-height500" auto-size="false">
+    <dku-modal-header modal-title="Join" modal-class="has-border" >
+        <dku-modal-tabs>
+            <li class="tab" tab-active="conditions"><a tab-set="conditions">Conditions</a></li>
+            <li ng-show="join.type == 'ADVANCED'" class="tab" tab-active="options"><a ng-click="current.condition = null; current.tab = 'options';">Options</a></li>
+        </dku-modal-tabs>
+    </dku-modal-header>
+
+    <div class="modal-body modal-fixed-height500">
+        <div class="settings-block vertical-flex-container" ng-show="current.tab == 'conditions'">
+                <div class="{'join-modal__fuzzyjoin-block': isFuzzy}" join-block on-condition-clicked="current.tab = 'conditions'; current.condition = condition || current.condition" ></div>
+                <div class="tac padtop16" ng-show="(join.type !== 'CROSS') && (isFuzzy || join.conditionsMode == 'AND' || join.conditionsMode == 'OR')">
+                    <button class="btn btn--contained btn--primary"
+                            ng-click="addEmptyCondition(join, current, joinBlockBodyEl);"
+                            title="Click here to add a condition"
+                            toggle="tooltip">Add a condition </button>
+                </div>
+
+            <form class="dkuform-horizontal join-condition-settings" ng-if="current.condition && (join.conditionsMode == 'AND' || join.conditionsMode == 'OR') && !isFuzzy">
+                <ng-include src="'/templates/recipes/visual-recipes-fragments/join-edit-modal-column-from-to-section.html'"></ng-include>
+                <div class="condition-type" ng-if="join.type != 'CROSS'">
+                    <div class="control-group" ng-if="!isFuzzy">
+                        <label class="control-label">
+                            Join on
+                        </label>
+                        <div class="controls">
+                            <select
+                                dku-bs-select ng-model="current.condition.type"
+                                ng-init="current.condition.type = current.condition.type || 'EQ'"
+                                ng-change="hooks.updateRecipeStatus()"
+                                ng-if="hasNumOperand(current.condition)"
+                                style="width: auto;"
+                                >
+                                <option value="EQ"> equality </option>
+                                <option value="WITHIN_RANGE" ng-disabled="!canNonEquiJoin(join)" >
+                                    match all values within range {{!recipeStatus.selectedEngine.canNonEquiJoin ? " - Not available in the database" : ""}}
+                                </option>
+                                <option value="K_NEAREST" ng-disabled="!canNonEquiJoin(join)" >
+                                    match the nearest value(s) {{!recipeStatus.selectedEngine.canNonEquiJoin ? " - Not available in the database" : ""}}
+                                </option>
+                                <option value="LT">
+                                    strictly inferior
+                                </option>
+                                <option value="LTE">
+                                    inferior or equal
+                                </option>
+                                <option value="GT">
+                                    strictly superior
+                                </option>
+                                <option value="GTE">
+                                    superior or equal
+                                </option>
+                                <option value="NE">
+                                    different
+                                </option>
+                            </select>
+
+                            <select
+                                dku-bs-select ng-model="current.condition.type"
+                                ng-init="current.condition.type = current.condition.type || 'EQ'"
+                                ng-change="hooks.updateRecipeStatus()"
+                                ng-if="hasDateOperand(current.condition)"
+                                style="width: auto;"
+                                >
+                                <option value="EQ"> equality </option>
+                                <option value="WITHIN_RANGE" ng-disabled="!canNonEquiJoin(join)" >
+                                    match all dates within range {{!recipeStatus.selectedEngine.canNonEquiJoin ? " - Not available in the database" : ""}}
+                                </option>
+                                <option value="K_NEAREST" ng-disabled="!canNonEquiJoin(join)" >
+                                    match the nearest date(s) {{!recipeStatus.selectedEngine.canNonEquiJoin ? " - Not available in the database" : ""}}
+                                </option>
+                                <option value="LT">
+                                    strictly before
+                                </option>
+                                <option value="LTE">
+                                    before or equal
+                                </option>
+                                <option value="GT">
+                                    strictly after
+                                </option>
+                                <option value="GTE">
+                                    after or equal
+                                </option>
+                                <option value="NE">
+                                    different
+                                </option>
+                            </select>
+
+                            <select
+                                dku-bs-select ng-model="current.condition.type"
+                                ng-init="current.condition.type = current.condition.type || 'EQ'"
+                                ng-change="hooks.updateRecipeStatus()"
+                                ng-if="hasStringOperand(current.condition)"
+                                style="width: auto;"
+                                >
+                                <option value="EQ"> equality </option>
+                                <option value="CONTAINS">
+                                    contains
+                                </option>
+                                <option value="STARTS_WITH">
+                                    starts with
+                                </option>
+                                <option value="LT">
+                                    is strictly before (alphabetically)
+                                </option>
+                                <option value="LTE">
+                                    is before or equal (alphabetically)
+                                </option>
+                                <option value="GT">
+                                    is strictly after (alphabetically)
+                                </option>
+                                <option value="GTE">
+                                    is after or equal (alphabetically)
+                                </option>
+                                <option value="NE">
+                                    is different
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div ng-if="current.condition.type == 'WITHIN_RANGE'" class="condition-settings">
+                        <div class="control-group">
+                            <label for="" class="control-label">Maximum difference for a match</label>
+                            <div class="controls">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    ng-model="current.condition.maxDistance"
+                                    ng-init="current.condition.maxDistance = current.condition.maxDistance  || 1"
+                                    style="width: 50px;"
+                                    ng-change="updateRecipeStatusLater()"
+                                    />
+                                    <span ng-if="hasDateOperand(current.condition)" >
+                                        <select dku-bs-select ng-model="current.condition.dateDiffUnit">
+                                            <option value="SECOND">Seconds</option>
+                                            <option value="MINUTE">Minutes</option>
+                                            <option value="HOUR">Hours</option>
+                                            <option value="DAY">Days</option>
+                                            <option value="WEEK">Weeks</option>
+                                            <option value="MONTH">Months</option>
+                                            <option value="YEAR">Years</option>
+                                        </select>
+                                    </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ng-if="current.condition.type == 'K_NEAREST'" class="condition-settings">
+                        <div class="control-group">
+                            <label for="" class="control-label">Force single match in case of equality</label>
+                            <div class="controls">
+                                <input type="checkbox" ng-model="current.condition.strict" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="" class="control-label">Maximum difference for a match</label>
+                            <div class="controls">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    ng-model="current.condition.maxDistance"
+                                    ng-init="current.condition.maxDistance = current.condition.maxDistance === undefined ? 0 : current.condition.maxDistance"
+                                    style="width: 50px;"
+                                    />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div ng-show="hasStringOperand(current.condition)" ng-if="!isFuzzy" class="condition-settings">
+                    <div class="control-group" style="margin:0">
+                        <label for="" class="control-label">Case insensitive</label>
+                        <div class="controls">
+                            <input
+                                type="checkbox"
+                                ng-model="current.condition.caseInsensitive"
+                                title="Ignores case"
+                                toggle="tooltip"
+                                ng-disabled="current.condition.normalizeText"
+                                >
+                        </div>
+                    </div>
+                    <div class="control-group" style="margin:0">
+                        <label for="" class="control-label">Normalize text</label>
+                        <div class="controls">
+                            <input
+                                type="checkbox"
+                                ng-model="current.condition.normalizeText"
+                                title="Ignores case, accents, spaces, hyphens"
+                                toggle="tooltip"
+                                >
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+
+            <div ng-if="join.conditionsMode == 'CUSTOM'" style="padding: 0 30px">
+                <form class="dkuform-horizontal">
+                    <div class="alert alert-info" style="border-radius: 0;">
+                        Write a custom SQL condition. It will be copied in the request as: <br />
+                        <div style="margin-left: 20px">SELECT (...) FROM (...) JOIN (...) ON &lt;your_code_here&gt;</div>
+                        You should use $left and $right to refer to both datasets.
+                        The $left and $right tokens will be replaced by the corresponding quoted table names.
+                    </div>
+
+                    <div style="border: 1px solid #e0e2e3" class="code-mirror h200px">
+                        <textarea class="dss-editor" ng-model="join.customSQLCondition" ui-codemirror="sqlEditorOptions"></textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+        <div class="settings-block matching-settings" ng-if="current.tab == 'options'">
+            <div class="dkuform-horizontal">
+                <div class="keep-unmatched control-group" style="margin: 10px 0">
+                    <label for="" class="control-label">
+                        <span class="dataset-name">
+                            <i class="dataset-bullet {{getDatasetColorClass(join.table1)}}"/>
+                            {{getDatasetName(join.table1)}}
+                        </span>
+                        {{getDatasetName(join.table1) == getDatasetName(join.table2) ? '(left)' : ''}}
+                    </label>
+                    <select
+                        dku-bs-select
+                        ng-model="join.outerJoinOnTheLeft"
+                        ng-change="hooks.updateRecipeStatus()"
+                        ng-options="o.v as o.n for o in [{ n: 'Keep all', v: true }, { n: 'Keep only matched rows', v: false }]"
+                        ng-init = "join.outerJoinOnTheLeft = (join.outerJoinOnTheLeft === true || join.outerJoinOnTheLeft === false) ? join.outerJoinOnTheLeft : true"
+                        />
+                </div>
+
+                <div class="keep-unmatched control-group" style="margin: 10px 0">
+                    <label title="{{!recipeStatus.selectedEngine.canDeduplicateJoinMatches ? 'Not available in the database' : ''}}" toggle="tooltip" for="" class="control-label">
+                        <span class="dataset-name">
+                            <i class="dataset-bullet {{getDatasetColorClass(join.table2)}}"/>
+                            {{getDatasetName(join.table2)}}
+                        </span>
+                        {{getDatasetName(join.table1) == getDatasetName(join.table2) ? '(right)' : ''}}
+                    </label>
+                    <select
+                        dku-bs-select
+                        ng-model="join.rightLimit.enabled"
+                        ng-change="hooks.updateRecipeStatus()"
+                        ng-disabled="!recipeStatus.selectedEngine.canDeduplicateJoinMatches || hasNonSymmetricConditions(join)"
+                        title="{{!recipeStatus.selectedEngine.canDeduplicateJoinMatches ? 'unavailable in the database' : (hasNonSymmetricConditions(join) ? 'Disabled because of non-symmetric conditions' : '')}}"
+                        ng-options="o.v as o.n for o in [{ n: 'Keep all matched rows', v: false }, { n: 'Keep a subset of matched rows', v: true }]"
+                        />
+                </div>
+                <div ng-show="join.rightLimit.enabled" style="margin-left: 20px">
+                    Keep
+                    <input
+                        type="number"
+                        class="rows-limit"
+                        ng-model="join.rightLimit.maxMatches"
+                        ng-change="updateRecipeStatusLater()"
+                        />
+                    match<span ng-show="join.rightLimit.maxMatches>1">es</span>
+                    with
+                    <select dku-bs-select ng-model="join.rightLimit.type" >
+                        <option value="KEEP_LARGEST"> the largest value </option>
+                        <option value="KEEP_SMALLEST"> the smallest value </option>
+                    </select>
+                    of field
+                    <select
+                        dku-bs-select
+                        ng-model="uiState.decisionColumnName"
+                        ng-change="updateDecisionColumn()"
+                        ng-options="column.name as column.name for column in getColumnsWithComputed(getDatasetName(join.table2))"
+                        ng-init="uiState.decisionColumnName = uiState.decisionColumnName || join.rightLimit.decisionColumn.name || getColumnsWithComputed(getDatasetName(join.table2))[0].name;updateDecisionColumn();"
+                        />
+                    <label>
+                        Force this exact number of matches in case of equality
+                        <input type="checkbox" ng-model="join.rightLimit.strict" />
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer modal-footer-std-buttons" global-keydown="{'esc': 'dismiss();' }">
+        <div class="text-right">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss();hooks.updateRecipeStatus();">Close</button>
+        </div>
+    </div>
+</div>

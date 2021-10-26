@@ -1,0 +1,52 @@
+<div class="modal modal3 new-insight-modal dku-modal" ng-controller="InsightAccessWarningModalController" auto-size="false">
+    <div dku-modal-header-with-totem modal-class="noflex" modal-title="Insight not accessible to dashboard-only users" modal-totem="icon-warning-sign" />
+
+    <form name="insightAccessForm" class="dkuform-modal-wrapper">
+
+        <div class="modal-body no-h-padding">
+            <div block-api-error />
+
+            <p style="padding: 0 20px;">
+                This {{insightOrDashboard}} uses sources that are not available to dashboard-only users.<br/>
+                <span ng-if="$root.projectSummary.canManageDashboardAuthorizations">Add sources to the list of the authorized objects to grand them access:</span>
+                <span ng-if="!$root.projectSummary.canManageDashboardAuthorizations">They will not be able to view insights using theses sources:</span>
+            </p>
+
+            <ul class="dku-colored-list oa" style="margin-top: 10px; max-height: 280px;">
+                <li ng-repeat="authorization in readerAuthorizations" style="padding: 0 20px;">
+                    <label style="line-height: inherit; margin: 0;" class="horizontal-flex">
+                        <div class="noflex">
+                            <span ng-if="$root.projectSummary.canManageDashboardAuthorizations">
+                                <input type="checkbox" checklist-model="selectedReaderAuthorizations" checklist-value="authorization" style="margin: 0 10px 0 0;" />
+                            </span>
+                            <i class="{{authorization.objectRef.objectType | typeToIcon}} {{authorization.objectRef.objectType | typeToColor}} universe-color"
+                               style="margin-right: 3px; font-size: 16px;"/>
+                        </div>
+                        <div style="flex: 0 1 auto;" class="noflex">
+                            {{authorization.objectRef.objectDisplayName}}
+                        </div>
+                        <div style="flex: 1 0 auto;">
+                            <small>&nbsp;– <a href="{{$root.StateUtils.href.dssObject(authorization.objectRef.objectType, SmartId.fromRef(authorization.objectRef))}}">view</a></small>
+                        </div>
+                    </label>
+                </li>
+            </ul>
+
+            <div ng-if="!$root.projectSummary.canManageDashboardAuthorizations" style="padding: 0 20px; margin-top: 20px;">
+                Ask a project administrator to do it for you.
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons" ng-if="listing || $root.projectSummary.canManageDashboardAuthorizations">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="add()">
+            <span ng-if="listing">
+                <span ng-if="$root.projectSummary.canManageDashboardAuthorizations && selectedReaderAuthorizations.length">Add source{{selectedReaderAuthorizations.length > 1 ? 's' : ''}} and make {{insightOrDashboard}} public</span>
+                <span ng-if="!$root.projectSummary.canManageDashboardAuthorizations || !selectedReaderAuthorizations.length">Make {{insightOrDashboard}} public anyway</span>
+            </span>
+                <span ng-if="!listing && $root.projectSummary.canManageDashboardAuthorizations" ng-disabled="!selectedReaderAuthorizations.length">Add source{{selectedReaderAuthorizations.length > 1 ? 's' : ''}}</span>
+            </button>
+        </div>
+
+    </form>
+</div>

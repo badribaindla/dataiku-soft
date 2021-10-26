@@ -1,0 +1,167 @@
+<div class="dss-page installed-plugins-page">
+    <div block-api-error></div>
+    <div class="installed-plugins-grid">
+        <div class="no-installed-plugins" ng-show="(pluginsList && (!pluginsList.plugins || pluginsList.plugins.length === 0))">
+            <h4 class="plugins-no-result__title">No installed plugin on this {{wl.productLongName}} instance.</h4>
+            <div class="dropdown" data-block>
+                <a class="btn btn--outline btn--primary dropdown-toggle" data-toggle="dropdown"><span plus-icon />&nbsp;Add New&nbsp;<i class="caret"></i></a>
+                <ul class="dropdown-menu detailed-dropdown-menu new-plugin-dropdown-menu" data-extend-template="/templates/plugins/new-plugin-dropdown.html"></ul>
+            </div>
+            <a class="btn btn--secondary mtop16" ng-click="reloadAllPlugins()" ng-if="appConfig.globalPermissions.mayDevelopPlugins"><i class="icon-refresh" /> Reload all</a>
+        </div>
+        <div class="plugins-search-column" ng-show="pluginsList && pluginsList.plugins.length > 0">
+            <div class="std-list-search-box plugin-search-field">
+                <span class="add-on"> <i class="icon-dku-search"></i></span>
+                <input type="search" ng-model="pluginsUIState.searchQuery" placeholder="Search plugin&hellip;">
+            </div>
+
+            <div class="plugins-facets">
+
+                <div class="plugins-facet">
+                    <h3 class="plugins-facet__title"">Tags ({{pluginsUIState.installedTags.size}}) <span class="toggle-show-more" ng-if="pluginsUIState.installedTags.size > 10 && pluginsUIState.showAllInstalledTags" ng-click="toggleShowAllInstalledTags()"> - Show less</span> </h3>
+                    <div class="plugins-facet__item" ng-class="{'plugins-facet__item--disabled': pluginsUIState.installedTagsQuery.length === 0}">
+                        <input type="checkbox" id="all" name="all" ng-disabled="pluginsUIState.installedTagsQuery.length === 0"
+                            ng-checked="pluginsUIState.installedTagsQuery.length === 0" ng-click="resetInstalledTagsQuery()">
+                        <label class="plugins-facet__item-label" for="all">All</label>
+                    </div>
+                    <div class="plugins-facet__item" ng-repeat="(key, value) in pluginsUIState.installedTags | map2Object" ng-show="pluginsUIState.showAllInstalledTags || $index < 10">
+                        <input class="plugins-facet__item-checkbox" type="checkbox" id="{{key}}" name="{{key}}"
+                            ng-checked="isInstalledTagSelected(key)"
+                            ng-click="toggleInstalledTagQuery(key)">
+                        <label class="plugins-facet__item-label" for="{{key}}">{{key | capitalize}}<span class="plugins-facet__item-count">{{value}}</span></label>
+                    </div>
+                    <span class="toggle-show-more mtop16" ng-if="pluginsUIState.installedTags.size > 10 && !pluginsUIState.showAllInstalledTags" ng-click="toggleShowAllInstalledTags()">
+                        + {{pluginsUIState.installedTags.size - 10}} more...
+                    </span>
+                </div>
+
+                <div class="plugins-facet">
+                    <h3 class="plugins-facet__title"">Support Coverage
+                        <i dku-help-popover="'/templates/plugins/plugins-support-help.html'" 
+                            class="plugins-facet__help-icon icon-question-sign"
+                            data-original-title="Support Coverage">
+                        </i>
+                    </h3>
+
+                    <div class="plugins-facet__items">
+                        <div class="plugins-facet__item" ng-repeat="supportLevel in pluginsUIState.supportLevels">
+                            <input class="plugins-facet__item-checkbox" type="checkbox" id="{{supportLevel.value}}" name="{{supportLevel.value}}"
+                                ng-checked="isInstalledSupportLevelSelected(supportLevel.value)"
+                                ng-click="toggleInstalledSupportFilter(supportLevel.value)">
+                            <label class="plugins-facet__item-label" for="{{supportLevel.value}}"><i class="plugins-facet__item-icon {{supportLevel.icon}}"></i>{{supportLevel.label}}<span class="plugins-facet__item-count">{{getInstalledSupportLevelCount(supportLevel.value)}}</span></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h5 class="plugins-notice-title">Plugins are not supported by default. <br> Plugins covered by Dataiku Support or tier 2 support are explicitly indicated.</h5>
+        </div>
+        <div class="installed-plugins-right-column" ng-if="pluginsList && pluginsList.plugins.length > 0">
+            <div ng-if="pluginsList.shouldRestart" class="noflex plugins-require-restart">
+                <div class="alert alert-info">
+                    Plugins have been installed or updated, and need {{wl.productShortName}} to be restarted.&nbsp;
+                    <a class="btn btn--secondary" ng-click="triggerRestart()">Restart</a>
+                </div>
+            </div>
+
+            <!-- error while getting the list -->
+            <div class="alert alert-error m16" ng-show="pluginsList.couldFetch && pluginsList.fetchError">
+                <div class="actions pull-right">
+                    <a ng-click="pluginsList.fetchError = null">
+                        <i class="icon-dku-error" /></a>
+                </div>
+                <h3>
+                    <i class="icon-warning-sign" />
+                    Failed to fetch the list of plugins.
+                </h3>
+                <p>{{pluginsList.fetchError.detailedMessage}}</p>
+            </div>
+
+            <div class="installed-plugins-list">
+                <table ng-show="pluginsUIState.filteredInstalledPlugins.length > 0" sort-table class="table installed-plugin-table">
+                    <col width="2%" />
+                    <col width="15%" />
+                    <col width="15%" />
+                    <col width="10%" />
+                    <col width="10%" />
+                    <col width="48%" />
+                    <thead class="installed-plugins-list__header">
+                        <tr>
+                            <th></th>
+                            <th class="sortable" sort-col="installedDesc.desc.id">Name</th>
+                            <th class="sortable" sort-col="installedDesc.desc.meta.author">By</th>
+                            <th>Origin</th>
+                            <th>Version</th>
+                            <th>
+                                <a class="btn btn--secondary pull-right" ng-click="reloadAllPlugins()" ng-if="appConfig.globalPermissions.mayDevelopPlugins">
+                                    <i class="icon-refresh" /> Reload all
+                                </a>
+                                Description
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="installed-plugins-list__body">
+                        <tr class="installed-plugins-list__item"
+                            ng-repeat="plugin in pluginsUIState.filteredInstalledPlugins = (pluginsList.plugins | filter:pluginsUIState.searchQuery | filter:{ installed:true } | filter: filterInstalledPluginsBySupportLevel(plugin) | filter:filterInstalledPluginsByTags(plugin) | orderBy:sortColumn:sortDescending)">
+                            <td class="installed-plugin__icon-container">
+                                <i class="installed-plugin__icon {{plugin.installedDesc.desc.meta.icon}}"></i>
+                            </td>
+                            <td>
+                                <div class="id-column">
+                                    <a ng-if="plugin.installedDesc.origin === 'DEV' && (appConfig.admin || appConfig.globalPermissions.mayDevelopPlugins)" ng-click="goToDevPluginDetails(plugin.installedDesc.desc.id)">{{plugin.installedDesc.desc.meta.label  || plugin.id}}</a>
+                                    <a ng-if="plugin.installedDesc.origin === 'DEV' && !(appConfig.admin || appConfig.globalPermissions.mayDevelopPlugins)" ng-click="goToPluginDetails(plugin.installedDesc.desc.id)">{{plugin.installedDesc.desc.meta.label  || plugin.id}}</a>
+                                    <a ng-if="plugin.installedDesc.origin !== 'DEV'" ng-click="goToPluginDetails(plugin.installedDesc.desc.id)">{{plugin.installedDesc.desc.meta.label  || plugin.id}}</a>
+                                    <span ng-if="plugin.installedDesc.desc.meta.supportLevel && plugin.installedDesc.desc.meta.supportLevel === 'SUPPORTED'" class="installed-plugin__support"><i class="icon-dku-supported" toggle="tooltip" title="Covered by Dataiku Support" container="body"></i></span>
+                                    <span ng-if="plugin.installedDesc.desc.meta.supportLevel && plugin.installedDesc.desc.meta.supportLevel === 'TIER2_SUPPORT'" class="installed-plugin__support"><i class="icon-dku-half-supported" toggle="tooltip" title="Covered by Tier 2 Support" container="body"></i></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="author-column">{{plugin.installedDesc.desc.meta.author}}</div>
+                            </td>
+                            <td>
+                                {{computePluginOrigin(plugin).toLocaleLowerCase() | capitalize}}
+                            </td>
+                            <td>
+                                <div class="version-column">
+                                    {{plugin.installedDesc.desc.version}}
+                                    <div ng-if="plugin.installedDesc.origin != 'DEV'">
+                                        <div ng-if="plugin.inStore && plugin.storeDesc.storeVersion != plugin.installedDesc.desc.version && !plugin.installedDesc.gitState.enabled">
+                                            <div ng-if="plugin.storeDesc.storeFlags.downloadable == true && appConfig.globalPermissions.mayDevelopPlugins">
+                                                <a class="action" ng-click="previewInstallStorePlugin(plugin)">
+                                                    Update to {{plugin.storeDesc.storeVersion}}
+                                                </a>
+                                            </div>
+                                            <div ng-if="!plugin.storeDesc.storeFlags.downloadable">
+                                                <a class="action"
+                                                    ng-click="previewInstallStorePlugin(plugin)">A new
+                                                    version ({{plugin.storeDesc.storeVersion}}) is
+                                                    available</a>
+                                            </div>
+                                        </div>
+                                        <div ng-if="plugin.installedDesc.gitState.enabled">
+                                            <div ng-if="appConfig.globalPermissions.mayDevelopPlugins">
+                                                <a class="action" ng-click="previewPullPlugin(plugin)">
+                                                    Update from repository
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="description-column"
+                                    ng-if="plugin.installedDesc.desc.meta.description"
+                                    from-markdown="plugin.installedDesc.desc.meta.description"
+                                    words-limit="30">
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="plugins-no-result" ng-show="hasNoResultsForInstalledQuery()">
+                    <h4 class="plugins-no-result__title">No plugin matches your filter.</h4>
+                    <a class="btn btn--secondary" ng-click="resetInstalledQuery()">Clear filters</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,75 @@
+<div class="h100 api-key-settings-page" ng-controller="ProjectSettingsAPIController">
+    <div ng-if="canAPI()" class="h100 vertical-flex project-settings-page">
+        <div block-api-error />
+        <div class="noflex std-list-header" style="padding: 0 20px 10px 20px;">
+            <div class="dropdown pull-right">
+                <a class="btn btn--primary" ng-click="createProjectApiKey()"> <i plus-icon />New API key
+                </a>
+            </div>
+            <div class="std-list-search-box">
+                <span class="add-on"> <i class="icon-dku-search"></i>
+                </span>
+                <input type="search" ng-model="query" style="width: 190px;" placeholder="Filter..."/>
+            </div>
+        </div>
+
+        <div class="flex oa" ng-if="apiKeys.length">
+            <table sort-table class="h100 table table-striped table-hover" style="width:100%">
+                <thead>
+                    <tr>
+                        <th sort-col="id">Id</th>
+                        <th sort-col="key">Secret</th>
+                        <th sort-col="label">Label</th>
+                        <th sort-col="description">Description</th>
+                        <th>Project-wide privileges</th>
+                        <th>Datasets privileges</th>
+                        <th sort-col="projects">Created on</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="apiKey in apiKeys | filter:query | orderBy : sortColumn:sortDescending">
+                        <td>
+                            <a ng-click="editProjectApiKey(apiKey)" main-click>{{apiKey.id}}</a>
+                        </td>
+                        <td>{{apiKey.key}}</td>
+                        <td>
+                            <div style="width: 100px">{{apiKey.label}}</div>
+                        </td>
+                        <td>
+                            <div style="width:200px;">{{apiKey.description}}</div>
+                        </td>
+                        <td>
+                            <div style="text-align: right" >
+                                <a ng-show="!expanded" ng-click="expanded=!expanded">expand</a>
+                                <a ng-show="expanded" ng-click="expanded=!expanded">collapse</a>
+                            </div>
+                            <span ng-if="keyIsProjectAdmin(apiKey)">Project admin</span>
+                            <pre class="small-pre api-key-pre" ng-if="!keyIsProjectAdmin(apiKey)" ng-class="{expanded:expanded}">{{apiKey.projectPrivileges|json}}</pre>
+                        </td>
+                        <td>
+                            <div style="text-align: right" >
+                                <a ng-show="!expandedDS" ng-click="expandedDS=!expandedDS">expand</a>
+                                <a ng-show="expandedDS" ng-click="expandedDS=!expandedDS">collapse</a>
+                            </div>
+                            <span ng-if="keyIsProjectAdmin(apiKey)">Project admin</span>
+                            <pre class="small-pre api-key-pre" ng-if="!keyIsProjectAdmin(apiKey)" ng-class="{expanded:expandedDS}">{{apiKey.localDatasets|json}}</pre>
+                        </td>
+                        <td><div style="width: 100px">{{ apiKey.createdOn|friendlyDate:'d MMMM yyyy'}}</div></td>
+                        <td>
+                            <a ng-click="deleteProjectApiKey(apiKey.key)">
+                                <i class="icon-trash"/></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div ng-if="apiKeys && !apiKeys.length" class="placeholder-block">No API keys in this project.</div>
+    </div>
+
+    <div ng-if="!canAPI()" class="placeholder-block">
+        <div block-api-error />
+        The public API is not available in this version of DSS.
+    </div>
+</div>

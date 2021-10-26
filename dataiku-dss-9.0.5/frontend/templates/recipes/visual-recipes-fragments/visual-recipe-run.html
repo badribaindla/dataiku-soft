@@ -1,0 +1,48 @@
+<div style="height:20px">
+    <i ng-if="expectLongRecipeStatusComputation() && recipeStateUpdateInProgress" class="icon-spinner icon-spin" title="computing status"/>
+</div>
+
+<div class="recipe-noneditable-exec-options" ng-click="editRunOptions()"
+ng-if="hasPartitionedOutput() || testRun.runMode != 'NON_RECURSIVE_FORCED_BUILD'">
+    <p ng-if="hasPartitionedOutput() && !hasInvalidPartitionSelection()" class="recipe-run-partition-display">
+        <span ng-repeat="dimension in getOutputDimensions()" class="partition">
+            {{ dimension.name }} :
+            {{testRun.build_partitions[dimension.name] | buildPartitionsDesc}}
+        </span>
+    </p>
+    <p ng-if="hasInvalidPartitionSelection()">Click to select partitions</p>
+    <p ng-if="testRun.runMode != 'NON_RECURSIVE_FORCED_BUILD'">
+        {{testRun.runMode | buildModeDescription}}
+    </p>
+</div>
+
+<div class="recipe-exec-button">
+    <button class="btn btn--success disabled" ng-show="!hasAllRequiredOutputs()"
+        toggle="tooltip" title="Cannot execute : missing outputs">
+        <i class="icon-play" />&nbsp;Run
+    </button>
+    <button class="btn btn--success disabled" ng-show="hasAllRequiredOutputs() && hasInvalidPartitionSelection()"
+        toggle="tooltip" title="Cannot execute : select a partition">
+         <i class="icon-play" />
+         &nbsp;Run
+    </button>
+    <button class="btn btn--success disabled" ng-show="hasAllRequiredOutputs() && !canSave() && !hasInvalidPartitionSelection()"
+        toggle="tooltip" title="Cannot execute : recipe is invalid">
+         <i class="icon-play" />
+         &nbsp;Run
+    </button>
+
+    <div class="btn-group dropup" ng-if="hasAllRequiredOutputs() && canSave() && !hasInvalidPartitionSelection()">
+       <button class="btn btn--success" id="qa_recipe_run-button"
+            ng-disabled="isJobRunningOrStarting() || recipeStateUpdateInProgress"
+            ng-click="startSingleRecipeExecution()"
+            >
+            <i class="icon-play" />
+            &nbsp;Run
+        </button>
+        <button class="btn btn--success btn--icon" ng-click="editRunOptions()" ng-disabled="isJobRunningOrStarting()">
+            <i class="icon-cog" style="font-size: 0.9em" />
+        </button>
+    </div>
+ </div>
+

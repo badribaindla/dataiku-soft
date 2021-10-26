@@ -1,0 +1,62 @@
+<div class="vertical-flex">
+    <div class="top-level-tabs">
+        <div class="horizontal-flex object-nav">
+            <div class="object-breadcrumb object-breadcrumb--tooltip-on-overflow">
+                <div class="item">
+                    <a class="object-breadcrumb__link-icon" ui-sref="apideployer.services.list">
+                        <i class="icon icon-api-service universe-background api-deployer" />
+                    </a>
+                    <div class="title">
+                        <a ui-sref="apideployer.services.list"
+                            class="object-breadcrumb__link object-breadcrumb__no-tooltip"
+                            title="Go back to services list">API Services</a>
+                        <i class="object-breadcrumb__divider">/</i>
+                        <div class="object-breadcrumb__item" show-tooltip-on-text-overflow text-tooltip="serviceStatus.serviceBasicInfo.name" tooltip-direction="'tooltip-bottom'"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="noflex">
+                <a class="tab" ng-class="{enabled: $state.current.name.includes('status')}"
+                   ui-sref="apideployer.services.service.status" fw500-width>
+                    Status
+                </a>
+                <a class="tab" ng-class="{enabled: $state.current.name.includes('settings')}"
+                   ng-if="serviceStatus && serviceStatus.isAdmin"
+                   ui-sref="apideployer.services.service.settings" fw500-width>
+                    Settings
+                </a>
+                <a class="tab" ng-class="{enabled: $state.current.name.includes('history')}"
+                   ng-if="serviceStatus && serviceStatus.isAdmin"
+                   ui-sref="apideployer.services.service.history" fw500-width>
+                    History
+                </a>
+
+                <div class="otherLinks">
+                    <button class="btn btn--primary" ng-if="serviceStatus.canWrite" ng-click="startUploadPackages()">
+                        <i class="icon-upload"/>&nbsp;Upload versions
+                    </button>
+                    <button class="btn btn--primary" ng-if="!serviceStatus.canWrite" disabled-if="true" disabled-message="You do not have the rights to upload versions on this service">
+                        <i class="icon-upload"/>&nbsp;Upload versions
+                    </button>
+                    <button class="btn btn--secondary dropdown-toggle" data-toggle="dropdown" href>
+                        Actions <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu pull-right text-left">
+                        <li>
+                            <a ng-click="deleteService()">
+                                <span class="text-error">
+                                    <i class="icon-trash" />&nbsp;
+                                    Delete this service
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="dss-page fh oa">
+        <div ui-view></div>
+    </div>
+</div>

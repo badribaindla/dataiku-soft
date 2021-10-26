@@ -1,0 +1,61 @@
+<div ng-if="isPartitionedModel()" include-no-scope="/templates/ml/prediction-model/prediction-model-report-stratified.html" />
+<div ng-if="!isPartitionedModel()" class="prediction-model-report model-report-common fh">
+    <div class="row-fluid offset0 mainzone h100" tab-model="uiState.settingsPane" disable-transition="true">
+        <!-- If you update this list or included files, update saved-model_report_tile_params.html accordingly to make new tabs available in the dashboards  -->
+        <div class="span2 offset0 h100 oa nav-list-sidebar sidebar-{{topNav.top}} modal-footer-std-buttons" ng-if="!evaluation">
+            <ul>
+                <li sidebar-tab-l2-link tab-name="summary" label="Summary" />
+                <li sidebar-tab-l2-link tab-name="skins" label="Views" ng-if="modelSkins && modelSkins.length > 0"/>
+
+                <li class="l1 unselectable-header">Interpretation</li>
+                <div include-no-scope="/templates/ml/prediction-model/report-summary-menu-items/interpretation.html" replace="true"></div>
+
+                <li class="l1 unselectable-header">Performance</li>
+                <div include-no-scope="/templates/ml/prediction-model/report-summary-menu-items/performance.html" replace="true"></div>
+
+                <li ng-if="modelData.trainedWithScript || modelData.preprocessing || modelData.modeling || modelData.actualParams || modelData.splitDesc" class="l1 unselectable-header">Model information</li>
+                <div include-no-scope="/templates/ml/prediction-model/report-summary-menu-items/model_information.html" replace="true"></div>
+            </ul>
+        </div>
+
+        <div class="span2 offset0 h100 oa nav-list-sidebar sidebar-{{topNav.top}} modal-footer-std-buttons" ng-if="evaluation">
+            <ul>
+                <li sidebar-tab-l2-link tab-name="summary" label="Summary" />
+
+                <li class="l1 unselectable-header">Performance</li>
+                <div include-no-scope="/templates/ml/prediction-model/report-summary-menu-items/performance.html" replace="true"></div>
+
+                <li class="l1 unselectable-header">Drift Analysis</li>
+                <div include-no-scope="/templates/ml/prediction-model/report-summary-menu-items/drift_analysis.html" replace="true"></div>
+
+                <div class="sidebar-separator"></div>
+
+                <li class="l1 unselectable-header">Model analysis</li>
+                <div include-no-scope="/templates/ml/prediction-model/report-summary-menu-items/interpretation.html" replace="true"></div>
+
+                <li ng-if="modelData.trainedWithScript || modelData.preprocessing || modelData.modeling || modelData.actualParams || modelData.splitDesc" class="l1 unselectable-header">Model information</li>
+                <div include-no-scope="/templates/ml/prediction-model/report-summary-menu-items/model_information.html" replace="true"></div>
+            </ul>
+        </div>
+
+        <div class="span10 offset0 h100" ng-class="{'no-padding': ['subpopulation', 'pdp_plot', 'interactive_scoring'].includes(uiState.settingsPane), 'boxed-next-to-sidebar': uiState.settingsPane !== 'skins'}" ng-switch="uiState.settingsPane" ng-if="uiState.settingsPane"> <!-- Skins manage their box by themselves, they just need a blank page -->
+            <div class="h100 vertical-flex oa">
+                <div class="noflex doctor-explanation explanation-banner" ng-if="areMetricsWeighted()" ng-class="{'post-train-weights-explanation': ['subpopulation', 'pdp_plot'].includes(uiState.settingsPane)}">
+                    Note: metrics and aggregates (averages, quantiles etc.) are computed with the variable <strong>{{modelData.coreParams.weight.sampleWeightVariable}}</strong> as sample weight, unless explicitly stated otherwise.
+                </div>
+                <div class="flex">
+                    <div class="fh">
+                        <div class="h100" ng-switch-when="json"><pre>{{modelData|json}}</pre></div>
+                        <div class="h100" ng-switch-when="features" include-no-scope="/templates/ml/common/features.html"></div>
+                        <div class="h100" ng-switch-when="preparation" include-no-scope="/templates/ml/common/preparation.html"></div>
+                        <div class="h100" ng-switch-when="subpopulation" include-no-scope="/templates/ml/prediction-model/subpopulation.html"></div>
+                        <div class="h100" ng-switch-when="interactive_scoring" include-no-scope="/templates/ml/prediction-model/interactive_scoring.html"></div>
+                        <div class="h100" ng-switch-when="skins" include-no-scope="/templates/savedmodels/version-skins.html"></div>
+                        <div class="h100" ng-switch-default include-no-scope="/templates/ml/prediction-model/{{uiState.settingsPane}}.html" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

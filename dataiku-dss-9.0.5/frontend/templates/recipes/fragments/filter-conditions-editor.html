@@ -1,0 +1,171 @@
+<div class="filter-conditions-editor" ng-if="getColumns().length">
+	<table style="background: inherit;">
+		<tr filter-condition class="filter-condition" ng-repeat="c in conditions">
+			<td>
+				<span class="input">
+		            <column-select
+						class="qa_recipe_split-filter-input"
+		                columns="getColumns()"
+						ng-model="c.input"
+						/>
+	            </span>
+	            <span class="operator qa_recipe_split-filter-operator" ng-switch="getColumnGenericType(c.input)">
+					<span ng-switch-when="num">
+						<select
+							dku-bs-select
+							class="condition-operator"
+							ng-model="c.operator"
+							ng-options="op.name as op.label for op in getOperators('num')"
+							options-annotations="getOperatorsCategories(getColumn(c.input).type)"
+							required
+						/>
+					</span>
+					<span ng-switch-when="string">
+						<select
+							dku-bs-select
+							class="condition-operator"
+							ng-model="c.operator"
+							ng-options="op.name as op.label for op in getOperators('string')"
+							options-annotations="getOperatorsCategories(getColumn(c.input).type)"
+							required
+						/>
+					</span>
+					<span ng-switch-when="boolean">
+						<select
+							dku-bs-select
+							class="condition-operator"
+							ng-model="c.operator"
+							ng-options="op.name as op.label for op in getOperators('boolean')"
+							options-annotations="getOperatorsCategories(getColumn(c.input).type)"
+							required
+						/>
+					</span>
+					<span ng-switch-when="date">
+						<select
+							dku-bs-select
+							class="condition-operator"
+							ng-model="c.operator"
+							ng-options="op.name as op.label for op in getOperators('date')"
+							ng-change="populateWithDefaults(c)"
+							required
+						/>
+					</span>
+					<span ng-switch-when="array">
+						<select
+							dku-bs-select
+							class="condition-operator"
+							ng-model="c.operator"
+							ng-options="op.name as op.label for op in getOperators('array')"
+							options-annotations="getOperatorsCategories(getColumn(c.input).type)"
+							required
+						/>
+					</span>
+					<span ng-switch-default ng-show="c.input">
+						<select
+							dku-bs-select
+							class="condition-operator"
+							ng-model="c.operator"
+							ng-options="op.name as op.label for op in getOperators()"
+							options-annotations="getOperatorsCategories(getColumn(c.input).type)"
+							required
+						/>
+					</span>
+				</span>
+
+				<input
+					type="number"
+					ng-show="operatorHasParam(c.operator, 'num')"
+					class="qa_recipe_split-filter-value"
+					ng-model="c.num"
+					ng-init="c.num = c.num || 0"
+					ng-keydown="keyDownOnParam($event, $index)"
+					required />
+
+				<input type="text" ng-show="operatorHasParam(c.operator, 'string')" ng-model="c.string" ng-keydown="keyDownOnParam($event, $index)" required/>
+
+				<div style="display: inline-block;" ng-if="operatorHasParam(c.operator, 'date') && !operatorHasParam(c.operator, 'date2')">
+				    <input
+				    	type="date" class="qa_recipe_filter-date-input"
+				    	ng-model="$$date" input-date-conversion="c.date"
+				    	ng-keydown="keyDownOnParam($event, $index)"
+						required
+				    	/>
+
+					<input
+						type="time"
+                        ng-model="$$time" input-time-conversion="c.time"
+						ng-keydown="keyDownOnParam($event, $index)"
+						required
+						/>
+
+					<div ng-if="operatorHasParam(c.operator, 'unit')" style="display:inline-block;" ng-init="c.unit=c.unit || 'seconds';">
+						truncated to
+						<select
+							dku-bs-select
+							class="condition-operator"
+							ng-model="c.unit"
+							ng-options="op.name as op.label for op in dateUnits"
+							required
+						/>
+					</div>
+				</div>
+
+				<div style="display: inline-block;" ng-if="operatorHasParam(c.operator, 'date') && operatorHasParam(c.operator, 'date2')">
+				    <div style="display:inline-block;">
+						<input
+					    	type="date" class="qa_recipe_filter-date-input"
+					    	ng-model="$$date" input-date-conversion="c.date"
+					    	ng-keydown="keyDownOnParam($event, $index)"
+							required
+					    	/>
+
+						<input
+							type="time"
+							ng-model="$$time" input-time-conversion="c.time"
+							ng-keydown="keyDownOnParam($event, $index)"
+							required
+							/>
+
+					</div>
+					<div style="display:inline-block;">
+						<div style="display:inline-block; width:40px; text-align:center">and</div>
+						<input
+					    	type="date"
+					    	ng-model="$$date2" input-date-conversion="c.date2"
+					    	ng-keydown="keyDownOnParam($event, $index)"
+							required
+					    	/>
+
+						<input
+							type="time"
+							ng-model="$$time2" input-time-conversion="c.time2"
+							ng-keydown="keyDownOnParam($event, $index)"
+							required
+							/>
+
+					</div>
+				</div>
+
+				<span class="col" ng-show="operatorHasParam(c.operator, 'col')">
+					<!-- <select
+						dku-bs-select
+                        ng-options="column.name as column.name for column in getColumnsExcept(c.input)"
+                        ng-model="c.col"
+						/> -->
+					<column-select
+		                columns="getColumns()"
+						ng-model="c.col"
+						/>
+	            </span>
+			</td>
+			<td>
+				<a ng-click="remove($index);" ng-show="conditions.length > 1" title="remove condition" style="padding-left: 3px;"><i times-icon /></a>
+			</td>
+		</tr>
+	</table>
+</div>
+<div class="add-button">
+	<button type="button" ng-click="insert($index+1);" class="btn btn--secondary qa_recipe_split-add-condition">
+		<i plus-icon /> Add a condition
+	</button>
+</div>

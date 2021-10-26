@@ -1,0 +1,72 @@
+<div class="code-snippet-editor-wrapper">
+    <div class="editor-wrapper">
+        <div data-extend-template="/templates/widgets/code-snippet-editor-sample-selector.html"
+            ng-show="codeSamplesSelectorVisible">
+            
+            <!-- code snippet preview template -->
+            <div class="sample-template" data-block="samplePreview">
+                <div class="sample-description">
+                    <h4>{{sample.title}}</h4>
+                    <div class="tool-bar">
+                        <span code-snippet-editor-create-edit-modal-button 
+                            sample-type="sampleType"
+                            category="saveCategory"
+                            sample = "sample"
+                            template="'/templates/widgets/code-snippet-editor-create-edit-sample-modal.html'"
+                            controller="'CreateEditSampleController'"
+                            reload-sample-list-func = "reloadSampleListFunc" 
+                            hide-sample-func = "hideSampleFunc" />
+                        <span ng-if="sample.origin==='CUSTOM'" 
+                            code-snippet-editor-create-edit-modal-button 
+                            sample-type="sampleType" 
+                            category="saveCategory"
+                            sample = "sample"
+                            template="'/templates/widgets/code-snippet-editor-create-edit-sample-modal.html'"
+                            controller="'CreateEditSampleController'"
+                            reload-sample-list-func = "reloadSampleListFunc" 
+                            hide-sample-func = "hideSampleFunc" 
+                            force-mode="'CREATE_FROM'"/>
+                        <span ng-show="sample.origin==='CUSTOM'" code-snippet-editor-delete-sample-button>
+                            <button title="delete sample" ng-click="deleteSample()">
+                                <i class="icon-trash"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <div class="tag-list">
+                        <span class="tag" ng-repeat = "tag in sample.tags" ng-style="{'background' : tag.color}"  color-contrast="{{tag.color}}">{{tag.name}}</span>
+                    </div>
+                    <div from-markdown="sample.description" />
+                </div>
+                
+                <!-- DEFAULT TEMPLATE (Sample made of different snippets written in the same language. Each snippet is a variation for different use cases. Each can be inserted separatly from the other variants. This could be called 'variated sample') -->
+                <div class="sample-code" ng-if="!useMultiLanguageInsert()">
+                    <div class="editor" ng-repeat="variation in sample.variations" ng-if="variation.code">
+                        <div class="insertable-marker btn btn--success" ng-click="insert(variation)"><span class="icon-plus"></span>&nbsp; <span ng-if="!insertButtonLabel">INSERT {{insertButtonLabel}}</span><span ng-if="insertButtonLabel">{{insertButtonLabel}}</span></div>                            
+                        <div class="content">
+                            <h5 ng-if="variation.title">{{variation.title}}</h5>
+                            <span ng-if="!variation.title" style="margin-bottom:38px;display:inline-block;"></span>
+                            <textarea data-code-mirror-language="{{sampleType}}">{{resolveCodeForPreviewFunc(variation)}}</textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- WEBAPP TEMPLATE (no variation, but sample composed of several snippets, possibly written in different languages - html, js, css for instance. Snippets cannot be inserted separately, but only together as they work as a whole. This could be called 'composed sample') -->
+                <div class="sample-code" ng-if="useMultiLanguageInsert()">
+                    <div class="editor" ng-repeat="variation in sample.variations track by $index" ng-if="variation.code && variation.code!=''">
+                        <div class="insertable-marker btn btn--success" ng-click="insert(sample)" ng-if="$index==0"><span class="icon-plus"></span>&nbsp; INSERT</div>
+                        <div class="content">
+                            <h5>{{variation.title}}</h5>
+                            <textarea ng-model="variation.code" data-code-mirror-language="{{variation.id}}"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                 <div class="sample-documentation" ng-if="sample.documentation">
+                    <div from-markdown="sample.documentation" />
+                </div>
+            </div>
+            <!-- end of code snippet preview template -->
+        
+        </div>
+    </div>
+</div>

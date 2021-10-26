@@ -1,0 +1,48 @@
+<div  class='tile-set tile-row' ng-class="$ctrl.rowDesc.rowType" >
+    <div class="horizontal-flex row-title mx-center-children-vertically" filtered-multi-select-rows ng-model="$ctrl.rowDesc.rowSet">
+        <div class="flex">
+            <a ui-sref="{{$ctrl.expandUiSref()}}" ng-click="$event.stopPropagation()" class="qa_homepage_{{ $ctrl.rowDesc.itemPlural }}-link">
+                <h2>{{$ctrl.rowDesc.heading}}<span class="expand-arrow">See all <i class="icon-chevron-right"></i></span></h2>
+            </a>
+            <a class="link-std noflex"  style="padding-left: 12px;"
+               ng-click="$ctrl.toggleSortByStar()" ng-if="$ctrl.rowDesc.starrable === true">
+                <i ng-show="isSortedByStar" class="icon-star interests-star active"
+                   title="Don't show starred items first" />
+                <i ng-show="!isSortedByStar" class="icon-star-empty"
+                   title="Show starred items first" />
+            </a>
+            <span class="empty-state" ng-if="$ctrl.rowDesc.rowSet.length==0 && $ctrl.rowDesc.emptyStateShort">{{$ctrl.rowDesc.emptyStateShort}}</span>
+            <span class="empty-state" ng-if="$ctrl.rowDesc.rowSet.length>0 && $ctrl.rowDesc.errorLoading">{{$ctrl.rowDesc.loadError}}</span>
+        </div>
+        <div class="noflex row-title__btn-container" ng-if="$ctrl.rowDesc.rowType=='projects'">
+            <new-project-btn></new-project-btn>
+        </div>
+        <div class="noflex row-title__btn-container" ng-if="$ctrl.rowDesc.rowType=='project-folders' && $parent.canWriteInProjectFolder()">
+            <new-folder-btn list-content-fn="$ctrl.onReload($ctrl.rowDesc)"></new-folder-btn>
+        </div>
+    </div>
+    <div class="tile-row__body qa_homepage-tile_row-body">
+        <div ng-if="$ctrl.rowDesc.rowSet.length>0 && selection.filteredObjects.length==0" class="empty-list-cta" >
+            <p>{{$ctrl.noItemsText()}}</p>
+        </div>
+
+        <div ng-if="$ctrl.isShowEmpyRowMsg()" class="empty-list-cta" >
+            <p ng-if="!$ctrl.rowDesc.errorLoading"><span class="tc" ng-repeat="line in $ctrl.rowDesc.emptyStateLong">{{line}}<br/></span></p>
+            <p ng-if="$ctrl.rowDesc.errorLoading"><span class="tc" >{{$ctrl.rowDesc.loadError}}<br/></span></p>
+        </div>
+
+        <div ng-if="selection.filteredObjects.length" class="scrollbox" drag-scroll
+             fat-repeat="selection.filteredObjects"
+             f-track-table="$ctrl.hookTable(table)" as="object" col-width="$ctrl.rowTileWidth"
+             layout-mode="row"
+             row-height="$ctrl.rowHeight"
+             list-padding="$ctrl.fatListPadding">
+            <ng-transclude>
+            </ng-transclude>
+        </div>
+        <new-project-btn ng-if="$ctrl.rowDesc.fullyPopulated && $ctrl.rowDesc.rowSet.length==0 && $ctrl.rowDesc.rowType=='projects' &&  $ctrl.canCreateProjectsUsingNiceTiles()" as-tiles="true"></new-project-btn>
+
+        <div ng-show="selection.filteredObjects.length>0 && $ctrl.isShowRightScroll()" ng-click="$ctrl.scrollByPage($event, 1)" ng-dblclick="$ctrl.scrollToEndPoint($event, false)" class="arrow right" style="height:{{$ctrl.rowDesc.tileHeight}}px" ><i class="icon-angle-right"/></div>
+        <div ng-show="selection.filteredObjects.length>0 && $ctrl.isShowLeftScroll()" ng-click="$ctrl.scrollByPage($event, -1)" ng-dblclick="$ctrl.scrollToEndPoint($event, true)" class="arrow left" style="height:{{$ctrl.rowDesc.tileHeight}}px" ><i class="icon-angle-left"/></div>
+    </div>
+</div>

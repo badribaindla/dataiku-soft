@@ -1,0 +1,43 @@
+    <div class="row-fluid h100">
+        <div class="span3">
+            <div ng-include="'/templates/shaker/analyse-summary-full.html'"></div>
+            <a class="small-link-button" ng-click="$state.go('projects.project.datasets.dataset.status.metrics', {}); dismiss();">
+                View variations over time...
+            </a>
+        </div>
+        <div class="span9 h100 oa">
+	        <span class="pull-right" colspan="1" ng-if="categoricalsNeedRecompute(['top10WithCounts'])">
+	            <i class="icon-warning-sign out-of-date-warning" title="Values out of date, needs recompute"></i>
+	        </span>
+            <table class="table table-striped facet-table table-small table-condensed" ng-if="hasCategorical('top10WithCounts')">
+                <tr class="tr-discreet">
+                    <th style="text-align:left">
+                        Top {{analysis.fullSampleAnalysis.categorical.top10.value.length}}
+                        <span ng-if="analysis.fullSampleAnalysis.categorical.countDistinct.value">
+                            out of {{analysis.fullSampleAnalysis.categorical.countDistinct.value}}
+                        </span>
+                        values
+                    </th>
+                    <th>Count</th>
+                    <th>%</th>
+                    <th>Cum. %</th>
+                </tr>
+                <tr class="tr-discreet" ng-repeat="point in getFullTop10WithCounts()">
+                    <td class="value">
+                        <span ng-bind-html="point.value ? sanitize(point.value) : '<em>No value</em>'"></span>
+                        <span class="bar bar-{{ point.value ? 'success' : 'warning' }}"
+                              style="width: {{ 80 * point.count / point.maxCount }}%"></span>
+                    </td>
+                    <td>{{point.count}}</td>
+                    <td>{{point.percent | number:1}}</td>
+                    <td>{{point.cumPercent | number:1}}</td>
+                </tr>
+            </table>
+            <div class="center-children" ng-if="!hasCategorical('top10WithCounts')">
+                <div style="text-align: center;">
+                    <div><span class="not-computed">Not computed</span></div>
+                    <div><a class="small-link-button" ng-click="uiState.configureFullSampleStatistics()">Click to configure <i class="icon-cog"></i></a></div>
+                </div>
+            </div>
+        </div>
+    </div>

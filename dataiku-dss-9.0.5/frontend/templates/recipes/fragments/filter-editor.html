@@ -1,0 +1,138 @@
+<div class="filter-editor" ng-if="filterDesc && (schema || filterDesc.$status.schema || dataset)">
+    <fieldset>
+        <div class="filter-mode dku-text text-weak mbot16">
+            {{modelLabel}}
+            <select dku-bs-select
+                ng-model="filterDesc.uiData.mode"
+                ng-change="onFilterModeChange()"
+                class="qa_recipe_split-filter-type"
+                >
+                <option value="&&">all the following conditions</option>
+                <option value="||">at least one of the following conditions</option>
+                <option value="CUSTOM">a formula</option>
+                <option ng-if="!hideSqlFilter" value="SQL">an SQL expression</option>
+            </select>
+
+            <span ng-show="filterDesc.uiData.mode == 'SQL'" custom-element-popup>
+                <a class="mainzone dropdown-toggle link-std mleft4" ng-click="togglePopover()">
+                    <i class="icon-info-sign"/>
+                </a>
+                <ul class="popover custom-element-popup-popover dropdown-menu simple connection-info-popup" style="padding: 10px 20px;">
+                    <li>
+                        <span class="label">Quote strings: </span>
+                        <span class="value">
+                            {{recipeStatus.selectedEngine.stringQuotingCharacter}}
+                            string value
+                            {{recipeStatus.selectedEngine.stringQuotingCharacter}}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="label">Quote identifiers: </span>
+                        <span class="value">
+                            {{recipeStatus.selectedEngine.identifierQuotingCharacter}}
+                            column_name
+                            {{recipeStatus.selectedEngine.identifierQuotingCharacter}}
+                        </span>
+                    </li>
+                </ul>
+            </span>
+        </div>
+    </fieldset>
+ 
+    <fieldset class="filtering-conditions" ng-show="filterDesc.uiData.mode != 'CUSTOM' && filterDesc.uiData.mode != 'SQL'">
+        <filter-conditions-editor></filter-conditions-editor>
+    </fieldset>
+
+    <fieldset ng-if="filterDesc.uiData.mode == 'CUSTOM'" >
+        <div class="horizontal-flex">
+            <div class="noflex var-col-selector" style="width: 240px; height: 150px; margin-right: 10px;">
+                <tabs no-hash-update>
+                    <pane title="Columns">
+                        <div class="selector-list oa" style="height: 114px; margin-top: 5px;">
+                            <a ng-repeat="col in getColumns() track by col.name"
+                                class="column-name-line qa_recipe_filter-editor-column-name"
+                                ng-click="clickedOnColumnName(col.name)"
+                                title="{{col.name}} ({{col.type}})"
+                                >
+                                <span class="column-name"> {{col.name}} </span>
+                                <span class="column-type"> {{col.type}} </span>
+                            </a>
+                        </div>
+                    </pane>
+                    <pane title="Variables">
+                        <div class="selector-list">
+                            <a ng-repeat="(var, value) in recipeVariables"
+                                class="variable-name-line qa_recipe_filter-editor-variable-name"
+                                ng-click="clickedOnVariableName(var)"
+                                title="{{var}}: {{value}}"
+                                >
+                                <span class="variable-name"> {{var}} </span>
+                                <span class="variable-value"> {{value}} </span>
+                            </a>
+                        </div>
+                    </pane>
+                </tabs>
+            </div>
+            <div class="flex" style="width:240px; margin-top: 6px;">
+                <grel-editor class="qa_recipe_filter-editor-textarea" columns="getColumns()" on-expression-change="onExpressionChange" scope-variables="recipeVariables" expression="filterDesc.expression"></grel-editor>
+            </div>
+        </div>
+
+        <div ng-show="!filterDesc.$status.validated && !validationPending && !validationInProgress">
+            <button class="btn btn--success pull-right" ng-disabled="isJobRunning()" ng-click="validateExpression()">
+                <i class="icon-check" /> Validate
+            </button>
+        </div>
+        <div class="message-bar no-margin-alert-error">
+            <div class=" alert alert-success"
+                ng-show="filterDesc.$status.validated && filterDesc.$status.ok">
+                Formula is valid
+            </div>
+           <div class="alert alert-error"
+                ng-show="(filterDesc.$status.validated || validationPending || validationInProgress) && !filterDesc.$status.ok"> 
+                {{filterDesc.$status.message}}
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset ng-if="filterDesc.uiData.mode == 'SQL'" style="margin-top:15px">
+        <div class="horizontal-flex">
+            <div class="noflex var-col-selector" style="width: 240px; height: 150px; margin-right: 10px;">
+                <tabs no-hash-update>
+                    <pane title="Columns">
+                        <div class="selector-list" style="overflow: auto; height: 114px;">
+                            <a ng-repeat="col in getColumns() track by col.name"
+                                class="column-name-line qa_recipe_filter-editor-column-name"
+                                ng-click="clickedOnColumnName(col.name)"
+                                title="{{col.name}} ({{col.type}})"
+                                >
+                                <span class="column-name"> {{col.name}} </span>
+                                <span class="column-type"> {{col.type}} </span>
+                            </a>
+                        </div>
+                    </pane>
+                    <pane title="Variables">
+                        <div class="selector-list">
+                            <a ng-repeat="(var, value) in recipeVariables"
+                                class="variable-name-line qa_recipe_filter-editor-variable-name"
+                                ng-click="clickedOnVariableName(var)"
+                                title="{{var}}: {{value}}"
+                                >
+                                <span class="variable-name"> {{var}} </span>
+                                <span class="variable-value"> {{value}} </span>
+                            </a>
+                        </div>
+                    </pane>
+                </tabs>
+            </div>
+            <div class="flex" style="width:240px; margin-top: 6px;">
+                <textarea
+                    id='grel-editor' class="qa_recipe_filter-editor-textarea"
+                    ng-model="filterDesc.expression"
+                    ng-change="onSQLChange()"
+                    ui-codemirror="sqlEditorOptions"
+                />
+            </div>
+        </div>
+    </fieldset>
+</div>

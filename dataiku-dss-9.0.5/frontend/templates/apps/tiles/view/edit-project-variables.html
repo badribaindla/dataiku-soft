@@ -1,0 +1,49 @@
+<div ng-if="tile.behavior == 'INLINE_AUTO_SAVE'">
+    <div block-api-error />
+    <div class="pull-right">
+        <span ng-include="'/templates/apps/fragments/tile-help.html'"></span>
+    </div>
+    <form class="dkuform-horizontal" ng-scope="{{errorScope = this}}">
+        <div ng-if="uiState.isCustom == false && config != null">
+            <autoconfig-form params="tile.params"
+                             model="config"
+                             plugin-id="uiState.pluginId"
+                             component-id="uiState.componentId"
+                             columns-per-input-role="columnsPerInputRole"
+                             error-scope="errorScope"
+                             recipe-config="recipeConfig"></autoconfig-form>
+        </div>
+        <div ng-if="uiState.isCustom == true && config != null && uiState.templateKey">
+            <div ng-include="uiState.templateKey" />
+        </div>
+    </form>
+</div>
+<div ng-if="tile.behavior == 'INLINE_EXPLICIT_SAVE'">
+    <div block-api-error />
+    <div class="pull-right">
+        <span ng-include="'/templates/apps/fragments/tile-help.html'"></span>
+    </div>
+    <form class="dkuform-horizontal" ng-scope="{{errorScope = this}}">
+        <div ng-if="uiState.isCustom == false && config != null">
+            <autoconfig-form params="tile.params"
+                             model="config"
+                             plugin-id="uiState.pluginId"
+                             component-id="uiState.componentId"
+                             columns-per-input-role="columnsPerInputRole"
+                             error-scope="errorScope"
+                             recipe-config="recipeConfig"></autoconfig-form>
+        </div>
+        <div ng-if="uiState.isCustom == true && config != null && uiState.templateKey">
+            <div ng-include="uiState.templateKey" />
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <button type="button" class="btn btn--primary" ng-click="save()">Save</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div ng-if="tile.behavior == 'MODAL'">
+    <button class="btn btn--secondary" ng-click="openVariableEditor()">{{tile.buttonText || 'Edit project variables'}}</button>
+    <span ng-include="'/templates/apps/fragments/tile-help.html'"></span>
+</div>

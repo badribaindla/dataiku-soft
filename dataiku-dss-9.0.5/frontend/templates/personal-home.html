@@ -1,0 +1,50 @@
+<div class="home-page dss-home-page" ng-class="{'automation-node' : appConfig.isAutomation, 'themed': isThemed()}">
+    <div class="fh h100">
+
+        <div class="pane-top h100 fh" ng-class="uiState.activeRoute.tileDisplayMode+'-layout'" active="true" >
+            <div class="fh pane-scrollbox"  ng-click="toggleInfoPane($event, false)">
+                <div class="pane-border vertical-flex h100">
+                    <div ng-if="uiState.activeRoute.tileDisplayMode=='row'" ng-repeat="r in tileRows | filter: { visible: true } | orderBy: 'position' track by r.tileType" class="tile-rows"  >
+                        <tile-row row-desc="r"
+                                row-index="{{$index}}"
+                                fat-list-padding="40"
+                                settings="uiState"
+                                on-reload="reloadData">
+                            <tile object="$parent.object" is-clickable="$parent.$ctrl.canClick"></tile>
+                        </tile-row>
+                    </div>
+
+                    <div ng-if="uiState.activeRoute.tileDisplayMode=='mosaic'"  class="vertical-flex flex tile-rectangle"  >
+                        <tile-mosaic class="flex"
+                            row-desc="getCurrentTileRow()"
+                            fat-list-padding="50"
+                            settings="uiState" >
+                            <tile object="$parent.object" is-clickable="$parent.$ctrl.canClick" ></tile>
+                        </tile-mosaic>
+                    </div>
+                    
+                    <div ng-if="uiState.activeRoute.tileDisplayMode=='list'"  class="vertical-flex flex tile-list" >
+                        <tile-list class="flex"
+                            row-desc="getCurrentTileRow()"
+                            fat-list-padding="50"
+                            settings="uiState"
+                            list-items="getCurrentTileRow().rowSet" >
+                        </tile-list>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="pane-top-glass full-screen" ng-click="clickOnOverlay($event)" ng-right-click="clickOnOverlay($event)" />
+        <div ng-if="!isStandaloneMode() && wl.homepageGettingStartedEnabled" class="pane-bottom" ng-click="toggleInfoPane($event, true)" >
+            <getting-started-panel selected-tab-idx="uiState.shared.gettingStartedTabIdx" is-visible="isInfoPaneVisible()"></getting-started-panel>
+            <div class="pane-tab" >
+                <h2 class="pane-tab__title"
+                    id="qa_homepage_toggle-info-pane"
+                    ng-click="toggleInfoPane($event)">
+                    Getting started with DSS<i class="{{uiState.shared.infoPaneModeComplete == 'compressed'? 'icon-chevron-up' : 'icon-chevron-down'}}"/>
+                </h2>
+            </div>
+        </div>
+    </div>
+</div>

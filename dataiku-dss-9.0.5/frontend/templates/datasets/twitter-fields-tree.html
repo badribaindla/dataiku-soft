@@ -1,0 +1,16 @@
+<ul>
+    <li ng-repeat="(key, value) in level" ng-init="parent = parentNode; p = prefix">
+        <div ng-show="value === false"><a ng-click="addField(parent, key)">{{key}}</a></div>
+        <div ng-show="value === true"><b><a ng-click="removeField(parent, key)">{{key}}</a></b></div>
+        <div ng-show="typeOf(value) !== 'boolean'">
+            <div ng-show="showCategory(key)">
+                <a ng-click="hideCategory(key)">{{key}} (-)</a>
+                <ng-include src="'/templates/datasets/twitter-fields-tree.html'" ng-init="level = value; parentNode = key; prefix = prefix + key + '.'" />
+            </div>
+            <div ng-show="!showCategory(key)">
+                <a ng-click="expandCategory(key)">{{key}} (+)</a>
+            </div>
+        </div>
+
+    </li>
+</ul>

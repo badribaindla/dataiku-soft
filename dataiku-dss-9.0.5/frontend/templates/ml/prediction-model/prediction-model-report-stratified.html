@@ -1,0 +1,116 @@
+<div ng-controller="PMLPartModelReportController" class="prediction-model-report model-report-common fh">
+    <div class="row-fluid offset0 mainzone h100" tab-model="uiState.settingsPane" disable-transition="true">
+        <!-- If you update this list, update saved-model_report_tile_params.html accordingly to make new tabs available in the dashboards  -->
+
+        <div class="span2 offset0 h100 oa nav-list-sidebar sidebar-{{topNav.top}} modal-footer-std-buttons" style="max-width:206px;">
+
+            <div class="model-side-bar__toggle" ng-if="currentPartitionedModel && showPartitions()">
+                <a ng-class="{'active': !isOnModelPartition(), 'disabled': partitionedModelSnippets.trainInfo.state !== 'DONE'}" 
+                   ng-click="goToBaseModel()">
+                    Overall
+                </a>
+
+                <a class="{{ isOnModelPartition() ? 'active' : ''}}" ng-click="goToPartitionedModel()">
+                    Partitions
+                </a>
+            </div>
+
+            <ul ng-show="!isOnModelPartition()">
+                <li sidebar-tab-l2-link tab-name="summary" label="Summary" />
+
+                <li class="l1 unselectable-header">Interpretation</li>
+                <li ng-if="modelData.backendType == 'PY_MEMORY'" sidebar-tab-l2-link tab-name="interactive_scoring" label="Interactive scoring" disable-link="{{!!tabNotAvailableText('interactive_scoring') }}" disable-message="{{tabNotAvailableText('interactive_scoring')}}"/>
+
+                <li class="l1 unselectable-header">Performance</li>
+                <li ng-if="isMulticlass()" sidebar-tab-l2-link  tab-name="mc_confusion" label="Confusion matrix" />
+                <li ng-if="isBinaryClassification()" sidebar-tab-l2-link  tab-name="bc_confusion" label="Confusion matrix" />
+                <li sidebar-tab-l2-link  tab-name="performance-metrics" label="Metrics and assertions" />
+
+                <li class="l1 unselectable-header">Model information</li>
+                <li sidebar-tab-l2-link  tab-name="preparation" label="Data preparation" />
+                <li sidebar-tab-l2-link tab-name="features" label="Features" />
+                <li sidebar-tab-l2-link tab-name="algorithm" label="Algorithm" />
+                <li ng-if="modelData.iperf.usedGridSearch" sidebar-tab-l2-link tab-name="grid_search" label="Grid-search optimization" />
+                <li sidebar-tab-l2-link tab-name="train" label="Training information" />
+
+
+            </ul>
+
+            <ul ng-show="isOnModelPartition()">
+                <div class="controls model-side-bar__control">
+                    <select dku-bs-select="{width: 168}"
+                            ng-if="partitionedModelSnippets"
+                            ng-model="currentPartitionName"
+                            ng-options="name as name
+                                        disable when !snippet.state.endsWith('DONE')
+                                        for (name, snippet) in partitionedModelSnippets.partitions.summaries"
+                            ng-change="goToPartitionedModel(currentPartitionName)">
+                    </select>
+                </div>
+
+                <li sidebar-tab-l2-link tab-name="summary" label="Summary" />
+
+                <li class="l1 unselectable-header">Interpretation</li>
+
+                <li ng-if="isTreeModel()" sidebar-tab-l2-link tab-name="tree_summary" label="Decision tree"/>
+                <li ng-if="isEnsembleModel()" sidebar-tab-l2-link tab-name="ensemble_summary" label="Decision trees"/>
+                <li sidebar-tab-l2-link ng-if="!isTreeModel() && !isEnsembleModel() && !hasVariableImportance() && (!hasRawCoefficients() || isMulticlass())"
+                    tab-name="variables_interpretation" label="Variables" />
+                <li sidebar-tab-l2-link ng-if="hasVariableImportance()"
+                    tab-name="variables_importance" label="Variables importance" />
+                <li sidebar-tab-l2-link ng-if="hasRawCoefficients() && !isMulticlass()"
+                    tab-name="coefficients" label="Regression coefficients" />
+                <li sidebar-tab-l2-link ng-if="getAlgorithm() == 'LARS'"
+                    tab-name="coef_path" label="Coefficient path" />
+
+                <li ng-if="modelData.backendType == 'PY_MEMORY'" sidebar-tab-l2-link tab-name="pdp_plot" label="Partial dependence" disable-link="{{!!tabNotAvailableText('pdp_plot') }}" disable-message="{{tabNotAvailableText('pdp_plot')}}"/>
+                <li ng-if="modelData.backendType == 'PY_MEMORY'" sidebar-tab-l2-link tab-name="subpopulation" label="Subpopulation analysis" disable-link="{{!!tabNotAvailableText('subpopulation') }}" disable-message="{{tabNotAvailableText('subpopulation')}}"/>
+                <li ng-if="modelData.backendType == 'PY_MEMORY'" sidebar-tab-l2-link tab-name="individual_explanations" label="Individual explanations" disable-link="{{!!tabNotAvailableText('individual_explanations') }}" disable-message="{{tabNotAvailableText('individual_explanations')}}"/>
+                <li ng-if="modelData.backendType == 'PY_MEMORY'" sidebar-tab-l2-link tab-name="interactive_scoring" label="Interactive scoring" disable-link="{{!!tabNotAvailableText('interactive_scoring') }}" disable-message="{{tabNotAvailableText('interactive_scoring')}}"/>
+
+                <li class="l1 unselectable-header">Performance</li>
+
+                <li ng-if="isMulticlass()" sidebar-tab-l2-link  tab-name="mc_confusion" label="Confusion matrix" />
+                <li ng-if="isBinaryClassification()" sidebar-tab-l2-link  tab-name="bc_confusion" label="Confusion matrix" />
+                <li ng-if="isBinaryClassification() && modelData.hasProbas" sidebar-tab-l2-link  tab-name="bc_decision_chart" label="Decision chart" />
+                <li ng-if="isBinaryClassification() && modelData.hasProbas" sidebar-tab-l2-link  tab-name="bc_lift" label="Lift charts" />
+                <li ng-if="isClassification() && modelData.hasProbas" sidebar-tab-l2-link  tab-name="c_calibration" label="Calibration curve" />
+
+                <li ng-if="hasROCCurve()" sidebar-tab-l2-link  tab-name="c_roc" label="ROC curve" />
+                <li ng-if="hasDensityData()" sidebar-tab-l2-link  tab-name="c_density_chart" label="Density chart" />
+
+                <li ng-if="isRegression()"  sidebar-tab-l2-link  tab-name="r_scatter" label="Scatter plot" />
+                <li ng-if="isRegression()"  sidebar-tab-l2-link  tab-name="r_error" label="Error distribution" />
+
+                <li sidebar-tab-l2-link  tab-name="performance-metrics" label="Metrics and assertions" />
+
+                <li class="l1 unselectable-header">Model information</li>
+                <li sidebar-tab-l2-link  tab-name="preparation" label="Data preparation" />
+                <li sidebar-tab-l2-link tab-name="features" label="Features" />
+                <li sidebar-tab-l2-link tab-name="algorithm" label="Algorithm" />
+                <li ng-if="modelData.iperf.usedGridSearch" sidebar-tab-l2-link tab-name="grid_search" label="Hyperparameter optimization"/>
+                <li sidebar-tab-l2-link tab-name="train" label="Training information" />
+            </ul>
+        </div>
+
+        <div class="span10 offset0 h100 boxed-next-to-sidebar" ng-class="{'no-padding': uiState.settingsPane=='subpopulation' || (uiState.settingsPane=='summary' && !isOnModelPartition())}" ng-switch="uiState.settingsPane" ng-if="uiState.settingsPane">
+            <div class="h100 vertical-flex">
+                <div class="noflex doctor-explanation explanation-banner" ng-if="areMetricsWeighted() && uiState.settingsPane!=='subpopulation'">
+                    Note: metrics and aggregates (averages, quantiles etc.) are computed with the variable <strong>{{modelData.coreParams.weight.sampleWeightVariable}}</strong> as sample weight, unless explicitly stated otherwise.
+                </div>
+                <div class="flex">
+                    <div class="fh">
+                        <div class="h100 oa" ng-switch-when="json"><pre>{{modelData|json}}</pre></div>
+                        <div class="h100 oa" ng-switch-when="features" include-no-scope="/templates/ml/common/features.html"></div>
+                        <div class="h100 oa" ng-switch-when="preparation" include-no-scope="/templates/ml/common/preparation.html"></div>
+                        <div class="h100 oa" ng-switch-when="subpopulation" include-no-scope="/templates/ml/prediction-model/subpopulation.html"></div>
+                        <div class="h100 oa" ng-if="isOnModelPartition()" ng-switch-when="summary" include-no-scope="/templates/ml/prediction-model/summary.html"></div>
+                        <div class="h100 oa" ng-if="!isOnModelPartition()" ng-switch-when="summary" include-no-scope="/templates/ml/prediction-model/partition_summary.html"></div>
+                        <div class="h100 oa" ng-switch-default include-no-scope="/templates/ml/prediction-model/{{uiState.settingsPane}}.html" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

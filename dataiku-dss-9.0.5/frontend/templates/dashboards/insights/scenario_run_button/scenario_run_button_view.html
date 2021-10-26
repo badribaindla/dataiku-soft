@@ -1,0 +1,48 @@
+<div class="scenario-reports h100" style="padding: 20px;">
+    <div class="h100 vertical-flex" hierarchical-hover>
+        <div block-api-error></div>
+        <div class="noflex">
+            <div class="above-gantt horizontal-flex">
+                <div class="range noflex" ng-if="editable">
+                    <div>
+                        <div><span style="line-height: 34px;">Range</span></div>
+                        <select ng-model="insight.params.range" dku-bs-select required
+                                ng-options="range as range|niceConst for range in ranges"></select>
+                    </div>
+                </div>
+                <div class="flex" style="position: relative;" >
+                    <!-- don't forget the position:relative otherwise the brush doesn't pick the right width -->
+                    <div range-brush range="report.key" selected-range="reportRange" on-change="brushChanged()" on-drill-down="brushDrillDown" snap-ranges="topActions"></div>
+                </div>
+            </div>
+        </div>
+        <div class="noflex">
+            <div class="above-gantt horizontal-flex">
+                <div class="flex">
+                </div>
+                <!-- 'tabular' (formerly 'runs') view is not available on project or instance, because a single scenario is needed -->
+                <div class="noflex" ng-if="scenarioId != null">
+                    <ul class="btn-group dku-btn-group" style="margin-left: 10px;">
+                        <button class="btn btn--secondary" ng-click="uiState.viewMode = 'TIMELINE'" ng-class="{'active' : uiState.viewMode == 'TIMELINE'}">
+                            <span class="title">Timeline</span>
+                        </button>
+                        <button class="btn btn--secondary" ng-click="uiState.viewMode = 'TABULAR'" ng-class="{'active' : uiState.viewMode == 'TABULAR'}">
+                            <span class="title">Tabular</span>
+                        </button>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="flex oa" ng-if="report.items == null || report.items.length == 0">
+            <div class="fh center-children">
+                <span class="range-is-empty">No scenario runs in the selected range</span>
+            </div>
+        </div>
+        <div class="flex oa graph-zone" ng-if="report.items.length > 0 && uiState.viewMode == 'TIMELINE'">
+            <ng-include src="'/templates/scenarios/fragments/gantt.html'" />
+        </div>
+        <div class="flex oa graph-zone" ng-if="report.items.length > 0 && uiState.viewMode == 'TABULAR'">
+            <ng-include src="'/templates/scenarios/fragments/tabular.html'" />
+        </div>
+    </div>
+</div>

@@ -1,0 +1,113 @@
+<div class="cell-tools">
+
+    <button type="button"
+        class="btn btn--secondary"
+        ng-click="createRecipe()"
+        ng-disabled="isQueryEmpty() || !cell.$tmpState.results.rows.length"
+        ng-show="cell.$tmpState.results.success">
+        Create recipe
+    </button>
+
+    <button type="button" class="btn btn--secondary" ng-click="showExecutionPlan()" ng-if="notebookMode == 'SQL'">
+        EXPLAIN PLAN
+    </button>
+
+    <button type="button" class="btn btn--success btn-run-main" ng-click="run()" ng-show="!cell.$tmpState.runningQuery" title="Hint: use ctrl+enter to run">
+        <i class="icon-play" /> &nbsp; Run
+    </button>
+
+    <button type="button" class="btn btn--danger" ng-click="abort()" ng-show="cell.$tmpState.runningQuery" title="Hint: use ctrl+esc to abort">
+        <i class="icon-spinner icon-spin" /> &nbsp; Abort
+    </button>
+
+
+    <span class="cell-tool cell-menu" style="display:inline-block" custom-element-popup cep-position="align-right-bottom" close-on-click="true">
+        <a class="mainzone link-std dropdown-toggle" ng-click="togglePopover()">
+            <i class="icon-cog" />
+        </a>
+        <ul class="popover custom-element-popup-popover sdropdown-menu pull-right simple" style="padding: 15px">
+
+            <form class="dkuform-horizontal">
+                <div stop-propagation class="control-group" ng-if="notebookMode == 'HIVE'">
+                    <label class="control-label">
+                        Hive runtime conf
+                    </label>
+                    <div class="controls">
+                        <select ng-model="cell.querySettings.inheritConf" ng-options="x for x in  appConfig.hiveExecutionConfigs" />
+                    </div>
+                </div>
+                <div stop-propagation class="control-group" ng-if="notebookMode == 'HIVE'">
+                    <label class="control-label">
+                        Extra Hive configuration
+                    </label>
+                    <div class="controls">
+                        <ng2-key-values-list
+                            [(items)]="cell.querySettings.extraConf"
+                            add-label="Add extra Hive configuration"
+                            key-placeholder="Configuration key"
+                            value-placeholder="Configuration value">
+                        </ng2-key-values-list>
+                    </div>
+                </div>
+
+                <h2 class="settings-section-title" ng-if="notebookMode == 'HIVE'">Advanced settings</h2>
+                <h2 class="settings-section-title mtop0" ng-if="notebookMode != 'HIVE'">Advanced settings</h2>
+                <small style="display: block; margin-bottom: 20px">
+                    You generally do not need to modify these settings. You might need to change them for
+                    complex statements like stored procedures
+                </small>
+
+                <div class="control-group">
+                    <label class="control-label">
+                        Add LIMIT statement
+                    </label>
+                    <div class="controls" stop-propagation>
+                          <input type="checkbox" ng-model="cell.querySettings.addLimitToStatement" style="margin: -2px 2px 0 2px;"/>
+                    </div>
+                </div>
+
+                <div class="control-group" stop-propagation>
+                    <label class="control-label">
+                       Execute out of transaction
+                    </label>
+                    <div class="controls">
+                        <input type="checkbox" ng-model="cell.querySettings.statementsOutOfTransaction" style="margin: -2px 2px 0 2px;"/>
+                    </div>
+                </div>
+
+               
+                <div class="control-group">
+                    <label class="control-label">
+                        Multiple statements parsing
+                    </label>
+                    <div class="controls" stop-propagation>
+                        <select ng-model="cell.querySettings.statementsParseMode" ng-options="x[0] as x[1] for x in [['SPLIT', 'Parse and split'],['RAW', 'Submit as a single statement']]" />
+                        <span class="help-inline">
+                            "Submit as a single statement" might be required for stored procedure or other complex statements
+                        </span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        Statements execution mode
+                    </label>
+                    <div class="controls" stop-propagation>
+                        <select ng-model="cell.querySettings.statementsExecutionMode" ng-options="x[0] as x[1] for x in [['PREPARED', 'Prepared statements'],['UNPREPARED', 'Regular statements']]" />
+                    </div>
+                </div>
+            </form>
+        </ul>
+    </span>
+
+    <a ng-click="duplicateCell($index)" class="cell-tool link-std" title="Duplicate query">
+        <i class="icon-copy" />
+    </a>
+
+    <a ng-click="showHistoryModal()" class="cell-tool link-std" title="Show cell history">
+        <i class="icon-time" />
+    </a>
+
+    <a ng-click="removeCell($index)" class="cell-tool link-std" title="Remove query">
+        <i class="icon-trash" />
+    </a>
+</div>

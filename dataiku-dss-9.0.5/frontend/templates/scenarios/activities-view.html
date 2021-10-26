@@ -1,0 +1,80 @@
+<div ng-controller="ActivitiesViewController" class="scenario-activities h100">
+	<div class="h100 vertical-flex">
+		<div class="noflex" style="margin-bottom: 10px;">
+			<span>Report range </span>
+			<div daterangepicker opens-direction="down" start-date="activitiesRange.from" end-date="activitiesRange.to" format="YYYY-MM-DD HH:mm" time-picker-increment="5" presets-to-end-of-day="true"></div>
+			<button class="btn btn--secondary" ng-click="refreshActivities()">Refresh</button>
+		</div>
+		<div class="noflex" style="margin-bottom: 10px;">
+			<div class="filter-box">
+				<span>Dataset</span>
+				<div class="std-list-search-box" style="display: inline-block">
+					<span class="add-on"><i class="icon-dku-search"></i></span>
+					<input type="search" ng-model="datasetQuery" style="width: 190px;" placeholder="filter..." />
+				</div>
+			</div>
+			<div class="filter-box">
+				<span>Scenario</span>
+				<div class="std-list-search-box" style="display: inline-block">
+					<span class="add-on"><i class="icon-dku-search"></i></span>
+					<input type="search" ng-model="scenarioQuery" style="width: 190px;" placeholder="filter..." />
+				</div>
+			</div>
+		</div>
+
+		<div class="flex oa" freeze-header freeze-columns>
+			<!-- column and row freezing is done by shifting the cells in the table viewport to make them appear in a constant place. 
+			We use 'top' and 'left' bound to values in the scope so that rows appearing / disappearing because of the filtering have
+			the shift applied-->
+			<table class="table-small table-hover" group-actions-by-row-type table-data="activities">
+				<thead>
+				<tr>
+					<th class="frozen" colspan="2" style="left: {{adjustForScroll.left}}px; top: {{adjustForScroll.top}}px">Scenario</th>
+					<th ng-repeat="column in activities.columns | filter:scenarioSearch" style="top: {{adjustForScroll.top}}px">{{column.scenario.info.name || column.scenario.target.scenarioId}}</th>
+				</tr>
+				<tr>
+					<th class="frozen" colspan="2" style="left: {{adjustForScroll.left}}px; top: {{adjustForScroll.top}}px">Trigger</th>
+					<th ng-repeat="column in activities.columns | filter:scenarioSearch" style="top: {{adjustForScroll.top}}px">{{column.trigger.info.name || column.trigger.target.triggerId}}</th>
+				</tr>
+				<tr>
+					<th class="frozen" colspan="2" style="left: {{adjustForScroll.left}}px; top: {{adjustForScroll.top}}px">Date</th>
+					<th ng-repeat="column in activities.columns | filter:scenarioSearch" style="top: {{adjustForScroll.top}}px">{{column.start | date:'yyyy-MM-dd HH:mm:ss'}}</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr ng-repeat="splitRow in splitRows | filter:datasetSearch" ng-init="row = splitRow.row">
+					<td class="frozen" style="left: {{adjustForScroll.left}}px; position: relative;" ng-if="splitRow.span > 0" rowspan="{{splitRow.span}}"
+						ng-include="'/templates/scenarios/fragments/report-item-header.html'" class="fh" 
+						ng-init="item = row; hierarchical = false;">
+					</td>
+					<td class="frozen short-column" style="left: {{adjustForScroll.left}}px;">
+						<div class="action-type" >
+                            <span class="type" ng-if="splitRow.actionType == 'SYNCED_DATASET'">Hive sync.</span>
+                            <span class="type" ng-if="splitRow.actionType == 'UPDATED_FROM_HIVE'">Upd. from Hive</span>
+							<span class="type" ng-if="splitRow.actionType == 'CHECKED_DATASET'">Check</span>
+							<span class="type" ng-if="splitRow.actionType == 'COMPUTED_METRICS'">Metrics</span>
+							<span class="type" ng-if="splitRow.actionType == 'BUILT_DATASET'">Build</span>
+							<span class="type" ng-if="splitRow.actionType == 'BUILT_FOLDER'">Build</span>
+                            <span class="type" ng-if="splitRow.actionType == 'BUILT_MODEL'">Build</span>
+                            <span class="type" ng-if="splitRow.actionType == 'BUILT_EVALUATION_STORE'">Build</span>
+                            <span class="type" ng-if="splitRow.actionType == 'BUILT_STREAMING_ENDPOINT'">Build</span>
+                            <span class="type" ng-if="splitRow.actionType == 'CODE_EXECUTED'">Run</span>
+                            <span class="type" ng-if="splitRow.actionType == 'PRODUCED_BY_RUNNABLE'">Produced</span>
+						</div>
+					</td>
+					<td ng-repeat="column in activities.columns | filter:scenarioSearch">
+							<div class="action-type">
+								<div class="actions-for-type" actions-by-outcome actions="column.actionsByRowType[row.uniqueId][splitRow.actionType]">
+									<div class="action-outcome" ng-repeat="outcomeAction in outcomeActions">
+										<div ng-if="outcomeAction.actions.length > 0 && outcomeAction.actions[0].type == 'JOB_EXECUTED'" ui-sref="projects.project.jobs.job({jobId : outcomeAction.actions[0].jobId})" class="actions-for-outcome" ng-class="{'success' : outcomeAction.outcome == 'SUCCESS', 'warning' : outcomeAction.outcome == 'WARNING', 'failed' : outcomeAction.outcome == 'FAILED', 'aborted' : outcomeAction.outcome == 'ABORTED'}">{{outcomeAction.actions.length > 1 ? outcomeAction.actions.length : ' '}}</div>
+										<div ng-if="outcomeAction.actions.length == 0 || outcomeAction.actions[0].type != 'JOB_EXECUTED'" class="actions-for-outcome" ng-class="{'success' : outcomeAction.outcome == 'SUCCESS', 'warning' : outcomeAction.outcome == 'WARNING', 'failed' : outcomeAction.outcome == 'FAILED', 'aborted' : outcomeAction.outcome == 'ABORTED'}">{{outcomeAction.actions.length > 1 ? outcomeAction.actions.length : ' '}}</div>
+									</div>
+								</div>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

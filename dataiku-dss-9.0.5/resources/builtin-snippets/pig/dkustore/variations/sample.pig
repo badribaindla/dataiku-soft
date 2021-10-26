@@ -1,0 +1,1 @@
+DKUSTORE output_data INTO '__FIRST_OUTPUT__';

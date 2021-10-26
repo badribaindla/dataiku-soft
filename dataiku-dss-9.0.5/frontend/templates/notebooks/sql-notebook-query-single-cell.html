@@ -1,0 +1,148 @@
+<div ng-if="cell.$localState.selected" class="h100">
+    <div class="cell-above vertical-flex">
+        <div class="cell-header unfolded noflex">
+            <form class="dkuform-std-vertical" style="margin:0">
+                <div include-no-scope="/templates/notebooks/sql-notebook-query-toolsl.html" class="pull-right"></div>
+
+                <span class="cell-title">
+                    <input type="text" ng-model="cell.name" placeholder="Click to name this query..." class="in-place-edit" blur-on-enter stop-propagation/>
+                </span>
+            </form>
+        </div>
+
+        <div local-api-error class="local-api-error">
+            <div block-api-error />
+        </div>
+
+        <div class="cell-code flex" ui-keydown="{'ctrl-enter meta-enter':'run()', 'ctrl-esc meta-esc':'abort()'}">
+            <textarea ng-model="cell.$localState.query.sql" ui-codemirror="editorOptions()" ui-refresh="reflow"></textarea>
+        </div>
+    </div>
+
+    <div class="cell-below vertical-flex">
+        <div class="sql-results-header" ng-show="cell.$tmpState.results || cell.$tmpState.runningQuery">
+            <span class="btn-group" ng-show="cell.$tmpState.logs && connectionDetails.type == 'Hive' || cell.$localState.query.sql && cell.$localState.query.expandedSql && cell.$localState.query.sql != cell.$localState.query.expandedSql">
+                <button ng-if="cell.$localState.query.sql && cell.$localState.query.expandedSql && cell.$localState.query.sql != cell.$localState.query.expandedSql"
+                    class="btn btn--secondary"
+                    ng-class="{'btn--active': cell.$tmpState.resultsTab == 'QUERY'}"
+                    ng-click="cell.$tmpState.resultsTab = 'QUERY'"
+                    title="Query (with expanded variables)">
+                    <i class="icon-code"/>
+                </button>
+                <button ng-if="cell.$tmpState.logs && connectionDetails.type == 'Hive'"
+                    class="btn btn--secondary"
+                    ng-class="{'btn--active': cell.$tmpState.resultsTab == 'LOGS'}"
+                    ng-click="cell.$tmpState.resultsTab = 'LOGS'"
+                    title="Logs">
+                    <i class="icon-th-list"/>
+                </button>
+                <button class="btn btn--secondary"
+                    ng-class="{'btn--active': !cell.$tmpState.resultsTab || cell.$tmpState.resultsTab == 'RESULTS'}"
+                    ng-click="cell.$tmpState.resultsTab = 'RESULTS'" title="Results">
+                    <i class="icon-table"/>
+                </button>
+            </span>
+
+
+            <span ng-show="cell.$tmpState.runningQuery">
+                <i class="icon-spin icon-spinner" /> Started at {{cell.$tmpState.runningQuery.runOn|date:'yyyy/MM/dd HH:mm'}} - {{cell.$tmpState.runningQuery.runOn|friendlyTimeDelta}}
+                <span ng-show="cell.$tmpState.lastQuery.runIn">
+                    (previously run at {{(cell.$tmpState.lastQuery.runOn|date:'yyyy/MM/dd HH:mm')}} in {{(cell.$tmpState.lastQuery.runIn)/1000 | friendlyDurationSec}})
+                </span>
+            </span>
+            <span ng-show="!cell.$tmpState.runningQuery && cell.$tmpState.results">
+                <span ng-show="cell.$tmpState.results.success">
+                    <i class="icon-ok-circle"/> Executed
+                </span>
+                <span ng-show="!cell.$tmpState.results.success">
+                    <i class="icon-remove-circle"/> Failed
+                </span>
+                on {{cell.$tmpState.lastQuery.runOn|date:'yyyy/MM/dd HH:mm'}}
+                <span ng-show="cell.$tmpState.lastQuery.runIn">
+                    (in {{(cell.$tmpState.lastQuery.runIn)/1000 | friendlyDurationSec}})
+                </span>
+                <span ng-show="cell.$tmpState.results.successMessage">
+                    - {{cell.$tmpState.results.successMessage}}
+                </span>
+            </span>
+
+            <div class="pull-right" ng-show="cell.$tmpState.results.rows.length">
+                <span class="resultset-count">
+                    {{cell.$tmpState.results.columns.length}} columns.
+                    Showing {{cell.$tmpState.results.rows.length}} of {{cell.$tmpState.results.totalRows}}<span ng-show="cell.$tmpState.results.totalRowsClipped">+</span> rows
+                </span>
+                <span class="tools pull-right" ng-show="!cell.$tmpState.runningQuery">
+
+                    <a ng-show="cell.$tmpState.results.totalRowsClipped" ng-click="computeFullCount()" class="btn btn--secondary">
+                        <i class="icon-refresh" /> &nbsp;Compute full count
+                    </a>
+                     <a ng-click="exportCurrent()" class="btn btn--success" ng-disabled="!projectSummary.canExportDatasetsData">
+                        <i class="icon-download-alt" /> &nbsp;Download
+                    </a>
+                </span>
+            </div>
+        </div>
+
+        <div class="cell-results flex"
+            ng-if="cell.$tmpState.results.success && cell.$tmpState.results.rows.length"
+            ng-show="!cell.$tmpState.resultsTab || cell.$tmpState.resultsTab == 'RESULTS'">
+            <div class="running-query-overlay">
+                <i class="icon-spin icon-spinner" />
+            </div>
+            <div fat-table
+                headers="cell.$tmpState.results.columns"
+                rows="cell.$tmpState.results.rows"
+                cell-template="/templates/notebooks/sql-notebook-result-cell.html"
+                header-template="/templates/notebooks/sql-notebook-result-header.html"
+                print-new-lines-as-symbols="true"
+                header-height="50"
+                row-height="25"
+                as="cell"
+                digest-child-only="true"
+                row-index-as="rowIndex"
+                column-widths="columnWidths"
+                class="sql-results-table">
+            </div>
+        </div>
+
+        <div ng-if="cell.$tmpState.results.success && cell.$tmpState.results.hasResultset && !cell.$tmpState.results.rows.length">
+            <div class="alert alert-info">
+                <h4><i class="icon-info-sign"></i> Empty resultset</h4>
+                <p>Your query succeeded but returned an empty resultset.</p>
+            </div>
+        </div>
+
+        <div ng-if="cell.$tmpState.results && !cell.$tmpState.results.success && !cell.$tmpState.runningQuery && cell.$localState.query.state == 'ABORTED'">
+            <div class="alert alert-warning">
+                <h4><i class="icon-dku-warning"></i> Aborted</h4>
+                <p>{{cell.$tmpState.results.errorMessage}}</p>
+            </div>
+        </div>
+
+        <div ng-if="cell.$tmpState.results && !cell.$tmpState.results.success && !cell.$tmpState.runningQuery && cell.$localState.query.state != 'ABORTED'">
+            <div class="alert alert-error">
+                <h4><i class="icon-dku-error"></i> An error occurred</h4>
+                <p>{{cell.$tmpState.results.errorMessage}}</p>
+            </div>
+        </div>
+
+        <div ng-show="cell.$localState.query.logs && cell.$localState.showLog">
+            <i class="icon-caret-right" ng-if="cell.$localState.foldLogs" />{{cell.$localState.query.logs}}
+        </div>
+
+        <div ng-show="cell.$tmpState.resultsTab == 'LOGS' && cell.$tmpState.logs" class="flex oa">
+            <pre ng-show="cell.$tmpState.logs" style="background: white; border: none;">{{cell.$tmpState.logs}}</pre>
+        </div>
+
+        <div ng-show="cell.$tmpState.resultsTab == 'QUERY'" class="flex oa">
+            <pre ng-show="cell.$localState.query.expandedSql" style="background: white; border: none;">{{cell.$localState.query.expandedSql}}</pre>
+        </div>
+    </div>
+
+    <div resizer="horizontal"
+        resizer-height="4"
+        resizer-top=".cell-above"
+        resizer-bottom=".cell-below">
+    </div>
+
+</div>

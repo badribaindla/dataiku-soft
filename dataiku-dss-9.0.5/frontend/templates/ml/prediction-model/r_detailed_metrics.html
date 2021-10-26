@@ -1,0 +1,127 @@
+<div ng-init="pm = modelData.perf.metrics" class="horizontal-flex">
+    <div class="span6">
+        <table class="table detailed-metrics-table" puppeteer-hook-1>
+            <tr>
+                <td>
+                    {{printWeightedIfWeighted()}} Explained Variance Score
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Best possible score is 1.0, lower values are worse"></i>
+                </td>
+                <th ng-bind-html="pm.evs | mlMetricFormat :'EVS':5 :pm.evsstd :true"></th>
+                <th dku-md-popover="{{getAggregationExplanation('EVS', 'Explained Variance')}}"
+                    dku-md-title="Aggregated metric"
+                    ng-if="isOnPartitionedBaseModel()">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    {{printWeightedIfWeighted()}} Mean Absolute Error (MAE)
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Average of the absolute value of the regression error"></i>
+                </td>
+                <th ng-bind-html="pm.mae | mlMetricFormat :'MAE' :5 :pm.maestd :true"></th>
+                <th dku-md-popover="{{getAggregationExplanation('MAE')}}"
+                    dku-md-title="Aggregated metric"
+                    ng-if="isOnPartitionedBaseModel()">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    {{printWeightedIfWeighted()}} Mean Absolute Percentage Error
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Average of the absolute value of the relative regression error"></i>
+                </td>
+                <th ng-bind-html="pm.mape.toFixed ? (pm.mape | mlMetricFormat :'MAPE' :5 :pm.mapestd :true) : 'NaN'"></th>
+                <th dku-md-popover="{{getAggregationExplanation('MAPE')}}"
+                    dku-md-title="Aggregated metric"
+                    ng-if="isOnPartitionedBaseModel()">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr>
+                <td>{{printWeightedIfWeighted()}} Mean Squared Error (MSE)
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Average of the squares of the errors"></i>
+                </td>
+                <th ng-bind-html="pm.mse | mlMetricFormat :'MSE' :5 :pm.msestd :true"></th>
+                <th dku-md-popover="{{getAggregationExplanation('MSE')}}"
+                    dku-md-title="Aggregated metric"
+                    ng-if="isOnPartitionedBaseModel()">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr ng-if="modelData.modeling.metrics.evaluationMetric == 'CUSTOM'">
+                <td>{{printWeightedIfWeighted()}} Custom score
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="{{modelData.modeling.metrics.customEvaluationMetricGIB ? 'Higher' : 'Lower'}} values are better"></i>
+                </td>
+                <th ng-bind-html="pm.customScore | mlMetricFormat :'CUSTOM' :4 :pm.customScorestd :true"></th>
+                <th dku-md-popover="{{getAggregationExplanation('CUSTOM', 'Custom score')}}"
+                    dku-md-title="Aggregated metric"
+                    ng-if="isOnPartitionedBaseModel()">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+        </table>
+    </div>
+    <div class="span6">
+        <table class="table detailed-metrics-table" puppeteer-hook-2>
+            <tr>
+                <td>
+                    {{printWeightedIfWeighted()}} Root Mean Squared Error (RMSE)
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Root of the above measure"></i>
+                </td>
+                <th ng-bind-html="pm.rmse | mlMetricFormat :'RMSE' :5 :pm.rmsestd :true"></th>
+                <th dku-md-popover="{{getAggregationExplanation('RMSE')}}"
+                    dku-md-title="Aggregated metric"
+                    ng-if="isOnPartitionedBaseModel()">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    {{printWeightedIfWeighted()}} Root Mean Squared Logarithmic Error (RMSLE)
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Root of the average of the squares of the natural log of the regression error"></i>
+                </td>
+                <th ng-bind-html="pm.rmsle | mlMetricFormat :'RMSLE' :5 :pm.rmslestd :true"></th>
+                <th dku-md-popover="{{getAggregationExplanation('RMSLE')}}"
+                    dku-md-title="Aggregated metric"
+                    ng-if="isOnPartitionedBaseModel()">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    {{printWeightedIfWeighted()}} Pearson coefficient
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Correlation coefficient between actual and predicted values. +1 = perfect correlation, 0 =  no correlation, -1 = perfect anti-correlation"></i>
+
+                </td>
+                <th ng-bind-html="pm.pearson | mlMetricFormat :'PEARSON' :5 :pm.pearsonstd :true"></th>
+                <th dku-md-popover="{{getAggregationExplanation('PEARSON', 'Pearson coefficient')}}"
+                    dku-md-title="Aggregated metric"
+                    ng-if="isOnPartitionedBaseModel()">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    {{printWeightedIfWeighted()}} R2 Score
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="(Coefficient of determination) regression score function"></i>
+                </td>
+                <th ng-bind-html="pm.r2 | mlMetricFormat :'R2' :5 :pm.r2std :true"></th>
+                <th dku-md-popover="{{getAggregationExplanation('R2', 'R2 Score')}}"
+                    dku-md-title="Aggregated metric"
+                    ng-if="isOnPartitionedBaseModel()">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+        </table>
+    </div>
+</div>
+

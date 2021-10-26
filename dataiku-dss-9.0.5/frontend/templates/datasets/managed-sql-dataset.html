@@ -1,0 +1,388 @@
+<div ng-show="dataset" class="h100">
+
+    <div include-no-scope="/templates/datasets/fragments/settings-save.html" class="pull-right"/>
+
+    <tabs class="tabs-with-margin vertical-flex">
+        <pane title="Connection">
+            <div class="container-fluid page-top-padding h100 oa">
+                <div class="paned-settings-page-pane">
+                    <div class="section">
+                        <div ng-show="connections && !connections.length">
+                            You do not yet have any connection for {{dataset.type|datasetTypeToName}}.
+                            You need to <a target="_blank" href="{{$state.href('admin.connections.list')}}">create a new connection</a>
+                            before creating datasets on this connection.
+                        </div>
+                        <div ng-show="connections && connections.length">
+                            <form class="dkuform-horizontal">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Connection</label>
+                                    <div class="controls">
+                                        <select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="dataset.params.connection" ng-options="connection for connection in connections"></select>
+                                        <a target="_blank" href="{{$state.href('admin.connections.list')}}">Manage connections</a>
+                                    </div>
+                                </div>
+
+                                <div class="control-group" ng-if="isCatalogAware()">
+                                    <label class="control-label" ng-switch="dataset.type">
+                                        <span ng-switch-when="BigQuery">BigQuery project</span>
+                                        <span ng-switch-when="Snowflake">Database</span>
+                                        <span ng-switch-default>Catalog</span>
+                                    </label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="dataset.params.catalog"/>
+                                        <span class="help-inline" ng-if="dataset.type === 'BigQuery'">Leave blank to use the Project ID associated with the connection</span>
+                                        <span class="help-inline" ng-if="dataset.type === 'Snowflake'">Leave blank to use the Snowflake database associated with the connection</span>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-if="isSchemaAware()">
+                                    <label class="control-label" ng-switch="dataset.type">
+                                        <span ng-switch-when="BigQuery">BigQuery dataset</span>
+                                        <span ng-switch-default>Schema</span>
+                                    </label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="dataset.params.schema"
+                                               ng-required="dataset.type == 'BigQuery'"/>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Table</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="dataset.params.table">
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-if="dataset.type == 'MySQL'">
+                                    <div class="controls">
+                                        <label>
+                                            <input ng-model="dataset.params.useDatetimeForDates" type="checkbox"/>
+                                            Use DATETIME instead of TIMESTAMP for dates (has no timezone)
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Normalize floats &amp; doubles</label>
+                                    <div class="controls">
+                                        <input type="checkbox" ng-model="dataset.params.normalizeDoubles">
+                                        <span class="help-inline">Normalize floating point values (force '42' to '42.0')</span>
+                                    </div>
+                                </div>
+
+                                <ng-include src="'/templates/datasets/fragments/sql-partitioning.html'"></ng-include>
+                            </form>
+        
+                        </div>
+                        <div ng-if="dataset.type == 'Teradata'" class="section" style="padding-left: 0">
+                            <h2>Teradata settings</h2>
+                            <form class="dkuform-horizontal">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Primary index strategy</label>
+                                    <div class="controls">
+                                        <select ng-model="dataset.params.primaryIndexBehavior" 
+                                        ng-options="x[0] as x[1] for x in [['AUTO', 'Auto (use database default)'], ['NOPI', 'No Primary Index'], ['EXPLICIT_COLUMNS', 'Manually specify index column(s)']]" />
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-if="dataset.params.primaryIndexBehavior == 'EXPLICIT_COLUMNS'">
+                                    <label class="control-label">
+                                        Unique primary index
+                                    </label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="dataset.params.primaryIndexIsUnique" />
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="control-group" ng-if="dataset.params.primaryIndexBehavior == 'EXPLICIT_COLUMNS'">
+                                    <label class="control-label">Index columns</label>
+                                    <div class="controls">
+                                        <ng2-values-list
+                                            [(items)]="dataset.params.primaryIndexColumns"
+                                            [suggestions]="schemaColumnNames"
+                                            add-label="Add a column"
+                                            value-placeholder="E.g. a column of the schema">
+                                        </ng2-values-list>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div ng-if="dataset.type == 'Greenplum'" class="section" style="padding-left: 0">
+                            <h2>Greenplum settings</h2>
+                            <form class="dkuform-horizontal">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Distribution strategy</label>
+                                    <div class="controls">
+                                        <select dku-bs-select ng-model="dataset.params.distributionStrategy" 
+                                        ng-options="x[0] as x[1] for x in [['AUTO', 'Auto (use first column)'], ['RANDOMLY', 'Distribute randomly'], ['EXPLICIT_COLUMNS', 'Manually specify distribution column(s)']]" />
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-if="dataset.params.distributionStrategy == 'EXPLICIT_COLUMNS'">
+                                    <label class="control-label">Distribution columns</label>
+                                    <div class="controls">
+                                        <ng2-values-list
+                                            [(items)]="dataset.params.distributionColumns"
+                                            [suggestions]="schemaColumnNames"
+                                            add-label="Add a column"
+                                            value-placeholder="E.g. a column of the schema">
+                                        </ng2-values-list>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div ng-if="dataset.type == 'Redshift'" class="section" style="padding-left: 0">
+                            <h2>Redshift settings</h2>
+                            <form class="dkuform-horizontal">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Distribution style</label>
+                                    <div class="controls">
+                                        <select dku-bs-select ng-model="dataset.params.distributionStyle" 
+                                        ng-options="x[0] as x[1] for x in [['AUTO', 'Auto'], ['EVEN', 'Distribute evenly'], ['ALL', 'Copy table in all nodes'], ['KEY', 'Select a distribution key']]" />
+                                    </div>
+                                </div>
+
+                                <div class="control-group" ng-if="dataset.params.distributionStyle == 'KEY'">
+                                    <label class="control-label">Distribution key</label>
+                                    <div class="controls">
+                                        <input type='text'
+                                            bs-typeahead='schemaColumnNames'
+                                            autocomplete='off'
+                                            data-min-length='0'
+                                            ng-model='dataset.params.distributionKeyColumn'
+                                        />
+                                    </div>
+                                </div>
+                                <div class="alert alert-warning" ng-if="dataset.partitioning.dimensions.length > 0">
+                                    For partitioned datasets, the partitioning dimensions are always prepended to the sort keys
+                                </div>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Sort key</label>
+                                    <div class="controls">
+                                        <select dku-bs-select ng-model="dataset.params.sortKey" 
+                                        ng-options="x[0] as x[1] for x in [['NONE', 'Not sorted'], ['COMPOUND', 'Compount sort'], ['INTERLEAVED', 'Interleaved sort']]" />
+                                    </div>
+                                </div>
+                                
+                                <div class="control-group" ng-if="dataset.params.sortKey != 'NONE'">
+                                    <label class="control-label">Sort key columns</label>
+                                    <div class="controls">
+                                        <ng2-values-list
+                                            [(items)]="dataset.params.sortKeyColumns"
+                                            [suggestions]="schemaColumnNames"
+                                            add-label="Add a column"
+                                            value-placeholder="E.g. a column of the schema">
+                                        </ng2-values-list>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div include-no-scope="/templates/datasets/managed-sql-dataset-test.html"/>
+                    </div>
+
+                    <div class="section" ng-show="testResult && testResult.tableExists && testResult.connectionOK" style="min-width: inherit">
+                    
+                        <h2>Preview</h2>
+                        <div class="scroll dataset-preview-scroll">
+                            <div ng-show="testResult.previewErrorMsg" class="alert alert-error">{{testResult.previewErrorMsg}}</div>
+                            <div dku-if="testResult.preview">
+                                <div simple-detection-preview-table dataset="dataset" table="testResult.preview" headers="testResult.preview.headers"
+                                     schema-is-user-editable="false"/>
+                                <div class="preview-empty" ng-show="testResult.preview.displayedRows ==0">No rows in table</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </pane>
+
+        <pane title="Preview">
+            <div class="container-fluid page-top-padding h100 oa">
+                <div class="scroll dataset-preview-scroll">
+                    <div ng-show="testResult.previewErrorMsg" class="alert alert-error">{{testResult.previewErrorMsg}}</div>
+                    <div dku-if="testResult.preview">
+                        <div simple-detection-preview-table dataset="dataset" table="testResult.preview" headers="testResult.preview.headers"
+                             schema-is-user-editable="false"/>
+                        <div class="preview-empty" ng-show="testResult.preview.displayedRows ==0">No rows in table</div>
+                    </div>
+                </div>
+                <div include-no-scope="/templates/datasets/managed-sql-dataset-test.html"/>
+            </div>
+        </pane>
+
+        <pane title="Schema">
+            <div class="container-fluid page-top-padding h100 vertical-flex" style="position: relative;">
+                <div schema-consistency-status current-schema="dataset.schema" consistency="consistency" managed="true"
+                     check-consistency="checkConsistency" schema-detection="testResult.schemaDetection"
+                     discard-schema-changes="discardSchemaChanges" clear-managed-dataset="dropTable"
+                     schema-just-modified="schemaJustModified" discard-consistency-error="discardConsistencyError"
+                     overwrite-schema="overwriteSchema" class="noflex"/>
+                <div include-no-scope="/templates/datasets/schema-edition.html" class="flex"/>
+            </div>
+        </pane>
+
+        <pane title="Advanced">
+            <div class="page-top-padding h100 oa">
+                <div include-no-scope="/templates/datasets/fragments/sql-write-options.html" ng-if="dataset.type != 'BigQuery'"/>
+
+                <div class="container-fluid" ng-if="dataset.type == 'BigQuery'">
+                    <h2 class="settings-section-title mtop0">SQL</h2>
+                    <form class="dkuform-horizontal">
+                        <div class="control-group">
+                            <label class="control-label" for="">Table creation mode</label>
+                            <div class="controls">
+                                <label>
+                                    <input ng-model="dataset.params.useBigQueryPartitioning" type="checkbox"/>
+                                    <div class="partitioning-checkbox-button">Create BigQuery partitioned table</div>
+                                    <span class="help-inline">(<a href="https://cloud.google.com/bigquery/docs/partitioned-tables" target="_blank">Google BigQuery documentation on partitioned tables</a>)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="dataset.params.useBigQueryPartitioning">
+                            <label class="control-label">Partition by column</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="dataset.params.bigQueryPartitioningField"
+                                        ng-options="c.name as c.name for c in filterEligibleBigQueryPartitionColumns(dataset.schema.columns)" />
+                                <span class="help-inline" ng-show="dataset.params.bigQueryPartitioningField && dataset.params.bigQueryPartitioningType == 'DATE'"> (BigQuery table will be partitioned by day)</span>
+                                <span class="help-inline" ng-show="filterEligibleBigQueryPartitionColumns(dataset.schema.columns).length === 0"> No eligible column found. Partitioning requires an integer or date column.</span>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="dataset.params.useBigQueryPartitioning && dataset.params.bigQueryPartitioningType == 'RANGE'">
+                            <label class="control-label">Partition range</label>
+                            <div class="controls mbot8">
+                                <label class="partition-range__control-label">Start</label>
+                                <input type="text" ng-model="dataset.params.bigQueryPartitioningRangeStart"><span class="help-inline">(inclusive)</span>
+                            </div>
+                            <div class="controls mbot8">
+                                <label class="partition-range__control-label">End</label>
+                                <input type="text" ng-model="dataset.params.bigQueryPartitioningRangeEnd"><span class="help-inline">(exclusive)</span>
+                            </div>
+                            <div class="controls">
+                                <label class="partition-range__control-label">Interval</label>
+                                <input type="text" ng-model="dataset.params.bigQueryPartitioningRangeInterval"><span class="help-inline">(must be a positive integer)</span>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="dataset.params.useBigQueryPartitioning && dataset.params.bigQueryPartitioningField">
+                            <label class="control-label">Cluster by column(s)</label>
+                            <div class="controls mbot8" ng-repeat="clusteringColumn in dataset.params.bigQueryClusteringColumns">
+                                <form class="dkuform-horizontal">
+                                    <select dku-bs-select ng-model="clusteringColumn.name"
+                                            ng-options="c.name as c.name for c in filterEligibleBigQueryClusteringColumns(dataset.schema.columns, $index)"/>
+                                    <a ng-click="removeBigQueryClusteringColumn($index)"> <i class="icon-trash"/></a>
+                                    <span class="help-inline mleft8" ng-if="$index == 0">You can configure up to 4 clustering columns (<a href="https://cloud.google.com/bigquery/docs/clustered-tables">Google BigQuery documentation on clustered tables</a>)</span>
+                                </form>
+                            </div>
+                            <div class="controls">
+                                <button type="button" class="btn btn--secondary" ng-click="addBigQueryClusteringColumn()" ng-if="!dataset.params.bigQueryClusteringColumns || dataset.params.bigQueryClusteringColumns.length < 4">Add column</button>
+                                <span class="help-inline" ng-if="!dataset.params.bigQueryClusteringColumns || dataset.params.bigQueryClusteringColumns.length === 0">You can configure up to 4 clustering columns (<a href="https://cloud.google.com/bigquery/docs/clustered-tables">Google BigQuery documentation on clustered tables</a>)</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="container-fluid" ng-if="dataset.type != 'BigQuery'">
+                    <h2 class="settings-section-title mtop0">SQL</h2>
+                    <form class="dkuform-horizontal">
+                        <div class="control-group">
+                            <label class="control-label" for="">Table creation mode</label>
+                            <div class="controls" style="position: relative;">
+                                <select dku-bs-select
+                                        ng-model="dataset.params.tableCreationMode"
+                                        ng-options="x[0] as x[1] for x in possibleTableCreationModes"/>
+                                <div code-snippet-editor-switch code-samples-selector-visible="uiState.codeSamplesSelectorVisible" class="pull-right dib"/>
+                                <div style="position: absolute; top: 33px; width: 100%;">
+                                    <code-snippet-sample-selector
+                                            insert-code-func="copyCodeSnippet"
+                                            code-samples-selector-visible="uiState.codeSamplesSelectorVisible"
+                                            insert-button-label="'COPY TO CLIPBOARD'"
+                                            sample-type="'sql'"
+                                            categories="[]"
+                                            save-category="'na'"
+                                            style="min-height: 400px">
+                                    </code-snippet-sample-selector>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div ng-if="dataset.type == 'Synapse' && dataset.params.tableCreationMode == 'auto'">
+                            <div class="control-group">
+                                <label class="control-label">Set distribution policy</label>
+                                <div class="controls">
+                                    <select dku-bs-select
+                                            ng-model="dataset.params.tableDistributionMode"
+                                            ng-options="x[0] as x[1] for x in possibleSynapseDistribution"/>
+                                    <div class="partitioning-checkbox-button">Use an hash based distribution</div>
+                                    <span class="help-inline">(<a href="https://docs.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-tables-distribute" target="_blank">Azure documentation on distributed tables</a>)</span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="dataset.params.tableDistributionMode == 'HASH'">
+                                <label class="control-label">Distribution column</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="dataset.params.distributionHashColumn"
+                                            ng-options="c.name as c.name for c in dataset.schema.columns" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="">Table creation SQL</label>
+                            <div class="controls" ng-if="dataset.params.tableCreationMode == 'auto'">
+                                <div class="codemirror" style="height:210px;overflow-y: scroll; opacity: 0.6">
+                                    <textarea ng-model="testResult.autogeneratedCreateStatement" ui-codemirror="codeMirrorSettingService.get('text/x-sql')" ui-refresh="struct.displayed"></textarea>
+                                </div>
+                                <div>
+                                    <button class="btn btn--secondary" ng-click="refreshToAutogeneratedStatement()">
+                                        Refresh
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="controls" ng-if="dataset.params.tableCreationMode == 'custom'">
+                                <div class="codemirror" style="height:210px;overflow-y: scroll;">
+                                    <textarea ng-model="dataset.params.customCreateStatement" ui-codemirror="codeMirrorSettingService.get('text/x-sql')" ui-refresh="struct.displayed"></textarea>
+                                </div>
+                                <div>
+                                    <button class="btn btn--secondary" ng-click="revertToAutogeneratedStatement()">
+                                        Restore to default
+                                    </button>
+                                    <small>
+                                        Note: The <em>$DKU_CREATE_TABLE_FIELDS</em> will be replaced by the list of
+                                        fields and types from the schema
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="" class="control-label">Pre-write statements</label>
+                            <div class="controls">
+                                <div class="codemirror" style="height:210px;overflow-y: scroll;">
+                                    <textarea ng-model="dataset.params.customPreWriteStatements" ui-codemirror="codeMirrorSettingService.get('text/x-sql')" ui-refresh="struct.displayed"></textarea>
+                                </div>
+                                <div>
+                                    <small>
+                                        These statements will be executed before Data Science Studio writes data to the table.
+                                        You might want to remove temporarily some indices for example
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="" class="control-label">Post-write statements</label>
+                            <div class="controls">
+                                <div class="codemirror" style="height:210px;overflow-y: scroll;">
+                                    <textarea ng-model="dataset.params.customPostWriteStatements" ui-codemirror="codeMirrorSettingService.get('text/x-sql')" ui-refresh="struct.displayed"></textarea>
+                                </div>
+                                <div>
+                                    <small>
+                                        These statements will be executed after Data Science Studio writes data to the table.
+                                        You might want to create some indices for example
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div include-no-scope="/templates/datasets/advanced-fieldset-ordering-native.html"/>
+                <div include-no-scope="/templates/datasets/advanced-fieldset-flow.html"/>
+                <div include-no-scope="/templates/datasets/advanced-override-table.html"/>
+                <div include-no-scope="/templates/datasets/advanced-fieldset-danger.html"/>
+            </div>
+        </pane>
+    </tabs>
+</div>

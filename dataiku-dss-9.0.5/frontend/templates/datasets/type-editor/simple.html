@@ -1,0 +1,39 @@
+<span>
+    <span class="editable-type" ng-click="toggleEdit(current,$event)">
+         <span ng-if="!current.editing" ng-switch="current.type">
+             <span ng-switch-when="array" class="complex-type">
+                array&lt;{{current.arrayContent.type+''+(isPrimitiveType(current.arrayContent.type)?'':'<...>')}}&gt;
+             </span>
+             <span ng-switch-when="map" class="complex-type">
+                map&lt;{{current.mapKeys.type+''+(isPrimitiveType(current.mapKeys.type)?'':'<...>')}},
+                {{current.mapValues.type+''+(isPrimitiveType(current.mapValues.type)?'':'<...>')}}&gt;
+             </span>
+             <span ng-switch-when="object" class="complex-type">
+                object&lt;...&gt;
+             </span>
+             <span ng-switch-default class="primitive-type">
+                {{getTypeLabel(current.type)}}
+             </span>
+        </span>
+        <span ng-if="current.editing">
+            <select ng-options="type.name as type.label for type in types"
+                    ng-model="current.type"
+                    class="type-edition-menu btn btn--secondary"
+                    auto-focus="{{current.editing}}"
+                    ng-keydown="($event.which==27)?disableEditing():null">
+            </select>
+        </span>
+    </span>
+    <span ng-if="current.type=='string'" ng-click="toggleConfiguring(current,$event)" class="string-maxlength">
+        <span ng-if="!current.configuring"  title="Max length">
+            (Max length: <span class="underline-on-hover">{{ current.maxLength }}</span>)
+        </span>
+        <span ng-if="current.configuring">
+            (Max length:
+            <input type="number" style="width: 70px" force-integer min="-1"
+                   ng-model="current.maxLength" placeholder="Max length"
+                   ng-keydown="($event.which==27)?disableEditing():null" />
+            )
+        </span>
+    </span>
+</span>

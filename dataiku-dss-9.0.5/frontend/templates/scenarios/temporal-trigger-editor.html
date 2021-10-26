@@ -1,0 +1,51 @@
+<div ng-controller="TemporalTriggerController">
+	<div ng-include ="'/templates/scenarios/fragments/trigger-header.html'"></div>
+    <form name="descriptionForm" class="dkuform-horizontal trigger-form" ng-show="trigger.$expanded">
+
+        <div class="control-group">
+            <label class="control-label">Repeat every</label>
+            <div class="controls">
+                <input ng-model="trigger.params.repeatFrequency" type="number" name="repeatFrequency" style="width: 60px" min="1" ng-max="repeatFrequencyMax" />
+                <select dku-bs-select ng-options="f[0] as f[1] for f in frequencyOptions" ng-model="trigger.params.frequency"></select>
+            </div>
+        </div>
+
+        <!-- Using ng-if instead of ng-show break the ng-change usage, and do not allows the user to change the hour in "timeFrom" -->
+        <div class="control-group" ng-show="shouldDisplayStartingAt()">
+            <label class="control-label">Starting from</label>
+            <div class="controls">
+                <input ng-model="startingFrom" type="date" name="dateFrom" style="width: 130px" required />
+                <input ng-model="time" type="time" name="timeFrom" style="width: 110px" step="60" ng-show="shouldDisplayTime()" ng-value="getHHmm()" ng-change="timeChanged()" required />
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="shouldDisplayMonthDayPicker()">
+            <label class="control-label">Run on</label>
+            <div class="controls">
+                <select dku-bs-select ng-options="f[0] as f[1] for f in monthyOptions" ng-model="trigger.params.monthlyRunOn"></select>
+            </div>
+        </div>
+
+        <div class="control-group" ng-show="shouldDisplayWeekDayPicker()">
+            <label class="control-label">Run on</label>
+            <div class="controls">
+                <week-days-picker ng-model="trigger.params.daysOfWeek" />
+            </div>
+        </div>
+
+        <div class="control-group" ng-show="shouldDisplayRunAt()">
+            <label class="control-label">Run at</label>
+            <div class="controls">
+                <input ng-model="time" type="time" name="startingFrom" style="width: 110px" step="60" ng-value="getHHmm()" ng-change="timeChanged()" required />
+            </div>
+        </div>
+
+        <div class="control-group" ng-show="shouldDisplayTimezone()">
+            <label class="control-label">Using timezone</label>
+            <div class="controls">
+                <select dku-bs-select ng-options="timezone_id[0] as timezone_id[1] for timezone_id in timezone_ids" ng-model="trigger.params.timezone"></select>
+            </div>
+        </div>
+
+    </form>
+</div>

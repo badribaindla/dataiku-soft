@@ -1,0 +1,77 @@
+<div class="modal modal3 update-from-hive-modal" style="width: 700px;">
+    <div dku-modal-header-with-totem modal-title="Index connections" modal-totem="icon-dku-quick_go_input" />
+    <form name="importForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body">
+            <div block-api-error/>
+            <div ng-show="!loading">
+                <div class="alert alert-info" style="border-radius: 0;">
+                    Indexing connections makes their tables available in the <a ui-sref="catalog.items({scope: 'external'})" ng-click="dismiss()">Catalog</a> and makes them searchable by users with read access.
+                </div>
+                <div info-messages-raw-list="processableConnections.messages" style="word-break: break-word;" />
+
+                <div ng-show="processableConnections.scannableConnections.length || processableConnections.indexableConnections.length">
+                    <h4>The following {{'connection' | plurify: connectionsList.length}} will be indexed ({{connectionsList.length}}) :</h4>
+                    <div style="overflow-y: scroll;">
+                        <ul>
+                            <li style="white-space: nowrap"
+                                ng-repeat="connection in connectionsList = (indexationMode === 'scan' ? processableConnections.scannableConnections : processableConnections.indexableConnections) | orderBy:'toString()'">
+                                <span style="text-overflow: ellipsis;    white-space: nowrap; overflow: hidden;     display: inline-block; vertical-align: bottom; width: 100%;">{{connection | connectionNameFormatter}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <h4>Indexing mode</h4>
+                    <fieldset child-focus>
+                        <div>
+                            <label>
+                                <input type="radio" ng-model="indexationMode" value="scan" ng-disabled="!processableConnections.scannableConnections.length">
+                                <span style="display: inline-block; vertical-align: top;">
+                                    <strong>Full indexing</strong>
+                                    <div>
+                                        <ul>
+                                            <li>Fetch all tables from the database</li>
+                                            <li>Index them
+                                        </ul>
+                                    </div>
+                                </span>
+                            </label>
+
+                            <label ng-class="{ 'disabled-block' : !processableConnections.indexableConnections.length}" disabled-if="!processableConnections.indexableConnections.length" disabled-message="Connections should be fully indexed first">
+
+
+                                <input type="radio" ng-model="indexationMode" value="index">
+                                <span style="display: inline-block; vertical-align: top;">
+                                    <strong>Light indexing</strong>
+                                    <div>
+                                        <ul>
+                                            <li>No database scanning</li>
+                                            <li>Take into account new related {{wl.productShortName}} items</li>
+                                            <li>Take into account possible access rights changes</li>
+                                        </ul>
+                                    </div>
+                                </span>
+                            </label>
+                        </div>
+
+                    </fieldset>
+                </div>
+                <div class="alert alert-error" style="border-radius: 0;" ng-show="!processableConnections.scannableConnections.length && !processableConnections.indexableConnections.length">
+                    <div ng-show="selectedConnections && selectedConnections.length">
+                        Selected connections are either not indexable or being indexed at the moment
+                    </div>
+                    <div ng-show="!selectedConnections || !selectedConnections.length">
+                        Connections are either not indexable or being indexed at the moment
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="!canStartIndexation()" ng-click="startIndexation();">Start indexing</button>
+        </div>
+    </form>
+</div>

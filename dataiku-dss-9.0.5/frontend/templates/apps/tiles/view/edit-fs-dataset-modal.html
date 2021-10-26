@@ -1,0 +1,59 @@
+<div class="modal modal3 app-tiles__tile-files-browse-modal" ng-scope="{{errorScope = this}}">
+    <div dku-modal-header modal-title="{{tile.prompt || (tile.type | niceTileType)}}" modal-class="has-border" />
+
+    <form name="editForm" class="dkuform-modal-horizontal dkuform-modal-wrapper ">
+
+        <div class="modal-body">
+            <div block-api-error />
+
+            <dataset-path-input browse-fn="browse" path="dataset.params.path"  validate-fn="doTestIfNeeded" connection="dataset.params.connection" change-needs-confirm="false" class="app-tiles__tile-files-browse-field">
+            </dataset-path-input>
+
+            <div ng-show="detectionResults && !detectionResults.connectionOK" class="app-tiles__tile-files-browse-connection-error">
+                <div class="alert alert-error">
+                    <i class="icon-dku-error" /><span summary-of-error="detectionResults.connectionError" />
+                </div>
+            </div>
+            
+            <div fs-files-selection params="dataset.params" class="app-tiles__tile-files-browse-files-selection"/>
+            
+            <div class="control-group">
+                <label for="" class="control-label">File for test &amp; preview</label>
+                <div class="controls">
+                    <input style="width: 300px" type="text" ng-model="dataset.params.previewFile" placeholder="If empty, the first non-empty file is used"/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Auto-test</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="uiState.autoTestOnFileSelection" />
+                        Test dataset as soon as a file is selected
+                    </label>
+                </div>
+            </div>
+            
+            <div ng-show="detectionResults && detectionResults.empty" class="app-tiles__tile-files-browse-empty-warning">
+                <div class="alert alert-warning">
+                    <i class="icon-dku-warning" /><span>No file selected, cannot infer format/schema</span>
+                </div>
+            </div>
+            
+            <div class="app-tiles__tile-files-browse-test-button">
+                <button class="btn btn--primary btn--wide" ng-click="doTest()" ng-disabled="uiState.autoTestOnFileSelection"> <i class="icon-refresh" />&nbsp;Test
+                </button>
+            </div>
+
+            <div class="app-tiles__tile-files-browse-recap">
+                <a ng-click="goToDataset()"><i class="icon-arrow-right"></i>&nbsp;View settings of dataset {{tile.datasetName}}</a>
+                <span>({{dataset.formatType}}, {{dataset.schema.columns.length}} column(s))</span>
+            </div>
+
+            <span ng-include="'/templates/apps/fragments/tile-help-alert.html'" class="app-tiles__tile-help--in-list"></span>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="commit()" ng-disabled="editForm.$invalid">Commit</button>
+        </div>
+    </form>
+</div>

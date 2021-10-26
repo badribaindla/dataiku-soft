@@ -1,0 +1,1 @@
+Get standard statistics on numerical columns.

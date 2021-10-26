@@ -1,0 +1,42 @@
+<div class="promoted-wiki vertical-flex row-cell" >
+    <div class="header horizontal-flex">
+        <div class="noflex project-image">
+            <a href="{{$ctrl.$state.href('projects.project.wiki', {projectKey : $ctrl.promotedWiki.projectKey})}}" main-click>
+                <totem project-name="$ctrl.promotedWiki.projectImageInfo.name"
+                       project-key="$ctrl.promotedWiki.projectKey"
+                       object-type="'PROJECT'"
+                       object-id="$ctrl.promotedWiki.projectKey"
+                       object-img-hash = "$ctrl.promotedWiki.projectImageInfo.objectImgHash"
+                       sizeX="32" sizeY="80"
+                       editable="false"
+                       img-color="$ctrl.promotedWiki.projectImageInfo.imgColor"
+                       img-pattern="$ctrl.promotedWiki.projectImageInfo.imgPattern"
+                       show-initials="$ctrl.promotedWiki.projectImageInfo.showInitials"
+                       is-project-img="$ctrl.promotedWiki.projectImageInfo.isProjectImg"
+                       default-img-color="$ctrl.promotedWiki.projectImageInfo.defaultImgColor"/>
+            </a>
+        </div>
+        <div class="flex promoted-wiki-title">
+            <h3 show-tooltip-on-text-overflow text-tooltip="$ctrl.promotedWiki.projectName"></h3>
+            <span ng-if="$ctrl.promotedWiki.lastModifiedOn > 0" class="subtitle">
+                Modified {{$ctrl.promotedWiki.lastModifiedOn | friendlyTimeDeltaShort}}.
+            </span>
+        </div>  
+        <div class="noflex promoted-wiki-counts">
+            <span class="nb-articles">
+                {{$ctrl.promotedWiki.nbArticles}}
+            </span>
+            <span class="subtitle">
+                {{'Article' | plurify:$ctrl.promotedWiki.nbArticles}}
+            </span>
+        </div>
+    </div>
+    <div class="body flex">
+        <div class="markdown-preview"
+             from-markdown="$ctrl.promotedWiki.homeArticle.payload"
+             project-key="{{$ctrl.promotedWiki.projectKey}}"
+             ng-if="$ctrl.promotedWiki.homeArticle.payload"/>
+        <div class="pane-top-glass"
+             ng-click="$ctrl.clickToWiki($event); $event.stopPropagation();"/>
+    </div>
+</div>

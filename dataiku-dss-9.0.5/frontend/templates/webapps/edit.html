@@ -1,0 +1,38 @@
+<div class="dashboard-edit h100" ng-controller="WebAppEditController" ng-if="app && !isCustomWebAppType(app.type)">
+    <div future-waiting response="sharedState.backendFuture" ng-show="sharedState.backendFuture && !sharedState.backendFuture.hasResult"></div>
+
+    <div web-app-editor
+        class="web-app-editor"
+        id="qa_webapp_editor"
+        global-keydown="{'ctrl-s meta-s': 'saveWebAppWithCode()', 'ctrl-enter meta-enter': 'saveWebAppWithCode()'}"
+        >
+
+        <div class="left-pane fh oa" id="qa_webapp_left-pane" ng-class="{leftMaximized: leftMaximized, rightMaximized: rightMaximized}" >
+            <div web-app-editor-pane output-tab-enabled="false"/>
+        </div>
+
+        <div class="right-pane fh oa" id="qa_webapp_right-pane"
+            ng-class="{
+                error: errorsInLogs,
+                warning: warningsInLogs,
+                leftMaximized: leftMaximized,
+                rightMaximized: rightMaximized
+            }">
+            <div block-api-error style="position: relative" class="report-alert"/>
+
+            <!-- Invisible big div to make sure that we capture the
+                mouseup event instead of letting the iframe get it -->
+            <div class="resizing-shim fh" />
+            <div web-app-editor-pane output-tab-enabled="true" style="position: relative; height: 100%"/>
+        </div>
+
+        <div ng-show="editorState == 'splitted'" resizer="vertical"
+             resizer-width="8"
+             resizer-left=".left-pane"
+             resizer-right=".right-pane">
+            <div class="zigouigoui" />
+        </div>
+    </div>
+</div>
+
+<div ng-if="app && isCustomWebAppType(app.type)" include-no-scope="/templates/webapps/custom-webapp-form.html"></div>

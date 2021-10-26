@@ -1,0 +1,42 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Logistic Regression
+    </div>
+    <div data-block="algorithm-description">
+        <p>Despite its name,
+        <strong>Logistic Regression</strong> is a classification algorithm, using a linear model (ie, it computes the target feature as a linear combination of input features).
+        </p>
+        <p> Logistic Regression minimizes a specific cost function (called
+        <em>logit</em> or
+        <em>sigmoid</em> function), which makes it appropriate for classification.
+        <br /> A simple Logistic regression algorithm is prone to overfitting and sensitive to errors in the input dataset. To address these issues, it is possible to use a
+        <em>penalty</em> (or
+        <em>regularization term</em> ) to the weights
+        </p>
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group">
+            <label class="control-label">Max iterations</label>
+            <div class="controls">
+                <input type="number" force-integer ng-model="mlTaskDesign.modeling.mllib_logit.max_iter" />
+            </div>
+        </div>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.mllib_logit.reg_param"
+                         decimal
+                         label="lambda"
+                         help-inline="Regularization parameter lambda of the error term.
+                         <br /> A high value of lambda will generate a smoother decision boundary (higher bias) while a low value aims at correctly classifying all training examples, at the risk of overfitting (high variance)."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+
+        <ml-hp-numerical ng-if="!isMulticlass()"
+                         ng-model="mlTaskDesign.modeling.mllib_logit.enet_param"
+                         decimal
+                         label="alpha"
+                         help-inline="Elastic Net parameter alpha.
+                         <br /> For alpha = 0, the penalty is an L2 penalty. For alpha = 1, it is an L1 penalty.
+                         <br /> For 0 &lt; alpha &lt; 1, the penalty is a combination of L1 and L2."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+    </div>
+</div>

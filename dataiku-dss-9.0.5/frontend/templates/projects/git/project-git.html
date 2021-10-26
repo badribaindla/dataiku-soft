@@ -1,0 +1,38 @@
+<div>
+    <div class="horizontal-flex row-fluid object-nav">
+        <div class="flex oh object-breadcrumb" style="display: flex">
+            <a class="item">
+                <i class="icon icon-cogs" style="background-color: #427b98; color: white" />
+                <span class="title ellipsis">Project version control</span>
+            </a>
+            <div include-no-scope="/templates/plugins/development/git-actions.html" replace="true" />
+        </div>
+        <div class="noflex">
+            <div class="otherLinks">
+                <button ng-show="needsExplicitCommit()" class="btn btn--primary" ng-click="modalCommit()">
+                    Commit pending changes
+                </button>
+                <div ng-show="!needsExplicitCommit()">
+                    <span class="help-inline">
+                        Project auto-commits all
+                    </span>
+                    <button ng-show="canUpdateContent && !needsExplicitCommit()" class="btn btn--secondary"  ng-click="modalCommit()">
+                        Force a commit
+                    </button>
+                </div>
+            </div>  
+        </div>
+    </div>
+
+    <div class="dss-page oa">
+        <div block-api-error />
+
+        <div infinite-scroll="loadMore()">
+            <div style="width: 1000px; margin: auto">
+                <div git-log log-entries="logEntries" last-status="hasMore ? 'Loading next commits…' : 'Project creation'" class="h100" project-revertable="true" commit-revertable="true"
+                     create-branch-from-commit="canChangeBranch ? createBranchFromCommit: undefined"
+                    />
+            </div>
+        </div>
+    </div>
+</div>

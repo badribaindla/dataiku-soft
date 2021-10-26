@@ -1,0 +1,89 @@
+<div class="modal modal3 deploy-prediction-modal" ng-switch="uiState.selectedMode">
+    <div dku-modal-header-with-totem  modal-title="Deploy prediction model" modal-totem="icon-train_recipe" />
+
+    <div class="modal-body" ng-switch-when="can-redeploy">
+	    <div block-api-error />
+        <p>Existing training recipes match this prediction type, target &amp; ML backend.</p>
+
+        <div class="selectable" full-click>
+            <a ng-click="onSelectTrain()" main-click>
+                Deploy as a new retrainable model
+            </a>
+        </div>
+        <div class="selectable" full-click>
+            <a ng-click="onSelectRedeployTrain()" main-click>
+                Update existing training recipe
+            </a>
+            <br />Versions history will be preserved.
+            <br />Future trainings will use this new model's settings.
+        </div>
+    </div>
+
+    <form name="redeployTrainForm" class="dkuform-modal-horizontal dkuform-modal-wrapper" ng-switch-when="redeploy-train">
+        <div class="modal-body">
+		    <div block-api-error />
+            <div class="control-group">
+                <label for="trainingRecipe" class="control-label">Update recipe</label>
+                <div class="controls">
+                    <select dku-bs-select="{liveSearch:true}"
+                        ng-options="r.recipeName as r.recipeName group by r.inputDatasetName for r in redeployables"
+                        ng-model="formData.redeployTrainRecipeName"
+                        required></select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="redeployActivate" class="controls">
+                    <input id="redeployActivate" type="checkbox" ng-model="formData.redeployTrainActivate" />
+                    Activate this new model version
+                </label>
+            </div>
+            <div include-no-scope="/templates/analysis/prediction/model/deploy-modal-options.html" />
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="submit" ng-click="redeployTrain()" ng-disabled="redeployTrainForm.$invalid" class="btn btn--text btn--primary">Update</button>
+        </div>
+    </form>
+
+    <form name="recipeForm" class="dkuform-modal-horizontal dkuform-modal-wrapper" ng-switch-when="train">
+        <div class="modal-body">
+            <div block-api-error />
+            <p ng-if="!canRedeploy">
+                No existing training recipe matches this prediction type, target &amp; ML backend.<br />
+                You can deploy this model as a new training recipe.
+            </p>
+            <div class="control-group">
+                <label for="" class="control-label">Train dataset</label>
+                <div class="controls">
+                    <div dataset-selector="formData.trainDatasetSmartName"
+                        available-datasets="availableDatasets" required></div>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="modelData.splitDesc.params.ttPolicy == 'EXPLICIT_FILTERING_TWO_DATASETS'">
+                <label for="" class="control-label">Test dataset</label>
+                <div class="controls">
+                    <div dataset-selector="formData.testDatasetSmartName"
+                        available-datasets="availableDatasets" required></div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="" class="control-label">Model name</label>
+                <div class="controls">
+                    <input type="text" required ng-model="formData.modelName" />
+                </div>
+            </div>
+
+            <div include-no-scope="/templates/analysis/prediction/model/deploy-modal-options.html" />
+
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <div class="pull-left">
+                <button ng-show="!showAdvanced" class="btn btn--text btn--secondary" ng-click="showAdvanced = true">Advanced</button>
+            </div>
+            <button type="button" ng-click="dismiss()" class="btn btn--text btn--secondary">Cancel</button>
+            <button type="submit" ng-click="deployTrain()" ng-disabled="recipeForm.$invalid" class="btn btn--text btn--primary">Create</button>
+        </div>
+    </form>
+
+</div>

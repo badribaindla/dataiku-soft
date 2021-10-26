@@ -1,0 +1,98 @@
+<div class="guess-policies-group">
+    <div class="guess-policies-group__image">
+        <img ng-src="/static/dataiku/images/models/automated.png">
+    </div>
+    <div class="guess-policies-group__details">
+        <span class="guess-policies-group__title">
+            AutoML
+        </span>
+        <span class="guess-policies-group__description">
+            Let Dataiku create your models.
+        </span>
+        <div class="guess-policies-cards">
+            <div ng-repeat="policy in taskData.guessPolicies.auto" 
+                ng-click="selectPolicy(taskData, policy, taskData.targetVariable)"
+                class="guess-policy-card selectable" 
+                ng-class="{'selected': policy === taskData.selectedPolicy}">
+        
+                <div class="guess-policy-card__info">
+                    <h4 class="guess-policy-card__title">{{policy.name}}</h4>
+            
+                    <p class="guess-policy-card__description">
+                        {{policy.description}}
+                    </p>
+            
+                    <div class="guess-policy-card__backend">
+                        <select class="dku-bs-select--flat"
+                            dku-bs-select
+                            required 
+                            ng-model="policy.selectedBackend.displayName" 
+                            ng-change="updateBackend(taskData, policy)" 
+                            options-descriptions="policy.backendDomDescriptions"
+                            layout="list">
+                            <option
+                                ng-value="backend.displayName"
+                                ng-repeat="backend in policy.backends"
+                                ng-disabled="!backend.available">
+                                {{backend.title}}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+        
+                <div class="guess-policy-card__image">
+                    <img ng-src="/static/dataiku/images/models/{{policy.thumbnail}}.png">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="guess-policies-group">
+    <div class="guess-policies-group__image">
+        <img ng-src="/static/dataiku/images/models/expert-spaceship.png">
+    </div>
+    <div class="guess-policies-group__details">
+        <span class="guess-policies-group__title">
+            Expert
+        </span>
+        <span class="guess-policies-group__description">
+            Have full control over the creation of your models.
+        </span>
+        <div class="guess-policies-cards">
+            <div ng-repeat="policy in taskData.guessPolicies.expert" 
+                ng-click="selectPolicy(taskData, policy, taskData.targetVariable)" 
+                class="guess-policy-card selectable" 
+                ng-class="{'selected': policy === taskData.selectedPolicy}">
+                <div class="guess-policy-card__info">
+                    <h4 class="guess-policy-card__title">{{policy.name}}</h4>
+            
+                    <p class="guess-policy-card__description">
+                        {{policy.description}}
+                    </p>
+            
+                    <div class="guess-policy-card__backend">
+                        <select ng-if="policy.backends.length > 1"
+                            class="dku-bs-select--flat"
+                            dku-bs-select
+                            required 
+                            ng-model="policy.selectedBackend.displayName"
+                            ng-change="updateBackend(taskData, policy)"
+                            options-descriptions="policy.backendDomDescriptions"
+                            layout="list">
+                            <option
+                                ng-value="backend.displayName"
+                                ng-repeat="backend in policy.backends"
+                                ng-disabled="!backend.available">
+                                {{backend.title}}
+                            </option>
+                        </select>
+                        <span class="guess-policy-card__backend-title" ng-if="policy.backends.length === 1">{{policy.selectedBackend.displayName}}</span>
+                    </div>
+                </div>
+                <div class="guess-policy-card__image">
+                    <img ng-src="/static/dataiku/images/models/{{policy.thumbnail}}.png">
+                </div>
+            </div>                  
+        </div>
+    </div>
+</div>

@@ -1,0 +1,42 @@
+<div class="fh" ng-controller="DatasetsLookupEndpointController">
+
+    <div class="span2 offset0 h100 oa nav-list-sidebar sidebar-admin modal-footer-std-buttons">
+        <ul tab-model="uiState.settingsPane">
+            <li sidebar-tab-l1-link tab-name="lookups" label="Lookups">
+            <li sidebar-tab-l1-link tab-name="test" label="Test queries" />
+            <!-- <li sidebar-tab-l1-link tab-name="raw" label="Raw config (debug)" /> -->
+        </ul>
+    </div>
+
+    <div class="span10 offset0 h100 boxed-next-to-sidebar">
+        <div style="padding: 0;" ng-switch="uiState.settingsPane" class="h100 oa api-endpoint api-endpoint-prediction">
+            <div ng-switch-when="loading">
+                Loading&hellip;
+            </div>
+
+            <div ng-switch-when="lookups" class="h100 enrichments" transcope="{datasets: datasets}">
+                <div class="h100 vertical-flex" ng-include="'templates/lambda/enrichments.html'"/>
+            </div>
+
+            <div ng-switch-when="test" class="h100 vertical-flex">
+                <div class="design-tab-title noflex">Test queries</div>
+
+                <div block-api-error />
+
+                <div endpoint-test-queries
+                    type="lookup"
+                    endpoint="endpoint"
+                    deploy-result="deployResult"
+                    test-queries-result="testQueriesResult"
+                    input-dataset-smart-name="inputDatasetSmartName"
+                    datasets="datasets">
+                </div>
+            </div>
+
+            <!-- <div ng-switch-when="raw" class="h100 vertical-flex">
+                <pre class="debug" ng-bind="endpoint | json" style="margin: 10px"/>
+            </div> -->
+        </div>
+
+    </div>
+</div>

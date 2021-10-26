@@ -1,0 +1,50 @@
+<div ng-controller="ClassificationDensityController" class="h100">
+    <div class="vertical-flex h100">
+        <div class="noflex" puppeteer-hook-1>
+            <select ng-if="isMulticlass()" dku-bs-select="{titlePrefix:'Class'}"
+                    ng-model="densityClass" ng-change="setDensityClass(densityClass)"
+                    ng-options="c for c in modelData.classes | orderBy" />
+        </div>
+
+        <svg class="flex density-chart__graph chart-std-font" multi-line-chart
+             data-ys="ys" data-x-marks="xm" data-x="modelData.perf.densityData.x"
+             data-labels="labels" data-axes="['Predicted probability', 'Probability density']"
+             data-colors="colorsRep" data-format="'.02f'" data-options="{area: true}"
+             disable-transitions="$stateParams.exportMode" puppeteer-hook-2 puppeteer-hook-element-content-loaded></svg>
+
+        <div class="noflex doctor-explanation">
+            <div class="row-fluid" ng-if="modelData.trainInfo.kfold">
+                <p class="span10 offset1 alert alert-warning" style="margin-top: .5em; margin-bottom: .5em">
+                    This model was evaluated using K-fold cross-test.
+                    These results are for the first fold only.</p>
+            </div>
+
+            <div class="row-fluid" style="box-sizing: border-box">
+                <div class="span6">
+                    <p> This density chart illustrates how the model succeeds in recognizing (and separating)
+                        the classes (e.g. 1 and 0 for binary classification). It shows the repartition of the
+                        actual classes in the test dataset according to the predicted probability of being
+                        of said class learnt by the model.</p>
+                    <p> The two density functions show the probability density of rows in the test dataset
+                        that actually belong to the observed class vs rows that don't.</p>
+                </div>
+                <div class="span6">
+                    <p>A perfect model fully separates the density functions:</p>
+                    <ul>
+                        <li>the colored areas should not overlap</li>
+                        <li>the <span style="color: {{colorsRep[0]}}">density function</span> of
+                            <strong ng-if="isMulticlass()">not</strong>
+                            <code ng-bind="isMulticlass() ? densityClass : modelData.classes[0]" />
+                            should be entirely on the left</li>
+                        <li>the <span style="color: {{colorsRep[1]}}">density function</span> of
+                            <code ng-bind="isMulticlass() ? densityClass : modelData.classes[1]" />
+                            should be entirely on the right</li>
+                    </ul>
+                    <p>The dotted vertical lines mark the medians.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

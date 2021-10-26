@@ -1,0 +1,35 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-parent="processorForm">
+    <ng-include src="'/templates/shaker/processors/processor-applies-to.html'"></ng-include>
+
+    <fieldset>
+        <div class="fieldLabel">Mode</div>
+        <select dku-bs-select ng-model="step.params.mode" class="submit-on-blur" ng-init="URL_DECODE" required>
+            <option value="TO_UPPER">Convert to uppercase</option>
+            <option value="TO_LOWER">Convert to lowercase</option>
+            <option value="URL_ENCODE">Encode URL (in UTF8)</option>
+            <option value="URL_DECODE">Decode URL (from UTF8)</option>
+            <option value="XML_ESCAPE">Escape XML entities (&lt;,&gt;,&amp;,...)</option>
+            <option value="XML_UNESCAPE">Unescape XML entities (&lt;,&gt;,&amp;,...)</option>
+            <option value="UNICODE_ENCODE">Escape Unicode values (&#233; --> \u00e9)</option>
+            <option value="UNICODE_DECODE">Unescape Unicode values (\u00e9 --> &#233;)</option>
+            <option value="TRIM">Remove leading/trailing whitespaces</option>
+            <option value="CAPITALIZE">Capitalize</option>
+            <option value="CAPITALIZE_FULLY">Capitalize every word</option>
+            <option value="NORMALIZE">Normalize</option>
+            <option value="TRUNCATE">Truncate</option>
+        </select>
+    </fieldset>
+
+    <fieldset ng-show="step.params.mode=='TRUNCATE'">
+        <span class="fieldLabel">Max. number of characters</span>
+        <input type="number"
+            class="submit-on-blur"
+            ng-model="step.params.truncate_limit"
+            force-integer min="0"
+            next-on-enter/>
+    </fieldset>
+
+    <span style="color:#999; font-size:0.9em;">
+        For more advanced string transformations, use the Formula processor
+    </span>
+</form>

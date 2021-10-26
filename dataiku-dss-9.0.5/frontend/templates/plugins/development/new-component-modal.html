@@ -1,0 +1,79 @@
+<div class="modal modal3 add-component-modal" auto-size="false">
+    <div dku-modal-header modal-class="noflex has-border" modal-title="New Component" />
+    <form name="newComponentModalForm" class="dkuform-modal-wrapper dkuform-modal-horizontal">
+
+        <div class="modal-body" ng-class="{'modal-body--choosing-component': !newComponent.contentType}">
+            <div block-api-error></div>
+
+            <ul class="add-component-list" ng-show="!newComponent.contentType">
+                <li ng-repeat="type in contentTypeList"
+                    ng-click="selectContentType(type)"
+                    ng-if="type.type !== 'codeEnv'"
+                    ng-class="{'disabled' : type.disabled}">
+                    <div class="add-component__item" ng-if="type.disabled" title="{{type.disabledReason}}" toggle="tooltip" container="body">
+                        <i class="add-component__item-icon {{ getComponentIcon(type.type) }}"></i>
+                        <div class="add-component__item-info">
+                            <h5 class="add-component__item-name">{{type.name}}</h5>
+                            <p class="add-component__item-description">{{type.description}}</p>
+                        </div>
+                    </div>
+                    <div class="add-component__item"  ng-if="!type.disabled">
+                        <i class="add-component__item-icon  {{ getComponentIcon(type.type) }}"></i>
+                        <div class="add-component__item-info">
+                            <h5 class="add-component__item-name">{{type.name}}</h5>
+                            <p class="add-component__item-description">{{type.description}}</p>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <div class="other-settings" ng-show="newComponent.contentType">
+                <div class="modal__step-header">
+                    <a ng-click="newComponent.contentType=null" class="dku-back-link"><i class="icon-arrow-left"></i></a>
+                    <span class="modal__step-header-title">{{newComponent.contentType.name}}</span>
+                </div>
+                <form action="" class="dkuform-horizontal">
+                    <div class="control-group" ng-if="requiresLanguage(newComponent.contentType)">
+                        <label class="control-label">Language</label>
+                        <div class="controls">
+                            <select ng-if="newComponent.contentType.addDescriptors.length > 1" class="language-select" dku-bs-select ng-model="newComponent.contentLanguage" ng-options="x.key as x.label for x in newComponent.contentType.addDescriptors" ></select>
+                            <input ng-if="newComponent.contentType.addDescriptors.length === 1" value="{{newComponent.contentType.addDescriptors[0].label}}"
+                                   type="text"
+                                   disabled
+                                   toggle="tooltip"
+                                   placement="right"
+                                   title="Only one language available for this component."
+                                   container="body">
+                            </input>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Identifier</label>
+                        <div class="controls">
+                            <input name="id" placeholder="{{newComponent.contentType.identifierPlaceholder()}}" type="text" ng-model="newComponent.id" ng-pattern="pattern" required next-on-enter />
+                            <div class="help-inline help-inline--full-width" ng-bind-html="newComponent.contentType.identifierHint()"></div>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="isJava()">
+                        <label class="control-label">Class name</label>
+                        <div class="controls">
+                            <input name="javaClassNameForPlugin" placeholder="Fully-qualified class name" type="text" ng-model="newComponent.javaClassNameForPlugin" required next-on-enter />
+                        </div>
+                    </div>
+
+                    <div class="mtop10 alert alert-warning" ng-show="isJava()">
+                        Java components can provide better performance and deeper API access but are more complex to develop and require a manual compilation phase (need shell access)
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button"  class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" ng-disabled="!isFormValid() || newComponentModalForm.$invalid" class="btn btn--text btn--primary" ng-click="create()">Add</button>
+        </div>
+
+    </form>
+</div>
+

@@ -1,0 +1,107 @@
+<div shaker-with-library
+    class="shaker fixedPanes showLeftPane dss-page shaker-recipe"
+    show-left-pane="true"
+    has-custom-formula-zone
+    ng-class="{showLeftPane: showLeftPane, showRightPane: showRightPane}"
+    fixed-panes
+    listen-keydown="{'delete': 'deleteSelectedSteps($event)' }">
+
+    <div class="leftPane" ng-class="{sampling: uiState.shakerLeftPane == 'design-sample'}">
+        <div class="handle" ng-click="toggleLeftPane()"></div>
+
+        <div class="vertical-flex h100">
+            <div class="flex">
+                <div class="fh">
+                     <tabs>
+                        <pane title="Script" subtitle="getScriptDesc()">
+                            <div include-no-scope="/templates/shaker/shaker-script-tab.html" />
+                        </pane>
+                        <pane title="Design Sample" subtitle="getSampleDesc()">
+                            <div include-no-scope="/templates/shaker/sampling-tab.html" />
+                        </pane>
+                    </tabs>
+                </div>
+            </div>
+            <div class="noflex">
+                <div class="run-button">
+                    <div ng-if="['SQL', 'IMPALA', 'HIVE'].indexOf(recipeStatus.selectedEngine.type) >= 0">
+                         <button
+                            class="btn btn--secondary"
+                            ng-disabled="!recipeStatus.sql"
+                            ng-click="showSQLModal()"
+                            title="{{recipeStatus.sqlWarning}}">
+                            <i class="icon-dku-nav_dataset" /> View query
+                        </button>
+                    </div>
+                    <div class="partitionDeps" include-no-scope="/templates/recipes/fragments/recipe-editor-job-partitions.html"></div>
+                    <div include-no-scope="/templates/recipes/fragments/run-job-buttons.html"/>
+                    <div engine-selector-button
+                        recipe-type="recipe.type"
+                        recipe-status="recipeStatus"
+                        recipe-params="recipe.params"
+                        update-status="hooks.updateRecipeStatus"
+                        can-change-engine="canChangeEngine" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mainPane" ng-if="shakerState.activeView == 'table'">
+		<div block-api-error />
+        <!-- Main pane top bar -->
+        <div ng-show="shaker" class="table-view-header">
+            <!-- Big top bar -->
+            <div class="shaker-summary-wrapper" custom-formula-zone="replace">
+                 <!-- Step summury -->
+                <div include-no-scope="/templates/shaker/shaker-summary-stats.html"/>
+
+                <!-- Views Buttons -->
+                <div class="pull-right">
+                    <a style="font-size: 27px; vertical-align: middle; text-decoration: none" ng-click="showWarningsDetails()" class="text-warning" ng-show="table.warnings.totalCount">
+                            <i class="icon-warning-sign" toggle="tooltip" title="Warnings occurred while previewing" />
+                    </a>
+                    <div include-no-scope="/templates/shaker/display-mode-menu.html" class="dib"/>
+                    <div include-no-scope="/templates/shaker/shaker-views-buttons.html" class="dib" />
+                </div>
+            </div>
+
+            <!-- filters -->
+            <div include-no-scope="/templates/shaker/filters-column.html"></div>
+        </div>
+
+        <div ng-show="recipeUpdateSchemaResult.hasAnyProblem" class="alert alert-warning">
+            <button type="button" class="close" ng-click="recipeUpdateSchemaResult=null">&times;</button>
+            <h4><i class="icon-warning-sign" />&nbsp;Possible schema incompatibilities</h4>
+
+            <p>The schema of the output dataset was updated, but it already contained data.
+                Schema incompatibilities might appear.</p>
+            <p>Please go to the <a href="{{$state.href('projects.project.datasets.dataset.settings', {datasetName:recipeUpdateSchemaResult.datasetsNeedingAction[0].name})}}">output dataset settings page</a> to fix the issue.</p>
+        </div>
+
+        <!-- Main pane main zone -->
+        <div class="table-view" style="flex: 1; display: flex; flex-direction: column;">
+
+            <div ng-if="shakerState.runError" api-error-alert="shakerState.runError"  class="error-w800" />
+            <div future-waiting response="future" dku-if="future && !future.hasResult"></div>
+
+             <!-- SHAKER TABLE -->
+             <div class="positionTable shakerTable coloring-{{table.coloringScheme}}" fattable fattable-data="table" fat-draggable fat-resizable ng-show="!shakerState.runError"></div>
+
+            <spinner ng-show="pendingRequests.length && spinnerPosition == 'shaker'"></spinner>
+
+            <div class="recipe-job-result" include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"/>
+        </div>
+
+        <div ng-show="recipeStatus.allMessagesForFrontend.anyMessage" class="noflex">
+            <div info-messages-raw-list-with-alert="recipeStatus.allMessagesForFrontend" />
+        </div>
+    </div>
+    <div class="mainPane h100" analysis-columns ng-if="shakerState.activeView == 'columns'">
+        <div class="h100" include-no-scope="/templates/shaker/columns-view.html" />
+    </div>
+    <div quick-columns-view class="rightPane"></div>
+    <div include-no-scope="/templates/shaker/processors-library.html"></div>
+</div>
+
+<div include-no-scope="/templates/shaker/script-modals.html"></div>
+

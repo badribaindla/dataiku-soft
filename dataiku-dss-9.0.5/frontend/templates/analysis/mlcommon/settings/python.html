@@ -1,0 +1,42 @@
+<div class="design-tab-title">Runtime environment</div>
+<div class="doctor-settings-page h100" ng-controller="PMLTaskRuntimeController">
+    <div block-api-error />
+    <form class="dkuform-horizontal">
+		<h2 class="settings-section-title mtop0">Code environment</h2>
+
+         <div ng-if="appConfig.isAutomation || !codeEnvsCompat">
+            <div code-env-selection-form="mlTaskDesign.envSelection" env-lang="'PYTHON'" style="display: inline-block;"></div>
+        </div>
+        <div ng-if="!appconfig.isAutomation && codeEnvsCompat">
+            <div code-env-selection-with-ml-packages-form="mlTaskDesign.envSelection"
+                 code-envs-compat="codeEnvsCompat"
+                 is-deep-learning="isMLBackendType('KERAS')"
+                 is-skopt="isBayesianSearchWithSkopt()"
+                 class="dib">
+            </div>
+        </div>
+
+    </form>
+    <h2 class="settings-section-title">Containerized execution configuration</h2>
+    <div class="recipe-settings-section2"
+         container-selection-form="mlTaskDesign.containerSelection"></div>
+    <div ng-if="!isMLBackendType('KERAS')">
+        <h2 class="settings-section-title">Performance tuning</h2>
+        <form class="dkuform-horizontal">
+            <div class="control-group" ng-if="mlTaskDesign.taskType == 'PREDICTION'">
+                <label class="control-label" for="skipExpensiveReports">Skip expensive reports</label>
+                <label class="controls">
+                    <input type="checkbox" id="skipExpensiveReports" ng-model="mlTaskDesign.modeling.skipExpensiveReports">
+                    <span class="help-inline">Don't compute expensive report screens. Faster training but less model insights. For instance, decision tree visualization is disabled on tree-based models.</span>
+                </label>
+            </div>
+          <div class="control-group">
+                <label class="control-label">Max concurrency</label>
+                <div class="controls">
+                    <input type="number" force-integer min="1" ng-model="mlTaskDesign.maxConcurrentModelTraining" style="width: 250px;"> <!-- non-standard, for alignment with select above -->
+                    <div class="help-inline">Max number of models trained in parallel in a session</div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

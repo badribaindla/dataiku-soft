@@ -1,0 +1,122 @@
+<div class="h100 vertical-flex" ng-controller="ProjectDeployerPackagesPanelController">
+    <div class="deployment-dashboard-panel__section">
+        <h3 class="deployment-dashboard-panel__header"><i class="icon-bundle universe-color project-deployer"></i>&nbsp;Bundles to deploy</h3>
+        <div class="deployer__search-box deployment-dashboard-panel__search">
+            <span class="add-on">
+                <i class="icon-dku-search"></i>
+            </span>
+            <input type="search" ng-model="uiState.query.search" placeholder="Search bundles...">
+        </div>
+        <div class="sort-boxes deployment-dashboard-panel__filters">
+            <div custom-element-popup class="sort-box deployment-dashboard-panel__filter">
+                <button class="btn dku-select-button mainzone has-caret deployment-dashboard-panel__filter-btn" ng-click="togglePopover()">
+                    {{ countSelectedItems(fullProjectList) || 'All' }} {{ 'project' | plurify:countSelectedItems(fullProjectList) }}
+                    <span class="caret" />
+                </button>
+                <div class="popover sort-box-menu checkable-items deployment-dashboard-panel__popover">
+                    <ul>
+                        <li ng-class="{'selected' : uiState.noSelectedItem}" ng-click="clearItemFilter()">All projects</li>
+                        <li ng-repeat="project in uiState.fullProjectList | orderBy: 'projectBasicInfo.name'" ng-class="{'selected' : project.$selected}" ng-click="select(project)">
+                            <span>{{ project.projectBasicInfo.name }} ({{ project.projectBasicInfo.id }})</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Deployed filtering -->
+            <div custom-element-popup close-on-click="true" class="sort-box deployment-dashboard-panel__filter">
+                <button class="btn dku-select-button mainzone has-caret deployment-dashboard-panel__filter-btn" ng-click="togglePopover()">
+                    {{ uiState.query.deploy }}
+                    <span class="caret"></span>
+                </button>
+                <div class="popover sort-box-menu checkable-items sort-box-menu--users">
+                    <ul class="sort-box-menu__users-list">
+                        <li ng-repeat="(key, name) in DEPLOYED_STATE" ng-class="{'selected' : uiState.query.deploy === name }" ng-click="setDeployFilter(name)">
+                            <span>{{ name }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Clear filters button -->
+            <div class="deployment-dashboard-panel__filter clear-filters-btn" ng-if="hasActiveFilters()" ng-click="clearFilters()">Clear filters</div>
+        </div>
+    </div>
+    <div class="deployment-dashboard-panel__section oa">
+        <div ng-if="deployerHasMatchingPublishedPackages()">
+            <div class="deployment-dashboard-panel-published-item"
+                 ng-if="project.$show" ng-repeat="project in uiState.fullProjectList | orderBy:['$latestPackage.$deployed', '$latestPackage.publishedOn']:true">
+                <h4 class="deployment-dashboard-panel-published-item__header simple-columns" ng-click="project.$reduced = !project.$reduced">
+                    <div class="horizontal-flex">
+                        <div class="deployment-dashboard-panel-project__image">
+                            <totem project-name="project.projectBasicInfo.name"
+                                project-key="project.projectBasicInfo.id"
+                                object-type="'PUBLISHED_PROJECT'"
+                                object-id="project.projectBasicInfo.id"
+                                object-img-hash = "project.projectBasicInfo.imageInfo.objectImgHash"
+                                img-color="project.projectBasicInfo.imageInfo.imgColor"
+                                img-pattern="project.projectBasicInfo.imageInfo.imgPattern"
+                                show-initials="project.projectBasicInfo.imageInfo.showInitials"
+                                is-project-img="project.projectBasicInfo.imageInfo.isUploadedImg"
+                                default-img-color="project.projectBasicInfo.imageInfo.defaultImgColor"
+                            />
+                        </div>
+                        <span class="mleft8 deployment-dashboard-panel-published-item__header-title">
+                            <div class="deployment-dashboard-panel-published-item__header-text mx-textellipsis"
+                                 title="{{ project.projectBasicInfo.name + ' (' + project.projectBasicInfo.id + ')' }}"
+                                 toggle="tooltip"
+                                 placement="top">
+                                {{ project.projectBasicInfo.name }}
+                            </div>
+                            <span>({{ getFilteredPackageCount(project) }})</span>
+                            <a class="link-std mleft8"
+                                href="{{ $state.href('projectdeployer.projects.project.home.status', {publishedProjectKey: project.projectBasicInfo.id}) }}"
+                                ng-click="$event.stopPropagation()">
+                                <i class="icon-external-link" />
+                            </a>
+                        </span>
+                    </div>
+                    <i class="deployment-dashboard-panel-published-item__chevron" ng-class="{'icon-chevron-up':!project.$reduced, 'icon-chevron-down':project.$reduced}"></i>
+                </h4>
+                <ul ng-show="!project.$reduced"  class="deployment-dashboard-panel-packages">
+                    <li class="deployment-dashboard-panel-package"
+                        ng-repeat="bundle in project.packages | orderBy: '-publishedOn'"
+                        ng-if="bundle.$show">
+                        <div class="deployment-dashboard-panel-package__header mright8">
+                            <span class="chip chip--primary mright8" ng-if="isNewPackage(bundle)">NEW</span>
+                            <a class="link-object deployment-dashboard-panel-package__header-name" show-tooltip-on-text-overflow
+                               text-tooltip="bundle.id"
+                               tooltip-direction="'tooltip-top'"
+                               observe-resize="false"
+                               ui-sref="projectdeployer.projects.project.bundle.status({publishedProjectKey: project.projectBasicInfo.id, bundleId: bundle.id})">
+                            </a>
+                        </div>
+                        <ul class="deployment-dashboard-panel-package__items">
+                            <li class="deployment-dashboard-panel-package__deploy-item">
+                                <span ng-class="{ 'text-success': bundle.$deployed }" >
+                                    <i ng-if="bundle.$deployed" class="icon-ok mright4" />
+                                    {{ bundle.$deployed ? 'Deployed' : 'Not deployed' }}
+                                </span>
+                                <button class="btn btn--text btn--primary"
+                                        disabled-if-message="DeployerUtils.getCannotDeployReason([project], infraStatusList, publishedItemType)"
+                                        disabled-position="tooltip-bottom"
+                                        ng-click="deployBundle(project, bundle.id)">
+                                    Deploy
+                                </button>
+                            </li>
+                            <li>
+                                Added {{ bundle.publishedOn | friendlyDate }}
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div ng-if="deployerHasPublishedPackages(uiState.fullProjectList) && !deployerHasMatchingPublishedPackages()" class="empty-list-cta">
+            <p class="small">No matching bundles found.</p>
+        </div>
+        <div ng-if="uiState.fullProjectList && !deployerHasPublishedPackages(uiState.fullProjectList)" class="empty-list-cta">
+            <p class="small">No bundles available.</p>
+        </div>
+    </div>
+</div>

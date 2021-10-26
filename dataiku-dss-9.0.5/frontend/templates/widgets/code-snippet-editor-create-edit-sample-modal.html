@@ -1,0 +1,138 @@
+<div class="modal create-sample-modal modal3">
+
+    <dku-modal-header modal-class="has-border" >
+        <dku-modal-title>
+            <span ng-if="mode!=='EDIT'">Create</span><span ng-if="mode==='EDIT'">Edit</span> custom sample
+        </dku-modal-title>
+    </dku-modal-header>
+
+    <div class="dkuform-modal-wrapper dkuform-std-vertical">
+        <div class="modal-body create-sample-form modal-no-sizing">
+            <!-- documentation pane -->
+            <div class="pane meta-pane" tab-model="modalTabState.active" ng-class="{'has-tabs': sampleType == 'webapp_standard'}">
+                <!-- For standard webapps only: tabs to navigate between code and libraires panels -->
+                <!-- TODO: do not limitate this possibility to webapp snippets. It would be nice to make it an option -->
+                <ul class="nav nav-tabs" ng-if="sampleType == 'webapp_standard'" style="padding: 0;margin-bottom: 15px;position: relative;left: -5px;top:-5px;">
+                    <li class="tab" tab-active="code">
+                        <a tab-set="code">Info</a>
+                    </li>
+                    <li class="tab" tab-active="libraries">
+                        <a tab-set="libraries">JS libraries</a>
+                    </li>
+                </ul>
+                <!-- Snippet info -->
+                <div class="info-wrapper" ng-if="modalTabState.active == 'code'">
+                    <div class="controls">
+                        <label class="control-label">
+                            Sample title
+                        </label>
+                        <input type="text" ng-model="sample.title" placeholder="Sample title" required />
+                    </div>
+
+                    <div class="controls">
+                        <label class="control-label">
+                            Description
+                        </label>
+                        <textarea ng-model="sample.description" placeholder="Description" rows="5" />
+                    </div>
+
+                    <div class="controls" code-snippet-editor-tag-manager sample="sample"></div>
+
+                    <div class="controls">
+                        <label class="control-label checkbox-label">
+                            <input type="checkbox" ng-model="sample.isShared">
+                            <span style="vertical-align:baseline;">Share custom samples with other users</span>
+                        </label>
+                    </div>
+
+                    <div class="controls">
+                        <label class="control-label">
+                            Additional documentation
+                        </label>
+                        <textarea ng-model="sample.documentation" placeholder="Displayed after the code" rows="5" />
+                    </div>
+                </div>
+                <!-- JS Librairies -->
+                <div class="librairies-wrapper" ng-if="modalTabState.active == 'libraries'">
+                    <div class="controls">
+                        <label class="control-label">
+                            JS Librairies
+                        </label>
+                        <fieldset>
+                            <label class="checkbox">
+                                <input type="checkbox" ng-checked="hasLib('jquery')" ng-click="toggleLib('jquery');"/>
+                                JQuery
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" ng-checked="hasLib('dataiku')" ng-click="toggleLib('dataiku');" />
+                                Dataiku API
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" ng-checked="hasLib('bootstrap')" ng-click="toggleLib('bootstrap');" />
+                                Bootstrap 3
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" ng-checked="hasLib('d3')" ng-click="toggleLib('d3');" />
+                                D3.js
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" ng-checked="hasLib('nvd3')" ng-click="toggleLib('nvd3');" />
+                                NVD3
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" ng-checked="hasLib('leaflet')" ng-click="toggleLib('leaflet');" />
+                                Leaflet
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" ng-checked="hasLib('font_awesome')" ng-click="toggleLib('font_awesome');" />
+                                Font Awesome
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" ng-checked="hasLib('datamaps')" ng-click="toggleLib('datamaps');" />
+                                Datamaps
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" ng-checked="hasLib('topojson')" ng-click="toggleLib('topojson');" />
+                                TopoJSON
+                            </label>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+            <!-- variations pane -->
+            <div class="pane code-pane">
+                <div class="variations-pannel">
+                    <!-- Code panel -->
+                    <div class="variations-list-wrapper">
+                        <ul class="variations-list" ng-class="{webapp: multiLanguageSnippet}">
+                            <!-- actual variations list -->
+                            <li ng-repeat="variation in sample.variations">
+                                <div class="sample-variation">
+                                    <input type="text" ng-model="variation.title" ng-show="sample.variations.length > 1" placeholder="Variation title" ng-class="{'webapp-variation-title':isWebAppSnippet}" ng-disabled="multiLanguageSnippet"/>
+                                    <button type='button' ng-if="!$first && !multiLanguageSnippet" ng-click="deleteVariation($index)">&times;</button>
+                                    <div class="code-mirror-wrapper">
+                                        <textarea placeholder="Insert code"
+                                            rows="10"
+                                            ng-model="variation.code"
+                                            ui-codemirror="getEditorOptions(variation)"
+                                            ui-refresh="reflow">
+                                        </textarea>
+                                    </div>
+                                </div>
+                            </li>
+                            <!-- new variation button -->
+                            <li ng-if="!multiLanguageSnippet">
+                                <button type='button' class="add-variation" ng-click="addVariation()">Add another sample variation</button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="error-block" block-api-error></div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button class="btn btn--text btn--secondary" type="button" ng-click="dismiss()">Cancel</button>
+            <button class="btn btn--text btn--primary" type="submit" ng-click="saveSample()">Save</button>
+        </div>
+    </div>
+</div>

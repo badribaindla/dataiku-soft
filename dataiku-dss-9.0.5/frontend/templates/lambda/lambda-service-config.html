@@ -1,0 +1,59 @@
+<div class="fh oa page-top-padding small-lr-padding">
+    <div block-api-error />
+
+    <h2 class="page-subtitle">Service access</h2>
+
+    <div class="inline-labels">
+        <label for="apiServicePublicAccess">
+            <input id="apiServicePublicAccess" type="checkbox" ng-model="service.publicAccess" />
+            Allow public access to this service (no authentication)
+        </label>
+    </div>
+
+    <table sort-table class="table table-hover table-striped" style="width: 100%; max-width: 1500px; margin-top: 1em;" ng-show="!service.publicAccess">
+        <tr>
+            <th>Key</th>
+            <th sort-col="label">Label</th>
+            <th sort-col="description">Description</th>
+            <th sort-col="createdOn">Created on</th>
+            <th sort-col="createdBy">Created by</th>
+            <th>Edit</th>
+            <th>Del</th>
+        </tr>
+        <tr ng-repeat="k in service.authRealm.queryKeys |toArray |filter:query |orderBy:sortColumn:sortDescending">
+            <td>
+                <code ng-if="k.key" ng-bind="k.key" />
+                <em ng-if="!k.key">Save to generate</em>
+            </td>
+            <td ng-bind="k.label"></td>
+            <td ng-bind="k.description"></td>
+            <td ng-bind="k.createdOn | date: 'yyyy-MM-dd HH:mm'"></td>
+            <td>
+                <a href="{{ $state.href('profile.user', {userLogin: k.createdBy}) }}">
+                    {{k.createdBy}}
+                </a>
+            </td>
+            <td ng-click="editAPIKey(k)" title="Edit this key" style="cursor: pointer">
+                <i class="icon-edit" />
+            </td>
+            <td ng-click="service.authRealm.queryKeys.splice($index, 1)"
+                ng-if="isProjectAdmin()"
+                title="Delete this key"
+                style="cursor: pointer"
+                >
+                <i class="icon-trash" />
+            </td>
+        </tr>
+        <tr ng-if="!service.authRealm.queryKeys.length">
+            <td colspan="7" style="font-style: italic">
+                No API key yet.
+            </td>
+        </tr>
+    </table>
+
+    <div ng-show="!service.publicAccess">
+        <button type="button" class="btn btn--secondary" ng-click="newAPIKey()">New API key</button>
+    </div>
+</div>
+
+

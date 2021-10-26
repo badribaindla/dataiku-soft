@@ -1,0 +1,41 @@
+<div class="modal modal3">
+    <div dku-modal-header modal-title="Delete plugin &quot;{{pluginName}}&quot;" modal-class="has-border" />
+<form class="dkuform-modal-wrapper dkuform-modal-horizontal">
+<div class="modal-body">
+    <p>Are you sure you want to delete the plugin <b>{{pluginName}}</b> ?</p>
+    <div class="alert alert-warning">
+        <p>Any object (recipe, dataset, macro...) defined in this plugin will stop working and stop being accessible.</p>
+    </div>
+    <div class="alert alert-warning" ng-if="usageStatistics.projectCount">
+        <p>
+            Warning: {{usageStatistics.usedElemCount}} element{{usageStatistics.usedElemCount>1?'s':''}} of this plugin
+            <a ui-sref="plugindev.usages">in use</a> in {{usageStatistics.projectCount}} project{{usageStatistics.projectCount>1?'s':''}}.
+        </p>
+    </div>
+    <div class="alert alert-error" ng-if="usageStatistics.objectAnalysisErrors">
+        <p>
+            Error: {{usageStatistics.objectAnalysisErrors}} element{{usageStatistics.objectAnalysisErrors>1?'s':''}} of the configuration could not be analyzed because of missing plugins.
+            See <a ui-sref="plugindev.usages">here</a> for details.
+        </p>
+    </div>
+    <div class="control-group">
+        <label for="" class="control-label">
+            Type 'Delete {{pluginName}}' to confirm
+        </label>
+        <div class="controls">
+            <label class="checkbox">
+                <input type="text" ng-model="confirmation">
+            </label>
+        </div>
+    </div>
+</div>
+<div class="modal-footer modal-footer-std-buttons" >
+    <div class="pull-right">
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss();">Cancel</button>
+        <button type="button" class="btn btn--text btn--danger" ng-disabled="confirmation.toLowerCase() != 'delete ' + pluginName.toLowerCase();" ng-click="confirmPluginDeletion();dismiss();">
+            Yes, delete this plugin
+        </button>
+    </div>
+</div>
+</form>
+</div>

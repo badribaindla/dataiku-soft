@@ -1,0 +1,156 @@
+<div ng-show="dataset" class="h100">
+
+	<div include-no-scope="/templates/datasets/fragments/settings-save.html" />
+	<tabs class="tabs-with-margin vertical-flex">
+		<pane title="Connection">
+			<div scrollable-to-bottom>
+				<div class="container-fluid page-top-padding">
+                    <div dku-if="!dataset.type.startsWith('fsprovider_')">
+                        <ng-include src="'/templates/datasets/connection-' + dataset.type.toLowerCase() + '.html'"></ng-include>
+                    </div>
+                    <div dku-if="dataset.type.startsWith('fsprovider_')">
+                        <ng-include src="'/templates/datasets/connection-custom.html'"></ng-include>
+                    </div>
+					<div class="connection-test-results">
+						<div ng-show="doingPreviewOrDetection" class="alert alert-info"> <i class="icon-spinner icon-spin icon-large"></i>
+							Please wait, testing connection ...
+						</div>
+						<div ng-show="detectionResults && !detectionResults.connectionOK">
+							<div class="alert alert-error">
+								<i class="icon-dku-error" /><span summary-of-error="detectionResults.connectionError" />
+							</div>
+						</div>
+						<div ng-show="detectionResults.connectionOK">
+							<div class="alert alert-success">
+								<span class="pull-right">
+									<button ng-click="goToPreview()" class="btn btn--secondary">
+										Preview
+										<i class="icon-angle-right" /></button>
+								</span>
+								<i class="icon-ok icon-large"></i>
+								Connection to data source succeeded
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</pane>
+
+		<pane title="Preview">
+			<div class="fh">
+			<div class="container-fluid page-top-padding h100 oa">
+			<div schema-consistency-status
+				current-schema="dataset.schema"
+				consistency="consistency"
+				overwrite-schema="overwriteSchema"
+				clear-managed-dataset="clearDataset"
+				check-consistency="preview"
+				discard-consistency-error="discardConsistencyError"
+				managed="dataset.managed"
+ 				schema-just-modified="schemaJustModified" />
+
+			<div ng-show="!detectionResults.empty" class="scroll dataset-preview-scroll">
+				<div ng-show="detectionResults.format.ok == false" class="alert alert-error">
+					{{detectionResults.format.errorMessage}}
+				</div>
+				<div dku-if="detectionResults.format.table">
+                    <div simple-detection-preview-table dataset="dataset" table="detectionResults.format.table" headers="detectionResults.format.table.headers" 
+                                                        schema-is-user-editable="true" set-schema-user-modified="setSchemaUserModified"/>
+				</div>
+			</div>
+
+			<div>
+				<div class="pull-right dataset-format-buttons">
+					<a class="btn btn--secondary" ng-click="onFormatParamsChanged()"><i class="icon-refresh" /> Update preview</a>
+					<a class="btn btn--secondary" ng-click="forceFormatRedetection()" ng-show="!detectionResults.empty"><i class="icon-magic" /> Redetect format</a>
+				</div>
+
+				<div ng-if="dataset.type != 'Inline' || dataset.params.importSourceType == 'FILE'">
+					<form class="dkuform-horizontal">
+						<div ng-show="true" class="control-group required">
+							<label class="control-label">Type</label>
+							<div class="controls">
+								<select ng-model="dataset.formatType"ng-options="key as value.description for (key, value) in formats" ng-change="onFormatTypeChanged()" />
+							</div>
+						</div>
+					</form>
+					<div dku-if="dataset.formatType != 'excel' && dataset.formatType != 'csv' && dataset.formatType != 'xml' && dataset.formatType != 'json'">
+						<div on-smart-change="onFormatParamsChanged()">
+							<form-template model="dataset.formatParams" form-definition="formats[dataset.formatType].params"
+										monitor="dataset.formatType"></form-template>
+						</div>
+					</div>
+					<div dku-if="dataset.formatType == 'excel'">
+						<ng-include src="'/templates/datasets/format-excel.html'"></ng-include>
+					</div>
+					<div dku-if="dataset.formatType == 'csv'">
+						<ng-include src="'/templates/datasets/format-csv.html'"></ng-include>
+					</div>
+					<div dku-if="dataset.formatType == 'xml'">
+						<ng-include src="'/templates/datasets/format-xml.html'"></ng-include>
+					</div>
+                    <div dku-if="dataset.formatType == 'json'">
+                        <ng-include src="'/templates/datasets/format-json.html'"></ng-include>
+                    </div>
+				</div>
+				<!--<div ng-if="formatsAsMap[dataset.formatType].compress">
+					<form class="dkuform-horizontal">
+						<form-template-element model="dataset.formatParams" field="formatsAsMap[dataset.formatType].compress"></form-template-element>
+					</form>
+				</div>-->
+
+
+			</div>
+			</div>
+		</div>
+		</pane>
+
+		<pane title="Schema">
+			<div class="container-fluid page-top-padding vertical-flex h100" style="position: relative;">
+	 			<div schema-consistency-status
+	 				current-schema="dataset.schema"
+	 				consistency="consistency"
+	 				overwrite-schema="overwriteSchema"
+	 				clear-managed-dataset="clearDataset"
+	 				check-consistency="preview"
+	 				discard-consistency-error="discardConsistencyError"
+	 				managed="dataset.managed"
+	 				schema-just-modified="schemaJustModified"
+	 				class="noflex" />
+				<div include-no-scope="/templates/datasets/schema-edition.html" class="flex" />
+			</div>
+		</pane>
+		<!-- COMMON SECTION -->
+		<pane title="Partitioning" visible-pane="{{ ['Filesystem', 'HDFS', 'Azure', 'S3', 'GCS', 'FTP', 'SFTP', 'SCP'].indexOf(dataset.type) >= 0}}">
+
+            <div class="fh">
+            <div class="container-fluid page-top-padding h100">
+                <div class="h100" pane-partitioning dataset="dataset" detect-scheme="detectScheme" test-scheme="testScheme"></div>
+            </div>
+            </div>
+		</pane>
+		<pane title="Advanced" >
+			<div class="oa" style="max-height: 100%">
+			<!-- the block api error would not be useful because the error message from the hivemetastoresynchronizer is not very user-friendly -->
+				<div class="container-fluid page-top-padding" ng-if="dataset.type == 'HDFS'">
+					<h2 class="settings-section-title">Hive / Impala</h2>
+					<form class="dkuform-horizontal">
+					<div class="control-group">
+							<label class="control-label">Synchronize to metastore</label>
+							<div class="controls">
+								<button class="btn btn--danger" ng-click="resynchronizeMetastore()">
+									<span class=" icon-refresh icon">&nbsp;</span>
+									Synchronize
+								</button>
+							</div>
+					</div>
+					</form>
+				</div>
+				<div include-no-scope="/templates/datasets/advanced-fieldset-flow.html" />
+				<div include-no-scope="/templates/datasets/advanced-fieldset-ordering-fs.html" />
+				<div include-no-scope="/templates/datasets/advanced-override-table.html" />
+				<div include-no-scope="/templates/datasets/advanced-fieldset-danger.html" />
+			</div>
+		</pane>
+	</tabs>
+</div>

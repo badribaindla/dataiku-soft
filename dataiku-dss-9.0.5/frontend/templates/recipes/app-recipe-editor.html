@@ -1,0 +1,90 @@
+<div ng-controller="AppRecipeController" class="custom-code-recipe">
+
+    <div include-no-scope="/templates/recipes/fragments/simple-recipe-top-tabs.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+	<h4>{{topNav.tab}}</h4>
+    <div class="dss-page" ng-if="topNav.tab == 'settings'">
+        <div block-api-error />
+
+        <div class="h100" >
+
+            <div class="h100 vertical-flex">
+                <div class="flex">
+                    <div class="fh">
+                        <div class="h100 fixedPanes" ng-class="{'showLeftPane': desc.showInputsPane}">
+                            <div class="h100 mainPane">
+                                <div class="fh w800 oa" style="margin: auto;">
+                                    <div class="recipe-settings-section1" style="margin-bottom: 20px; padding: 10px;" ng-if="desc.variablesEditionTile">
+                                        <div edit-project-variables-app-tile-view 
+                                            tile="desc.variablesEditionTile" 
+                                            shared-config="recipe.params.variables" 
+                                            columns-per-input-role="columnsPerInputRole"
+                                            recipe-config="recipe"
+                                            ng-if="hasParameters()"/>
+                                        <div ng-if="!hasParameters()">No parameters</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="noflex" ng-if="valCtx.preRunValidationError || startedJob.jobId">
+                    <div class="recipe-settings-floating-result recipe-job-result">
+                        <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="recipe-settings-floating-run">
+                <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-partitions.html"></div>
+                <div include-no-scope="/templates/recipes/fragments/run-job-buttons.html"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dss-page recipe-io container-fluid h100 oa" ng-if="topNav.tab == 'io'">
+        <div block-api-error />
+        <div class="row-fluid dkuform-modal-horizontal h100">
+            <div class="half-pane vertical-flex h100">
+                <div class="flex roles-list">
+                    <div class="h100">
+                        <div recipe-io-inputs roles="recipeDesc.inputRoles" location="edition" class="h100"/>
+                    </div>
+                </div>
+            </div>
+            <div class="half-pane vertical-flex h100">
+                <div class="flex roles-list">
+                    <div class="h100">
+                        <div recipe-io-outputs roles="recipeDesc.outputRoles" location="edition" class="h100"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dss-page small-lr-padding" ng-if="topNav.tab == 'advanced'">
+        <div block-api-error />
+    
+        <div class="horizontal-centerer">
+            <div class="recipe-settings-section1 w800">
+                <form class="dkuform-horizontal recipe-settings-section2">
+                    <div class="control-group">
+                        <label for="keepInstance" class="control-label">Keep instance</label>
+                        <div class="controls">
+                            <input id="keepInstance" type="checkbox" ng-model="recipe.params.keepInstance"/>
+                            <span class="help-inline" style="display: inline">For investigating failures</span>
+                        </div>
+                    </div>
+            
+                    <div class="control-group" style="margin-top: 20px;">
+                        <button type="button" class="btn btn--secondary" ng-click="goToDesigner()" ng-disabled="!canGoToDesigner()" title="{{usability.reason}}">Go to Application Designer</button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>

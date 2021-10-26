@@ -1,0 +1,41 @@
+<div class="python-udf-editor">
+    <div class="split h100">
+    	<div class="h100 vertical-flex">
+			<div class="editor-header noflex">
+				<div class="fh">
+					<div class="horizontal-flex">
+						<div class="totem noflex"><i class="icon-eye-open"></i></div>
+						<h4 class="noflex">Step</h4>
+						<div class="name flex">Custom Python function</div>
+		                <div class="buttons noflex" >
+		                    <span code-snippet-editor-switch code-samples-selector-visible="uiState.codeSamplesSelectorVisible" />
+		                    <button class="btn btn--secondary" ng-click="parentDismiss()" style="margin-left: 20px;">Cancel</button>
+		                    <button class="btn btn--secondary" ng-click="hooks.apply()">Preview</button>
+		                    <button class="btn btn--primary" ng-click="hooks.ok()">Save</button>
+    		            </div>
+	                </div>
+                </div>
+			</div>
+			<div class="editor-zone flex" global-keydown="{ 'ctrl-enter meta-enter' : 'checkSyntax(pythonSource)', 'ctrl-shift-enter meta-shift-enter': 'hooks.apply()'}">
+				<div class="fh">
+	                <code-snippet-sample-selector
+	                    insert-code-func="insertCodeSnippet"
+	                    ng-show="uiState.codeSamplesSelectorVisible"
+	                    code-samples-selector-visible="uiState.codeSamplesSelectorVisible"
+			            sample-type="'python'"
+			            categories="['py-shaker', 'user-py-shaker']"
+		    	        save-category="'user-py-shaker'">
+	                </code-snippet-sample-selector>
+					<div class="editor h100">
+						<textarea ng-change="modified=true" ng-model="pythonSource" ui-codemirror="editorOptions"></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="status-bar noflex">
+				<span style="color:#aaa;" ng-show="validationError.ok == null">Press ctrl-enter to validate, ctrl-shift-enter to preview</span>
+				<span class="text-success" ng-show="validationError.ok == true">Validation successful</span>
+				<div class="text-error oa" ng-show="validationError.ok == false">Validation failed : {{validationError.message}}</div>
+			</div>
+    	</div>
+    </div>
+</div>

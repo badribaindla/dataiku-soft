@@ -1,0 +1,1 @@
+df %>% mutate(col_1l_l = col_1 / 61.0237)

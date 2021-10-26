@@ -1,0 +1,72 @@
+<div ng-controller="PrepareBundleStepController">
+    <div ng-include ="'/templates/scenarios/fragments/step-header.html'"></div>
+    <div class="alert alert-info">
+        This step builds a new bundle of the current project.
+        The bundle will contain any additional data defined in the <a ui-sref="projects.project.bundlesdesign.list({projectKey: $stateParams.projectKey})">Bundles page</a>.
+    </div>
+
+    <form name="setupForm" class="dkuform-horizontal" >
+        <div class="control-group">
+            <label class="control-label">New bundle id</label>
+            <div class="controls">
+                <input type="text" ng-model="step.params.bundleId" />
+                <span class="help-inline">
+                    Identifier of the new bundle to create. Note that you can use the option below to make it unique each time you rebuild. Variables expansion is supported.
+                </span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Make bundle id unique</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="step.params.transmogrify"></input>
+                    <span class="help-inline">Suffixes the bundle identifier with a number that will make it unique</span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Target variable</label>
+            <div class="controls">
+                <input type="text" ng-model="step.params.targetVariable"></input>
+                <span class="help-inline">Name of the variable in which the generated bundle id will be inserted. The variable has a scenario scope and can be used in subsequent steps.</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Publish on Deployer</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="step.params.publishOnDeployer"></input>
+                    <span class="help-inline">Should the newly created bundle be published on Deployer?</span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-if="step.params.publishOnDeployer">
+            <div>
+                <label class="control-label">Target project</label>
+            </div>
+            <div class="controls">
+                <div ng-switch="publishedProjects">
+                    <select dku-bs-select="{'liveSearch': true, 'noneSelectedText': 'No project selected'}"
+                            ng-switch-default
+                            ng-model="ui.selectedPublishedProject"
+                            ng-options="p as (p.createProjectMessage || p.projectBasicInfo.name) for p in publishedProjects"
+                            options-annotations="publishedProjectKeys" required>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="control-group" ng-if="step.params.publishOnDeployer && ui.selectedPublishedProject.createProjectMessage">
+            <div>
+                <label class="control-label" for="projectKey">New project key</label>
+            </div>
+            <div class="controls">
+                <input id="projectKey" type="text" ng-pattern="/^\w+$/" ng-model="ui.selectedPublishedProject.id" required />
+                <div class="help-inline">
+                    Should be unique
+                </div>
+            </div>
+        </div>
+    </form>
+    <hr />
+    <div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+</div>

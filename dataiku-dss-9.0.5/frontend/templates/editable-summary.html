@@ -1,0 +1,201 @@
+<div class="regular-object-summary-column object-or-project-summary-column-base" style="padding-right: 10px;">
+    <div block-api-error />
+    <div class="title-zone" ng-class="{'has-image' : display_image}">
+        <div class="object-main vertical-flex">
+
+            <h3 class="object-title noflex">
+                <div style="margin: 3px 205px 3px 5px;">
+                    <div ng-if="!state.name.editing" style="height: 45px">
+                        <span class="ellipsed dib" style="max-width: calc(100% - 40px)" show-tooltip-on-text-overflow text-tooltip="object.name"></span>
+                        <a class="edit-button link-std"
+                            ng-if="nameEditable && editable"
+                            ng-click="startFieldEdit('name')"
+                            style="position: relative; top: -15px;">
+                            <i class="icon-pencil" title="Edit name" />
+                        </a>
+                    </div>
+
+                    <div ng-if="state.name.editing">
+                        <form name="renaming" class="name-edit-zone dkuform-std-vertical horizontal-flex" style="text-align:left; width: 100%">
+                            <input type="text"
+                                name="new_name"
+                                class="in-place-edit auto-focus flex"
+                                ng-model="state.name.newVal"
+                                placeHolder="New name"
+                                auto-focus="true"
+                                ng-pattern="pattern"
+                                style="width: 300px;height:inherit;"
+                                dku-local-keypress="{enter: 'validateFieldEdit($event)', esc: 'cancelFieldEdit()'}"
+                                required />
+                            <span class="noflex" style="padding: 0 10px">
+                                <button class="btn btn--success" ng-click="validateFieldEdit($event)" ng-disabled="!renaming.new_name.$valid">
+                                    Save
+                                </button>
+                                <button class="btn btn--secondary" ng-click="cancelFieldEdit()">
+                                    Cancel
+                                </button>
+                            </span>
+                        </form>
+                    </div>
+                </div>
+            </h3>
+
+            <!-- Interests -->
+            <div ng-if="objectInterest && !state.shortDesc.editing && !state.tags.editing" class="interest-buttons">
+                <watch-button status="objectInterest.watching"
+                              on-toggle="watchObject(nextStatus)"
+                              nb-watching="objectInterest.nbWatching"
+                              on-show-watching-users="showWatchingUsers()"
+                ></watch-button>
+
+                <star-button status="objectInterest.starred"
+                             on-toggle="starObject(nextStatus)"
+                             nb-starred="objectInterest.nbStarred"
+                             on-show-users-with-star="showUsersWithStar()"
+                ></star-button>
+            </div>
+
+            <!-- Short desc -->
+            <div ng-if="!state.shortDesc.editing" class="description noflex">
+                <div class="pull-right">
+                    <a class="link-std edit-button" ng-click="editable && startFieldEdit('shortDesc')"><i ng-show="editable" class="icon-pencil"/></a>
+                </div>
+                <div ng-if="editable && (object.shortDesc == null || object.shortDesc.length == 0)">
+                    <a class="std-greylink" ng-click="startFieldEdit('shortDesc')">
+                        Create a short description (appears on right column in Flow)
+                    </a>
+                </div>
+                <div ng-if="object.shortDesc.length" from-markdown="object.shortDesc" class="description markdown-std"></div>
+            </div>
+            <form ng-if="state.shortDesc.editing" class="shortdesc-edit-zone dkuform-std-vertical noflex">
+                <div class="control-group" autocompletable-textarea resizable="false">
+                    <span class="controls"
+                        ui-keydown="{esc: 'cancelFieldEdit()', 'ctrl-s meta-s':'validateFieldEdit($event)', 'ctrl-enter meta-enter': 'validateFieldEdit($event)'}"
+                        ng-if="editorOptions">
+                        <textarea ng-model="state.shortDesc.newVal"
+                            placeholder="Short description appears on right column in Flow"
+                            ui-codemirror="editorOptions">
+                        </textarea>
+                    </span>
+                    <div style="margin-top: 5px;">
+                        <button class="btn btn--success" ng-click="validateFieldEdit($event)">Save</button>
+                        <button class="btn btn--secondary" ng-click="cancelFieldEdit()">Cancel</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="flex">
+                <!-- Tags -->
+                <tag-edit-popover ng-model="object.tags"
+                        get-all-tags="getTags()"
+                        object-type="objectType"
+                        editable="editable"
+                        class="tags-field">
+                </tag-edit-popover>
+            </div>
+        </div>
+    </div>
+
+    <div class="mtop20 row-fluid">
+        <!-- Description -->
+        <div class="span6 description-field"
+            ng-if="(object.description != null && object.description.length > 0) || editable"
+            >
+            <div ng-if="!state.description.editing">
+                <div class="pull-right" ng-if="object.description.length && editable">
+                    <a class="link-std edit-button" ng-click="startFieldEdit('description')">
+                        <i class="icon-pencil" />
+                    </a>
+                </div>
+                <div class="field-edit-cta" ng-if="(object.description == null || object.description.length == 0) && editable">
+                    <a class="link-std" ng-click="startFieldEdit('description')">
+                        <span plus-icon />
+                        &nbsp;Add a description
+                    </a>
+                </div>
+                <div ng-if="object.description && object.description.length !=0" from-markdown="object.description" class="description markdown-std"></div>
+            </div>
+            <form ng-if="state.description.editing" class="desc-edit-zone dkuform-std-vertical" autocompletable-textarea>
+                <div ng-if="editorOptions" dku-local-keypress="{'esc' : 'cancelFieldEdit()', 'ctrl-s meta-s':'validateFieldEdit($event)', 'ctrl-enter meta-enter': 'validateFieldEdit($event)'}">
+                    <textarea msd-elastic
+                        ng-model="state.description.newVal"
+                        placeholder="Write a description (you can use Markdown)..."
+                        auto-focus="true"
+                        ui-codemirror="editorOptions"
+                        >
+                    </textarea>
+                    <div>
+                        <button class="btn btn--success" ng-click="validateFieldEdit($event)">Save</button>
+                        <button class="btn btn--secondary" ng-click="cancelFieldEdit()">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Checklists -->
+        <div class="span6 checklists-field" ng-if="editable || object.checklists.checklists.length > 0">
+            <div ng-repeat="x in object.checklists.checklists">
+                <div class="checklist">
+                    <div class="pull-right">
+                        <a class="link-danger" ng-click="deleteChecklist($index)" style="display:inline-block;margin: 10px;" title="Delete todo list">
+                            <i class="icon-trash" />
+                        </a>
+                    </div>
+                    <h4 class="checklist-title">
+                        <div ng-if="!x.editingTitle">
+                            {{x.title}}
+                            <a class="link-std edit-button" ng-click="startEditChecklistTitle(x)">
+                                <i class="icon-pencil" />
+                            </a>
+                        </div>
+                        <div ng-if="x.editingTitle" class="common-styles-only">
+                            <input type="text" ng-model="state.checklistTitle.newVal" placeHolder="New name" required />
+                            <div style="margin-top: 3px">
+                                <button class="btn btn--success" ng-click="validateChecklistTitleEdit()">Save</button>
+                                <button class="btn btn--secondary" ng-click="cancelChecklistTitleEdit()">Cancel</button>
+                            </div>
+                        </div>
+                    </h4>
+                    <p> <span ng-bind-html="x|singleChecklistState" /></p>
+                    <div object-checklist checklist="x" items-only="true" read-only="!editable" />
+                </div>
+            </div>
+            <div ng-if="object.checklists.checklists.length == 0 && editable" class="field-edit-cta">
+                 <a class="link-std" ng-click="addChecklist()">
+                    <span plus-icon />&nbsp;Add a todo list
+                </a>
+            </div>
+            <div ng-if="object.checklists.checklists.length != 0 && editable" class="new-checklist" style="margin-top: 15px; margin-bottom: 15px">
+                <a class="std-greylink" ng-click="addChecklist()">
+                    Add a todo list
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mtop20 row-fluid">
+        <!-- Users with star -->
+        <div class="span6 stars-field" ng-if="usersWithStar.length">
+            <h4 class="stars-title">Stars</h4>
+            <div ng-repeat="user in usersWithStar track by user.login">
+                <div class="avatar-container">
+                    <span user-picture="user.login" size="24" class="avatar24"></span>
+                </div>
+                <a href="/profile/{{item.user}}/" class="link-std">
+                    {{user.login == rootScope.appConfig.user.login ? "You" : user.displayName}}
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Custom Fields -->
+    <div class="mtop20 mbot20" ng-if="appConfig.customFieldsMap[objectType].length > 0">
+        <div class="description-field" style="padding: 0; min-height: auto;">
+            <div custom-fields-in-summary ng-if="object && object.customFields" custom-fields="object.customFields" object-type="objectType" save-fn="saveCustomFields"></div>
+        </div>
+    </div>
+
+</div>
+</div>

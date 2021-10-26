@@ -1,0 +1,50 @@
+<div ng-controller="FilterAndFlagProcessorController">
+
+    <fieldset ng-if="processor.filterAndFlagMode=='FLAG'" child-focus>
+        <span class="fieldLabel">Flag (output) column</span>
+        <input
+                type='text'
+                autocomplete='off'
+                ng-trim="false"
+                ng-required="true"
+                data-min-length='1'
+                ng-model='step.params.flagColumn'
+                class="submit-on-blur"
+                next-on-enter />
+     </fieldset>
+
+     <fieldset ng-if="processor.filterAndFlagMode=='FILTER' && processor.type != 'FilterOnBadType'" child-focus>
+         <span class="fieldLabel">Action</span><br/>
+         <select dku-bs-select ng-model="step.params.action" ng-change="onActionChange();">
+             <option value="KEEP_ROW">Only keep matching rows</option>
+             <option value="REMOVE_ROW">Remove matching rows</option>
+             <option value="CLEAR_CELL">Clear matching cells</option>
+             <option value="DONTCLEAR_CELL">Clear non matching cells</option>
+         </select>
+     </fieldset>
+
+     <fieldset ng-if="processor.filterAndFlagMode=='FILTER' && processor.type == 'FilterOnBadType'" child-focus>
+         <span class="fieldLabel">Action</span><br/>
+         <select dku-bs-select ng-model="step.params.action" ng-change="onActionChange();">
+             <option value="KEEP_ROW">Only keep invalid rows</option>
+             <option value="REMOVE_ROW">Remove invalid rows</option>
+             <option value="CLEAR_CELL">Clear invalid cells</option>
+             <option value="DONTCLEAR_CELL">Clear valid cells</option>
+         </select>
+     </fieldset>
+
+     <fieldset ng-if="processor.filterAndFlagMode == 'FLAG' && step.params.appliesTo != 'SINGLE_COLUMN' &&  (step.params.appliesTo != 'COLUMNS' || step.params.columns.length > 1)">
+        <span class="fieldLabel">Multi-column match</span>
+         <select dku-bs-select ng-model="step.params.booleanMode" ng-change="checkAndRefresh();">
+             <option value="AND">All match (AND)</option>
+             <option value="OR">Any match (OR)</option>
+         </select>
+     </fieldset>
+      <fieldset ng-if="processor.filterAndFlagMode == 'FILTER' && ['REMOVE_ROW', 'KEEP_ROW'].indexOf(step.params.action) >= 0 && step.params.columns.length > 1">
+        <span class="fieldLabel">Multi-column match</span>
+         <select dku-bs-select ng-model="step.params.booleanMode" ng-change="checkAndRefresh();">
+             <option value="AND">All match (AND)</option>
+             <option value="OR">Any match (OR)</option>
+         </select>
+     </fieldset>
+</div>

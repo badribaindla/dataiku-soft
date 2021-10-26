@@ -1,0 +1,58 @@
+<div class="flex job-preview__activities-list">
+	<div class="fh">
+		<h4 class="empty-list-cta small-lr-padding" ng-if="activitiesFatTable.length === 0 && !jobRemoved">
+			There was nothing to do for this job.
+		</h4>
+		<h4 class="empty-list-cta small-lr-padding" ng-if="jobRemoved">
+			Information unavailable. Job details have been removed.
+		</h4>
+		<div class="h100" fat-repeat="activitiesFatTable" as="activity" row-height="rowHeight">
+
+			<div class="{{activity.state}} job-preview__activity" ng-click="onActivityClick(activity)"
+			     ng-mouseover="onMouseOverActivity(activity)"
+			     ng-mouseleave="onMouseLeaveActivity()"
+			     ng-class="{'selected': activity.activityId == selectedActivity.activityId, 'highlighted': activity.highlighted === true, 'warnings' : activity.warnings.totalCount > 0}">
+
+				<div class="job-preview__activity-icon">
+					<i class="icon-dku-error text-error" ng-if="activity.state === 'FAILED'"></i>
+					<i class="icon-dku-warning text-warning" ng-if="activity.state === 'DONE' && activity.warnings.totalCount > 0"></i>
+					<i class="icon-dku-success text-success" ng-if="activity.state === 'DONE' && activity.warnings.totalCount === 0"></i>
+					<i class="icon-dku-queued text-weak" ng-if="activity.state === 'NOT_STARTED'"></i>
+					<i class="icon-dku-pause" ng-if="activity.state === 'ABORTED'" title="Aborted"></i>
+					<i class="icon-step-forward" ng-if="activity.state === 'SKIPPED'" title="Skipped"></i>
+					<span ng-if="activity.state == 'RUNNING' || activity.state == 'COMPUTING_DEPS' && activity.state !== 'NOT_STARTED'" class="dku-loader icon-spin"></span>
+				</div>
+
+				<div class="mx-textellipsis job-preview__activity-title"
+				     ng-show="activity.activityType == 'RECIPE'">
+
+					<div custom-element-popup cep-position="align-left-top" ng-if="activity.firstFailure" ng-mouseover="showPopover()" ng-mouseleave="hidePopover()">
+						<span class="mainzone job-preview__activity-title--toggler">{{activity.recipeName}}</span>
+						<div class="popover custom-element-popup-popover">
+							<div class="job-preview__activity-error-message" ng-if="activity.firstFailure" api-error-alert="activity.firstFailure"></div>
+						</div>
+					</div>
+					<span ng-if="!activity.firstFailure">{{activity.recipeName}}</span>
+				</div>
+
+				<pipeline-activity-title activity="activity"/>
+
+				<div class="job-preview__activity-partition" ng-if="activity.mainPartition != 'N/A'">
+					{{activity.mainPartition}}
+				</div>
+
+				<div class="job-preview__activity-date">
+                                                <span ng-if="activity.state === 'NOT_STARTED'">
+                                                    In queue
+                                                </span>
+					<span ng-if="activity.state === 'RUNNING'">
+                                                    {{activity.duration |durationHHMMSS}}
+                                                </span>
+					<span ng-if="!['NOT_STARTED', 'RUNNING'].includes(activity.state)">
+                                                    {{activity.duration |durationHHMMSS}}
+                                                </span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

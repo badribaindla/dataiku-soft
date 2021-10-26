@@ -1,0 +1,112 @@
+<div class="modal modal3 new-dashboard-modal dku-modal expose-object-modal" auto-size="false">
+    <div dku-modal-header-with-totem modal-title="Share {{selectedItems.length}} {{itemsType | niceTaggableType : selectedItems.length }}"
+         modal-totem="icon-dku-share" />
+
+    <form name="theForm" class="dkuform-modal-vertical dkuform-modal-wrapper">
+        <div class="modal-body">
+            <div block-api-error />
+            <div class="control-group" ng-show="projectSummary.canManageDashboardAuthorizations && !objectExposition.dashboardAllAuthorized">
+                <label class="control-label">Dashboards</label>
+
+                <span class="btn btn--secondary btn--active pull-right"
+                    ng-if="currentExpositions.dashboard.length == selectedItems.length"
+                    style="margin-right: 20px; cursor: default;"
+                    >
+                    all
+                </span>
+                <a class="btn btn--secondary pull-right"
+                    ng-if="currentExpositions.dashboard.length != selectedItems.length"
+                    ng-class="{'btn--active': settings.dashboard}"
+                    ng-click="settings.dashboard = !settings.dashboard"
+                    style="margin-right: 20px"
+                    >
+                    all
+                </a>
+
+                <span ng-show="!settings.dashboard" class="exposed-count">
+                    {{currentExpositions.dashboard.length}} / {{selectedItems.length}}
+                </span>
+                <span ng-show="settings.dashboard" class="exposed-count exposed-count-updated" style="font-weight: bold; color: #81c241;">
+                    {{selectedItems.length}} / {{selectedItems.length}}
+                </span>
+                visible to users who can only read dashboards
+            </div>
+
+            <hr style="margin-bottom: 0;"/>
+
+            <div ng-if="!currentTargetProjectKeys.length">
+                <label class="control-label" style="margin-top: 20px; margin-bottom: 0;">Target projects</label>
+            </div>
+
+            <div class="project-select oa full-width dku-border-bottom">
+                <ul class="raw-unstyled-ul">
+                    <li ng-repeat="(projectKey, project) in currentExpositions.projects" class="mx-textellipsis">
+                        <i class="icon-dkubird"></i>
+                        {{project.projectDisplayName}}
+                        <span class="pull-right">
+                            <span class="exposed-count" ng-show="!oldTargetProjects[projectKey].exposeAll">
+                                {{project.items.length}} / {{selectedItems.length}} exposed
+                            </span>
+                            <span class="exposed-count exposed-count-updated" style="font-weight: bold; color: #81c241;" ng-show="oldTargetProjects[projectKey].exposeAll">
+                                {{selectedItems.length}} / {{selectedItems.length}} exposed
+                            </span>
+
+                            <span class="btn btn--secondary btn--active"
+                                ng-if="project.items.length == selectedItems.length"
+                                style="margin-left: 15px; cursor: default;"
+                                >
+                                all
+                            </span>
+                            <a class="btn btn--secondary"
+                                ng-class="{'btn--active': oldTargetProjects[projectKey].exposeAll}"
+                                ng-click="oldTargetProjects[projectKey].exposeAll = !oldTargetProjects[projectKey].exposeAll"
+                                ng-if="project.items.length != selectedItems.length"
+                                style="margin-left: 15px"
+                                >
+                                all
+                            </a>
+                        </span>
+                    </li>
+
+                    <li ng-repeat="project in newTargetProjects" class="mx-textellipsis">
+                        <i class="icon-dkubird"></i>
+                        {{project.label}}
+                        <span class="new-target-project" style="font-weight: 500; margin-left: 20px; color: #81c241;">NEW</span>
+                        <span class="pull-right">
+                            <span class="exposed-count exposed-count-updated" style="font-weight: bold; color: #81c241;">
+                                {{selectedItems.length}} / {{selectedItems.length}}
+                            </span>
+                            <a class="link-std" ng-click="removeProject(project.projectKey)" style="margin-left: 60px">
+                                <i class="icon-trash" />
+                            </a>
+                        </span>
+                    </li>
+
+                    <li ng-show="!uiState.addingProject">
+                        <a class="dku-add-new" ng-click="uiState.addingProject = true">Add Project</a>
+                    </li>
+
+                    <li ng-show="uiState.addingProject">
+                        <div object-picker="projectKey"
+                            no-live-update="true"
+                            type="PROJECT"
+                            object="newProject"
+                            class="dibvam"
+                            unusable="allTargetProjects"
+                            available-objects="available.projects"
+                            empty-message="Select a project..." />
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons full-width">
+            <div class="pull-left" style="font-size: 14px; margin: 0 10px;">
+                <a href="/projects/{{$stateParams.projectKey}}/security/exposed">Go to project exposed elements settings</a>
+            </div>
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="save()">Share</button>
+        </div>
+
+    </form>
+</div>

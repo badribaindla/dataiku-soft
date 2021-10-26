@@ -1,0 +1,41 @@
+<div class="modal modal3 modal-w800" auto-size="false" ng-controller="AutomationBundleCheckResultModalController">
+
+	<div class="vertical-flex h100">
+		<dku-modal-header modal-class="has-border" >
+			<dku-modal-title>
+				Bundle activation check for: &quot;{{checkResult.bundleId}}&quot;
+			</dku-modal-title>
+		</dku-modal-header>
+
+		<div class="modal-body flex" ng-switch="uiState.activeTab">
+			<div ng-if="checkResult.error" class="alert alert-danger">
+				<h4>Validation failed</h4>
+				Fatal errors were encountered
+			</div>
+
+			<div ng-if="!checkResult.error && checkResult.warning" class="alert alert-warning">
+				<h4>Validation passed with warnings</h4>
+			</div>
+
+			<div ng-if="!checkResult.error && !checkResult.warning" class="alert alert-info">
+				<h4>Validation successful</h4>
+			</div>
+
+			<ul class="raw-unstyled-ul">
+				<li ng-repeat="message in checkResult.messages" class="row-fluid info-message-inline-display">
+					<div class="span2">
+						<span class="{{DKUConstants.design.alertClasses[message.severity]}} severity">{{message.severity}}</span>
+					</div>
+					<div class="span10">
+						<h5>{{message.title}}</h5>
+						{{message.message}}
+					</div>
+				</li>
+			</ul>
+		</div>
+		<div data-block="modal-footer-block " class="modal-footer modal-footer-std-buttons noflex">
+			<button class="btn btn--text btn--secondary" ng-click="dismiss()">Close</button>
+			<button class="btn btn--text btn--primary" ng-click="doActivate()">Proceed to activation</button>
+		</div>
+	</div>
+</div>

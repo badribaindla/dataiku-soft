@@ -1,0 +1,125 @@
+<div class="object-right-column-summary h100 vertical-flex" ng-if="(selection.selectedObjects != null && selection.selectedObjects.length > 1) || selection.selectedObject != null">
+
+    <div item-header
+         class="noflex"
+         color="bundle"
+         icon="icon-bundle"
+         title="{{selection.selectedObject.bundleId}}"
+         ng-if="selection.selectedObjects == null || selection.selectedObjects.length <= 1">
+        {{selection.selectedObject.bundleId}}
+    </div>
+    <div item-header
+        class="noflex"
+        color="bundle"
+        icon="icon-bundle"
+        ng-if="selection.selectedObjects != null && selection.selectedObjects.length > 1">
+        {{selection.selectedObjects.length}} bundles
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex oa">
+        <div class="h100" ng-switch="uiState.activeTab">
+            <!-- DETAILS tab -->
+            <div ng-switch-when="details" class="details-tab h100 oa">
+                <object-details ng-if="selection.selectedObjects == null || selection.selectedObjects.length <= 1" object-type="BUNDLE" object-data="selection.selectedObject" context="right-column" /></object-details>
+            </div>
+
+            <!-- ACTIONS tab -->
+            <div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+                <div ng-if="selection.selectedObjects == null || selection.selectedObjects.length <= 1">
+                    <div ng-if="selection.selectedObject.state === 'BUILT'">
+                        <div class="icons-grey icons-main icons-section icons-ellipsed">
+                            <div class="action-icon"
+                                ng-class="{'disabled': !appConfig.deployerClientEnabled}"
+                                simple-right-col-action-click
+                                on-click="publishOnDeployer(selection.selectedObject)"
+                                label="Publish on Deployer"
+                                icon="icon-push-bundle"
+                                title="{{ appConfig.deployerClientEnabled ? 'Publish bundle on Deployer' : 'Deployer is not enabled' }}"
+                                toggle="tooltip"
+                                disabled-if-ro
+                            ></div>
+                            <div class="action-icon"
+                                 simple-right-col-action-click
+                                 on-click="showBundleDetails(selection.selectedObject)"
+                                 label="View"
+                                 icon="icon-bundle"
+                                 title="View bundle details"
+                                 toggle="tooltip"
+                            ></div>
+                            <div class="action-icon"
+                                 simple-right-col-action-click
+                                 on-click="downloadBundleArchive(selection.selectedObject)"
+                                 label="Download"
+                                 icon="icon-download"
+                                 title="Download bundle archive"
+                                 toggle="tooltip"
+                            ></div>
+                            <div class="action-icon"
+                                simple-right-col-action-click
+                                on-click="startRevert(selection.selectedObject.bundleId)"
+                                label="Revert to bundle"
+                                icon="icon-undo"
+                                title="Revert project to this bundle"
+                                toggle="tooltip"
+                                disabled-if-ro
+                            ></div>
+                            <div class="action-icon"
+                                simple-right-col-action-click
+                                ng-class="{'icons-danger': isProjectAdmin()}"
+                                on-click="isProjectAdmin() && deleteSelected()"
+                                label="Delete"
+                                icon="icon-trash"
+                                title="Delete this bundle"
+                                toggle="tooltip"
+                                disabled-if-ro 
+                            ></div>
+
+                            <div class="action-icon" ng-repeat="i in ([9] | range)"></div>
+                        </div>
+
+                        <div dku-foldable dku-foldable-right-panel name="macros" open="true" class="accordion other-actions"
+                            ng-show="macroRoles['BUNDLE'] && macroRoles['BUNDLE'].length > 0">
+                            <h4 class="accordion-title" ng-click="foldableToggle()">
+                                <i class="{{foldableChevronClazz}}"/>
+                                Macros
+                            </h4>
+            
+                            <div ng-show="foldableOpen">
+                                <ul class="simple-list" style="margin-bottom: 10px;">
+                                    <li ng-repeat="runnable in macroRoles['BUNDLE']">
+                                        <a class="link-std"
+                                        ng-click="showCreateRunnable(runnable.runnable, runnable.roleTarget, selection.selectedObject.bundleId)">
+                                            <i class="icon-fixed-width {{runnable.icon}}"/> {{runnable.label}}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="selection.selectedObject.state !== 'BUILT'">
+                        <div class="actions-tab__none">
+                            No actions available.
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="selection.selectedObjects != null && selection.selectedObjects.length > 1">
+                    <div class="icons-grey icons-main icons-section">
+                        <div class="action-icon"
+                            simple-right-col-action-click
+                            ng-class="{'icons-danger': isProjectAdmin()}"
+                            on-click="isProjectAdmin() && deleteSelected()"
+                            label="Delete"
+                            icon="icon-trash"
+                            title="Delete these bundles"
+                            toggle="tooltip"
+                            disabled-if-ro 
+                        ></div>
+                        <div class="action-icon" ng-repeat="i in ([9] | range)"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

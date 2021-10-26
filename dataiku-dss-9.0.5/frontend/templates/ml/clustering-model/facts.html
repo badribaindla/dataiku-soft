@@ -1,0 +1,106 @@
+<div ng-controller="CMLModelFactsController">
+    <div style="padding: 30px 0px 0px 30px">
+        <div class="edit-name-desc" include-no-scope="/templates/ml/common/edit-name-desc.html"/>
+    </div>
+    <div class="cluster-summary">
+        <span class="metric-name display-none">{{ getMetricNameFromModel(modelData) }}</span>
+        <span class="metric-value display-none">{{ getMetricValueFromModel(modelData) | number:3 }}</span>
+        <div class="horizontal-flex h100">
+            <div class="noflex" style="overflow-y: auto; height: 400px">
+                <table class='clusters-tab'>
+                    <tbody>
+                    <tr class="cluster"
+                        ng-click="selectCluster(cluster_fact)"
+                        ng-repeat="cluster_fact in facts.clusters"
+                        ng-class="{'selected': cluster_fact == selectedCluster}">
+                        <td class="name">{{getClusterMeta(cluster_fact.cluster).name}}</td>
+                        <td class="gauge">
+                            <bz-gauge
+                                    color="getClusterMeta(cluster_fact.cluster).color"
+                                    val="cluster_fact.size"
+                                    total="facts.global.size"
+                                    title="{{cluster_fact.size}} items ({{100*cluster_fact.size/ facts.global.size|smartNumber}}%) in this cluster"
+                                    toggle="tooltip"
+                            >
+                            </bz-gauge>
+                        </td>
+                        <td class="samples" title="{{cluster_fact.size}} items in this cluster">
+                            {{ cluster_fact.size }} ({{(100*cluster_fact.size/facts.global.size).toFixed(2)}}%)
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="summary-detail" ng-if="selectedCluster">
+                <div class="horizontal-flex" style="margin-bottom: 10px;">
+                    <bz-color-picker ng-model='getClusterMeta(selectedCluster.cluster).color'/>
+                    <div style="font-size: 20px; font-weight: bold;">
+                        {{getClusterMeta(selectedCluster.cluster).name}}
+                        <i class="icon-pencil filigran" style="margin-left: 15px;"
+                        ng-click="editClusterDetails(getClusterMeta(selectedCluster.cluster))"></i>
+                    </div>
+                </div>
+                <textarea ng-model="getClusterMeta(selectedCluster.cluster).description"
+                          style="width: 100%"
+                          placeholder="Enter a description for this cluster"></textarea>
+                <div style="margin-top: 10px">
+                    <h3>Observations</h3>
+                    <ul class="observations">
+                        <li ng-repeat="obs in observations">
+                    <span ng-show="obs.type == 'numerical' && obs.sameSign">
+                        <strong>{{ obs.feature_label }}</strong> is in average
+                        <span ng-class="obs.polarity">
+                            {{ obs.relative_diff |smartNumber }}% {{obs.polarity}}
+                        </span>
+                        <span ng-show="obs.negative">
+                            (in absolute value)
+                        </span>
+                        : mean of {{obs.mean |smartNumber}} against {{ obs.global_mean |smartNumber }} globally
+                    </span>
+
+                    <span ng-show="obs.type == 'numerical' && !obs.sameSign">
+                        The mean of {{ obs.feature_label }} is
+                        <span ng-class="obs.polarity">
+                            {{obs.mean |smartNumber}}
+                        </span>
+                        against {{ obs.global_mean |smartNumber }} across all clusters
+                    </span>
+
+                    <span ng-show="obs.type == 'categorical'">
+                        {{ polarity == 'smaller' ? 'Only' : ''}}
+                        <span ng-class="obs.polarity">{{ obs.current_ratio * 100 |smartNumber }}% </span>
+                        of the cluster has
+                        <span ng-class="obs.polarity">{{ obs.category_value }} </span>
+                        for <strong>{{ obs.feature_label }}</strong>
+                        (against {{ obs.global_ratio* 100 |smartNumber }} % globally)
+                    </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="settings-section-title" ng-if="featureFlagEnabled('model_evaluation_stores')">Metadata</h2>
+    <div class="row-fluid" ng-if="featureFlagEnabled('model_evaluation_stores')">
+        <div class="span7">
+            <form class="dkuform-horizontal">
+                <div class="control-group required">
+                    <label class="control-label">Saved Model Labels</label>
+                    <div class="controls">
+                        <ng2-key-values-list
+                            [(items)]="modelData.userMeta.labels"
+                            [icon-fn]="setIcon"
+                            add-label="Add a label"
+                            key-placeholder="Label key"
+                            value-placeholder="Label value"
+                        ></ng2-key-values-list>
+                        <div class="help-inline">
+                            Optional. Informative labels for the model.
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

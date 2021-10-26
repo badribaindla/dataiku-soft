@@ -1,0 +1,244 @@
+<div class="object-right-column-summary h100 vertical-flex" ng-if="selection.selectedObject">
+
+    <div item-header class="noflex"
+            href="$state.href('projects.project.analyses.analysis.script', {analysisId:selection.selectedObject.id})"
+            color="analysis" icon="icon-dku-nav_analysis" title="{{selection.selectedObject.name}}">
+        {{selection.selectedObject.name}}
+    </div>
+    <div class="column-header-tabs noflex" ng-if="!$state.current.name.startsWith('projects.project.analyses.list') && !$state.current.name.startsWith('projects.project.analyses.analysis')">
+        <div class="tab" ng-class="{'tab' : true, 'active' : uiState.activeTab == 'details'}"
+            ng-click="uiState.activeTab = 'details'">
+            <div class="title">Details</div>
+        </div>
+        <div class="tab" ng-class="{active: uiState.activeTab == 'discussions'}" ng-click="uiState.activeTab = 'discussions'">
+            <div class="title">Discussions</div>
+        </div>
+        <div class="tab" ng-class="{'tab' : true, 'active' : uiState.activeTab == 'actions'}"
+            ng-click="uiState.activeTab = 'actions'">
+            <div class="title">Actions</div>
+        </div>
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex oa">
+        <div class="h100" ng-switch="uiState.activeTab">
+            <div ng-switch-when="details" class="details-tab h100 oa">
+                <object-details object-type="ANALYSIS" object-data="analysisData" context="right-column" hover-intent-callback="QuickView" editable="canWriteProject()" edit-custom-fields="editCustomFields"/></object-details>
+            </div>
+
+            <!-- DISCUSSIONS tab -->
+            <div ng-switch-when="discussions" class="object-summary-tab-content discussions-tab h100 oa">
+                <div class="h100" discussions-widget watch-object="selection.selectedObject" selected-item="{projectKey: selection.selectedObject.projectKey, type: 'ANALYSIS', id: selection.selectedObject.id}" />
+            </div>
+
+            <div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+                <div class="icons-section icons-grey icons-main">
+                    <div simple-right-col-action-click
+                        ng-if="$state.includes('projects.project.analyses.analysis') || $state.includes('projects.project.analyses.list')"
+                        on-click="projectSummary.canExportDatasetsData ? exportProcessedData() : null"
+                        icon="icon-dku-download"
+                        label="Download data"
+                        disabled-if="!projectSummary.canExportDatasetsData"
+                        title="{{projectSummary.canExportDatasetsData ? 'Download processed data' : 'You don\'t have the permission to export data from this project'}}"
+                    />
+
+                    <div simple-right-col-action-href
+                        ng-if="!$state.includes('projects.project.analyses.analysis')"
+                        href="{{$state.href('projects.project.analyses.analysis.script', {analysisId:selection.selectedObject.id})}}"
+                        label="Edit"
+                        icon="icon-edit" />
+
+                    <div simple-right-col-action-click
+                        on-click="duplicate()"
+                        label="Copy"
+                        title="Copy this analysis"
+                        icon="icon-copy"
+                        disabled-if-ro />
+
+                    <div simple-right-col-action-href
+                        ng-if="($state.includes('projects.project.analyses.analysis') || $state.includes('projects.project.analyses.list')) && analysisDataContext && analysisDataContext.inputDatasetLoc"
+                        href="{{ $state.href('projects.project.datasets.dataset.explore', {projectKey: $stateParams.projectKey, datasetName: analysisDataContext.inputDatasetLoc.name}) }}"
+                        icon="icon-server_file_system_1"
+                        label="View dataset"
+                    />
+
+                    <div simple-right-col-action-click
+                        ng-if="$state.includes('projects.project.analyses.analysis') || $state.includes('projects.project.analyses.list')"
+                        on-click="changeDataset()"
+                        icon="icon-exchange"
+                        label="Change input"
+                        title="Change input dataset"
+                        disabled-if-ro
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-show="!isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(true)"
+                         label="{{ actionLabels.WATCH }}"
+                         icon="icon-eye-open"
+                         ng-attr-title="{{ actionTooltips.WATCH }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-show="isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(false)"
+                         label="{{ actionLabels.UNWATCH }}"
+                         icon="icon-eye-close"
+                         ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-show="!selection.selectedObject.interest.starred"
+                         on-click="starObjects(true)"
+                         label="{{ actionLabels.STAR }}"
+                         icon="icon-star"
+                         ng-attr-title="{{ actionTooltips.STAR }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-show="selection.selectedObject.interest.starred"
+                         on-click="starObjects(false)"
+                         label="{{ actionLabels.UNSTAR }}"
+                         icon="icon-star-empty"
+                         ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-if="($state.includes('projects.project.analyses.analysis') || $state.includes('projects.project.analyses.list')) && appConfig.customFieldsPluginComponentRefs.length"
+                         on-click="editCustomFields()"
+                         icon="icon-dku-fields"
+                         label="Metadata"
+                    />
+
+                    <div simple-right-col-action-click
+                        on-click="deleteAnalysis()"
+                        ng-class="{'icons-danger': isProjectAnalystRW()}"
+                        label="Delete"
+                        icon="icon-trash"
+                        disabled-if-ro
+                    />
+
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+                <div dku-foldable dku-foldable-right-panel name="macros" open="true" class="accordion other-actions"
+                     ng-show="macroRoles['VISUAL_ANALYSIS'] && macroRoles['VISUAL_ANALYSIS'].length > 0">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}"/>
+                        Macros
+                    </h4>
+    
+                    <div ng-show="foldableOpen">
+                        <ul class="simple-list" style="margin-bottom: 10px;">
+                            <li ng-repeat="runnable in macroRoles['VISUAL_ANALYSIS']">
+                                <a class="link-std"
+                                   ng-click="showCreateRunnable(runnable.runnable, runnable.roleTarget, selection.selectedObject.id)">
+                                    <i class="icon-fixed-width {{runnable.icon}}"/> {{runnable.label}}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <ul class="selectable-items-list selectable-items-list--no-margins m16 h-auto"
+                    ng-class="{ 'horizontal-flex': analysisData.analysis.script.steps.length > 0 && analysisData.analysis.charts.length > 0 }">
+                    <li ng-if="analysisData.analysis.script.steps.length > 0"
+                        ui-sref="projects.project.analyses.analysis.script({analysisId: analysisData.analysis.id})"
+                        class="selectable-item selectable mbot16"
+                        ng-class="{ 'mright4 flex-no-basis': analysisData.analysis.script.steps.length > 0 && analysisData.analysis.charts.length > 0 }">
+                        <p class="mleft4 mbot0"><strong> {{ analysisData.analysis.script.steps.length }} </strong> {{ ' script step' | plurify : analysisData.analysis.script.steps.length }}</p>
+                    </li>
+                    <li ng-if="analysisData.analysis.charts.length > 0"
+                        ui-sref="projects.project.analyses.analysis.charts({analysisId: analysisData.analysis.id})"
+                        class="selectable-item selectable mbot16"
+                        ng-class="{ 'mleft4 flex-no-basis': analysisData.analysis.script.steps.length > 0 && analysisData.analysis.charts.length > 0 }">
+                        <p class="mleft4 mbot0"><strong> {{ analysisData.analysis.charts.length }} </strong> {{ ' chart' | plurify : analysisData.analysis.charts.length }}</p>
+                    </li>
+                </ul>
+
+                <!-- ML Tasks -->
+                <div class="accordion" ng-if="analysisData.mlTasks.length > 0" dku-foldable dku-foldable-right-panel="details.savedModels" open="true">
+                    <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                        {{ 'Go to modeling task' | plurify : analysisData.mlTasks.length }} ({{ analysisData.mlTasks.length }})
+                    </h4>
+                    <div ng-show="foldableOpen">
+                        <ul class="selectable-items-list selectable-items-list--no-margins right-panel-selectable-items-list padleft16 padright16 mbot16">
+                            <li title="{{task.name}}" 
+                                ui-sref="projects.project.analyses.analysis.ml.{{task.taskType === 'CLUSTERING' ? 'clustmltask' : 'predmltask'}}.list.results({'analysisId': analysisData.analysis.id, 'mlTaskId': task.mlTaskId})"
+                                ng-repeat="task in analysisData.mlTasks"
+                                ng-show="$index < 3 || analysisData.uiState.showAllMLTasks" 
+                                class="selectable-item right-panel-selectable-item selectable">
+                                <i class="right-panel-selectable-item__icon icon universe-color analysis {{ task.computedIcon }}"></i>
+                                <div class="right-panel-selectable-item__content">
+                                    <div class="selectable-item__title"><a ui-sref="projects.project.analyses.analysis.ml.{{task.taskType === 'CLUSTERING' ? 'clustmltask' : 'predmltask'}}.list.results({'analysisId': analysisData.analysis.id, 'mlTaskId': task.mlTaskId})">{{task.name}}</a></div>
+                                    <div class="selectable-item__description">
+                                        <span ng-if="task.modelCount">
+                                            {{ task.modelCount }} {{ 'model' | plurify : task.modelCount }}
+                                            in {{ task.sessionCount }} {{ 'session' | plurify : task.sessionCount }}
+                                        </span>
+                                        <span ng-if="!task.modelCount">
+                                            No model yet
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div ng-if="analysisData.mlTasks.length > 3" class="m16">
+                            <span ng-if="!analysisData.uiState.showAllMLTasks"
+                                ng-click="analysisData.uiState.showAllMLTasks = !analysisData.uiState.showAllMLTasks"
+                                class="toggle-show-more">
+                                + {{analysisData.mlTasks.length - 3}} more...
+                            </span>
+                            <span ng-if="analysisData.uiState.showAllMLTasks"
+                                ng-click="analysisData.uiState.showAllMLTasks = !analysisData.uiState.showAllMLTasks"
+                                class="toggle-show-more">
+                                Show less
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deployed models -->
+                <div class="accordion" ng-if="analysisData.savedModels.length > 0" dku-foldable dku-foldable-right-panel="details.savedModels" open="true">
+                    <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                        {{ 'Go to deployed model' | plurify : analysisData.savedModels.length }} ({{ analysisData.savedModels.length }})
+                    </h4>
+                    <div ng-show="foldableOpen">
+                        <ul class="selectable-items-list selectable-items-list--no-margins right-panel-selectable-items-list padleft16 padright16 mbot16">
+                            <li title="{{savedModelData.savedModel.name}}" 
+                                ui-sref="projects.project.savedmodels.savedmodel.versions({projectKey: analysisData.analysis.projectKey, smId: savedModelData.savedModel.id})" 
+                                ng-repeat="savedModelData in analysisData.savedModels"
+                                ng-show="$index < 3 || analysisData.uiState.showAllSavedModels"  
+                                class="selectable-item right-panel-selectable-item selectable">
+                                <i class="right-panel-selectable-item__icon icon universe-color analysis icon-machine_learning_regression"></i>
+                                <div class="right-panel-selectable-item__content">
+                                    <div class="selectable-item__title"><a ui-sref="projects.project.savedmodels.savedmodel.versions({projectKey: analysisData.analysis.projectKey, smId: savedModelData.savedModel.id})">{{savedModelData.savedModel.name}}</a></div>
+                                    <div class="selectable-item__description">
+                                        {{ savedModelData.versionsFromAnalysisCount }} {{ ' version' | plurify : savedModelData.versionsFromAnalysisCount }} 
+                                        from this analysis (out of {{ savedModelData.versionsCount }} {{ ' version' | plurify : savedModelData.versionsCount }})
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div ng-if="analysisData.savedModels.length > 3" class="m16">
+                            <span ng-if="!analysisData.uiState.showAllSavedModels"
+                                ng-click="analysisData.uiState.showAllSavedModels = !analysisData.uiState.showAllSavedModels"
+                                class="toggle-show-more">
+                                + {{analysisData.savedModels.length - 3}} more...
+                            </span>
+                            <span ng-if="analysisData.uiState.showAllSavedModels"
+                                ng-click="analysisData.uiState.showAllSavedModels = !analysisData.uiState.showAllSavedModels"
+                                class="toggle-show-more">
+                                Show less
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

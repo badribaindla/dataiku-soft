@@ -1,0 +1,33 @@
+<div class="nps-survey" ng-class="{ 'nps-survey-loading': !$ctrl.active }" ng-if="$ctrl.showSurvey">
+    <div ng-if="!$ctrl.finished">
+        <button type="button" id="qa_nps-survey_close" class="nps-survey__close close" ng-click="$ctrl.finish('POSTPONE')" aria-hidden"true">×</button>
+        <p class="nps-survey__title">How likely would you recommend Dataiku to a friend or colleague?</p>
+        <div class="nps-survey__scale">
+            <span class="nps-survey__scale-label">Not at all likely!</span>
+            <ul id="qa_nps-survey_survey-score" class="nps-survey__scores">
+                <li class="nps-survey__scores-item" ng-class="{ 'nps-survey__scores-item--selected': $ctrl.surveyScore === score }" ng-repeat="score in $ctrl.scores" ng-click="$ctrl.selectScore(score)">{{ score }}</li>
+            </ul>
+            <span class="nps-survey__scale-label">Extremely Likely!</span>
+        </div>
+        <div ng-if="$ctrl.surveyScore && $ctrl.surveyScore >= 1" class="nps-survey__question">
+            <p ng-if="$ctrl.surveyScore >= 9">What is it that you like that we are doing particularly well?</p>
+            <p ng-if="$ctrl.surveyScore >= 7 && $ctrl.surveyScore < 9">What changes would we need to make for you to give us an even higher rating?</p>
+            <p ng-if="$ctrl.surveyScore < 7">What can we do to improve your experience?</p>
+            <textarea class="nps-survey__comment-box" ng-model="$ctrl.response" placeholder="Optional"></textarea>
+            <div class="horizontal-flex">
+                <label for="nps-email" class="nps-survey__label">
+                    Your e-mail
+                </label><input name="nps-email" type="email" class="nps-survey__input" placeholder="Optional" ng-model="$ctrl.email">
+                <span class="nps-survey__input-info">We may contact you about your feedback</span>
+                <button id="qa_nps-survey_survey-submit" class="btn btn--contained nps-survey__button" ng-disabled="$ctrl.finished" ng-click="$ctrl.finish('SUBMIT')">Submit</button>
+            </div>
+        </div>
+        <div class="nps-survey__optout">
+            <a id="qa_nps-survey_postpone" class="nps-survey__optout-link" ng-click="$ctrl.finish('POSTPONE')">Ask me later</a> | 
+            <a id="qa_nps-survey_optout" class="nps-survey__optout-link" ng-click="$ctrl.finish('OPTOUT')">Never ask me again</a>
+        </div>
+    </div>
+    <div ng-if="$ctrl.finished">
+        <p class="nps-survey__title">Thank you for your participation!</p>
+    </div>
+</div>

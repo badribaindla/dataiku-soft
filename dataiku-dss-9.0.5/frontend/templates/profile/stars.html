@@ -1,0 +1,78 @@
+<div class="stars-list boxed-next-to-sidebar no-padding h100">
+    <div class="h100 vertical-flex">
+
+        <div class="header noflex dku-border-bottom" style="padding: 15px 20px">
+            <h1 class="page-title">Stars and watches</h1>
+
+            <div class="std-list-search-box noflex">
+                <span class="add-on" style="background: #fff;"><i class="icon-filter" /></span>
+
+                <div style="display: inline-block"
+                    object-type-picker="{noneSelectedText: 'All types'}"
+                    object-type="filters.taggableType"
+                    ng-disabled="projectSettings.readerAuthorizeAll"
+                    all-option="'All types'">
+                </div>
+
+                <span style="margin-left: 20px">
+                    <span class="add-on" style="background: #fff;"><i class="icon-dkubird" /></span>
+                    <select dku-bs-select="{noneSelectedText: 'All projects'}" ng-model="filters.projectKey" ng-options="p.projectKey as p.name for p in projects" />
+                </span>
+            </div>
+        </div>
+
+
+        <div style="flex: 0 1 auto;" class="oa" ng-if="results.interests && results.interests.length">
+            <table class="dku-colored-list spaced">
+                <tr ng-repeat="object in results.interests" style="padding: 0 20px; height: auto;">
+                    <td style="padding-left: 20px; width: 45px;">
+                        <i class="universe-color {{object.details.datasetType || object.details.streamingType || object.details.recipeType || object.details.webappType || object.objectType | typeToIcon }} {{object.details.recipeType || object.objectType | typeToColor}}" />
+                    </td>
+
+                    <td style="width: 1px; max-width: 750px;">
+                        <div class="horizontal-flex">
+                            <div class="mx-textellipsis" style="flex: 0 1 auto;">
+                                {{object.details.objectDisplayName || object.objectId}}
+                            </div>
+                            <div style="margin-right: 15px;" class="noflex" ng-if="!object.details.itemNotFound">
+                                <small>&nbsp;– <a href="{{StateUtils.href.dssObject(object.objectType, SmartId.fromRef(object, null))}}">view</a></small>
+                            </div>
+                            <div style="margin-right: 15px;" class="noflex" ng-if="object.details.itemNotFound">
+                                <small>&nbsp;– <i class="icon-warning-sign" style="font-size: 8px" />not found</small>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td class="project ellipsed" ng-if="object.projectKey" title="ProjectKey: {{object.projectKey}}">
+                        {{ getProjectName(object.projectKey) || object.projectKey }}
+                    </td>
+                    <td class="interests">
+                        <watch-interest status="object.watching"
+                                        on-toggle="watchObject(object, nextStatus)"
+                                        tooltip-position="left"
+                                        class="mleft4 mright4"
+                        ></watch-interest>
+                        <star-interest status="object.starred"
+                                       on-toggle="starObject(object, nextStatus)"
+                                       tooltip-position="left"
+                                       class="mleft4 mright4"
+                        ></star-interest>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="footer noflex" style="padding: 10px 10px">
+            <button class="btn btn--secondary" ng-show="results.offset" ng-click="previousResults()">
+                <i class="icon-arrow-left" /> Previous results
+            </button>
+            <button class="btn btn--secondary" ng-show="results.hasMoreResults" ng-click="nextResults()">
+                <i class="icon-arrow-right" /> Next results
+            </button>
+        </div>
+
+        <div ng-if="results.interests && !results.interests.length" class="placeholder-block">
+            You have no starred or watched items
+        </div>
+    </div>
+</div>

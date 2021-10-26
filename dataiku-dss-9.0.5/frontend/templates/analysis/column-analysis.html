@@ -1,0 +1,62 @@
+<div class="feature-section-with-title">
+    <div class="row-fluid" ng-if="data">
+        <h5 class="feature-section-title main-zone-element">
+            Distribution
+        </h5>
+        <div class="column-analysis number-analysis" ng-if="isNumeric">
+
+            <div class="main-zone-element statistics-table">
+                <table class="table">
+                    <tr>
+                        <th>Minimum   </th><td>{{isDate ?(data.min    | date) :(data.min    | nicePrecision:5)}}</td>
+                        <th>Mean  </th><td>{{isDate ?(data.mean   | date) :(data.mean   | nicePrecision:5)}}</td>
+                        <th>Distinct values</th><td>{{data.cardinality}}</td>
+                        <th>Empty cells</th>
+                        <td ng-if="data.nbEmpty.toFixed">{{data.nbEmpty}} ({{data.pcEmpty | number:1}}%)</td>
+                        <td ng-if="!data.nbEmpty.toFixed" ng-bind="(data.pcEmpty | number:1) + '%'" />
+                    </tr>
+                    <tr>
+                        <th>Maximum   </th><td>{{isDate ?(data.max    | date) :(data.max    | nicePrecision:5)}}</td>
+                        <th>StdDev</th><td>{{isDate ?(data.stddev | friendlyDurationShort)
+                            :(data.stddev | nicePrecision:5)}}</td>
+                        <th>Mode  </th><td>{{isDate ?(data.mode   | date) :(data.mode   | nicePrecision:5)}}</td>
+                        <th>Invalid cells</th>
+                            <td ng-if="data.nbNOK.toFixed">{{data.nbNOK}} ({{data.pcNOK | number:1}}%)</td>
+                            <td ng-if="!data.nbNOK.toFixed" ng-bind="(data.pcNOK | number:1) + '%'" />
+                    </tr>
+                    <tr>
+                        <th></th><td></td>
+                        <th>Median</th><td>{{isDate ?(data.median | date) :(data.median | nicePrecision:5)}}</td>
+                        <th></th><td></td>
+                        <th></th><td></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="span6">
+                <box-plot data="data" height="25"></box-plot>
+                <histogram data="data" height="100" is-date="isDate" style="margin-top: 10px"></histogram>
+            </div>
+        </div>
+        <div class="column-analysis text-analysis" ng-if="!isNumeric">
+            <div class="span3 re-select main-zone-element">
+                <strong>{{data.totalNbValues}}</strong> distinct values,<br> with
+                <span ng-if="data.nbEmpty.toFixed"><strong ng-bind="data.nbEmpty" />
+                        empty cells ({{data.pcEmpty | number:1}}%)</span>
+                <span ng-if="!data.nbEmpty.toFixed"><strong ng-bind="(data.pcEmpty | number:1) + '%'" />
+                        empty cells</span>
+            </div>
+            <div class="span7" ng-if="!asList">
+                <bar-chart data="data" height="180" count="count"></bar-chart>
+            </div>
+            <div class="span7" ng-if="asList"><ul>
+                <li ng-repeat="v in data.values" ng-bind="v" />
+                <li ng-if="data.totalNbValues &gt; data.values.length">&hellip;</li>
+            </ul></div>
+        </div>
+    </div>
+    <p ng-if="!data && isNumeric" class="alert alert-warning">
+        Could not find numbers in this feature.
+    </p>
+</div>
+

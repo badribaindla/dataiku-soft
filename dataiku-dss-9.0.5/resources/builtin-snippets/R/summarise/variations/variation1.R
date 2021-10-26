@@ -1,0 +1,1 @@
+summarise(df, mean(col_1))

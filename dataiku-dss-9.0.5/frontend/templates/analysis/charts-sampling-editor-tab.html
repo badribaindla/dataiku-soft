@@ -1,0 +1,63 @@
+<div style="padding: 10px">
+    <form>
+        <fieldset>
+            <span class="fieldLabel">
+                Select which part of the dataset will be used for this chart.
+            </span>
+        </fieldset>
+
+        <fieldset>
+            <label class="fieldLabel">
+                <input type="checkbox" ng-model="chart.copySelectionFromScript">Use same sampling as script</label>
+        </fieldset>
+
+        <div ng-if="!chart.copySelectionFromScript">
+
+            <fieldset ng-show="!chart.copySelectionFromScript">
+                <span class="fieldLabel">Sampling method</span>
+                <select ng-model="chart.refreshableSelection.selection.samplingMethod" ng-options="x[0] as x[1] for x in SamplingData.streamSamplingMethods" options-descriptions="SamplingData.streamSamplingMethodsDesc" layout="list" dku-bs-select />
+            </fieldset>
+
+            <div dataset-selection-partitions-selection-fields
+                    selection="chart.refreshableSelection.selection"
+                    partitioned="dataset.partitioning.dimensions.length > 0"
+                    get-partitions-list="getPartitionsList"></div>
+
+            <fieldset>
+                 <label class="control-label">
+                    <input type="checkbox" ng-model="chart.refreshableSelection.selection.filter.enabled"
+                    ng-change="chart.refreshableSelection.selection.filter.enabled ? showFilterModal(false) : onChange()" />
+                    Filter records
+                </label>
+
+                <span ng-show="chart.refreshableSelection.selection.filter && chart.refreshableSelection.selection.filter.enabled"
+                    class="filter-expression"
+                    ng-click="showFilterModal(false)"
+                    toggle="tooltip"
+                    style="cursor: pointer"
+                    title="Click to edit"
+                    >
+                    <span ng-bind-html="chart.refreshableSelection.selection.filter|filterNiceRepr" />
+                </span>
+            </fieldset>
+
+            <div dataset-selection-sampling-details-fields selection="chart.refreshableSelection.selection"></div>
+
+        </div>
+    </form>
+
+    <div class="text-right" ng-show="chart.engineType != 'SQL' && chart.engineType != 'SPARKSQL' && !chart.copySelectionFromScript">
+        <button ng-click="save()" class="btn btn--primary">Save and refresh sample</button>
+        <br />
+        <small><a ng-click="saveNoRefresh()">Save (no forced refresh)</a></small>
+    </div>
+    <div class="text-right" ng-show="chart.engineType != 'SQL' && chart.engineType != 'SPARKSQL' && chart.copySelectionFromScript">
+        <button ng-click="save()" class="btn btn--primary">Save</button>
+        <br />
+        <small>To force a refresh of the sample,<br /> refresh it first in the Script tab</small>
+    </div>
+    <div class="text-right" ng-show="chart.engineType == 'SQL' || chart.engineType == 'SPARKSQL'">
+        <button ng-click="save()" class="btn btn--primary">Save</button>
+    </div>
+
+</div>

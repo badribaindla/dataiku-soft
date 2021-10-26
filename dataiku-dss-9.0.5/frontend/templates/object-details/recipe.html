@@ -1,0 +1,250 @@
+<div data-extend-template="/templates/object-details/item-template.html" ng-controller="RecipeDetailsController">
+
+    <div data-block="item-header" item-header
+         href="StateUtils.href.recipe(data.recipe.name, data.recipe.projectKey)"
+         color="{{data.recipe.type | recipeTypeToColor}}"
+         icon="{{data.recipe.type | recipeTypeToIcon}}" title="{{data.recipe.name}}">
+        {{data.recipe.name}}
+    </div>
+
+    <div data-block-append="details">
+        <div class="line" ng-if="data.recipe.type.length">
+            <h4>Recipe type</h4>
+            <p>{{(data.recipe.recipeType || data.recipe.type) | recipeTypeToName}}</p>
+        </div>
+
+
+        <div class="line" ng-if="data.lastSuccessfulBuildEndTime >=  0">
+            <h4>Last successful build</h4>
+            <p>{{ data.lastSuccessfulBuildEndTime | friendlyDateTime: 'EEEE, d MMMM yyyy' }}</p>
+        </div>
+
+        <div class="line" ng-if="data.lastSuccessfulBuildDuration >=  0">
+            <h4>Last successful build duration</h4>
+            <p>{{ data.lastSuccessfulBuildDuration | friendlyDuration }}</p>
+        </div>
+
+        <!-- Visual recipes -->
+        <div ng-switch="data.recipe.type">
+            <div ng-switch-when="shaker">
+                <div class="block">
+                    <strong>{{data.script.steps.length || 0}}</strong>  {{'preparation step' | plurify: data.script.steps.length}}
+                </div>
+            </div>
+
+            <div ng-switch-when="clustering_training">
+                <div class="line">
+                    <h4>Algorithm used</h4>
+                    <p>{{data.script.modeling.algorithm}}</p>
+                </div>
+
+                <div class="line">
+                    <h4>Preparation script</h4>
+                    <p><strong>{{data.script.script.steps.length || 0}}</strong> steps</p>
+                </div>
+
+                <sampling-details-block selection="data.script.sampling.selection"></sampling-details-block>
+            </div>
+
+
+            <div ng-switch-when="prediction_training">
+                <div class="line">
+                    <h4>Algorithm used</h4>
+                    <p>{{data.script.modeling.algorithm}}</p>
+                </div>
+
+                <div class="line">
+                    <h4>Preparation script</h4>
+                    <p><strong>{{data.script.script.steps.length || 0}}</strong> steps</p>
+                </div>
+
+                <sampling-details-block selection="data.script.splitParams.ssdSelection"></sampling-details-block>
+            </div>
+
+            <!-- Group recipe -->
+            <div ng-switch-when="grouping">
+
+                <div class="line" ng-if="data.script.keys.length==1">
+                    <h4>On key</h4>
+                    <p ng-if="data.script.keys[0].column"><span class="column-name">{{data.script.keys[0].column}}</span></p>
+                    <p ng-if="data.script.keys[0].customName"><span class="column-name">{{data.script.keys[0].customName}}</span> <em>(custom)</em></p>
+                </div>
+                <div ng-if="data.script.keys.length > 1">
+                    <div class="line" >
+                        <h4>On keys</h4>
+                        <p ng-if="data.script.keys[0].column"><span class="column-name">{{data.script.keys[0].column}}</span></p>
+                        <p ng-if="data.script.keys[0].customName"><span class="column-name">{{data.script.keys[0].customName}}</span> <em>(custom)</em></p>
+                    </div>
+                    <div class="line" ng-repeat="key in data.script.keys.slice(1)">
+                        <span>&nbsp;</span>
+                        <p ng-if="key.column"><span class="column-name">{{key.column}}</span></p>
+                        <p ng-if="key.customName"><span class="column-name">{{key.customName}}</span> <em>(custom)</em></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sampling recipe -->
+            <div ng-switch-when="sampling">
+
+                <div class="block border" ng-inject="Expressions" ng-if="data.script.enabled">
+                    <h4>Filter rows</h4>
+                    <div ng-switch="data.script.uiData.mode">
+                        Satisfying
+                        <span ng-switch-when="||">at least one the following conditions:</span>
+                        <span ng-switch-when="&&">all the following conditions:</span>
+                        <span ng-switch-when="CUSTOM">a formula</span>
+                        <span ng-switch-when="SQL">an SQL expression</span>
+                    </div>
+
+                    <div class="code" ng-if="data.script.uiData.mode === 'CUSTOM'">
+                        <textarea ng-model="data.script.expression" ui-codemirror="{mode: 'text/grel', 'readOnly': true}"></textarea>
+                    </div>
+
+                    <ul ng-if="data.script.uiData.mode === '||' || data.script.uiData.mode === '&&'">
+                        <li ng-repeat="condition in data.script.uiData.conditions"
+                            ng-init="operator = Expressions.getOperatorByName(condition.operator)">
+                            <span class="column-name">{{condition.input}}</span>
+                            {{operator.label}}
+                            <span ng-repeat="param in operator.params">
+                                {{condition[param]}}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="block border" ng-inject="Expressions" ng-if="!data.script.enabled">
+                    <h4>Not filtering rows</h4>
+                </div>
+
+                <sampling-details-block selection="data.recipe.params.selection"></sampling-details-block>
+            </div>
+        </div>
+
+        <!-- Code recipes -->
+        <div ng-if="(data.recipe.type | recipeTypeToLanguage) && data.script">
+            <div class="line" ng-if="data.notebook && data.notebook.projectKey && data.notebook.name">
+                <h4>Associated notebook</h4>
+                <p class="mx-textellipsis"><a
+                    href="{{StateUtils.href.jupyterNotebook(data.notebook.name, data.notebook.projectKey)}}">
+                    {{data.notebook.name}}</a></p>
+            </div>
+            <div ng-if="!isOnRecipeObjectPage()" class="code block">
+                <textarea ng-model="data.script" ui-codemirror="{mode: (data.recipe.type | recipeTypeToLanguage), 'readOnly': true}"></textarea>
+            </div>
+        </div>
+
+        <!-- Custom recipes -->
+        <div class="block grey" ng-if="data.recipe.type.startsWith('Custom')" ng-inject="PluginsService">
+            Plugin: {{PluginsService.getPluginDesc(PluginsService.getRecipeLoadedDesc(data.recipe.type).ownerPluginId).label}}
+        </div>
+    </div>
+
+    <div data-block="right">
+        <div ng-switch="data.recipe.type">
+            <!-- Join recipe -->
+            <div ng-switch-when="join">
+                <div class="accordion" dku-foldable dku-foldable-right-panel name="details.join" open="true" >
+                    <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                        {{'Column' | plurify: data.script.selectedColumns.length}} <span>({{data.script.selectedColumns.length}})</span>
+                    </h4>
+                    <ul ng-show="foldableOpen">
+                        <li ng-repeat="column in data.script.selectedColumns">
+                            {{column.name}} <span ng-if="column.alias">(as {{column.alias}})</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Group recipe -->
+            <div ng-switch-when="grouping">
+                <div class="accordion" ng-if="getFlatAggregates(data.script.values).length" dku-foldable dku-foldable-right-panel name="details.recipes.aggr" open="true" ng-init="aggregateList = getFlatAggregates(data.script.values)">
+                    <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                        {{'Aggregation' | plurify: aggregateList.length}} <em>({{aggregateList.length}})</em>
+                    </h4>
+                    <ul ng-show="foldableOpen">
+                        <li ng-repeat="aggregateItem in aggregateList" >
+                            <span ng-if="aggregateItem.customExpr" class="column-name">{{aggregateItem.customExpr}}</span>
+                            <span ng-if="!(aggregateItem.customExpr)">{{aggregateItem.agg | niceConst}} of <span class="column-name">{{aggregateItem.column}}</span></span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="accordion" ng-if="data.inputs | objectSize" dku-foldable dku-foldable-right-panel name="details.inputs" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Inputs <em>({{data.inputs | objectSize}})</em>
+            </h4>
+            <ul ng-show="foldableOpen">
+                <li ng-repeat="(name, input) in data.inputs">
+                    <span class="mx-textellipsis">
+                        <i class="object-icon universe-color {{getObjectIcon(input)}}"></i>
+                        <a href="{{getObjectLink(input)}}">{{input.name}}</a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Outputs -->
+        <div class="accordion" ng-if="data.outputs | objectSize" dku-foldable dku-foldable-right-panel name="details.outputs" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Outputs <em>({{data.outputs | objectSize}})</em>
+            </h4>
+            <ul ng-show="foldableOpen">
+                <li ng-repeat="(name, output) in data.outputs">
+                    <span class="mx-textellipsis">
+                        <i class="object-icon universe-color {{getObjectIcon(output)}}"></i>
+                        <a href="{{getObjectLink(output)}}">{{output.name}}</a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Custom Fields -->
+        <div custom-fields-in-side-panel ng-if="appConfig.customFieldsMap[objectType].length > 0 && object && object.customFields" custom-fields="object.customFields" object-type="objectType" save-fn="saveCustomFields" edit-custom-fields="editCustomFields" editable="canWriteProject()"></div>
+
+        <!-- Checklists -->
+        <div class="accordion" ng-if="editable || object.checklists.checklists.length > 0" dku-foldable dku-foldable-right-panel="details.checklists" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Todo Lists <em ng-if="object.checklists.checklists.length > 0">({{ object.checklists.checklists.length }})</em>
+            </h4>
+            <div ng-show="foldableOpen" style="padding:0 15px;">
+                <div ng-repeat="x in object.checklists.checklists">
+                    <div class="checklist">
+                        <div class="pull-right">
+                            <a class="link-danger" ng-click="deleteChecklist($index)"
+                               title="Delete todo list"
+                               style="display:inline-block;margin: 10px;"
+                               ng-if="editable">
+                                <i class="icon-trash" />
+                            </a>
+                        </div>
+                        <h4 class="checklist-title">
+                            <div ng-if="!x.editingTitle">
+                                {{x.title}}
+                                <a class="link-std edit-button" ng-click="startEditChecklistTitle(x)" ng-if="editable">
+                                    <i class="icon-pencil" />
+                                </a>
+                            </div>
+                            <div ng-if="x.editingTitle" class="common-styles-only">
+                                <input type="text" ng-model="state.checklistTitle.newVal" placeHolder="New name" required />
+                                <div style="margin-top: 3px">
+                                    <button class="btn btn--success" ng-click="validateChecklistTitleEdit()">Save</button>
+                                    <button class="btn btn--secondary" ng-click="cancelChecklistTitleEdit()">Cancel</button>
+                                </div>
+                            </div>
+                        </h4>
+                        <p> <span ng-bind-html="x|singleChecklistState" /></p>
+                        <div object-checklist checklist="x" items-only="true" read-only="!editable" />
+                    </div>
+                </div>
+                <div ng-if="editable" class="new-checklist"
+                     style="margin-top: 15px; margin-bottom: 15px">
+                    <a class="std-greylink" ng-click="addChecklist()">
+                        Add a todo list
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

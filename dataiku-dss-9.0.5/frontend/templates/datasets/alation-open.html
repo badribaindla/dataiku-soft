@@ -1,0 +1,50 @@
+<div class="vertical-flex">
+	<div class="top-level-tabs objecttype-administration">
+		<div class="row-fluid object-nav">
+			<div class="object-breadcrumb"> 
+				<a class="item">
+					<i class="icon icon-book universe-background alation"></i>
+					<span class="title ellipsis">
+						Open: {{alationOpen.catalogSelection.semanticMetadata.title}}
+					</span>
+				</a>
+			</div>
+
+		</div>
+	</div>
+	 <div class="dss-page">
+        <div class="h100 container-fluid page-top-padding">
+        	<div block-api-error />
+
+			<div ng-if="alationOpen.existingDatasets.length > 0">
+				<h4>Open an existing dataset</h4>
+				<table class="table table-striped table-hover">
+
+					<tr>
+						<th>Project</th>
+						<th>Dataset name</th>
+					</tr>
+					<tr ng-repeat="existingDataset in alationOpen.existingDatasets">
+						<td>{{existingDataset.projectName}}</td>
+						<td>
+							<i class="{{existingDataset.datasetType | datasetTypeToIcon}}" />
+							<a href="/projects/{{existingDataset.projectKey}}/datasets/{{existingDataset.datasetName}}/explore/">
+								{{existingDataset.datasetName}}
+							</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<div ng-if="alationOpen.possibleTargetProjects.length > 0">
+				<h4>Import as a new dataset</h4>
+
+				<select dku-bs-select="{liveSearch:true,noneSelectedText:'Select target project...'}" ng-model="importNewDataset.targetProjectKey"
+					ng-options =" x.projectKey as x.name for x in alationOpen.possibleTargetProjects" />
+
+				<button class="btn btn--primary" ng-click="import()" ng-disabled="!importNewDataset.targetProjectKey">Import</button>
+			</div>
+
+		</div>
+	</div>
+</div>

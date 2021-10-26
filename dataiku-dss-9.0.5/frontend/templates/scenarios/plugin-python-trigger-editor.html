@@ -1,0 +1,36 @@
+<div ng-controller="PluginPythonTriggerController">
+	<div ng-include ="'/templates/scenarios/fragments/trigger-header.html'"></div>
+    <debug data=trigger />
+    <div ng-if="!unavailable">
+        <form name="descriptionForm" class="dkuform-horizontal trigger-form" ng-if="trigger.$expanded"> <!-- ng-show is not sufficient, the codeMirror doesn't get refreshed -->
+            <div class="control-group">
+                <label class="control-label" style="font-weight: bold;">{{desc.meta.label || desc.id}}</label>
+                <div class="controls">
+                    <div from-markdown="desc.meta.description" />
+        
+                    <a href="{{pluginDesc.url}}">Learn more</a>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Run every (seconds)</label>
+    
+                <div class="controls">
+                    <input type="number" ng-model="trigger.delay" min="5" required />
+                </div>
+            </div>
+            <div ng-include="'/templates/scenarios/fragments/trigger-grace-delay-settings.html'" ng-if="!unavailable"/>
+            <div class="control-group">
+                <div plugin-settings-alert plugin-desc="pluginDesc" component-type="trigger" has-settings="pluginDesc.hasSettings" app-config="appConfig" />
+                <div custom-params-form
+                    desc="desc"
+                    plugin-desc="pluginDesc"
+                    component-id="loadedDesc.id"
+                    config="trigger.params.config" />
+            </div>
+        </form>
+    </div>
+    <div class="alert alert-error" ng-if="unavailable">
+        This trigger is not available. It is defined in plugin {{unavailablePluginId}}.<br>
+        This plugin is not installed or its current version does not include this trigger.
+    </div>
+</div>

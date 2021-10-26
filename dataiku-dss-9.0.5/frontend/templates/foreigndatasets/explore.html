@@ -1,0 +1,64 @@
+<div class="shaker fixedPanes shaker-read-only"
+    shaker-facets
+    shaker-explore-base
+    shaker-on-dataset
+    foreign-dataset-explore
+    show-left-pane="false"
+    ng-class="{showLeftPane: showLeftPane, showRightPane: showRightPane}"
+    fixed-panes>
+    <div class="leftPane">
+        <div class="handle" ng-click="toggleLeftPane()"></div>
+        <div class="tabbable" style="width: 0px; height: 0px;"><li /></div>
+        <tabs>
+            <pane title="Sample settings" subtitle="getSampleDesc()">
+                <div include-no-scope="/templates/shaker/sampling-tab.html" />
+            </pane>
+        </tabs>
+    </div>
+
+    <div class="mainPane">
+        <!-- Main pane top bar -->
+        <div class="table-view-header">
+
+            <!-- Big top bar -->
+            <div class="shaker-summary-wrapper">
+
+                <!-- Step summary -->
+                <div include-no-scope="/templates/shaker/shaker-summary-stats.html"></div>
+
+                <!-- Views Buttons -->
+                 <div class="view-buttons-wrapper">
+                    <a style="font-size: 27px; vertical-align: middle; text-decoration: none" ng-click="showWarningsDetails()" class="text-warning" ng-show="table.warnings.totalCount">
+                        <i class="icon-warning-sign" title="Warnings occurred while reading input" />
+                    </a>
+
+                    <div include-no-scope="/templates/shaker/display-mode-menu.html" class="dib"/>
+
+                    &emsp;
+                    <button class="btn btn--secondary" ng-show="!shakerState.quickColumnsView" ng-click="shakerState.quickColumnsView = true"
+                            toggle="tooltip" title="Quick columns stats"><i class="icon-bar-chart" /></button>
+                </div>
+            </div>
+
+            <!-- filters -->
+            <div ng-show="shaker && uiDisplayState.showUI && table" include-no-scope="/templates/shaker/filters-column.html"></div>
+        </div>
+
+        <!-- Main pane main zone -->
+        <div class="table-view" style="flex: 1; display: flex; flex-direction: column;">
+
+            <div class="v-centered-fit" include-no-scope="/templates/datasets/fragments/dataset-error-cta.html" ng-if="error" />
+
+            <div future-waiting response="future" dku-if="future && !future.hasResult"></div>
+
+            <div class="positionTable shakerTable coloring-{{table.coloringScheme}}" fattable fattable-data="table" ng-if="uiDisplayState.showUI && table"></div>
+
+            <spinner ng-show="pendingRequests.length && spinnerPosition == 'shaker'"></spinner>
+        </div>
+
+    </div>
+
+    <div quick-columns-view class="rightPane"></div>
+
+    <div coachmark-serie-caller serie-id="'explore-hello'" ng-if="uiDisplayState.showUI" />
+</div>

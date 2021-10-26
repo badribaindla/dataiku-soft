@@ -1,0 +1,85 @@
+<div ng-controller="CreateUrlDownloadToFolderDatasetController" class="modal modal3 code-based-recipe-creation-modal io-modal"
+        auto-size="false" style="height: 410px;">
+
+    <div class="vertical-flex h100">
+        <div dku-modal-header-with-totem modal-class="noflex" modal-title="Create a cached HTTP dataset" modal-totem="icon-visual_download_recipe" />
+
+        <div class="flex">
+            <form class="fh dkuform-modal-horizontal dkuform-modal-wrapper" name="downloadURLForm">
+                <div class="modal-body h100 oa" style="padding: 10px;">
+                    <div block-api-error></div>
+                    <p>
+                        <img src="/static/dataiku/images/cached-http-flow.png" alt="" class="pull-right" style="height: 2.5em">
+                        This wizard helps you fetch files from a HTTP location and cache them in a managed folder.<br />
+                        It will setup a <strong>Download</strong> recipe that fetches a remote URL into a <strong>Managed Folder</strong>, plus a <strong>Files in Folder</strong> dataset that uses the data inside that Folder.
+                    </p>
+                    <div class="control-group">
+                        <label class="control-label">URL (HTTP, HTTPS or FTP)</label>
+                        <div class="controls">
+                            <input type="url" ng-model="params.url" style="width: 87%" ng-readonly="params.recipeName" />
+                            <button type="button" class="btn btn--primary pull-right"
+                                ng-disabled="!params.url || params.recipeName" ng-click="checkURL()">Check</button>
+                            <br />
+                            <span class="help-inline" style="width: 87%">You can add more sources after creating the recipe</span>
+                            <div>
+                                <div ng-if="downloadCheck && !downloadCheck.error && !downloadCheck.successful" class="text-error">
+                                    <i class="icon-warning-sign" />
+                                    Failed to enumerate files
+                                </div>
+                                <div ng-if="downloadCheck.successful" class="text-success">
+                                    <i class="icon-ok" />
+                                    Found {{ downloadCheck.totalFileCount }} file{{ downloadCheck.totalFileCount > 1 ? 's' : '' }},
+                                    {{ downloadCheck.totalFileSize|filesize }}
+                                </div>
+                                <div ng-if="downloadCheck.error" class="text-error">
+                                    <i class="icon-warning-sign" />
+                                    <strong>Network error:</strong> {{ downloadCheck.error.message }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr ng-if="downloadCheck.successful" />
+                    <div class="control-group" ng-if="downloadCheck.successful">
+                        <label class="control-label">Connection for the Folder</label>
+                        <div class="controls">
+                            <select dku-bs-select required
+                                ng-options="conn as conn.connectionName group by conn.connectionType for conn in connections | orderBy:'connectionType + connectionName'"
+                                ng-model="params.connection" ng-disabled="params.folderId"></select>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="downloadCheck.successful">
+                        <label class="control-label">Folder name</label>
+                        <div class="pull-right">
+                            <button type="button" class="btn btn--primary"
+                                    ng-click="createFolderAndDownload()"
+                                    ng-disabled="downloadURLForm.$invalid || downloading">
+                                {{ params.folderId ? '' : 'Create Folder &amp;' }} Run Download
+                            </button>
+                        </div>
+                        <div class="controls" ng-switch="jobStatus.baseStatus.state">
+                            <input type="text" ng-model="params.folderName" ng-disabled="params.folderId" required />
+                            <div ng-switch-when="DONE" class="text-success">Download job completed</div>
+                            <div ng-switch-when="ABORTED" class="text-error">Download job aborted</div>
+                            <div ng-switch-when="FAILED" class="text-error">
+                                Download job failed
+                                <a ui-sref="projects.project.jobs.job({jobId: jobStatus.baseStatus.def.id })">View details</a>
+                            </div>
+                            <div ng-show="params.folderId && downloading">Created folder &amp; download recipe, running download job&hellip;</div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="noflex modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Close</button>
+            <button type="button" class="btn btn--text btn--primary" ng-click="goToFolder()"
+                ng-disabled="!params.folderId">Go to Folder</button>
+            <button type="submit" class="btn btn--text btn--primary"
+                    ng-disabled="downloadURLForm.$invalid || downloading || !params.folderId"
+                    ng-click="goCreateDataset()">
+                Create dataset on Folder
+            </button>
+        </div>
+    </div>
+</div>

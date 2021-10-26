@@ -1,0 +1,41 @@
+<div class="row-fluid h100" ng-controller="ROCCurveController">
+    <div class="span8 h100 w100-on-dashboard">
+        <div class="vertical-flex h100">
+            <div class="noflex">
+                <div puppeteer-hook-1>
+                    <select ng-if="isMulticlass()" dku-bs-select="{titlePrefix:'Class'}"
+                            ng-model="rocClass" ng-change="setRocClass(rocClass)"
+                            ng-options="c for c in modelData.classes | orderBy" />
+                </div>
+                <span ng-if="isMulticlass()" style="margin-left: 2em" >
+                The AUC for this class is
+                    <code ng-bind="rocAuc | number : 3" />.
+                </span>
+            </div>
+            <div class="noflex">
+                <div style="height:700px; width: 100%; padding-top: 1em; box-sizing: border-box;">
+                    <svg ng-if="modelData.coreParams" class="chart-std-font" style="width: 100%; height: 100%"
+                         bc-roc-curve data="data" data-colors="colors"
+                         disable-transitions="$stateParams.exportMode" puppeteer-hook-2 puppeteer-hook-element-content-loaded></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="span4 hide-on-dashboard">
+        <div class="doctor-explanation">
+            <p> The Receiver Operating Characteristic (or ROC) curve shows the true positive rate
+                vs. the false positive resulting from different cutoffs in the predictive model.
+                The "faster" the curve climbs, the better it is.</p>
+            <p> On the contrary, a curve close to the diagonal line is worse.</p>
+            <p class="alert alert-info">
+                The {{ isMulticlass() ? 'MAUC (Multi-class ' : 'AUC (' }}
+                Area Under the Curve) for this model is
+                <code ng-bind-html="auc | mlMetricFormat :'AUC' :3 :aucstd" />,
+                which is <strong ng-bind="auc | mlScoreAssess : 'auc'" />.
+            </p>
+        </div>
+        <button class="mtop10 btn btn--secondary export-btn" ng-click="exportROCData()">
+            Export data
+        </button>
+    </div>
+</div>

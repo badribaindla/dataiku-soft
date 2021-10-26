@@ -1,0 +1,64 @@
+<div ng-controller="StdAggregatedChartDefController">
+    <!-- Rows and Columns -->
+    <div class="chartdef-line horizontal-flex">
+        <div class="noflex chartdef-line-header" style="width: 53px">Rows</div>
+
+        <div class="noflex chartdef-dropzone chartdef-dropzone-mono" ng-class="{'empty':chart.def.yDimension.length==0, 'notempty': chart.def.yDimension.length != 0}" style="width: 198px">
+            <div class="empty-placeholder zone-no-header">
+                Drop to set the Rows
+            </div>
+            <div class="chartdef-dropzone-main qa_charts_dimension1-dropzone" monovalued-std-aggr-dimension-zone list="chart.def.yDimension" accept-callback="acceptDimension" />
+        </div>
+
+         <div class="noflex">
+            <div class="dibvam chartdef-line-header" style="margin-left:20px; margin-right:20px;">Columns</div>
+        </div>
+        
+        <div class="noflex  chartdef-dropzone chartdef-dropzone-mono" ng-class="{'empty':chart.def.xDimension.length==0, 'notempty': chart.def.xDimension.length != 0}" style="width: 198px">
+            <div class="empty-placeholder zone-no-header">
+                Drop to set the Columns
+            </div>
+            <div class="chartdef-dropzone-main qa_charts_dimension0-dropzone" monovalued-std-aggr-dimension-zone list="chart.def.xDimension" accept-callback="acceptDimension" />
+        </div>
+    </div>
+
+    <!-- Colored tables -->
+    <div class="chartdef-line horizontal-flex" ng-if="chart.def.variant==='colored'" style="margin-top:10px">
+        <div class="chartdef-line horizontal-flex">
+            <div class="noflex chartdef-line-header" style="width: 53px">Color</div>
+    
+            <div class="noflex  chartdef-dropzone chartdef-dropzone-mono" ng-class="{'empty':chart.def.yDimension.length==0, 'notempty': chart.def.yDimension.length != 0}">
+                <div class="chartdef-dropzone-header">
+                    <div contextual-menu ng-click="toggleContextualMenu($event)" class="qa_charts_y-axis-contextual-menu" style="cursor:pointer; position:relative">
+                       <span class="header-btn">
+                            <i class="icon-dku-color_picker_2 qa_charts_color-options-dropdown" style="font-size: 12px" />
+                            <i class="icon-caret-down" />
+                        </span>
+                        <div class="contextualMenu fixed-contextual-menu-align-left" ng-show="contextualMenu">
+                            <div include-no-scope="/templates/simple_report/config/continuous-color-menu.html" />
+                        </div>
+                    </div>
+                </div>
+                <div class="empty-placeholder">
+                    Drop to set the background color
+                </div>
+                <div class="chartdef-dropzone-main" monovalued-std-aggr-measure-zone list="chart.def.colorMeasure" accept-callback="acceptMeasure" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="chartdef-line horizontal-flex" style="margin-top:10px">
+        <div class="noflex chartdef-line-header" style="width: 53px">Content</div>
+
+        <div class="flex chartdef-dropzone chartdef-dropzone-multi" ng-class="{'empty':chart.def.genericMeasures.length==0, 'notempty': chart.def.genericMeasures.length != 0}">
+            <div class="empty-placeholder">
+                Drop to set the cell content
+            </div>
+
+            <div class="chartdef-dropzone-main qa_charts_measure-dropzone" multivalued-std-aggr-measure-zone list="chart.def.genericMeasures" accept-callback="acceptMeasure" />
+        </div>
+        
+    </div>
+    
+</div>

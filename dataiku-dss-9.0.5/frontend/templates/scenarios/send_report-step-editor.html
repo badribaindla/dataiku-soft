@@ -1,0 +1,31 @@
+<div ng-controller="SendReportStepController" scenario-messaging-editor messaging="step.params.messaging">
+	<div ng-include ="'/templates/scenarios/fragments/step-header.html'"></div>
+	<div class="alert alert-info">
+        This step sends a report
+    </div>
+
+	<form name="setupForm" class="dkuform-horizontal" >
+
+        <div class="control-group">
+            <label class="control-label">Type</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="step.params.messaging.type" ng-options="it.id as it.label for it in availableIntegrationTypes" ></select>
+           </div>
+        </div>
+
+		<div ng-if="step.params.messaging.type">
+			<div scenario-integration-params messaging="step.params.messaging" available-variables="availableVariables" datasets="datasets" managedfolders="managedfolders" dataset-smart-names="datasetSmartNames" form="setupForm"/>
+		</div>
+    </form>
+    <hr />
+    <form name="setupForm" class="dkuform-horizontal" >
+    	<div class="control-group">
+			<label class="control-label">Fail on send failure</label>
+			<div class="controls">
+				<input type="checkbox" ng-model="step.params.failOnMessageNotSent" />
+				<span class="help-inline">Mark the scenario as failed if report send fails</span>
+		    </div>
+	    </div>
+    </form>
+    <div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+</div>

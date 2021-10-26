@@ -1,0 +1,504 @@
+#!/bin/bash -e
+# Starts / stops Dataiku DSS processes
+
+# Usages:
+#
+# Control all child processes at once through supervisord
+# $0 (start | stop | restart | status)
+#
+# Control individual child processes through supervisord
+# $0 (start | stop | restart | status) PROCESS
+#
+# Low-level command used by supervisord to run individual child processes (in foreground)
+# $0 run PROCESS
+#
+# where PROCESS is one of (backend | ipython | nginx | apimain | collectd)
+
+# TODO: this does not work if this script is launched through a symlink or $PATH
+BINDIR=$(cd "$(dirname "$0")" && pwd -P)
+me=$(basename "$0")
+
+if [ $EUID -eq 0 ]; then
+  echo >&2 "*** $me: running DSS under superuser account is not supported."
+  exit 1
+fi
+
+
+########################################
+#
+# get args from command line
+#
+########################################
+
+Usage() {
+  echo "Usage: $me (start | stop | status | restart | reopenlogs)" >&2
+  # $me (start | stop | status | restart) PROCESS
+  # $me run PROCESS
+  # $me run
+  # PROCESS : (backend | ipython | nginx | collectd)
+  exit 1
+}
+
+case "$1" in
+  start | stop | status | restart | run | reopenlogs | reload)
+    action="$1"
+    ;;
+  * )
+    Usage
+    ;;
+esac
+
+# then do the stuff that can prompt for keystrokes, only if the action 
+# comes from the user (the supervisor.conf file calls the 'run' action)
+
+export DIP_HOME=$(dirname "$BINDIR")
+DIP_HOME=$(cd "$DIP_HOME" && pwd -P)
+
+if [[ "$action" == "start" || "$action" == "restart" ]]; then
+    if [ -f "$DIP_HOME"/install-support/expected-dip-home.txt ]; then
+        EXPECTED_DIP_HOME=$(cat "$DIP_HOME"/install-support/expected-dip-home.txt)
+        if [[ "$EXPECTED_DIP_HOME" != "$DIP_HOME" ]]; then
+            echo "[!] $DIP_HOME appears to a copy from $EXPECTED_DIP_HOME" >&2
+            echo "[!] Was the install properly migrated? (with installer.sh -u ...)" >&2
+            echo "[!] Aborting." >&2
+            exit 1
+        fi
+    else
+        echo "[!] $DIP_HOME does not appear to be a validated DSS data directory (missing installation flag file)" >&2
+        echo "[!] Initial installation may have failed before completion" >&2
+        exit 1
+    fi
+fi
+
+# Load basic environment
+source "$BINDIR"/env-default.sh
+if [ -z "$DKUINSTALLDIR" ]; then
+  echo >&2 "FATAL: DKUINSTALLDIR is not defined. Please check $BINDIR/env-default.sh"
+  exit 1
+fi
+source "$DKUINSTALLDIR/scripts/_startup.inc.sh"
+
+bkdl_set_global_env
+bkdl_set_java_env
+bkdl_set_py_env
+bkdl_set_R_env
+bkdl_set_julia_env
+bkdl_load_env_files
+
+bkdl_env_sanity_check
+
+# Final environment setup
+export DKUBIN="$BINDIR"/dku
+export DKUJEKBIN="$BINDIR"/jek
+export DKUFEKBIN="$BINDIR"/fek
+export DKUCAKBIN="$BINDIR"/cak
+export DKUHPROXYBIN="$BINDIR"/hproxy
+if ! DKUDISTRIB=$("$DKUINSTALLDIR"/scripts/_find-distrib.sh 2>/dev/null); then
+  DKUDISTRIB="unknown unknown"
+fi
+export DKUDISTRIB
+
+if [ -z "$DKUPATHSET" ]; then
+  if [ -d "$DKUINSTALLDIR/tools/bin" ]; then
+    export PATH="$DKUINSTALLDIR/tools/bin:$PATH"
+  fi
+  export DKUPATHSET=1
+fi
+
+# Runtime directory
+export DKURUNDIR="$DIP_HOME"/run
+mkdir -p "$DKURUNDIR"
+
+# Check whether Hadoop security is enabled
+hadoop_login_enabled() {
+  grep -qsi '"kerberosLoginEnabled":[[:space:]]true' \
+    "$DIP_HOME"/config/general-settings.json
+}
+
+# Retrieve this DSS node type
+get_nodetype() {
+  "$DKUPYTHONBIN" "$DKUINSTALLDIR"/scripts/dkuinstall/install_config.py -get nodetype
+}
+
+# setup jupyter dirs
+setup_jupyter_dirs() {
+  export JUPYTER_DATA_DIR="$DIP_HOME/jupyter-run/jupyter"
+  export JUPYTER_RUNTIME_DIR="$JUPYTER_DATA_DIR/runtime"
+  export JUPYTER_CONFIG_DIR="$JUPYTER_DATA_DIR"
+  export IPYTHONDIR="$DIP_HOME/jupyter-run/ipython"
+  mkdir -p "$JUPYTER_DATA_DIR" "$JUPYTER_RUNTIME_DIR" "$IPYTHONDIR"
+}
+
+########################################
+# Child processes definition: DSS
+########################################
+
+run_backend() {
+  export PYTHONPATH="$DIP_HOME/lib/python:$DKUINSTALLDIR/python:$DKUINSTALLDIR/dku-jupyter/packages"
+  bkdl_set_R_libs
+
+  # Make sure tmp/ folder exists
+  if [ ! -d "$DIP_HOME/tmp" ]; then
+    mkdir "$DIP_HOME/tmp"
+  fi
+
+  setup_jupyter_dirs
+
+  exec "$DKUJAVABIN" \
+    -Ddku.backend \
+    $DKU_JAVA_OPTS \
+    $DKU_BACKEND_JAVA_OPTS \
+    -XX:OnOutOfMemoryError="kill -9 %p" \
+    -Djava.library.path="$DKU_BACKEND_JAVA_LIBRARY_PATH:$DKU_HADOOP_JAVA_LIBRARY_PATH" \
+    -cp "$(bkdl_get_cp)" \
+    com.dataiku.dip.DSSBackendMain
+}
+
+run_ipython() {
+  export PYTHONPATH="$DIP_HOME/lib/python:$DKUINSTALLDIR/python:$DKUINSTALLDIR/dku-jupyter/packages"
+  bkdl_set_R_libs
+
+  if hadoop_login_enabled; then
+    echo "$me: setting Hadoop security ticket cache" >&2
+    export KRB5CCNAME="$DIP_HOME"/privtmp/krb5cc
+  fi
+
+  setup_jupyter_dirs
+
+  if [ "$DKU_SPARK_ENABLED" = "true" ]; then
+    PYTHONPATH+=":$DKU_PYSPARK_PYTHONPATH"
+    if [ -n "$DKURBIN" ]; then
+      R_LIBS+=":$DKU_SPARK_HOME/R/lib"
+      export NOAWT=1
+    fi
+    export SPARK_HOME="$DKU_SPARK_HOME"
+  fi
+
+  unset XDG_RUNTIME_DIR
+
+  exec "$DKUPYTHONBIN" "$DKUINSTALLDIR/dku-jupyter/dkulauncher.py" \
+    --config="$DKUINSTALLDIR/dku-jupyter/dataiku_jupyter_config.py" \
+    --notebook-dir="$DIP_HOME"/config/ipython_notebooks \
+    --ip=127.0.0.1 \
+    --port="$DKU_IPYTHON_PORT" \
+    --no-browser \
+    --port-retries=0
+}
+
+run_nginx() {
+  # Nginx binary to use. WARNING: diagnosis must use the same method to locate nginx
+  NGINX_BINARY=$("$DKUPYTHONBIN" "$DKUINSTALLDIR"/scripts/dkuinstall/install_config.py -get server nginx_binary)
+  if [ -z "$NGINX_BINARY" -o "$NGINX_BINARY" = "None" ]; then
+    NGINX_BINARY="nginx"
+    for d in "$DKUINSTALLDIR"/tools/sbin /usr/sbin /opt/local/sbin /usr/local/sbin /usr/local/bin; do
+      if [ -x "$d/nginx" ]; then
+        NGINX_BINARY="$d/nginx"
+        break
+      fi
+    done
+  fi
+  if ! command -v "$NGINX_BINARY" >/dev/null; then
+    echo >&2 "nginx binary \"$NGINX_BINARY\" not found"
+    exit 1
+  fi
+
+  exec "$NGINX_BINARY" -c "$DIP_HOME"/install-support/nginx.conf
+}
+
+run_collectd() {
+  COLLECTD_BINARY="$DKUINSTALLDIR/tools/collectd/bin/collectd"
+  if [ -z "$COLLECTD_BINARY" ]; then
+    echo "collectd binary is missing" >&2
+    exit 1
+  fi
+  exec "$COLLECTD_BINARY" -C "$DIP_HOME"/install-support/collectd.conf -f
+}
+
+run_eventserver() {
+  export PYTHONPATH="$DIP_HOME/lib/python:$DKUINSTALLDIR/python"
+  bkdl_set_R_libs
+
+  exec "$DKUJAVABIN" \
+    -Ddku.eventserver \
+    $DKU_JAVA_OPTS \
+    $DKU_EVENTSERVER_JAVA_OPTS \
+    -XX:OnOutOfMemoryError="kill -9 %p" \
+    -Djava.library.path="$DKU_EVENTSERVER_JAVA_LIBRARY_PATH" \
+    -cp "$(bkdl_get_cp)" \
+    com.dataiku.dip.eventserver.EventServerMain
+}
+
+
+########################################
+# Child processes definition: API Node
+########################################
+
+run_apimain() {
+  export PYTHONPATH="$DIP_HOME/lib/python:$DKUINSTALLDIR/python"
+
+  export DKU_LAMBDA_HOME="$DIP_HOME"
+  bkdl_set_R_libs
+
+  exec "$DKUJAVABIN" \
+    -Ddku.apimain \
+    $DKU_JAVA_OPTS \
+    $DKU_APIMAIN_JAVA_OPTS \
+    -XX:OnOutOfMemoryError="kill -9 %p" \
+    -Djava.library.path="$DKU_APIMAIN_JAVA_LIBRARY_PATH" \
+    -cp "$(apinode_get_cp)" \
+    com.dataiku.lambda.LambdaServerMain
+}
+
+run_apimain_dev() {
+  export PYTHONPATH="$DIP_HOME/lib/python:$DKUINSTALLDIR/python"
+  # DO NOT SET LAMBDA_HOME, it's already in the env for dev
+
+  bkdl_set_R_libs
+
+  exec "$DKUJAVABIN" \
+    -Ddku.apimain \
+    $DKU_JAVA_OPTS \
+    $DKU_APIMAIN_JAVA_OPTS \
+    -XX:OnOutOfMemoryError="kill -9 %p" \
+    -Djava.library.path="$DKU_APIMAIN_JAVA_LIBRARY_PATH" \
+    -cp "$(apinode_get_cp)" \
+    com.dataiku.lambda.LambdaServerMain
+}
+
+
+########################################
+# Supervisord process manager
+########################################
+
+start_supervisord() {
+  "$DKUPYTHONBIN" -m supervisor.supervisord \
+    -c "$DIP_HOME/install-support/supervisord.conf"
+}
+
+run_supervisord() {
+  exec "$DKUPYTHONBIN" -m supervisor.supervisord \
+    -c "$DIP_HOME/install-support/supervisord.conf" -n
+}
+
+# supervisorctl COMMAND [ARG ...]
+supervisorctl() {
+  # Need to check supervisorctl answer as exit status is always 0
+  # https://github.com/Supervisor/supervisor/issues/24
+  test -S "$DIP_HOME/run/svd.sock" &&
+  "$DKUPYTHONBIN" -m supervisor.supervisorctl \
+    -c "$DIP_HOME/install-support/supervisord.conf" \
+    pid | grep -qE '^[0-9]+$' || {
+    echo "$me: DSS supervisor is not running" >&2
+    return 1
+  }
+  "$DKUPYTHONBIN" -m supervisor.supervisorctl \
+    -c "$DIP_HOME/install-support/supervisord.conf" \
+    "$@"
+}
+
+
+########################################
+# Wait for process transitions
+########################################
+
+wait_supervisor_start() {
+  echo "Waiting for DSS supervisor to start ..."
+  for i in $(seq 1 10); do
+      sleep 2
+      if supervisorctl status; then
+        echo "DSS started, pid=$(cat "$DKURUNDIR"/supervisord.pid)"
+        return 0
+      fi
+  done
+  echo "*** $me : DSS supervisor failed to start.
+You can look for startup error messages in log file:
+    $DKURUNDIR/supervisord.log
+" >&2
+  return 1
+}
+
+wait_supervisor_stop() {
+  echo "Waiting for DSS to stop ..."
+  for i in $(seq 1 10); do
+    sleep 2
+    if ! pid=$(cat "$DKURUNDIR"/supervisord.pid 2>/dev/null) || [ -z "$pid" ] || ! ps -p "$pid" -f; then
+      echo "DSS stopped"
+      return 0
+    fi
+  done
+  echo "*** $me : DSS failed to stop" >&2
+  return 1
+}
+
+wait_backend_start() {
+  echo -n "Waiting for DSS backend to start "
+  for i in $(seq 1 60); do
+    sleep 2
+    if curl -fs http://localhost:"$DKU_BACKEND_PORT"/dip/api/ping -o /dev/null; then
+      echo
+      return 0
+    else
+      echo -n .
+    fi
+  done
+  if tail -n 100 "$DKURUNDIR/backend.log" | grep -Fq "DSS INTERNAL DATABASE ERROR"; then
+    echo
+    echo "*** $me : Error: DSS backend failed to start because one of its internal database is damaged." >&2
+    tail -n 100 "$DKURUNDIR/backend.log" | grep -F "DSS INTERNAL DATABASE ERROR"  >&2
+  else
+    echo
+    echo "*** $me : Warning: DSS backend still not started after two minutes.
+It might still be initializing, and taking longer than expected, because the server is heavily loaded, or it might be a permanent failure.
+You can re-check its status using the following command:
+    $BINDIR/$me status
+You can look for startup error messages in log file:
+    $DKURUNDIR/backend.log
+" >&2
+  fi
+  return 1
+}
+
+wait_apimain_start() {
+  echo -n "Waiting for API Node to start "
+  for i in $(seq 1 30); do
+    sleep 2
+    if curl -fs http://localhost:"$DKU_APIMAIN_PORT"/isAlive -o /dev/null; then
+      echo
+      return 0
+    else
+      echo -n .
+    fi
+  done
+  echo
+  echo "*** $me : Warning: DSS API node still not started after one minute.
+It might still be initializing, and taking longer than expected, because the server is heavily loaded, or it might be a permanent failure.
+You can re-check its status using the following command:
+    $BINDIR/$me status
+You can look for startup error messages in log file:
+    $DKURUNDIR/apimain.log
+" >&2
+  return 1
+}
+
+wait_dss_start() {
+  if [ $(get_nodetype) = "api" ]; then
+    wait_apimain_start
+  else
+    wait_backend_start
+  fi
+}
+
+
+#######################################################
+# Check the runtime environment
+#######################################################
+
+check_server_ports() {
+  check_ports=$("$DKUPYTHONBIN" "$DKUINSTALLDIR"/scripts/dkuinstall/install_config.py -get server check_ports)
+  if [ "$check_ports" = "false" ]; then
+    return
+  fi
+  if [ $(get_nodetype) = "api" ]; then
+    ports="$DKU_NGINX_PORT $DKU_APIMAIN_PORT"
+  else
+    ports="$DKU_NGINX_PORT $DKU_BACKEND_PORT $DKU_IPYTHON_PORT"
+  fi
+  "$DKUPYTHONBIN" "$DKUINSTALLDIR"/scripts/dkuinstall/check_server_port.py $ports
+}
+
+check_limits() {
+  if [[ "$DKUDISTRIB" == osx* ]]; then
+    return
+  fi
+  nofile=$(ulimit -n)
+  if [ "$nofile" != "unlimited" ]; then
+    if [ "$nofile" -lt 4096 ]; then
+      echo >&2 "*** WARNING: maximum number of open files (ulimit -n) is $nofile, lower than recommended minimum 4096"
+    fi
+  fi
+  nproc=$(ulimit -u)
+  if [ "$nproc" != "unlimited" ]; then
+    if [ "$nproc" -lt 4096 ]; then
+      echo >&2 "*** WARNING: maximum number of user processes (ulimit -u) is $nproc, lower than recommended minimum 4096"
+    fi
+  fi
+}
+
+#######################################################
+# Global actions
+#######################################################
+
+start_all() {
+  check_server_ports
+  check_limits
+  start_supervisord
+  wait_supervisor_start
+  wait_dss_start
+}
+
+stop_all() {
+  supervisorctl shutdown
+  wait_supervisor_stop
+}
+
+reload_all() {
+  supervisorctl reload || {
+    start_supervisord
+    wait_supervisor_start
+  }
+  wait_dss_start
+}
+
+########################################
+#
+# Main entry point
+#
+########################################
+
+if [ $# -eq 1 -a "$action" != "run" ]; then
+  action="${action}_all"
+elif [ $# -eq 1 ]; then
+  process="supervisord"
+elif [ $# -eq 2 ]; then
+  case "$2" in
+    backend | ipython | nginx | apimain | apimain_dev | collectd | eventserver)
+      process="$2"
+      ;;
+    * )
+      Usage
+      ;;
+  esac
+else
+  Usage
+fi
+
+case "$action" in
+  start_all)
+    start_all
+    ;;
+  stop_all)
+    stop_all
+    ;;
+  status_all)
+    supervisorctl status
+    ;;
+  restart_all)
+    stop_all || echo "Stop failed (ignored)"
+    start_all
+    ;;
+  reload_all)
+    reload_all
+    ;;
+  reopenlogs_all)
+    pid="$(supervisorctl pid)" &&
+    echo "Reopening supervisor logs" &&
+    kill -USR2 "$pid" &&
+    supervisorctl signal USR1 nginx
+    ;;
+  start | stop | restart | status)
+    supervisorctl "$action" "$process"
+    ;;
+  run)
+    "run_$process"
+    ;;
+esac

@@ -1,0 +1,52 @@
+<div class="modal modal3 dku-modal new-scenario-modal" ng-controller="NewScenarioController">
+    <div dku-modal-header-with-totem modal-title="New scenario" modal-totem="icon-list" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <ul class="scenario-types">
+                <li class="scenario-type selectable" ng-click="newScenario.type = 'step_based'">
+            		<span class="selection-indicator">
+                		<i class="icon-ok" title="active" ng-if="newScenario.type == 'step_based'" />
+            		</span>
+            		<span class="name">Sequence of steps</span>
+                </li>
+                <li ng-if="appConfig.licensedFeatures.advancedScenarioStepsAllowed || appConfig.licensing.ceEntrepriseTrial" class="scenario-type selectable" ng-click="newScenario.type = 'custom_python'">
+            		<span class="selection-indicator">
+                		<i class="icon-ok" title="active" ng-if="newScenario.type == 'custom_python'" />
+            		</span>
+            		<span class="name">Custom Python script</span>
+                </li>
+                <li ng-if="!(appConfig.licensedFeatures.advancedScenarioStepsAllowed || appConfig.licensing.ceEntrepriseTrial)" class="scenario-type selectable disabled">
+                    <span class="selection-indicator">
+                        <i class="icon-ok" title="active" ng-if="newScenario.type == 'custom_python'" />
+                    </span>
+                    <span class="name">Custom Python script</span>
+                    <p style="margin-left: 20px"><em>This feature is not available in your Dataiku DSS license</em><br />
+                        <a target="_blank" rel="noopener noreferrer"
+                           href="https://www.dataiku.com/dss/features/data-workflow/">Learn more</a></p>
+                </li>
+            </ul>
+
+            <div class="control-group">
+                <label class="control-label">Scenario name</label>
+                <div class="controls">
+                    <input name="scenarioName" ng-model="newScenario.name" type="text"/>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Scenario id</label>
+                <div class="controls">
+                    <input name="scenarioName" ng-model="newScenario.id" type="text" ng-focus="fillId()" />
+                    <span class="help-inline">Must be unique in the project.</span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="!newScenario.name" ng-click="create()">Create</button>
+        </div>
+    </form>
+</div>

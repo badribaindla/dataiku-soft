@@ -1,0 +1,75 @@
+<div class="modal modal3 app-tiles__tile-sql-browse-modal" ng-scope="{{errorScope = this}}">
+    <div dku-modal-header modal-title="{{tile.prompt || (tile.type | niceTileType)}}" modal-class="has-border" />
+
+    <form name="editForm" class="dkuform-modal-horizontal dkuform-modal-wrapper ">
+
+        <div class="modal-body">
+            <div block-api-error />
+
+            <div class="control-group">
+                <label for="" class="control-label">Schema</label>
+                <div class="controls">
+                    <div ng-if="uiState.schemaList == null">
+                       <input type="text" ng-model="dataset.params.schema" ng-disabled="true"/> <!-- the point of the tile is to change via dropdown -->
+                       <button class="btn btn--secondary" ng-click="fetchSchemaList()" ng-disabled="uiState.fetching"><span ng-if="uiState.fetching"><i class="icon-spin icon-spinner"></i>&nbsp;</span>Fetch schema list</button>
+                    </div>
+                    
+                    <div ng-if="uiState.schemaList != null">
+                        <select dku-bs-select="{'liveSearch':true}"
+                            ng-model="dataset.params.schema"
+                            ng-options="schema for schema in uiState.schemaList | orderBy:'schema' track by schema"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="" class="control-label">Table</label>
+                <div class="controls">
+                    <div ng-if="uiState.tableList == null">
+                       <input type="text" ng-model="dataset.params.table" ng-disabled="true"/> <!-- the point of the tile is to change via dropdown -->
+                       <button class="btn btn--secondary" ng-click="fetchTableList()" ng-disabled="uiState.fetching"><span ng-if="uiState.fetching"><i class="icon-spin icon-spinner"></i>&nbsp;</span>Fetch table list</button>
+                    </div>
+                    
+                    <div ng-if="uiState.tableList != null">
+                        <select dku-bs-select="{'liveSearch':true}"
+                            ng-model="dataset.params.table"
+                            ng-options="table.table as table.table for table in uiState.tableList | orderBy:'table.schema+table.table' track by table.schema + '.' + table.table"/>
+                    </div>
+                </div>
+            </div>
+            
+
+            <div ng-show="detectionResults && !detectionResults.connectionOK" class="app-tiles__tile-sql-browse-connection-error">
+                <div class="alert alert-error">
+                    <i class="icon-dku-error" /><span summary-of-error="detectionResults.connectionError" />
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label for="" class="control-label">Auto-test</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="uiState.autoTestOnTableSelection" />
+                        Test dataset as soon as a table is selected
+                    </label>
+                </div>
+            </div>
+            
+            <div class="app-tiles__tile-sql-browse-test-button">
+                <button class="btn btn--primary btn--wide" ng-click="doTestNow()" ng-disabled="uiState.autoTestOnTableSelection"> <i class="icon-refresh" />&nbsp;Test
+                </button>
+            </div>
+
+            <div class="app-tiles__tile-sql-browse-recap">
+                <a ng-click="goToDataset()"><i class="icon-arrow-right"></i>&nbsp;View settings of dataset {{tile.datasetName}}</a>
+                <span>({{dataset.schema.columns.length}} column(s))</span>
+            </div>
+
+            <span ng-include="'/templates/apps/fragments/tile-help-alert.html'" class="app-tiles__tile-help--in-list"></span>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="commit()" ng-disabled="editForm.$invalid">Commit</button>
+        </div>
+    </form>
+</div>

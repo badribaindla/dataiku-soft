@@ -1,0 +1,208 @@
+<div class="subpopulation-page h100" with-computation-params-popin ng-controller="SubpopulationController">
+    <form class="dkuform-horizontal post-train-variable-selection">
+        <div class="control-group required">
+            <label class="control-label post-train-variable-selection__select-text">Select your variable</label>
+            <div class="controls">
+                    <ml-column-select-with-type
+                    ng-if="computedSubpopulations"
+                    per-feature="per_feature"
+                    ng-model="uiState.subpopFeature"
+                    authorized-types="authorizedColTypes"
+                    authorized-roles="authorizedColRoles"
+                    already-computed-columns="computedSubpopulations">
+                </ml-column-select-with-type> 
+            </div>
+        </div>
+        <button 
+            class="btn btn--contained btn--alt btn--publish"
+            ng-disabled="!canCompute()"
+            disabled-if="!!readOnly" disabled-message="Cannot compute, read only"
+            ng-click="computeSubpopulation(uiState.subpopFeature)">Compute
+        </button>
+        <span class="computation-params-gear" ng-click="toggleComputationParamsPopin($event)">
+            <i class="icon-gear"></i>
+        </span>
+        <!-- Search -->
+        <div class="subpopulation-params__search std-list-search-box dib"
+            ng-if="modelData.subPopulation"
+            filtered-multi-select-rows
+            ng-model="getCurrentFeatureData().modalities">
+            <span class="add-on">
+                <i class="icon-dku-search"></i>
+            </span>
+            <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Search...">
+        </div>
+    </form>
+
+    <!-- Empty state: selected feature not computed -->
+    <div ng-if="uiState.subpopFeature && !computedSubpopulations.has(uiState.subpopFeature)"  class="empty-list-cta post-train-empty-state">
+        <div class="post-train-empty-state__title"> Subpopulation analysis not computed yet</div>
+        <p class="post-train-empty-state__explanation"> Compute now to know whether your model behaves identically <br> across the populations of <strong>{{ uiState.subpopFeature }}</strong> </p>
+        <button class="btn btn--contained btn--alt btn--publish post-train-empty-state__btn"
+            disabled-if="!!readOnly" disabled-message="Cannot compute, read only"
+            ng-disabled="!canCompute()" ng-click="computeSubpopulation(uiState.subpopFeature)">
+            Compute</button>
+    </div>
+
+    <!-- Empty state: no feature computed -->
+    <div ng-if="!uiState.subpopFeature && uiState.noValueComputed" class="post-train-empty-state h100">
+        <div class="post-train-empty-state__title">
+            Subpopulation analysis
+        </div>
+        <div class="post-train-empty-state__explanation">
+            Define some populations and assess whether your model behaves identically across these populations looking at different metrics and charts.
+        </div>
+    </div>
+
+    <div ng-if="uiState.subpopFeature && computedSubpopulations.has(uiState.subpopFeature) && modelData.subPopulation" class="subpopulation-results h100" ng-class="{'subpopulation-modalities__wrapper--with-sample-weights': areMetricsWeighted()}">
+        <div class="post-train-results__number">
+            <span>
+                {{getNumModalities()}} {{getModalityType(getNumModalities() !== 1)}} for <strong>{{modelData.selectedSubpopFeat}}</strong>{{isSelectedFeatureInput() ? " (model input)": ""}},
+                    computed on <strong>{{getNbRecords() | smartNumber}}</strong> rows ({{onSample ? "sample of " : ""}}{{computedOn}}{{getCurrentFeatureData().sameNumRowsAsSplit ? ").": ""}}
+                <span ng-if="!getCurrentFeatureData().sameNumRowsAsSplit">
+                    ,<span class="text-error">
+                        not as many rows as expected
+                        <span data-placement="bottom"
+                                dku-md-title="Missing rows"
+                                dku-md-popover="Some cleanup routines may trim visual ML data, preventing from using them to compute Subpopulation analysis.<br>You need to retrain a model to regenerate the data.">
+                                <i class="icon-question-sign"></i>
+                        </span>
+                    </span>
+                    ).
+                </span>                     
+            </span>
+
+
+            <!-- Displayed Metrics -->
+
+            <div custom-element-popup class="subpopulation-displayed-metrics sort-box list-control-widget list-control-dropdown">
+                <span class="mainzone" ng-click="togglePopover()">
+                    Displayed metrics
+                    <span class="caret"></span>
+                </span>
+                <div class="popover sort-box-menu checkable-items">
+                    <ul>
+                        <li ng-repeat="m in uiState.display.metrics"
+                            ng-class="{'selected' : m.displayed, 'target': m.fieldName === uiState.display.modelMetric.fieldName}"
+                            ng-if="metricExists(m)"
+                            ng-click="toggleMetricDisplay(m)">
+                            <span>{{m.shortName || m.name || m.fieldName}}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>                        
+        </div>        
+
+        <div class="subpop-table-header subpop-border-bottom">
+
+            <!-- MODALITY COLUMN -->
+
+            <div class="subpop-table-header__column subpop-table__information subpop-table__information--modality"
+                ng-click="sortByMetric('modality')"
+                title="Modality">
+                <div class="contains-sort-by-column-icon">
+                    <span>{{getModalityType()}}</span>
+                    <sort-by-column-icon is-sort-col="isSortMetric('modality')" ascending="selection.orderReversed" icon-on-right="true"></sort-by-column-icon>
+                </div>
+            </div>
+
+            <!-- HIGHLIGHTED METRICS ONLY FOR BINARY CLASSIF -->
+
+            <div class="subpop-table-header__column subpop-table--highlited" 
+                ng-click="sortByMetric('actual')"
+                ng-if="isBinaryClassification()"
+                title="Actually {{modelData.classes[1]}}">
+                <div class="subpop-table__highlited-column-wrapper contains-sort-by-column-icon">
+                    <sort-by-column-icon is-sort-col="isSortMetric('actual')" ascending="selection.orderReversed"></sort-by-column-icon>
+                    <div class="subpop-table__highlited-column-content">
+                        <!-- Adding &nbsp; to have approximately same length as "Predicted <class>" column header to have 
+                                the wrapping for the same length of class -->
+                        <span>Actually&nbsp;&nbsp; <span class="subpop-table--model-class-font">{{modelData.classes[1] | gentleTruncate : 12}}</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subpop-table-header__column subpop-table--highlited" 
+                ng-click="sortByMetric('predicted')"
+                ng-if="isBinaryClassification()"
+                title="Predicted {{modelData.classes[1]}}">
+                <div class="subpop-table__highlited-column-wrapper contains-sort-by-column-icon">
+                    <sort-by-column-icon is-sort-col="isSortMetric('predicted')" ascending="selection.orderReversed"></sort-by-column-icon>
+                    <div class="subpop-table__highlited-column-content">
+                        <span>Predicted <span class="subpop-table--model-class-font">{{modelData.classes[1] | gentleTruncate : 12}}</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OTHER METRICS -->
+            <div class="subpop-table-metric subpop-table-header__model-metric-column contains-sort-by-column-icon" 
+                    title="Metric: {{getMetricLongName(uiState.display.modelMetric)}}"
+                    ng-click="sortByMetric(uiState.display.modelMetric.fieldName)"
+                    ng-if="uiState.display.modelMetric">
+                <sort-by-column-icon is-sort-col="isSortMetric(uiState.display.modelMetric.fieldName)" ascending="selection.orderReversed"></sort-by-column-icon>
+                <div class="subpop-table-header__model-metric-column-content">
+                    <span>Metric:<br/>{{getMetricName(uiState.display.modelMetric)}}</span>
+                </div>
+            </div>
+
+            <div class="subpop-table-metric subpop-table-header__column contains-sort-by-column-icon" 
+                    ng-repeat="m in uiState.display.metrics"
+                    ng-if="m.displayed && !m.isModelMetric"
+                    title="{{getMetricLongName(m)}}"
+                    ng-click="sortByMetric(m.fieldName)">
+                <div class="mx-textellipsis">
+                    <sort-by-column-icon is-sort-col="isSortMetric(m.fieldName)" ascending="selection.orderReversed"></sort-by-column-icon>
+                    <span>{{getMetricName(m)}}</span>
+                </div>                        
+            </div>
+
+        </div>
+
+        <div class="subpopulation-value subpopulation-value--alldataset"
+             ng-class="{'subpopulation-value--scrolling': isScrolling}">
+                <subpopulation-value
+                    class="subpopulation-value"
+                    data="getCurrentFeatureData().allDatasetModality"
+                    all-dataset-perf="modelData.allDatasetPerf"
+                    threshold="modelData.userMeta.activeClassifierThreshold"
+                    metrics-weighted="metricsWeighted"
+                    display="uiState.display"
+                    classes="modelData.classes"
+                    colors="colorsRep">
+                </subpopulation-value>
+        </div>
+        
+        <div class="subpopulation-modalities__wrapper" 
+             ng-show="selection.allObjects.length && selection.filteredObjects.length"
+             on-scroll="setAllDatasetScrolled">
+            <div class="subpopulation-value" ng-repeat="v in selection.filteredObjects">
+                <subpopulation-value
+                    class="subpopulation-value"
+                    data="v"
+                    all-dataset-perf="modelData.allDatasetPerf"
+                    threshold="modelData.userMeta.activeClassifierThreshold"
+                    metrics-weighted="metricsWeighted"
+                    display="uiState.display"
+                    classes="modelData.classes"
+                    colors="colorsRep">
+                </subpopulation-value>
+            </div>
+        </div>
+
+        <div class="subpopulation-summary__wrapper"
+                ng-show="selection.allObjects.length && !selection.filteredObjects.length">
+            <div class="alert alert-info" data-block="all-filtered-out">
+                <h4>No items match your filter</h4>
+                <div style="margin: 10px 0">
+                    <a class="btn btn--secondary" ng-click="selection.filterQuery.userQuery = undefined;">
+                        Clear filters
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    
+    
+</div>

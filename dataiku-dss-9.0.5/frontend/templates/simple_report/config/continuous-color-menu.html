@@ -1,0 +1,92 @@
+<!-- TODO @charts Could be merged with discrete-color-menu.html ? -->
+
+<div>
+    <form class="dkuform-chart-options" palette-picker-logic container="chart.def.colorOptions" type="{{chart.def.colorOptions.paletteType}}">
+
+        <div class="control-group">
+            <label class="control-label" dku-for="#palette-type-picker button">
+                Palette type
+            </label>
+            <div class="controls palette-type-picker" id="palette-type-picker">
+                <select dku-bs-select="{customDropdownAttrs: {'no-global-contextual-menu-close': 'true'}}" id="qa_charts_palette-type-select" ng-model="container.paletteType">
+                    <option value="CONTINUOUS">Continuous</option>
+                    <option value="DIVERGING">Diverging</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group" ng-show="container.paletteType === 'DIVERGING'">
+            <label class="control-label" for="middle-value-input">Middle value</label>
+            <div class="controls">
+                <input type="number" class="qa_charts_middle-value-input" step="any" ng-model="container.paletteMiddleValue" ng-model-options="{updateOn: 'change blur'}" id="middle-value-input" />
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label" dku-for="#palette-picker button">Palette</label>
+            <div class="controls">
+                <div class="palette-picker__list-zone">
+                    <div class="horizontal-flex">
+                        <div class="flex oh" id="palette-picker">
+                            <select dku-bs-select="{width: '220px', customDropdownAttrs: {'no-global-contextual-menu-close': 'true'}}"
+                                ng-model="container.colorPalette" ng-if="categories" class="palette-select qa_charts_palette-select"
+                                data-container="body" watch-model="container.quantizedPalette">
+                                <optgroup ng-repeat="(category, palettes) in categories" label="{{category}}">
+                                    <option ng-repeat="palette in palettes track by palette.id" value="{{palette.id}}"
+                                        data-content='{{getPaletteContent(palette)}}'>{{palette.id}}</option>
+                                </optgroup>
+
+                                <option data-divider="true"></option>
+                                <option value="__dku_custom__">Custom palette</option>
+                            </select>
+                        </div>
+
+                        <div class="noflex" ng-show="container.colorPalette == '__dku_custom__'">
+                            <div class="btn btn--secondary" ng-click="editCustomPalette(container.paletteType)">Edit</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <small><a target="_blank" rel="noopener noreferrer" href="{{$root.versionDocRoot}}visualization/palettes.html">Add other color palettes with plugins</a></small>
+        </div>
+
+        <div class="horizontal-flex">
+            <div class="control-group noflex palette-picker__quantization-group">
+                <label class="control-label" dku-for="#quantization-picker button">Quantization</label>
+                <div class="controls palette-type-picker" id="quantization-picker">
+                    <select dku-bs-select="{customDropdownAttrs: {'no-global-contextual-menu-close': 'true'}}" ng-model="container.quantizationMode"
+                        id="quantization-mode-select" class="qa_charts_quantization-mode">
+                        <option value="NONE">None</option>
+                        <option value="LINEAR">Linear</option>
+                        <option value="QUANTILES" ng-hide="container.paletteType === 'DIVERGING'">Quantiles</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="control-group flex palette-picker__steps-group" ng-show="container.quantizationMode !== 'NONE'">
+                <div class="control-label">Steps</div>
+                <div class="controls">
+                    <input type="number" min="2" max="20" step="1" ng-model="container.numQuantizeSteps"
+                        ng-model-options="{updateOn: 'change blur'}" id="qa_charts_quantization-steps"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group palette-picker__scale-group" ng-hide="container.quantizationMode === 'QUANTILES'">
+            <label class="control-label" dku-for="#scale-mode-picker button">Scale mode</label>
+            <div class="controls" id="scale-mode-picker">
+                <select dku-bs-select="{customDropdownAttrs: {'no-global-contextual-menu-close': 'true'}}" ng-model="container.ccScaleMode" id="qa_charts_scale-mode-select"
+                    ng-options="x[0] as x[1] for x in [['NORMAL', 'Normal'],['LOG', 'Logarithmic'], ['SQRT', 'Square root'], ['SQUARE', 'Square']]"/>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">Opacity</div>
+            <div class="controls">
+                <div dku-slider min="0" max="1" class="qa_charts_opacity-slider" value="container.transparency" nb-decimal-places="1" />
+            </div>
+        </div>
+
+    </form>
+</div>

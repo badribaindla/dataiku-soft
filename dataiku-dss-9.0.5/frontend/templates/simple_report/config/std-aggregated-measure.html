@@ -1,0 +1,52 @@
+<div contextual-menu class="measure-wrapper" ng-click="!readOnly && (measure.column || chartOptionsState.enabledMCModes.length > 1 || (chart.def.type == 'multi_columns_lines' && !isTooltipMeasure)) && toggleContextualMenu($event)" cep-position="smart-left-bottom">
+    <span class="measure"> 
+        <i class="icon-caret-down pull-left qa_charts_caret-tooltip-options" ng-hide="readOnly || (!measure.column && chartOptionsState.enabledMCModes.length <= 1 && (chart.def.type != 'multi_columns_lines' || isTooltipMeasure))"></i>
+        <span ng-if="!measure.column" class="colname measure-name">Count of records</span>
+        <span ng-if="measure.column" class="measure-name" title="{{measure.column}} ({{measureFunctionDescription(measure.function)}})">
+            <span class="colname">{{measure.column}}</span>
+            <small>({{measureFunctionDescription(measure.function)}})</small>
+        </span>
+        <i class="icon-trash pull-right" ng-hide="readOnly" ng-click="remove($index);"></i>
+    </span>
+
+    <div class="fixed-contextual-menu-align-left contextualMenu" ng-show="contextualMenu" ng-inject="ChartFeatures">
+        <form class="dkuform-chart-options">
+            <div class="control-group" ng-hide="measure.column == null">
+                <label class="control-label">Aggregate</label>
+                <div class="controls">
+                    <select class="qa_charts_aggregation-type-select" ng-model="measure.function" ng-options="f for f in ['SUM', 'AVG','MIN','MAX']" />
+                </div>
+            </div>
+
+            <div ng-if="(chart.def.type == 'scatter_1d' || chart.def.type == 'scatter_2d') && measure.column == null" class="text-center" style="margin: 10px; font-size: 1.3em">No options</div>
+
+            <div class="control-group" ng-show="chartOptionsState.enabledMCModes.length > 1">
+                <label for="" class="control-label">Compute</label>
+                <div class="controls">
+                     <select required class="qa_charts_computation-type-select" ng-model="measure.computeMode" ng-init="measure.computeMode = measure.computeMode ? measure.computeMode : chartOptionsState.enabledMCModes[0][0]" ng-options="obj[0] as obj[1] for obj in chartOptionsState.enabledMCModes" />
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="((chart.def.genericDimension0.length && chart.def.genericDimension1.length) || (chart.def.xDimension.length && chart.def.yDimension.length)) && (measure.computeMode == 'PERCENTAGE' || measure.computeMode == 'AVG_RATIO' || measure.computeMode == 'CUMULATIVE_PERCENTAGE')">
+                <label for="" class="control-label">Along dimension</label>
+                <div class="controls">
+                     <select required class="qa_charts_along-dimension-select" ng-model="measure.computeModeDim" ng-init="measure.computeModeDim = measure.computeModeDim ? measure.computeModeDim : 0" ng-options="obj[0] as obj[1] for obj in [[0,'First'],[1, 'Second']]" />
+                </div>
+            </div>
+
+            <div class="control-group" dku-if="ChartFeatures.hasMultipleYAxes(chart.def) && !isTooltipMeasure">
+                <label class="control-label">Display axis</label>
+                <div class="controls">
+                    <select ng-model="measure.displayAxis" ng-options="f[0] as f[1] for f in [['axis1', 'Left axis'], ['axis2', 'Right axis']]" />
+                </div>
+            </div>
+            <div class="control-group"  dku-if="chart.def.type == 'multi_columns_lines' && !isTooltipMeasure" ng-show="measure.displayAxis != 'none'">
+                <label class="control-label">Display as</label>
+                <div class="controls">
+                    <select ng-model="measure.displayType" ng-options="f as f|capitalize for f in staticData.multiplotDisplayModes" />
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>

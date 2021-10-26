@@ -1,0 +1,35 @@
+<div class="git-diff">
+
+    <div>
+        <div class="pull-right"><a ng-click="showAll()">show all</a> | <a ng-click="hideAll()">hide all</a></div>&nbsp;
+    </div>
+
+    <ul class="cell-list">
+        <li class="commit-log-entry" ng-repeat="entry in diffEntries">
+
+            <div class="file horizontal-flex" ng-click="toggle(entry)">
+                <div class="noflex">
+                    <span class="action {{entry.changeType | lowercase}}">
+                        {{entry.changeType | lowercase}}
+                    </span>
+                </div>
+
+                <div class="flex path mx-textellipsis">
+                    {{ entry.changeType === 'DELETE' ? entry.oldPath : entry.newPath }}
+                </div>
+
+                <div class="stats noflex">
+                    <strong class="additions">+{{entry.fileChange.addedLines}}</strong>
+                    <strong class="deletions">−{{entry.fileChange.removedLines}}</strong>
+                </div>
+            </div>
+
+            <div class="diff">
+                <div ng-if="entry.shown" class="dku-file-diff">
+                    <pre ng-bind-html="entry.rendered" />
+                </div>
+            </div>
+        </li>
+    </ul>
+
+</div>

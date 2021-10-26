@@ -1,0 +1,206 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        XGBoost
+    </div>
+    <div data-block="algorithm-description">
+        <p><strong>XGBoost</strong> is an advanced gradient tree boosting algorithm. It has support for parallel processing, regularization and early stopping, which makes it a fast, scalable and accurate algorithm.</p>
+        <p>For more information on gradient tree boosting, see the "Gradient tree boosting" algorithm.</p>
+    </div>
+    <div data-block="algorithm-params">
+
+        <div class="control-group">
+            <label class="control-label">Booster</label>
+            <div class="controls">
+                <div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.xgboost.booster.values.gbtree.enabled" /> Try Gradient Boosted Trees
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.xgboost.booster.values.dart.enabled" /> Try DART
+                    </label>
+                    <label dku-if="!mlTaskDesign.modeling.xgboost.booster.values.gbtree.enabled && !mlTaskDesign.modeling.xgboost.booster.values.dart.enabled" class="alert alert-warning">
+                      At least one option must be selected.
+                    </label>
+                </div>
+                <div class="help-inline">
+                    'DART' is a variant of the 'Gradient Boosted Trees' estimator where, at each step of the training phase, previous trees are randomly dropped out.
+                    <br/>
+                </div>
+            </div>
+        </div>
+
+        <div  ng-if="mlTaskDesign.predictionType=='REGRESSION'" class="control-group">
+            <label class="control-label">Objective</label>
+            <div class="controls">
+                <div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.xgboost.objective.values.reg_linear.enabled" /> Try Mean Square Error Loss
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.xgboost.objective.values.reg_logistic.enabled" /> Try Logistic Loss
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.xgboost.objective.values.reg_gamma.enabled" /> Try Gamma Regression
+                    </label>
+                </div>
+                <div class="help-inline">
+                    Use 'Logistic Regression' only if the target is a probability (soft target) with values in [0, 1].
+                    <br/>
+                </div>
+
+                <label dku-if="mlTaskDesign.modeling.xgboost.objective.values.reg_logistic.enabled"
+                       class="alert alert-warning">
+                       Target values have to be in the interval [0, 1].
+                </label>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label">Tree method</label>
+            <div class="controls">
+                <select dku-bs-select ng-if="!mlTaskDesign.modeling.xgboost.enable_cuda" ng-model="mlTaskDesign.modeling.xgboost.cpu_tree_method">
+                    <option value="auto">Automatic</option>
+                    <option value="exact">Exact</option>
+                    <option value="approx">Approximate</option>
+                    <option value="hist">Histogram</option>
+                </select>
+                <select dku-bs-select ng-if="mlTaskDesign.modeling.xgboost.enable_cuda" ng-model="mlTaskDesign.modeling.xgboost.gpu_tree_method">
+                    <option value="gpu_exact">Exact</option>
+                    <option value="gpu_hist">Histogram</option>
+                </select>
+                <div class="help-inline">
+                    'Automatic' will chose one of the other method based on heuristic and shape of the data.
+                    <br/>'Exact' is a greedy tree-building algorithm.
+                    <br/>'Approximate' is a fast tree-building algorithm.
+                    <br/>'Histogram' is an optimized fast tree-building algorithm.
+                    <br/>
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">GPU acceleration</label>
+            <div class="controls">
+                <label class="checkbox-label">
+                    <input type="checkbox" ng-model="mlTaskDesign.modeling.xgboost.enable_cuda" ng-disabled="!isXgboostGpuAllowed()">
+                    <label type="label" dku-if="!isXgboostGpuAllowed()" class="help-inline">
+                        To enable GPU support in XGBoost, please select a custom Python code environment with an installation of XGBoost that supports computations on GPUs.
+                    </label>
+                </label>
+                <div class="help-inline" dku-if="isXgboostGpuAllowed()">
+                    Enable GPU acceleration for the XGBoost tree building algorithms to run on the GPU(s) of the instance.
+                </div>
+                <label dku-if="mlTaskDesign.modeling.xgboost.enable_cuda" class="alert alert-warning">
+                    Please make sure that your code environment has an installation of XGBoost that supports computations on GPUs.
+                </label>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Maximum number of trees</label>
+            <div class="controls">
+                <input type="number" force-integer min="1" ng-model="mlTaskDesign.modeling.xgboost.n_estimators" />
+                <div class="help-inline">
+                    XGBoost has an early stop mechanism so the exact number of trees will be optimized. High number of actual trees will increase the training and prediction time. Typical values: 100 - 10000
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Early stopping</label>
+            <div class="controls">
+                <label class="checkbox-label">
+                    <input type="checkbox" ng-model="mlTaskDesign.modeling.xgboost.enable_early_stopping">
+                </label>
+                <div class="help-inline">
+                    Use XGBoost built-in early stop mechanism so the exact number of trees will be optimized.
+                    <br/> The cross-validation scheme defined in the "Hyperparameters" tab will be used.
+                </div>
+            </div>
+        </div>
+        <div class="control-group" ng-show="mlTaskDesign.modeling.xgboost.enable_early_stopping">
+            <label class="control-label">Early stopping rounds</label>
+            <div class="controls">
+                <input type="number" force-integer ng-model="mlTaskDesign.modeling.xgboost.early_stopping_rounds" />
+                <div class="help-inline">
+                    The optimizer stops if the loss never decreases for this consecutive number of iterations. Typical values: 1 - 100
+                </div>
+            </div>
+        </div>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.xgboost.max_depth"
+                         label="Maximum depth of tree"
+                         help-inline="Maximum depth of each tree. High values can increase the quality of the prediction, but can lead to overfitting. Typical values: 3 - 10"
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.xgboost.learning_rate"
+                         decimal
+                         label="Learning rate"
+                         help-inline="Lower values slow down convergence and can make the model more robust. Typical values: 0.01 - 0.3"
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.xgboost.lambda"
+                         decimal
+                         label="L2 regularization"
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.xgboost.alpha"
+                         decimal
+                         label="L1 regularization"
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.xgboost.gamma"
+                         decimal
+                         label="Gamma"
+                         help-inline="Minimum loss reduction to split a leaf."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.xgboost.min_child_weight"
+                         decimal
+                         label="Minimum child weight"
+                         help-inline="Minimum sum of weights(hessian) in a node. High values can prevent overfitting by learning highly specific cases. Smaller values allow leaf nodes to match a small set of rows, which can be relevant for highly imbalanced sets."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.xgboost.subsample"
+                         decimal
+                         label="Subsample"
+                         help-inline="Subsample ratio for the data to be used in each tree. Low values can prevent overfitting but can make specific cases harder to learn. Typical values: 0.5 - 1"
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.xgboost.colsample_bytree"
+                         decimal
+                         label="Colsample by tree"
+                         help-inline="Fraction of the features to be used in each tree. Typical values: 0.5-1"
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <div class="control-group">
+            <label class="control-label">Replace missing values</label>
+            <div class="controls">
+                <div class="radio-button-box">
+                    <label class="radio">
+                        <input type="radio" name="impute_missing" ng-value="true" ng-model="mlTaskDesign.modeling.xgboost.impute_missing" /> Yes
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="impute_missing" ng-value="false" ng-model="mlTaskDesign.modeling.xgboost.impute_missing" /> No
+                    </label>
+                </div>
+                <div class="help-inline">
+                </div>
+            </div>
+        </div>
+        <div class="control-group" ng-show="mlTaskDesign.modeling.xgboost.impute_missing">
+            <label class="control-label"></label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.xgboost.missing" />
+                <div class="help-inline">
+                    Replacement value
+                </div>
+            </div>
+        </div>
+        <div ng-if="!mlTaskDesign.modeling.xgboost.enable_cuda" class="control-group">
+            <label class="control-label">Parallelism</label>
+            <div class="controls">
+                <input type="number" force-integer min="-1" max="100" ng-model="mlTaskDesign.modeling.xgboost.nthread" />
+                <div class="help-inline">
+                    Number of cores used for parallel training. Using more cores leads to faster training but at the expense of more memory consumption, especially for large training datasets. (-1 means 'all cores')
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

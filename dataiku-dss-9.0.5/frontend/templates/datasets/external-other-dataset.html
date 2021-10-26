@@ -1,0 +1,245 @@
+<div ng-show="dataset" class="h100" tab-model="uiState.activeTab">
+	<div include-no-scope="/templates/datasets/fragments/settings-save.html" />
+	 <div future-waiting response="testingFuture" ng-if="testingFuture && !testingFuture.hasResult"></div>
+	<div class="vertical-flex h100">
+		<ul class="nav nav-tabs noflex">
+			<li class="tab" tab-active="connection">
+                <a tab-set="connection">Files</a>
+            </li>
+            <li class="tab" tab-active="preview" ng-show="dataset.name.length >0 || detectionResults != null">
+                <a tab-set="preview">Format / Preview</a>
+            </li>
+            <li class="tab" tab-active="schema" ng-show="dataset.name.length >0 || detectionResults != null">
+                <a tab-set="schema" id="qa_dataset-settings_schema-tab">Schema</a>
+            </li>
+             <li class="tab" tab-active="partitioning" ng-show="(dataset.name.length >0 || detectionResults != null) && dataset.type != 'HTTP'">
+             	 <a tab-set="partitioning">Partitioning</a>
+             </li>
+               <li class="tab" tab-active="advanced" ng-show="dataset.name.length >0 || detectionResults != null">
+                <a tab-set="advanced">Advanced</a>
+            </li>
+		</ul>
+		<div class="oh vertical-flex tab-content flex" ng-if="uiState.activeTab == 'connection'">
+            <div class="fh">
+			<div class="container-fluid flex vertical-flex page-top-padding h100 oa">
+				 <div dku-if="!dataset.type.startsWith('fsprovider_')" class="noflex oya">
+                     <ng-include src="'/templates/datasets/connection-' + dataset.type.toLowerCase() + '.html'"></ng-include>
+                 </div>
+                 <div dku-if="dataset.type.startsWith('fsprovider_')" class="noflex oya">
+                     <ng-include src="'/templates/datasets/connection-custom.html'"></ng-include>
+                 </div>
+				<div class="connection-test-results noflex">
+					<div ng-show="!detectionResults && doingPreviewOrDetection" class="alert alert-info"> <i class="icon-spinner icon-spin icon-large"></i>
+						Please wait, testing connection ...
+					</div>
+					<div ng-show="detectionResults" class="alert {{getAlertClassForResultsOnConnectionTab(detectionResults)}}">
+						<ul style="margin: 0; list-style: none;">
+							<li ng-show="!detectionResults.connectionOK">
+								<i class="icon-warning-sign" /><span summary-of-error="detectionResults.connectionError" />
+							</li>
+							<li ng-show="detectionResults.connectionOK && detectionResults.empty">
+								<i class="icon-warning-sign" />&nbsp;Did not find any non-empty file
+							</li>
+							<li ng-show="!detectionResults.empty && detectionResults.fileForDetectionPath">
+								<i class="icon-ok" />&nbsp;Used <code>{{detectionResults.fileForDetectionPath}}</code> ({{detectionResults.fileForDetectionSize|filesize}}) to parse data
+							</li>
+							<li ng-show="detectionResults.fileForDetectionPath && !detectionResults.format">
+								<i class="icon-warning-sign" />&nbsp;Failed to detect file format. Please manually fix.
+								<button ng-click="goToPreview()" class="btn btn--secondary">
+									Format settings
+									<i class="icon-angle-right" />
+								</button>
+							</p>
+							<li ng-show="detectionResults.format.type && !detectionResults.format.ok">
+								<i class="icon-warning-sign" />&nbsp;Used format {{detectionResults.format.type}} but not OK: {{detectionResults.format.errorMessage}}
+								<button ng-click="goToPreview()" class="btn btn--secondary">
+									Format settings
+									<i class="icon-angle-right" />
+								</button>
+							</li>
+							<li ng-show="detectionResults.format && detectionResults.format.ok && detectionResults.format.schemaDetection.warningLevel != 'WARN'">
+								<i class="icon-ok" />&nbsp;Used format {{detectionResults.format.type}} and found {{detectionResults.format.table.headers.length}} columns
+								<br />
+								<button ng-click="goToPreview()" class="btn btn--secondary" id="qa_upload-dataset_preview-btn">
+									Preview
+									<i class="icon-angle-right" />
+								</button>
+							</li>
+							<li ng-show="detectionResults.format && detectionResults.format.ok && detectionResults.format.schemaDetection.warningLevel == 'WARN'">
+								<i class="icon-ok" />&nbsp;Used format {{detectionResults.format.type}} and found {{detectionResults.format.table.headers.length}} columns
+								<br />
+								<i class="icon-warning-sign" />&nbsp;{{detectionResults.format.schemaDetection.textReasons}}
+								<br />
+								<button ng-click="goToPreview()" class="btn btn--secondary">
+									Preview
+									<i class="icon-angle-right" />
+								</button>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+            </div>
+		</div>
+
+		<div class="tab-content flex" ng-if="uiState.activeTab == 'preview'">
+			<div class="fh">
+			<div class="container-fluid page-top-padding h100 oa">
+				<div ng-show="!detectionResults && !doingPreviewOrDetection" class="alert alert-info text-center ">
+					<button class="btn btn--primary btn--large" ng-click="detectOrPreview()">Preview this dataset</button>
+				</div>
+
+				<div ng-show="!detectionResults && doingPreviewOrDetection" class="alert alert-info"> <i class="icon-spinner icon-spin icon-large"></i>
+					Please wait, testing connection ...
+				</div>
+
+				<div ng-show="detectionResults && !detectionResults.format.ok" class="alert {{getAlertClassForResultsOnPreviewTab(detectionResults)}}">
+					<ul style="margin: 0; list-style: none;">
+						<li ng-show="!detectionResults.connectionOK">
+							<i class="icon-warning-sign" /><span summary-of-error="detectionResults.connectionError" />
+						</li>
+						<li ng-show="detectionResults.connectionOK && detectionResults.empty">
+							<i class="icon-warning-sign" />&nbsp;Did not find any non-empty file
+						</li>
+						<li ng-show="detectionResults.fileForDetectionPath && !detectionResults.format">
+							<i class="icon-warning-sign" />&nbsp;Failed to detect file format. Please manually select
+						</li>
+						<li ng-show="detectionResults.format && !detectionResults.format.ok">
+							<i class="icon-warning-sign" />&nbsp;Tried format {{detectionResults.format.type}} but configuration is not OK: {{detectionResults.format.errorMessage}}
+						</li>
+					</ul>
+				</div>
+
+				<div ng-if="datasetName  && detectionResults" class="noflex" schema-consistency-status current-schema="dataset.schema"
+                     consistency="consistency" overwrite-schema="overwriteSchema" clear-managed-dataset="clearDataset"
+                     check-consistency="preview" discard-consistency-error="discardConsistencyError" managed="dataset.managed"
+                     schema-just-modified="schemaJustModified" />
+
+				<div ng-show="detectionResults && detectionResults.format.ok" class="scroll dataset-preview-scroll">
+					<div class="dataset-preview-legend">
+						Used <code>{{detectionResults.fileForDetectionPath}}</code> ({{detectionResults.fileForDetectionSize|filesize}})) to parse data.
+						Used format {{detectionResults.format.type}} and parsed {{detectionResults.format.table.headers.length}} columns
+
+						<span class="text-error" ng-show="detectionResults.format.nbNOK > 0"><br />
+							{{detectionResults.format.nbNOK}} records did not parse correctly ({{(detectionResults.format.nbNOK/(detectionResults.format.nbOK + detectionResults.format.nbNOK))|percentage}} of {{detectionResults.format.nbOK + detectionResults.format.nbNOK}} tested)
+						</span>
+					</div>
+					<div simple-detection-preview-table dataset="dataset" table="detectionResults.format.table" headers="detectionResults.format.table.headers" 
+					                                    schema-is-user-editable="true" set-schema-user-modified="setSchemaUserModified"/>
+				</div>
+
+
+				<div style="margin-top: 20px" class="generic-white-box">
+					<div class="pull-right dataset-format-buttons">
+						<button class="btn btn--secondary" ng-click="onFormatParamsChanged()"><i class="icon-refresh" /> Update preview</button>
+						<button class="btn btn--secondary" ng-click="forceFormatRedetection()"><i class="icon-magic" /> Redetect</button>
+					</div>
+					<div>
+						<form class="dkuform-horizontal">
+							<div class="control-group required">
+								<label class="control-label">Type</label>
+								<div class="controls">
+									<select ng-change="onFormatTypeChanged()"
+					    ng-model="dataset.formatType" ng-options="key as value.description for (key, value) in formats"></select>
+								</div>
+							</div>
+						</form>
+						<div dku-if="dataset.formatType != 'excel' && dataset.formatType != 'csv' && dataset.formatType != 'xml' && dataset.formatType != 'json'">
+							<div on-smart-change="onFormatParamsChanged()">
+								<form-template model="dataset.formatParams" form-definition="formats[dataset.formatType].params"
+									monitor="dataset.formatType"></form-template>
+							</div>
+						</div>
+						<div dku-if="dataset.formatType == 'excel'">
+							<ng-include src="'/templates/datasets/format-excel.html'"></ng-include>
+						</div>
+						<div dku-if="dataset.formatType == 'csv'">
+							<ng-include src="'/templates/datasets/format-csv.html'"></ng-include>
+						</div>
+						<div dku-if="dataset.formatType == 'xml'">
+							<ng-include src="'/templates/datasets/format-xml.html'"></ng-include>
+						</div>
+                        <div dku-if="dataset.formatType == 'json'">
+                            <ng-include src="'/templates/datasets/format-json.html'"></ng-include>
+                        </div>
+					</div>
+				</div>
+                </div>
+			</div>
+		</div>
+
+		<div class="tab-content flex" ng-if="uiState.activeTab == 'schema'">
+			<div class="fh">
+			<div class="container-fluid page-top-padding h100 vertical-flex" style="position: relative;">
+	 			<div ng-if="datasetName"
+	 				schema-consistency-status
+                    current-schema="dataset.schema"
+                    hive-schema="hiveDataset.schema"
+	 				consistency="consistency"
+	 				overwrite-schema="overwriteSchema"
+	 				clear-managed-dataset="clearDataset"
+	 				check-consistency="preview"
+	 				discard-consistency-error="discardConsistencyError"
+	 				managed="dataset.managed"
+	 				schema-just-modified="schemaJustModified"
+	 				class="noflex" />
+				<div include-no-scope="/templates/datasets/schema-edition.html" class="flex" />
+			</div>
+			</div>
+		</div>
+
+		<!-- COMMON SECTION -->
+		<div class="tab-content flex" ng-if="uiState.activeTab == 'partitioning'">
+			<div class="fh">
+			<div class="container-fluid page-top-padding h100">
+				<div class="h100" pane-partitioning dataset="dataset" detect-scheme="detectScheme" test-scheme="testScheme"></div>
+			</div>
+			</div>
+		</div>
+		<div class="tab-content flex" ng-if="uiState.activeTab == 'advanced'">
+			<div class="fh">
+			<div class="small-lr-padding page-top-padding h100 oa">
+				<div class="generic-white-box">
+					<div class="container-fluid" ng-show="dataset.type == 'HDFS'">
+						<h2 class="settings-section-title">Hive / Impala</h2>
+						<form class="dkuform-horizontal">
+	                        <div class="control-group">
+	                            <label class="control-label">Update metastore from dataset</label>
+	                            <div class="controls">
+	                                <button class="btn btn--danger" ng-click="resynchronizeMetastore()">
+	                                    <span class=" icon-refresh icon">&nbsp;</span>
+	                                    Synchronize
+	                                </button>
+	                            </div>
+	                        </div>
+	                        <div class="control-group">
+	                            <label class="control-label">Update dataset from metastore</label>
+	                            <div class="controls">
+	                                <button class="btn btn--danger" ng-click="startUpdateFromHive()">
+	                                    <span class=" icon-refresh icon">&nbsp;</span>
+	                                    Update
+	                                </button>
+	                            </div>
+	                        </div>
+						</form>
+					</div>
+
+					<div class="container-fluid">
+						<h2 class="settings-section-title">Schema consistency</h2>
+						<button class="btn btn--danger" ng-click="testSchemaConsistencyOnAllFiles()">
+							Check on all files
+						</button>
+
+					</div>
+					
+
+					<div include-no-scope="/templates/datasets/advanced-fieldset-flow.html" />
+					<div include-no-scope="/templates/datasets/advanced-fieldset-ordering-fs.html" />
+					<div include-no-scope="/templates/datasets/advanced-override-table.html" />
+					<div include-no-scope="/templates/datasets/advanced-fieldset-danger.html" />
+				</div>
+			</div>
+			</div>
+		</div>
+	</div>
+</div>

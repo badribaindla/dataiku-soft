@@ -1,0 +1,91 @@
+<div class="">
+    <div block-api-error />
+    <div class="locked-feature" ng-if="!appConfig.licensedFeatures.userSecurityAllowed">
+        <div class="banner">
+            Your DSS <span ng-bind="appConfig.licensedFeatures.limitedEditionString" /> does
+            not allow you to manage project permissions.
+        </div>
+        <div include-no-scope="/templates/profile/community-vs-enterprise-try.html"></div>
+    </div>
+    <div ng-if="appConfig.licensedFeatures.userSecurityAllowed" style="" class="permissions-table-page">
+        <form class="dkuform-horizontal">
+            <div class="control-group" ng-if="codeEnv.canUpdateCodeEnv">
+                <label class="control-label">Owner</label>
+                <div class="controls">
+                    <select
+                    dku-bs-select
+                    ng-options="usr.login as usr.displayName for usr in allUsers"
+                    ng-model="ui.ownerLogin"/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="useByAllDisabled" class="control-label">Usable by all</label>
+                <div class="controls">
+                    <input type="checkbox" ng-hide="codeEnv.canUpdateCodeEnv || (!codeEnv.canUpdateCodeEnv && !codeEnv.usableByAll)" checked disabled />
+                    <input type="checkbox" ng-hide="codeEnv.canUpdateCodeEnv || (!codeEnv.canUpdateCodeEnv && codeEnv.usableByAll)" disabled />
+                    <input type="checkbox" ng-show="codeEnv.canUpdateCodeEnv" ng-model="codeEnv.usableByAll" id="useByAllDisabled"/>
+                </div>
+            </div>
+        </form>
+        <form class="inline-form">
+
+            <table sort-table class="table table-striped table-hover permissions" >
+                <thead>
+                    <tr>
+                        <th colspan="2">Group name</th>
+                        <th>Use</th>
+                        <th ng-if="codeEnv.canUpdateCodeEnv">Update settings &amp; packages</th>
+                        <th ng-if="codeEnv.canUpdateCodeEnv">Admin</th>
+                        <th>&nbsp;</th>
+                    </tr>
+                </thead>
+                <tbody add-remove ng-model="codeEnv.permissions">
+                    <tr ng-hide="codeEnv.permissions.length">
+                        <td colspan="13" style="text-align: center; font-size: 16px; line-height: 40px; color: #666">
+                            No group is granted access to this code env
+                        </td>
+                    </tr>
+                    <tr ng-repeat="perm in codeEnv.permissions">
+
+                        <td colspan="2">{{perm.group}}</td>
+                        <td>
+                            <label class="checkbox" for="useDisabled_{{$index}}" >
+                                <input type="checkbox" ng-show="perm.$useDisabled" checked disabled />
+                                <input type="checkbox" ng-hide="perm.$useDisabled" ng-model="perm.use" id="useDisabled_{{$index}}"/>
+                            </label>
+                        </td>
+                        <td ng-if="codeEnv.canUpdateCodeEnv">
+                            <label class="checkbox" for="updateDisabled_{{$index}}" >
+                                <input type="checkbox" ng-show="perm.$updateDisabled" checked disabled />
+                                <input type="checkbox" ng-hide="perm.$updateDisabled" ng-model="perm.update" id="updateDisabled_{{$index}}"/>
+                            </label>
+                        </td>
+                        <td ng-if="codeEnv.canUpdateCodeEnv">
+                            <label class="checkbox" for="manageUsersDisabled_{{$index}}" >
+                                <input type="checkbox" ng-show="perm.$manageUsersDisabled" checked disabled />
+                                <input type="checkbox" ng-hide="perm.$manageUsersDisabled" ng-model="perm.manageUsers" id="manageUsersDisabled_{{$index}}"/>
+                            </label>
+                        </td>
+                        <td>
+                            <a  class="link-danger" ng-click="remove($index)"> <i class="icon-trash" /></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div ng-show="unassignedGroups.length" style="margin-bottom: 20px;">
+                <select style="display: inline-block;" ng-model="newPerm.group" dku-bs-select="{liveSearch:true,width:250}" ng-options="g for g in unassignedGroups" data-none-selected-text="Select a group..." ></select>
+                <button style="display: inline-block;" ng-disabled="!newPerm.group" ng-click="addPermission()" class="btn btn--secondary">
+                    <span plus-icon />
+                    &nbsp;Grant access to group
+                </button>
+            </div>
+
+            <div class="alert alert-info" style="border-radius: 0px"> <i class="icon-info-sign" />To manage groups go to
+                <a class="tab" ng-class="{'enabled': $state.includes('admin.groups')}" href="/admin/security/groups/">DSS global administration</a>
+                .
+            </div>
+        </form>
+    </div>
+
+</div>

@@ -1,0 +1,139 @@
+<feature-locked feature-name="'Project Deployer capabilities'"
+    class="dss-page container-fluid"
+    ng-if="isFeatureLocked">
+</feature-locked>
+
+<div class="h100 horizontal-flex deployment-dashboard" ng-if="!isFeatureLocked">
+    <div class="deployment-dashboard-panel noflex" include-no-scope="/templates/project-deployer/packages-panel.html">
+
+    </div>
+    <div class="deployment-dashboard-main vertical-flex pad16">
+        <div block-api-error />
+        <div class="deployment-dashboard-main__header pad8">
+            <h1 class="page-title">
+                {{ deploymentsStatusList.length }} {{ 'deployment' |plurify : deploymentsStatusList.length }}
+                <button class="btn btn--secondary pull-right" ng-click="refreshAllDeployments()" ng-disabled="stillRefreshing()">
+                    <i class="icon-refresh"
+                       ng-class="{'icon-spin': stillRefreshing()}"
+                    />&nbsp;refresh
+                </button>
+            </h1>
+            <div>
+                <div class="pull-right">
+                    <div class="pull-right">
+                        <a class="btn btn--primary"
+                            disabled-if-message="DeployerUtils.getCannotDeployReason(projectStatusList, infraStatusList, publishedItemType, false)"
+                            ng-click="startCreateDeployment()">
+                            <span plus-icon />&nbsp;New deployment
+                        </a>
+                    </div>
+                </div>
+
+                <div class="dib deployer__search-box">
+                    <span class="add-on">
+                        <i class="icon-dku-search"></i>
+                    </span>
+                    <input type="search" ng-model="uiState.query.q" placeholder="Search deployments..."/>
+                </div>
+
+                <div custom-element-popup class="dib sort-box list-customfilter-box list-control-widget list-control-dropdown manage-items-widget">
+                    <span class="add-on"><i class="icon-dku-project"></i></span>
+                    <button class="btn dku-select-button mainzone has-caret deployment-dashboard-panel__filter-btn" ng-click="togglePopover()">
+                        {{ countSelectedItems(uiState.query.projects) || 'All' }} {{ 'project' | plurify:countSelectedItems(uiState.query.projects) }}
+                        <span class="caret"></span>
+                    </button>
+                    <div class="popover sort-box-menu checkable-items deployment-dashboard-panel__popover">
+                        <ul>
+                            <li ng-class="{'selected' : !countSelectedItems(uiState.query.projects)}" ng-click="clearAndRefreshFilter(uiState.query.projects)">All projects</li>
+                            <li ng-repeat="project in uiState.query.projects" ng-class="{'selected' : project.$selected}" ng-click="selectAndFilterDeployments(project)">
+                                <span>{{ project.projectBasicInfo.name }} {{ project.projectBasicInfo.id !== project.projectBasicInfo.name ? '(' + project.projectBasicInfo.id + ')' : '' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div custom-element-popup class="dib tags-widget list-customfilter-box list-control-widget list-control-dropdown">
+                    <span class="add-on"><i class="icon-tags"></i></span>
+                    <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                        {{uiState.query.tags.length > 0 ? 'Tags' : 'All tags'}}
+                        <span ng-if="uiState.query.tags.length > 0"> |
+                            <span class="nb-selected-elements">{{uiState.query.tags.length}} selected</span>
+                        </span>
+                        <span class="caret"></span>
+                    </button>
+
+                    <div class="popover custom-element-popup-popover tags-list-popover">
+                        <div ng-click="$event.stopPropagation()">
+                            <div style="max-height:300px;">
+                                <div tags-list tags-list-selected="uiState.query.tags" object-type="'PROJECT'"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div custom-element-popup class="dib sort-box list-customfilter-box list-control-widget list-control-dropdown manage-items-widget">
+                <span class="add-on"><i class="icon-dku-success" style="font-size: 18px;"></i></span>
+                    <button class="btn dku-select-button mainzone has-caret deployment-dashboard-panel__filter-btn" ng-click="togglePopover()" title="{{ getSelectedHealthStatuses() }}">
+                        {{ getSelectedHealthStatuses() }}
+                        <span class="caret"></span>
+                    </button>
+                    <div class="popover sort-box-menu checkable-items deployment-dashboard-panel__popover">
+                        <ul>
+                            <li ng-class="{'selected' : !countSelectedItems(uiState.query.healthStatusMap)}" ng-click="clearAndRefreshFilter(uiState.query.healthStatusMap)">
+                                <i class="sort-box-menu__icon"></i><span  class="sort-box-menu__label">All states</span>
+                            </li>
+                            <li ng-repeat="healthStatus in uiState.query.healthStatusMap" ng-class="{'selected' : healthStatus.$selected}" ng-click="selectAndFilterDeployments(healthStatus)">
+                                <i class="sort-box-menu__icon {{ healthStatus.id | deploymentHealthToIcon }}"></i><span class="sort-box-menu__label">{{ healthStatus.id | healthStatusToFriendly }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex oa h100 pad8 deployment-dashboard-main__stages"
+             include-no-scope="/templates/project-deployer/deployment-panel.html"
+             ng-if="deploymentsStatusList.length"
+        ></div>
+        <div class="empty-list-cta flex" ng-if="deploymentsStatusList.length === 0" style="margin-top: 50px">
+            <h1 style="margin-bottom: 0">No projects have been deployed yet</h1>
+            <p class="small">(or you don't have permission to view them)</p>
+
+            <div ng-if="!deployerHasPublishedPackages(projectStatusList) && !infraStatusList.length && !$root.appConfig.admin">
+                <p>In order to deploy projects, your administrator needs to first create (or make available to you) an automation infrastructure.</p>
+                <p>You then need to create your project bundle in the <strong>Design node</strong>.</p>
+                <p><span doclink-wrapper page="deployment/index">Read the documentation</span> to learn more.</p>
+            </div>
+
+            <div ng-if="!deployerHasPublishedPackages(projectStatusList) && !infraStatusList.length && $root.appConfig.admin">
+                <p>In order to deploy projects, you need to first
+                    <a href="{{ $state.href('projectdeployer.infras.list') }}">create an automation infrastructure</a>.
+                </p>
+
+                <p>You then need to create your project bundle in the <strong>Design node</strong>.</p>
+                <p><span doclink-wrapper page="deployment/index">Read the documentation</span> to learn more.</p>
+            </div>
+
+            <div ng-if="deployerHasPublishedPackages(projectStatusList) && !infraStatusList.length && !$root.appConfig.admin">
+                <p>In order to deploy projects, your administrator needs to first create (or make available to you) an automation infrastructure.</p>
+                <p><span doclink-wrapper page="deployment/project-deployment-infrastructures">Read the documentation</span> to learn more.</p>
+            </div>
+
+            <div ng-if="deployerHasPublishedPackages(projectStatusList) && !infraStatusList.length && $root.appConfig.admin">
+                <p>In order to deploy projects, you need to first <a href="{{ $state.href('projectdeployer.infras.list') }}">create an automation infrastructure</a>.</p>
+                <p><span doclink-wrapper page="deployment/project-deployment-infrastructures">Read the documentation</span> to learn more.</p>
+            </div>
+
+            <div ng-if="!deployerHasPublishedPackages(projectStatusList) && infraStatusList.length">
+                <p>In order to deploy projects, you need to first<br /> design project bundles in the <strong>Design node</strong> and publish them.</p>
+                <p><span doclink-wrapper page="deployment/deploying-bundles">Read the documentation</span> to learn more.</p>
+            </div>
+            <div ng-if="deployerHasPublishedPackages(projectStatusList) && infraStatusList.length">
+                <a class="btn btn--primary btn--large" 
+                    disabled-if-message="DeployerUtils.getCannotDeployReason(projectStatusList, infraStatusList, publishedItemType, false)"
+                    ng-click="startCreateDeployment()">
+                    <span plus-icon></span> &nbsp;New deployment
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

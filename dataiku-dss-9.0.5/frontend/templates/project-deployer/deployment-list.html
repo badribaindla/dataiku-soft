@@ -1,0 +1,60 @@
+<div class="deployer__deployment-list">
+    <div ng-if="!deployments.length" class="empty-list-cta">
+        <p>No deployments</p>
+    </div>
+    <div ng-if="deployments.length" class="oh">
+        <div ng-repeat="deployment in deployments"
+             class="standard-widget deployment-card deployer__deployment-list-card"
+             ng-click="redirect(deployment)"
+             ng-class="{'standard-widget--warning': healthMap[deployment.deploymentBasicInfo.id].currentState === 'WARNING' || healthMap[deployment.deploymentBasicInfo.id].currentState === 'UNKNOWN' || healthMap[deployment.deploymentBasicInfo.id].currentState === 'OUT_OF_SYNC',
+                'standard-widget--error': healthMap[deployment.deploymentBasicInfo.id].currentState === 'LOADING_FAILED' || healthMap[deployment.deploymentBasicInfo.id].currentState === 'ERROR'}">
+            <div class="standard-container__header standard-container__header--with-totem deployment-card__header simple-columns">
+                <div class="standard-container__totem standard-container__totem--small" ng-if="deployment.projectBasicInfo.id">
+                    <totem project-name="deployment.projectBasicInfo.name"
+                           project-key="deployment.projectBasicInfo.id"
+                           object-type="'PUBLISHED_PROJECT'"
+                           object-id="deployment.projectBasicInfo.id"
+                           object-img-hash = "deployment.projectBasicInfo.imageInfo.objectImgHash"
+                           img-color="deployment.projectBasicInfo.imageInfo.imgColor"
+                           img-pattern="deployment.projectBasicInfo.imageInfo.imgPattern"
+                           show-initials="deployment.projectBasicInfo.imageInfo.showInitials"
+                           is-project-img="deployment.projectBasicInfo.imageInfo.isUploadedImg"
+                           default-img-color="deployment.projectBasicInfo.imageInfo.defaultImgColor"
+                    />
+                </div>
+                <div class="standard-container__titles vertical-flex">
+                    <div class="deployment-card__header-title horizontal-flex">
+                        <div class="mx-textellipsis flex-no-grow">
+                            {{ deployment.projectBasicInfo.name }}
+                        </div>
+                        <div class="no-flex">
+                            &nbsp;{{ (statusPage === 'infra') ? 'from' : 'on'}}
+                        </div>
+                        <div class="mx-textellipsis flex-no-grow">
+                            &nbsp;{{ statusPage === 'infra' ? deployment.deploymentBasicInfo.bundleId : deployment.deploymentBasicInfo.infraId }}
+                        </div>
+                    </div>
+                    <div class="deployment-card__header-title text-weak horizontal-flex">
+                        <div class="flex-no-grow mright8" show-tooltip-on-text-overflow
+                             text-tooltip="deployment.deploymentBasicInfo.id"
+                             tooltip-direction="'tooltip-top'"
+                             observe-resize="false"></div>
+                        |<div class="flex-no-shrink mleft8">
+                            Updated
+                            <span class="flex-no-shrink"
+                                  toggle="tooltip"
+                                  data-placement="top"
+                                  container="body"
+                                  title="{{ deployment.deploymentBasicInfo.versionTag.lastModifiedOn | date:'yyyy-MM-dd – HH:mm:ss' }}">
+                                {{ deployment.deploymentBasicInfo.versionTag.lastModifiedOn | friendlyTimeDeltaShort }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="status-icon">
+                    <i class="{{healthMap[deployment.deploymentBasicInfo.id].currentState |deploymentHealthToIcon}}" title="{{healthMap[deployment.deploymentBasicInfo.id].message}}" data-container="body" toggle="tooltip"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,86 @@
+<div include-no-scope="/templates/bundles/automation/navbar.html" />
+<div class="list-page-4 flex dss-page">
+    <div data-extend-template="/templates/layouts/list-items-2-single-line.html" class="vertical-flex">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            Imported bundles
+        </span>
+
+        <!--  NEW   -->
+        <div style="display: inline-block"  data-block="newItem">
+            <a class="btn btn--secondary" ng-click="importBundle()">
+                <span plus-icon />&nbsp;Import bundle
+            </a>
+        </div>
+
+        <div data-block="empty">
+            <h1>
+                No bundles in this project
+            </h1>
+            <p>
+                Bundles are versioned snapshots of your projects.
+            </p>
+            <p class="small">
+                Read the documentation to learn more on how to <span doclink-wrapper page="deployment/manually-importing-bundles">manually import a bundle</span> or <span doclink-wrapper page="deployment/deploying-bundles">deploy one via a {{wl.productShortName}} Deployer node</span> to put it into production.
+            </p>
+            <div class="import-first-dataset">
+                <a disabled-if-ro="" class="btn btn--contained btn--large btn--settings" ng-click="importBundle()">
+                    <span plus-icon />
+                    &nbsp;Import your first bundle
+                </a>
+            </div>
+        </div>
+
+
+        <!-- ITEM LAYOUT -->
+        <div data-block="item">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit" dataset="item">
+                <div class="illustration">
+                    <i class="icon-bundle"></i>
+                </div>
+                <div class="hitContent">
+                    <div class="hit-content-main">
+                        <h4 class="hit-content-main__title">
+                            <div class="chip chip--primary mright8" ng-if="item.bundleId == projectSummary.activeBundleState.bundleId">ACTIVE</div>
+
+                            <a ng-click="goToItem(item)" title="{{ item.bundleId }}" ng-bind-html="item.bundleId | boldify:selection.filterParams.userQueryResult"/>
+                        </h4>
+
+                        <div class="hit-content-main__subtitle">
+                            Imported on {{item.importState.importedOn | date}} by {{item.importState.importedBy}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- RIGHT COLUMN PREVIEW -->
+        <div data-block="preview">
+            <div class="object-right-column-summary fh vertical-flex oa" ng-if="selection.selectedObject">
+                <div item-header class="noflex"
+                    color="bundle"
+                    icon="icon-bundle">
+                    {{selection.selectedObject.bundleId}}
+                </div>
+                <div class="flex">
+                    <div>
+                        <div class="text-right" style="margin: 10px">
+                            <button class="btn btn--secondary" ng-click="showBundleDetails(selection.selectedObject)">Details</button>
+                            <button class="btn btn--danger" ng-click="preloadBundle(selection.selectedObject.bundleId)">Preload</button>
+                            <button class="btn btn--danger" ng-click="startActivate(selection.selectedObject.bundleId)">Activate</button>
+                        </div>
+                    </div>
+
+                    <ng-include src="'/templates/bundles/common/bundle-rightcolumn.html'"></ng-include>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

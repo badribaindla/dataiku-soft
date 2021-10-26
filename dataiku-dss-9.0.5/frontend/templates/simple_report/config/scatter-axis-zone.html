@@ -1,0 +1,40 @@
+<ul add-remove ng-model="list" chart-drag-drop-list-replace="list" accept-drop="acceptCallback(data)">
+	<li ng-repeat="dimension in list track by $index" chart-drag-drop-list-item="list" class="chartdef-dropped chartdef-dropped-dimension">
+		<div contextual-menu class="measure-wrapper" ng-click="ChartUADimension.isAlphanumLike(dimension) && toggleContextualMenu($event)">
+			<span class="measure"> 
+                <i class="icon-caret-down pull-left" ng-if="ChartUADimension.isAlphanumLike(dimension)"></i>
+				<span dku-if="dimension.type == 'DATE'" class="measure-name" title="{{dimension.column}}">{{dimension.column}}</span>
+				<span dku-if="dimension.type == 'NUMERICAL'" class="measure-name" title="{{dimension.column}}">{{ dimension.column }}</span>
+				<span dku-if="dimension.type == 'ALPHANUM'" class="measure-name" title="{{dimension.column}}">{{dimension.column}}</span>
+                <i class="icon-trash pull-right" ng-click="remove($index);"></i>
+			</span>
+			<div class="fixed-contextual-menu-align-left contextualMenu" ng-show="contextualMenu">
+				<form class="dkuform-chart-options">
+					<!--
+    NOT YET IMPLEMENTED
+        <label ng-show="dimension.type == 'DATE'">
+					<span class="text">Date mode</span>
+					<select ng-model="dimension.dateMode" ng-options="x[0] as x[1] for x in dateFilterTypes" />
+				</label>
+				-->
+				<!-- Not yet implemented
+				<label ng-show="dimension.type == 'NUMERICAL'">
+				<span class="text">Treat as alphanum</span>
+				<input type="checkbox" ng-model="dimension.treatAsAlphanum" />
+			</label>
+			-->
+					<div class="control-group" ng-show="ChartUADimension.isAlphanumLike(dimension)">
+						<label class="control-label">Sort</label>
+						<div class="controls">
+							<select ng-model="dimension.sortBy">
+								<option value="COUNT">By count</option>
+								<option value="NATURAL">Natural ordering</option>
+							</select>
+						</div>
+						<!-- TODO: order -->
+					</div>
+				</form>
+			</div>
+		</div>
+	</li>
+</ul>

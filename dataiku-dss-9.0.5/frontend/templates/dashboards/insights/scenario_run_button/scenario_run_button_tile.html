@@ -1,0 +1,90 @@
+<div data-extend-template="/templates/dashboards/insight-tile-template.html" class="h100">
+    <div data-block="content" class="h100">
+
+        <div class="h100 no-last-run" ng-if="!tile.tileParams.showLastRun">
+            <div class="h100 center-children run" ng-click="runNow()" ng-hide="runStarting || lastRun.futureId">
+                <div>
+                    <i class="icon-play"></i>
+                    <button class="btn btn--success">{{tile.tileParams.buttonText || 'Run now'}}</button>
+                </div>
+            </div>
+
+            <div class="h100 center-children running" ng-click="abort()" ng-show="runStarting || lastRun.futureId">
+                <div class="running">
+                    <i class="icon-refresh icon-spin"></i>
+                    <button class="btn btn--success">Running</button>
+                </div>
+
+                <div class="abort">
+                    <i class="icon-remove"></i>
+                    <button class="btn btn--danger">Abort</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="h100 with-last-run" ng-if="tile.tileParams.showLastRun">
+            <div class="h100 center-children run" ng-hide="runStarting || lastRun.futureId">
+                <div>
+                    <div>
+                        <button class="btn btn--success" ng-click="runNow()">
+                            <i class="icon-play"></i>&nbsp;
+                            {{tile.tileParams.buttonText || 'Run now'}}
+                        </button>
+                    </div>
+
+                    <div style="line-height: 26px">
+                    Last run
+                        <span ng-switch="lastRun.result.outcome" class="scenario-results">
+                            <i ng-switch-when="SUCCESS" class="icon-check-sign success" />
+                            <i ng-switch-when="WARNING" class="icon-warning-sign warning" />
+                            <i ng-switch-when="FAILED" class="icon-remove-sign failed" />
+                            <i ng-switch-default class="icon-ban-circle aborted" />
+                        </span>
+                        <strong class="" style="text-transform: capitalize">{{lastRun.result.outcome.toLowerCase()}}</strong>
+                        <span class="lining-nums" style="opacity: .8">- {{lastRun.start | date: 'MMM. d HH:mm:ss'}}</span>
+                        <!--<div style="margin-left: 8.5%">{{ getTriggerName(lastRun.trigger.trigger)}}&nbsp;</div> -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="h100 center-children running" ng-show="runStarting || lastRun.futureId">
+                <div>
+                    <div>
+                        <button class="btn btn--primary" disabled ng-click="runNow()">
+                            <i class="icon-refresh icon-spin"></i>&nbsp;
+                            Running
+                        </button>
+                    </div>
+
+                    <div>
+                        <button class="btn btn--danger" ng-click="abort()" ng-disabled="runStarting" style="margin: 0;">
+                            <i class="icon-remove"></i>&nbsp;
+                            Abort
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div>
+            <div>
+                <div ng-if="tile.tilesParams.showLastRun">
+                    Last run:
+                    <span ng-if="!lastRun.futureId && !runStarting" ng-switch="lastRun.result.outcome" class="scenario-results">
+						<i ng-switch-when="SUCCESS" class="icon-check-sign success" />
+						<i ng-switch-when="WARNING" class="icon-warning-sign warning" />
+						<i ng-switch-when="FAILED" class="icon-remove-sign failed" />
+						<i ng-switch-default class="icon-ban-circle aborted" />
+					</span>
+                    <span ng-if="lastRun.futureId || runStarting" class=""><i class="icon-refresh icon-spin"/></span>
+                    <strong class="" style="text-transform: capitalize">{{lastRun.futureId || runStarting ? 'Running' : (lastRun.result.outcome.toLowerCase() || '?')}}</strong>
+                    <span ng-if="!lastRun.futureId && !runStarting" class="lining-nums" style="opacity: .8">{{lastRun.start | date: 'MMM. d HH:mm:ss'}}</span>
+                    <span ng-if=" lastRun.futureId || runStarting" class="lining-nums"><button class="btn btn--danger" ng-disabled="runStarting" ng-click="abortScenario(run);">ABORT</button></span>
+                    <div style="margin-left: 8.5%">{{ getTriggerName(lastRun.trigger.trigger)}}&nbsp;</div> <!-- always at least a space -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,77 @@
+<div ng-repeat="role in recipeDesc.outputRoles">
+    <div class="role-header" ng-if="role.label">
+       {{role.label}}
+        <span ng-if="role.description"
+            dku-md-popover="{{role.description}}"
+            dku-md-title="{{role.label || role.name}}"
+            popover-clazz="processor-help-popover" >
+            <i class="icon-question-sign" />
+        </span>
+    </div>
+    <div ng-class="{'bounded-list' : longRoleList}" style="margin-top: 13px;">
+        <div class="chosen" add-remove ng-model="recipe.outputs[role.name].items" ng-if="computablesMap && recipe.outputs[role.name].items.length" >
+            <div ng-repeat="output in recipe.outputs[role.name].items">
+                <div style="margin: 0 20px;" ng-scope="{{computable = computablesMap[output.ref]}}">
+                    Replacement for {{ computable.type == 'MANAGED_FOLDER' ? 'folder' : '' }} <strong>{{computable.label || output.ref}}</strong>:
+                </div>
+                <div full-click
+                    class="item"
+                    ng-class="{'prompt btn btn--secondary': !computable}"
+                    ng-switch on="computablesMap[newOutputs[role.name].items[$index].ref]"
+                    ng-click="startEditOutput(role.name, $index)"
+                    style="margin-bottom: 15px;"
+                    >
+                    <div class="horizontal-flex" ng-switch-default ng-scope="{{computable = computablesMap[newOutputs[role.name].items[$index].ref]}}">
+                    <div class="illustration noflex">
+                        <i ng-if="computable.type == 'DATASET'" class="{{computable.dataset.type |typeToIcon}}"></i>
+                        <i ng-if="computable.type == 'STREAMING_ENDPOINT'" class="{{computable.streamingEndpoint.type |typeToIcon}}"></i>
+                        <i ng-if="computable.type == 'MANAGED_FOLDER'" class="icon-box"></i>
+                        <i ng-if="computable.type == 'SAVED_MODEL'" class="icon-machine_learning_regression"></i>
+                        <i ng-if="computable.type == 'MODEL_EVALUATION_STORE'" class="icon-model-evaluation-store"></i>
+                    </div>
+                    <div class="information flex">
+                        <a ng-if="!computable" class="link-std" main-click>
+                            <span> Click to select </span>
+                        </a>
+                        <a ng-if="computable.type == 'DATASET'" main-click>
+                            <span>
+                                {{computable.dataset.name}}
+                                {{computable.localProject ? '' : '(from project ' + computable.projectKey + ')'}}
+                                {{computable.dataset.managed ? '(Managed)' : ''}}
+                            </span>
+                        </a>
+                        <a ng-if="computable.type == 'STREAMING_ENDPOINT'" main-click>
+                            <span>
+                                {{computable.streamingEndpoint.id}}
+                                {{computable.localProject ? '' : '(from project ' + computable.projectKey + ')'}}
+                            </span>
+                        </a>
+                        <a ng-if="computable.type == 'MANAGED_FOLDER'" main-click>
+                            <span>
+                                {{computable.box.name}}
+                                {{computable.localProject ? '' : '(from project ' + computable.projectKey + ')'}}
+                            </span>
+                        </a>
+                        <a ng-if="computable.type == 'SAVED_MODEL'" main-click>
+                            <span>
+                                {{computable.model.name}}
+                                {{computable.localProject ? '' : '(from project ' + computable.projectKey + ')'}}
+                            </span>
+                        </a>
+                        <a ng-if="computable.type == 'MODEL_EVALUATION_STORE'" main-click>
+                            <span>
+                                {{computable.mes.name}}
+                                {{computable.localProject ? '' : '(from project ' + computable.projectKey + ')'}}
+                            </span>
+                        </a>
+                        <div partitioned-by-info ref="output.ref" />
+                    </div>
+                    <a class="noflex action" ng-click="remove($index)" ng-show="(role.arity != 'UNARY' || role.required == false) && editableRoles">
+                        <i class="icon-trash btn-close" />
+                    </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

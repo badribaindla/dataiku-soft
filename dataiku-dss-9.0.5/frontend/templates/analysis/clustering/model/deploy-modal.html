@@ -1,0 +1,176 @@
+<div class="modal modal3 deploy-clustering-modal" ng-switch="uiState.selectedMode" auto-size="false">
+    <div dku-modal-header-with-totem modal-title="Deploy clustering model" modal-totem="icon-train_recipe" />
+    <div class="modal-body" ng-switch-default>
+	    <div block-api-error />
+
+        <table>
+            <tbody>
+                <tr class="recipe-title">
+                    <td>
+                        <h5>Create a recipe to perform clustering</h5>
+                    </td>
+                    <td>
+                        <h5>Deploy a retrainable model to flow</h5>
+                    </td>
+                </tr>
+                <tr class="image-row">
+                    <td>
+                        <p class="recipe-image" ng-if="canCreateClusterRecipe()">
+                            <img src="/static/dataiku/images/models/clustering-create-cluster-recipe.png" />
+                        </p>
+                        <p ng-if="!canCreateClusterRecipe()" style="margin-top: 80px;"><b>Not available on this algorithm.</b></p>
+                    </td>
+                    <td>
+                        <p class="recipe-image" ng-if="isCentroidType()">
+                            <img src="/static/dataiku/images/models/clustering-create-training-recipe.png" />
+                        </p>
+                        <p ng-if="!isCentroidType()" style="margin-top: 20px;"><b>Not available on this algorithm.</b></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="explanation recipe-description" >
+                            <p>
+                                Create a recipe to perform clustering with the same parameters on a dataset (either the same one or another one).
+                                <br />
+                                The clusters will be recomputed entirely.
+                            </p>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="explanation recipe-description" ng-if="isCentroidType()">
+                            <p>
+                                Deploys the clustering model to the Flow with a retraining recipe.
+                                <br />
+                                Use this, together with a scoring recipe to re-use the same centroids on another dataset.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p class="modal-footer modal-footer-std-buttons" style="text-align: center;">
+                            <button class="btn btn--text btn--success" ng-disabled="!canCreateClusterRecipe()" ng-click="onWantCluster()">Create</button>
+                        </p>
+                    </td>
+                    <td>
+                        <p class="modal-footer modal-footer-std-buttons" style="text-align: center;">
+                            <button class="btn btn--text btn--success" ng-disabled="!isCentroidType()" ng-click="onWantTrain()">Create</button>
+                        </p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal-body" ng-switch-when="can-redeploy-train" style="height: 183px; min-height: 0px;">
+	    <div block-api-error />
+        <p>{{ mlTasksContext.model.backendType | niceMLBackendType }} clustering training recipes exist in this project</p>
+        <div class="selectable" full-click>
+            <a ng-click="onSelectTrain()" main-click>Deploy as a new retrainable model</a>
+        </div>
+        <div class="selectable" full-click>
+            <a ng-click="onSelectRedeployTrain()" main-click>Update existing clustering training recipe</a>
+			<br />Versions history will be preserved.
+            <br />Future trainings will use this new model's settings.
+        </div>
+    </div>
+
+    <div class="modal-body" ng-switch-when="can-redeploy-cluster" style="height: 183px; min-height: 0px;">
+	    <div block-api-error />
+        <p>{{ mlTasksContext.model.backendType | niceMLBackendType }} clustering recipes exist in this project</p>
+        <div class="selectable" full-click>
+            <a ng-click="onSelectCluster()" main-click>Deploy as a new clustering recipe</a></li>
+        </div>
+        <div class="selectable" full-click>
+            <a ng-click="onSelectRedeployCluster()" main-click>Update existing clustering recipe</a></li>
+        </div>
+    </div>
+
+    <form name="redeployTrainForm" class="dkuform-modal-horizontal dkuform-modal-wrapper" ng-switch-when="redeploy-train">
+        <div class="modal-body">
+		    <div block-api-error />
+            <div class="control-group">
+                <label for="trainingRecipe" class="control-label">Update recipe</label>
+                <div class="controls">
+                    <select dku-bs-select="{liveSearch:true}"
+                        ng-options="r.recipeName as r.recipeName group by r.inputDatasetName for r in redeployableTrains"
+                        ng-model="formData.redeployTrainRecipeName"
+                        required></select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="redeployActivate" class="controls">
+                    <input id="redeployActivate" type="checkbox" ng-model="formData.redeployTrainActivate" />
+                    Activate this new model version
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="submit" ng-click="redeployTrain()" ng-disabled="redeployTrainForm.$invalid" class="btn btn--text btn--primary">Update</button>
+        </div>
+    </form>
+
+    <form name="recipeForm" class="dkuform-modal-horizontal dkuform-modal-wrapper" ng-switch-when="train">
+        <div class="modal-body">
+		    <div block-api-error />
+            <p ng-if="!canRedeployTrain">No {{ mlTasksContext.model.backendType | niceMLBackendType }} clustering recipes exist in this project</p>
+            <div class="control-group">
+                <label for="" class="control-label">Input dataset</label>
+                <div class="controls">
+                    <div dataset-selector="formData.inputDatasetSM"
+                        available-datasets="availableDatasets" required></div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Model name</label>
+                <div class="controls">
+                    <input type="text" required ng-model="formData.modelName" />
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="submit" ng-click="deployTrain()" ng-disabled="recipeForm.$invalid" class="btn btn--text btn--primary">Create</button>
+        </div>
+    </form>
+
+    <form name="redeployClusterForm" class="dkuform-modal-horizontal dkuform-modal-wrapper" ng-switch-when="redeploy-cluster">
+        <div class="modal-body">
+		    <div block-api-error />
+            <div class="control-group">
+                <label for="clusteringRecipe" class="control-label">Clustering clustering recipe</label>
+                <div class="controls">
+                    <select dku-bs-select
+                        ng-options="r.recipeName as r.recipeName group by r.inputDatasetName for r in redeployableClusters"
+                        ng-model="formData.redeployClusterRecipeName" required id="clusteringRecipe"></select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="submit" ng-click="redeployCluster()" ng-disabled="redeployClusterForm.$invalid" class="btn btn--text btn--primary">Update</button>
+        </div>
+    </form>
+
+    <form name="recipeForm" class="dkuform-vertical-larger dkuform-modal-wrapper" ng-switch-when="cluster" ng-controller="AnalysisClusteringDeployClusterRecipeController">
+        <div class="modal-body">
+			<div block-api-error />
+            <p ng-if="!canRedeployCluster">No {{ mlTasksContext.model.backendType | niceMLBackendType }} clustering recipes exist in this project</p>
+		    <div class="half-pane" >
+	            <div class="control-group" style="padding-top: 20px;">
+	                <label class="control-label">Dataset to score</label>
+	                <div class="controls" style="margin-left: 0px;">
+	                    <div dataset-selector="io.inputDataset"
+	                        available-datasets="availableInputDatasets" class="qa_recipe_available-datasets-dropdown" required></div>
+	                </div>
+	            </div>
+		    </div><!-- 
+		     --><div class="half-pane">
+	            <div ng-if="io.inputDataset" include-no-scope="/templates/recipes/io/visual-recipe-creation-new-dataset.html"/>
+		    </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="submit" ng-click="deployCluster()" ng-disabled="recipeForm.$invalid || forms.newOutputDatasetForm.$invalid" class="btn btn--text btn--primary">Create</button>
+        </div>
+    </form>
+
+</div>

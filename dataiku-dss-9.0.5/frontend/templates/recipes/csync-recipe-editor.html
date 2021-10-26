@@ -1,0 +1,172 @@
+<div ng-controller="CsyncRecipeController">
+    <div class="top-level-tabs objecttype-recipe">
+        <div class="horizontal-flex row-fluid object-nav">
+            <div class="flex oh" std-object-breadcrumb />
+            <div class="noflex">
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'summary'}" ng-click="topNav.tab='summary'" fw500-width>
+                    Summary
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'io'}" ng-click="topNav.tab='io'" fw500-width>
+                    Configuration
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'advanced'}" ng-click="topNav.tab='advanced'" fw500-width>
+                    Advanced
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'gitlog'}" ng-click="topNav.tab='gitlog'" fw500-width>
+                    History
+                </a>
+                <div class="otherLinks">
+                    <div class="dib" include-no-scope="/templates/recipes/fragments/recipe-save-button.html"></div>
+                    <div class="dib" include-no-scope="/templates/recipes/fragments/recipe-tabs-other-links.html"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+    <div ng-if="topNav.tab == 'io'" class="dss-page oa">
+        <div block-api-error />
+        <div class="fh">
+            <div class="h100 vertical-flex container-fluid page-top-padding">
+            
+                <div class="flex">
+                    <div class="fh">
+                    
+                        <div class="row-fluid vertical-flex h100">
+                            <div class="recipe-io flex oa" style="flex-grow: 0;">
+                                <div class="h100 dkuform-modal-horizontal">
+                                    <div class="half-pane vertical-flex h100">
+                                        <legend class="settings-section-title noflex">Input</legend>
+                                        <div class="flex roles-list">
+                                            <div recipe-io-inputs roles="recipeDesc.inputRoles" location="edition" class="h100"/>
+                                        </div>
+                                    </div>
+                                    <div class="half-pane vertical-flex h100">
+                                        <legend class="settings-section-title noflex" style="position: relative;">
+                                            <span>Output</span>
+                                            <button class="btn btn--success" style="position: absolute; right: 15px; top: 0px;" ng-click="resyncSchema()" title="Copy schema from input to output">
+                                                <span class="icon icon-refresh">&nbsp;</span>
+                                                Resync schema
+                                            </button>
+                                        </legend>
+                                        <div class="flex roles-list">
+                                            <div recipe-io-outputs roles="recipeDesc.outputRoles" location="edition" class="h100"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <fieldset class="new-recipe-io noflex" style="margin-top: 20px;">
+                                <legend class="settings-section-title">Settings</legend>
+            
+                                <label>
+                                    <select dku-bs-select ng-model="recipe.params.schemaMode" ng-options="x[0] as x[1] for x in schemaModes" />
+                                </label>
+                            </fieldset>
+            
+                            <div ng-show="recipeStatus.allMessagesForFrontend.anyMessage">
+                                <div info-messages-raw-list-with-alert="recipeStatus.allMessagesForFrontend" />
+                            </div>
+            
+                        </div>
+            
+                    </div>
+                </div>
+
+
+                <div class="bottom-bar noflex" style="width: 75px;">
+                   <div include-no-scope="/templates/recipes/fragments/continuous-recipe-controls.html" />
+                   <div engine-selector-button
+                       style="text-align: center;"
+                       recipe-type="recipe.type"
+                       recipe-status="recipeStatus"
+                       recipe-params="recipe.params"
+                       update-status="hooks.updateRecipeStatus"
+                       can-change-engine="canChangeEngine" />
+                </div>
+                <div include-no-scope="/templates/recipes/fragments/continuous-activity-result.html" class="noflex recipe-job-result" />
+            
+            </div>
+        </div>
+
+    </div>
+
+    <div ng-if="topNav.tab == 'advanced'" class="container-fluid page-top-padding dss-page oa">
+        <div block-api-error />
+        
+        <div class="row-fluid">
+            <div class="horizontal-centerer">
+                <div class="recipe-settings-section1 w800">
+                    <h1 class="recipe-settings-section1-title">
+                        Engine:
+                        <div engine-selector-button
+                            recipe-type="recipe.type"
+                            recipe-status="recipeStatus"
+                            recipe-params="recipe.params"
+                            update-status="hooks.updateRecipeStatus"
+                            can-change-engine="canChangeEngine"
+                            style="display: inline-block;"/>
+                    </h1>
+        
+                    <form class="dkuform-horizontal recipe-settings-section2" ng-switch="recipeStatus.selectedEngine.type">
+                        <div ng-switch-when="SPARK">
+                            <div spark-override-config config="recipe.params.engineParams.spark.sparkConfig"/>
+                            <div class="control-group">
+                                <label class="control-label">Spark engine</label>
+                                <div class="controls" >
+                                    <select dku-bs-select ng-model="recipe.params.engineParams.spark.executionEngine" >
+                                        <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+                                        <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+                                        <option value="DATABRICKS">Databricks</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <span class="control-label">Hive metastore</span>
+                                <label class="controls">
+                                    <input type="checkbox" ng-model="recipe.params.engineParams.spark.useGlobalMetastore"/>
+                                    <span class="help-inline">
+                                        Use global Hive metastore
+                                    </span>
+                                </label>
+                            </div>
+        
+                        </div>
+        
+                        <div ng-switch-when="DSS" >
+                            <div ng-if="isStreamingEndpointToDataset()">
+                                <div class="control-group">
+                                    <label class="control-label">Checkpoint interval</label>
+                                    <div class="controls" >
+                                        <input type="number" ng-model="recipe.params.checkpointInterval" />
+                                        <span class="help-inline">Max delay (ms) between checkpoints</span>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Checkpoint size</label>
+                                    <div class="controls" >
+                                        <input type="number" ng-model="recipe.params.checkpointMaxRows" />
+                                        <span class="help-inline">Max number of rows in checkpoints</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div ng-if="!isStreamingEndpointToDataset()" class="placeholder-block" style="margin-top: 35px;">
+                                <i class="icon-ok" />
+                                No settings required
+                            </div>
+                        </div>
+
+                        <div ng-switch-default class="placeholder-block" style="margin-top: 35px;">
+                            <i class="icon-ok" />
+                            No settings required
+                        </div>
+        
+                    </form>
+                </div>
+        
+            </div>
+        </div>
+    </div>
+
+</div>

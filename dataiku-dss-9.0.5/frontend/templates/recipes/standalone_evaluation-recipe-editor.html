@@ -1,0 +1,306 @@
+<div ng-controller="StandaloneEvaluationRecipeEditor">
+    <div class="top-level-tabs objecttype-recipe">
+        <div class="horizontal-flex row-fluid object-nav">
+            <div class="flex oh" std-object-breadcrumb />
+            <div class="noflex">
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab == 'summary'}" ng-click="topNav.tab='summary'">
+                    Summary
+                </a>
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab == 'settings'}" ng-click="topNav.tab='settings'">
+                    Settings
+                </a>
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab == 'io'}" ng-click="topNav.tab='io'">
+                    Input / Output
+                </a>
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab  == 'advanced'}" ng-click="topNav.tab ='advanced'">
+                    Advanced
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'gitlog'}" ng-click="topNav.tab='gitlog'">
+                    History
+                </a>
+                <div class="otherLinks">
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-save-button.html" />
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-tabs-other-links.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-io-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+    <div class="summary-tab dss-page" ng-if="topNav.tab == 'settings' && computablesMap">
+        <div block-api-error />
+
+        <div class="h100 vertical-flex">
+            <div class="flex">
+                <div class="fh">
+                    <div class="h100 oa">
+                        <div class="horizontal-centerer">
+                            <div style="background-color: #ffffff">
+                                <div ng-show="recipeStatus.allMessagesForFrontend.anyMessage" style="padding: 10px">
+                                    <div info-messages-raw-list-with-alert="recipeStatus.allMessagesForFrontend" />
+                                </div>
+                            </div>
+                            
+                            <div class="recipe-settings-section1 w800">
+                               <h1 class="recipe-settings-section1-title">
+                                   Evaluation
+                               </h1>
+                               <div class="recipe-settings-section2">
+                                   <form class="dkuform-horizontal">
+                                       <div class="control-group">
+                                           <label for="" class="control-label">Evaluation id</label>
+                                           <div class="controls">
+                                               <input type="text" ng-model="desc.runId"/>
+                                               <span class="help-inline">If empty, defaults to "run_yyyy_mm_dd_hh_mi_ss". Limited to a-z, 0-9 and _</span>
+                                           </div>
+                                       </div>
+                                       <div class="control-group">
+                                           <label class="control-label">Labels</label>
+                                           <div class="controls">
+                                               <ng2-key-values-list 
+                                                                   [(items)]="desc.labels"
+                                                                   [icon-fn]="setIcon"
+                                                                   add-label="Add label" 
+                                                                   key-placeholder="Label key" 
+                                                                   value-placeholder="Label value">
+                                                               </ng2-key-values-list>
+                                               <span class="help-inline">Can contain variables in ${} notation, which are expanded when the recipe is run</span>
+                                           </div>
+                                       </div>
+                                   </form>
+                               </div>
+                            </div>
+                            
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Model</h1>
+                                <form name="recipeEditor" class="dkuform-horizontal recipe-settings-section2">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Prediction type</label>
+                                        <div class="controls">
+                                            <select dku-bs-select ng-model="desc.predictionType">
+                                                <option value="BINARY_CLASSIFICATION">Two-class classification</option>
+                                                <option value="MULTICLASS">Multiclass classification</option>
+                                                <option value="REGRESSION">Regression</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Prediction column</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="desc.predictionVariable" bs-typeahead="inputColumns" />
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Labels column</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="desc.targetVariable" bs-typeahead="inputColumns" />
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Weights column</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="desc.weightsVariable" bs-typeahead="inputColumns" />
+                                            <span class="help-inline">Optional</span>
+                                        </div>
+                                    </div>
+                                    <div ng-if="isBinaryClassification() || isMulticlass()">
+                                        <div class="control-group">
+                                            <label for="" class="control-label">Proba aware</label>
+                                            <div class="controls">
+                                                <input type="checkbox" ng-model="desc.isProbaAware" />
+                                            </div>
+                                        </div>
+                                        <div class="control-group" ng-if="isProbaAware()">
+                                            <label for="" class="control-label">Probabilities</label>
+                                            <div class="controls">
+                                                <editable-list ng-model="desc.probas"
+                                                               transcope="{inputColumns:inputColumns}"
+                                                               sortable="false" 
+                                                               add-label="Add a class" 
+                                                               full-width-list="false" 
+                                                               has-divider="false">
+                            
+                                                    <input ng-model="it.key" type="text"/>
+                                                    <i class="editable-list__arrow-icon icon-long-arrow-right" />
+                                                    <input ng-model="it.value" type="text" bs-typeahead="inputColumns"/>
+                                                </editable-list>
+                                            </div>
+                                        </div>
+                                        <div class="control-group" ng-if="!isProbaAware()">
+                                            <label for="" class="control-label">Classes</label>
+                                            <div class="controls">
+                                                <ng2-values-list 
+                                                    [(items)]="desc.classes"
+                                                    [suggestions]="inputColumns"
+                                                    add-label="Add a column" 
+                                                    sortable="true"
+                                                    value-placeholder="E.g. a column of the schema">
+                                                </ng2-values-list>
+                                            </div>
+                                        </div>
+                                        
+                                        <div ng-if="isBinaryClassification() && isProbaAware()">
+                                            <!-- threshold stuff -->
+                                            <div class="control-group">
+                                                <label for="" class="control-label">Optimize threshold</label>
+                                                <div class="controls">
+                                                    <input type="checkbox" ng-model="desc.autoOptimizeThreshold" />
+                                                </div>
+                                            </div>
+                                            <div class="control-group" ng-if="!desc.autoOptimizeThreshold">
+                                                <label for="" class="control-label">Threshhold</label>
+                                                <div class="controls">
+                                                    <input type="number" ng-model="desc.activeClassifierThreshold" />
+                                                </div>
+                                            </div>
+                                            <div class="control-group" ng-if="desc.autoOptimizeThreshold">
+                                                <label for="" class="control-label" toggle="tooltip-bottom" title="Metric used to find the best threshold">Optimize threshold for</label>
+                                                <div class="controls">
+                                                    <select dku-bs-select ng-model="desc.metricParams.thresholdOptimizationMetric" ng-options="metric[0] as metric[1] for metric in thresholdOptimizationMetrics" />
+                                                    <span class="help-inline">See <doclink page="/machine-learning/supervised/settings#threshold-optimization" title="the documentation" /></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        
+                                        <div class="control-group standalone_evaluation_recipe__cost-matrix" ng-if="isBinaryClassification()">
+                                            <label for="" class="control-label">Cost matrix</label>
+                                            <div class="controls">
+                                                <div class="cost-matrix-form">
+                                                    <ul>
+                                                        <li>
+                                                            If the model predicts that <b>{{desc.targetVariable || 'the target'}}</b> is true
+                                                            <ul>
+                                                                <li>
+                                                                    <span class="explain">and it is indeed true, the gain is</span>
+                                                                    <input type="number" style="width:60px;" size="5" ng-model="desc.metricParams.costMatrixWeights.tpGain" />
+                                                                </li>
+                                                                <li>
+                                                                    <span class="explain">but it is not true, the gain is</span>
+                                                                    <input style="width:60px;" type="number" size="5" ng-model="desc.metricParams.costMatrixWeights.fpGain" />
+                                                                </li>
+                                                            </ul>
+                                                        </li>
+                                                        <li>
+                                                            If the model predicts that <b>{{desc.targetVariable || 'the target'}}</b> is false
+                                                            <ul>
+                                                                <li>
+                                                                    <span class="explain">and it is indeed false the gain is</span>
+                                                                    <input style="width:60px;" type="number" size="5" ng-model="desc.metricParams.costMatrixWeights.tnGain" />
+                                                                </li>
+                                                                <li>
+                                                                    <span class="explain">but it is actually true, the gain is</span>
+                                                                    <input style="width:60px;" type="number" size="5" ng-model="desc.metricParams.costMatrixWeights.fnGain" />
+                                                                </li>
+                                                            </ul>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" ng-if="desc" ng-init="desc.features = desc.features || []">
+                                        <label class="control-label">Feature type</label>
+                                        
+                                        <div class="controls">
+                                            <p>The statistics type for columns without feature types will be inferred based on the data type</p>
+                                            <editable-list ng-model="desc.features" add-label="Add" template="buildNewFeature" transcope="{inputColumns:inputColumns}" class="standalone_evaluation_recipe__features">
+                                                    <editable-list-input type="text" ng-model="it.name" required="true" bs-typeahead="inputColumns" />
+                                                    is
+                                                    <select ng-model="it.role" dku-bs-select="{width:100}">
+                                                        <option value="INPUT">input</option>
+                                                        <option value="REJECT">rejected</option>
+                                                        <option value="TARGET">target</option>
+                                                        <option value="WEIGHT">weight</option>
+                                                    </select>
+                                                    :
+                                                    <select ng-model="it.type" dku-bs-select="{width:100}">
+                                                        <option value="NUMERIC">Numeric</option>
+                                                        <option value="CATEGORY">Categorical</option>
+                                                        <option value="TEXT">Text</option>
+                                                        <option value="VECTOR">Vector</option>
+                                                        <option value="IMAGE">Image</option>
+                                                    </select>
+                                            </editable-list>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            
+                            <div class="recipe-settings-section1 w800" ng-if="willUseSpark()">
+                                <h1 class="recipe-settings-section1-title">Spark</h1>
+                                <div class="recipe-settings-section2">
+                                    <div spark-override-config config="desc.sparkParams.sparkConf" task="desc" task-type="MLLib" />
+                                    <form class="dkuform-horizontal">
+	                                    <div class="control-group">
+	                                        <label class="control-label">Spark engine</label>
+	                                        <div class="controls" >
+	                                            <select dku-bs-select ng-model="desc.sparkParams.sparkExecutionEngine" >
+	                                                <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+	                                                <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+	                                                <option value="DATABRICKS">Databricks</option>
+	                                            </select>
+	                                        </div>
+	                                    </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="noflex job-result-pane" ng-if="valCtx.preRunValidationError || startedJob.jobId">
+                <div class="recipe-settings-floating-result">
+                    <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recipe-settings-floating-run">
+            <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-partitions.html"></div>
+            <div include-no-scope="/templates/recipes/fragments/run-job-buttons.html"></div>
+        </div>
+
+    </div>
+
+    <div ng-if="topNav.tab == 'advanced'" class="small-lr-padding dss-page oa">
+        <div block-api-error />
+    
+        <div class="horizontal-centerer">
+    
+            <div class="recipe-settings-section1 w800">
+                <h1 class="recipe-settings-section1-title">Python environment</h1>
+    
+                <div class="recipe-settings-section2"
+                     code-env-selection-form="recipe.params.envSelection" env-lang="'PYTHON'"></div>
+            </div>
+    
+            <div class="recipe-settings-section1 w800">
+                <h1 class="recipe-settings-section1-title">Container configuration</h1>
+    
+                <div class="recipe-settings-section2"
+                     container-selection-form="recipe.params.containerSelection"></div>
+            </div>
+    
+            <div class="recipe-settings-section1 w800">
+                <h1 class="recipe-settings-section1-title">Concurrent activities</h1>
+                <form class="dkuform-horizontal recipe-settings-section2">
+                    <div class="control-group">
+                        <label class="control-label">Recipe limit</label>
+                        <div class="controls">
+                            <input type="number" ng-model="recipe.maxRunningActivities"/>
+                            <span class="help-inline">Limit the number of concurrent activities for this recipe (zero for "unlimited").</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>

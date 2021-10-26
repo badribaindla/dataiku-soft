@@ -1,0 +1,69 @@
+<div>
+    <form class="dkuform-horizontal form3 recipe-settings-section2" name="splitShareForm">
+        <div class="control-group title">
+            <h2 class="control-label recipe-settings-section2__text">
+                Ratio
+            </h2>
+            <h2 class="controls shares recipe-settings-section2__text">
+                Output
+            </h2>
+        </div>
+        <div class="alert alert-info mtop8" ng-if="params.mode == 'RANDOM_COLUMNS' && randomColumnsInfoOpen">
+            Split the data according to given ratios to create train & test sets.
+        </div>
+        <div ng-repeat="s in getSelectedSplits()" class="control-group mtop8">
+            <div class="control-label shares">
+                <i class="icon-long-arrow-right arrow pull-right"></i>
+                <i class="percent">%</i>
+                <input type="number" min=0 max="{{getMaxShare($index)}}" ng-model="s.share" ng-model-options="{allowInvalid: true}" class="qa_recipe_split-ratio-input" required/>
+                <div class="gauge-container">
+                    <div moving-split-gauge
+                         data="getSelectedSplits()"
+                         get-values-fn="getShareFromIndex"
+                         update-values-fn="updateShareFromIndex"
+                         min="0"
+                         max="100"
+                         index="$index">
+                    </div>
+                </div>  
+            </div>
+            <div class="controls shares">
+                <select dku-bs-select
+                        ng-model="s.outputIndex"
+                        ng-options="x.value as x.label for x in outputsList"
+                        ng-change="onOutputDatasetChange($index)">
+                </select>
+                <button ng-click="removeShare($index);" class="btn btn--icon btn--text btn--danger editable-list__delete  qa_recipe_trash-ratio"><i class="icon-trash"></i></button>
+            </div>
+        </div>
+        <div class="control-group mtop8">
+            <div class="control-label shares">
+                <i class="icon-long-arrow-right arrow pull-right"></i>
+                <span class="remaining"> Remaining {{getRemainingShare()}}%</span>
+                <div class="gauge-container">
+                    <div split-gauge
+                         data="getSelectedSplits()"
+                         get-values-fn="getShareFromIndex"
+                         max="100"
+                         min="0"
+                         index="-1">
+                    </div>
+                </div> 
+            </div>
+            <div class="controls shares">
+                <select dku-bs-select
+                        ng-model="params.defaultOutputIndex"
+                        ng-options="x.value as x.label for x in outputsList"
+                        ng-change="onOutputDatasetChange(-1)">
+                </select>
+            </div>
+        </div>
+        <div class="control-group mtop16">
+            <div class="control-label shares" style="width: inherit;">
+                <button type="button" class="btn btn--text btn--primary qa_recipe_split-add-ratio" ng-click="addShare(getSelectedSplits().length);">
+                    <span class="icon-plus"></span> Add ratio
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

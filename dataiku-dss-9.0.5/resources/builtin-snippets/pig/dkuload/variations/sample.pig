@@ -1,0 +1,1 @@
+my_data = DKULOAD '__FIRST_INPUT__';

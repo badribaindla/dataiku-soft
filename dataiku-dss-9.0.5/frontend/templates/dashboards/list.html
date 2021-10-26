@@ -1,0 +1,133 @@
+<div class="list-page-4 flex dss-home-page dashboards-home-page list-page--flat-design">
+    <div data-extend-template="/templates/layouts/list-items-2.html" class="vertical-flex h100 main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            {{ 'Dashboard' | plurify : selection.allObjects.length}}
+        </span>
+
+        <!--  NEW   -->
+        <div data-block="newItem">
+            <a ng-if="canWriteDashboards()" class="btn btn--secondary qa_dashboard_new-dashboard-modal-button" ng-click="newDashboard()">
+                <span plus-icon />&nbsp;New dashboard</a>
+        </div>
+
+        <div data-block="empty">
+            <h1>
+                No dashboard in this project
+            </h1>
+            <p>
+                Dashboards allow you to publish and share the results of your data project.
+            </p>
+            <p class="small">
+                <span doclink-wrapper page="dashboards/index">Read the documentation</span> to learn more.
+            </p>
+            <div class="import-first-dataset" ng-show="canWriteDashboards()">
+                <a class="btn btn--contained btn--large btn--dashboard qa_dashboard_new-dashboard-modal-button" ng-click="newDashboard()">
+                    <span plus-icon />
+                    &nbsp;Create your first dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- CUSTOM FILTERS -->
+        <div data-block="additional-filter-owner" class="noflex list-page__filter">
+            <!-- Filtering on owners -->
+            <div custom-element-popup class="sort-box list-control-widget list-control-dropdown">
+                <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()" ng-disabled="owners.length == 0" >
+                    <span>
+                        <b ng-if="selection.inclusiveFilter.owner.length > 0">{{ selection.inclusiveFilter.owner.length }} </b>
+                        {{ 'Owner' | plurify: selection.inclusiveFilter.owner.length }}
+                    </span>
+                    <span class="caret"></span>
+                </button>
+                <div class="popover sort-box-menu checkable-items sort-box-menu--users">
+                    <ul class="sort-box-menu__users-list">
+                        <li ng-class="{'selected' : selection.inclusiveFilter.owner.length == 0}" ng-click="setOwnerFilter('');">
+                            <i class="sort-box-menu__icon icon-group"></i><span>All users</span>
+                        </li>
+                        <li ng-repeat="owner in owners" ng-class="{'selected' : selection.inclusiveFilter.owner.includes(owner.login) }" ng-click="setOwnerFilter(owner.login);">
+                            <span user-picture="owner.login"></span><span>{{owner.displayName}}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="no-flex sort-box" data-block="additional-filter-public">
+            <button class="btn btn--outline btn--no-background filter-promote" ng-class="{'active': selection.filterQuery.listed}"
+                    ng-click="selection.filterQuery.listed = (selection.filterQuery.listed=='' ? true : '')" style="text-transform: none">
+                <i class="icon-dku-promote" /> Public
+            </button>
+        </div>
+
+
+            <!-- ITEM LAYOUT -->
+        <div data-block="item" class="dashboard-item h100">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit h100" dataset="item">
+                <div class="illustration">
+                    <i class="icon-dku-dashboard universe-color dashboard"></i>
+                </div>
+                <div class="hitContent horizontal-flex h100">
+                    <div class="hit-content-main flex">
+                        <h4 class="hit-content-main__title">
+                            <a href="{{$root.StateUtils.href.dashboard(item.id, item.projectKey, {name: item.name})}}"
+                               show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.name | boldify:selection.filterParams.userQueryResult">
+                            </a>
+                            <span class="hit-content-main__interests">
+                                <star-interest status="item.interest.starred"
+                                               on-toggle="starObject(nextStatus, item)"
+                                ></star-interest>
+                                <watch-interest status="item.interest.watching"
+                                                on-toggle="watchObject(nextStatus, item)"
+                                ></watch-interest>
+                            </span>
+                        </h4>
+                        <div class="hit-content-main__subtitle">
+                            {{item.listed ? 'Public' : 'Personal'}}
+                            | {{ item.numPages + ( ' page' | plurify: item.numPages )}}
+                            | {{ item.numTiles + ( ' tile' | plurify: item.numTiles )}}
+                            <span ng-show="item.lastModifiedOn">
+                                | Modified {{ item.lastModifiedOn|friendlyTimeDeltaShort }} 
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="hit-content__tags flex">
+                        <responsive-tags-list items="item.tags" tags-map="projectTagsMap" object-type="'DASHBOARD'"></responsive-tags-list>
+                    </div>
+
+                    <div class="list-btn-wrapper noflex" >
+
+                        <span ng-if="item.hasMissingReaderAuthorizations" toggle="tooltip" title="Dashboard-only users can't see full content" ng-click="openInsightAccessModal(item)" placement="left" container="body" style="cursor: pointer;" class="unauthorized-content-warning">
+                            <i class="icon-warning-sign" />
+                        </span>
+                        <span user-picture="item.owner" size="20" class="avatar20 list-btn" title="{{item.ownerDisplayName}}"></span>
+                        <a ng-click="canModerateDashboards() && toggleDashboardListed(item)"
+                        class="list-btn"
+                        ng-class="{'disabled' : !canModerateDashboards(), 'listed' : item.listed}"
+                        toggle="tooltip-bottom"
+                        title="{{item.listed ? (canModerateDashboards() ? 'Make this dashboard private' : 'This dashboard is visible to all users') : (canModerateDashboards() ? 'Make this dashboard visible to all users' : 'This dashboard is only your to see')}}"
+                        container="body"
+                        style="margin-left: 0px;"
+                        >
+                            <span class="listed-status-label" ng-if="item.listed">
+                                <span ng-class="{'default' : canModerateDashboards()}">Public</span>
+                            </span>
+                            <span class="listed-status-label" ng-if="!item.listed">
+                                <span ng-class="{'default' : canModerateDashboards()}">Private</span>
+                            </span>
+                            <i ng-class="item.listed ? 'icon-dku-promote' : 'icon-dku-promote-empty' "></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <standardized-side-panel page="objects_list" object-type="{{ (selection.selectedObjects.length <= 1) ? ((selection.selectedObject) ? 'DASHBOARD' : '') : 'MULTI' }}" single-type="DASHBOARD">
+    </standardized-side-panel>
+
+</div>

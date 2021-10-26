@@ -1,0 +1,92 @@
+<div ng-controller="ConsistencyFlowToolMainController" class="flow-tool-mainzone">
+	<div class="header">
+		<div class="pull-right">
+			<button type="button" class="close" ng-click="stopCurrentTool()">&times;</button>
+		</div>
+		<h5>Consistency check</h5>
+	</div>
+
+	<div class="tool-state">
+		<div ng-if="tool.user.updateStatus.updating" class="tool-progress">
+			<div progress-bar neutral="{{tool.user.updateStatus.totalPercent}}" allow-empty="true" />
+			<div class="text-center">
+				<button class="btn btn--danger" ng-click="abortUpdate()">Abort</button>
+			</div>
+		</div>
+		<div ng-show="!tool.user.updateStatus.updating && tool.user.state && tool.user.state.everRun">
+			<ul class="tool-facet raw-unstyled-ul">
+				<li flow-tool-facet-elt
+					color="'green'"
+					key="'OK'"
+					number="tool.user.state.summary.OK"
+					single-focused="true"
+					/>
+				<li flow-tool-facet-elt
+					color="'red'"
+					key="'Error'"
+					number="tool.user.state.summary.ERROR"
+					single-focused="true"
+					/>
+				<li flow-tool-facet-elt
+					color="'orange'"
+					key="'Warning'"
+					number="tool.user.state.summary.WARNING"
+					single-focused="true"
+					/>
+				<li flow-tool-facet-elt
+					color="'lightblue'"
+					key="'Info'"
+					number="tool.user.state.summary.INFO"
+					single-focused="true"
+					/>
+				<li flow-tool-facet-elt
+					ng-show="tool.user.state.summary.FAILED_CHECK != 0"
+					color="'purple'"
+					key="'Check failed'"
+					number="tool.user.state.summary.FAILED_CHECK"
+					single-focused="true"
+					/>
+				<li flow-tool-facet-elt
+					color="'grey'"
+					key="'Unchecked'"
+					number="tool.user.state.summary.UNCHECKED"
+					single-focused="true"
+					/>
+			</ul>
+		</div>
+	</div>
+	<div class="tool-actions" ng-show="!tool.user.updateStatus.updating">
+		<i ng-show="expanded" class="icon-caret-down" />
+		<i ng-show="!expanded" class="icon-caret-right" ng-init="expanded=true" />
+
+		<a class="link-std" ng-click="expanded=!expanded">Options</a>
+		<button class="btn btn--success pull-right" ng-click="update()">
+			<span ng-if="!tool.user.firstUpdateDone">Start check</span>
+			<span ng-if="tool.user.firstUpdateDone && tool.user.updateOptions.recheckAll">Recheck all</span>
+			<span ng-if="tool.user.firstUpdateDone && !tool.user.updateOptions.recheckAll">Continue check</span>
+		</button>
+
+		<div ng-show="expanded">
+			<form class="dkuform-horizontal tool-options-form" style="margin-left: 10px; margin-top: 10px">
+				<div class="control-group">
+					<label class="control-label">Perform potentially slow checks in recipes</label>
+					<input type="checkbox" ng-model="tool.user.updateOptions.recipes.otherExpensiveChecks" />
+				</div>
+				<div class="control-group">
+					<label class="control-label">Check consistency between dataset definition and data</label>
+					<input type="checkbox" ng-model="tool.user.updateOptions.datasets.consistencyWithData" />
+				</div>
+				<div class="control-group">
+					<label class="control-label">Check consistency between recipe and dataset schema</label>
+					<input type="checkbox" ng-model="tool.user.updateOptions.recipes.schemaConsistency" />
+				</div>
+				<div class="control-group">
+					<label>
+						<label class="control-label">Recheck previously-validated elements</label>
+						<input type="checkbox" ng-model="tool.user.updateOptions.recheckAll" />
+					</label>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

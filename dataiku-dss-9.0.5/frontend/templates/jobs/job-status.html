@@ -1,0 +1,98 @@
+<div job-status-base subscribe-notification="job-state-change" subscribe-callback="refreshStatus" class="job-status">
+    <div class="horizontal-flex row-fluid object-nav">
+        <div class="flex oh job-status-breadcrumb" std-object-breadcrumb job-def="jobDef" job-status="jobStatus"/>
+        <div class="noflex">
+            <div class="otherLinks">
+                <button ng-if="jobState == 'WAITING_CONFIRMATION' && disabledActivities.length == 0 " class="btn btn--success btn-icon" ng-click="validateRun()">
+                    <i class="icon-play mleftright4"></i> Run
+                </button>
+                <button ng-if="jobState == 'WAITING_CONFIRMATION' && disabledActivities.length > 0" class="btn btn--success btn-icon" ng-click="validateRun()">
+                    <i class="icon-play mleftright4"></i> Run (partial)
+                </button>
+                <button class="btn btn--danger btn-icon" ng-if="jobState == 'WAITING_CONFIRMATION'" ng-click="abortJob(jobDef.id)">
+                    <i class="icon-remove-sign"></i> Abort
+                </button>
+                <button ng-if="['FAILED', 'ABORTED'].includes(jobStatus.baseStatus.state)" class="btn btn--primary btn-icon" ng-click="retryJob()">
+                    <i class="icon-refresh"></i> Retry this job
+                </button>
+                <button class="btn btn--secondary btn-icon" ng-if="jobState == 'RUNNING'" ng-click="refreshStatus(jobDef.id)">
+                    <i class="icon-refresh"></i> Refresh
+                </button>
+                <button class="btn btn--danger btn-icon" ng-if="jobState == 'RUNNING'" ng-click="abortJob(jobDef.id)">
+                    <i class="icon-remove-sign"></i> Abort
+                </button>
+                <div class="dropdown">
+                    <button href data-toggle="dropdown" class="btn btn--secondary dropdown-toggle">
+                        Actions <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <!-- Change wording when it did not fail -->
+                        <li ng-show="jobStatus.baseStatus.state != 'FAILED' && jobState !== 'WAITING_CONFIRMATION'">
+                            <a ng-click="retryJob()">
+                                <i class="icon-refresh"></i> Re-run this job
+                            </a>
+                        </li>
+                        <li ng-show="jobStatus.baseStatus.state != 'FAILED' && jobState !== 'WAITING_CONFIRMATION' && !jobStatus.removed" class="divider"></li>
+                        <li ng-show="!jobStatus.removed">
+                            <a target="_new" href="/dip/api/flow/jobs/cat-job-log?projectKey={{$stateParams.projectKey}}&jobId={{jobStatus.baseStatus.def.id}}">
+                                <i class="icon-file-text-alt"></i> View full job log
+                            </a>
+                        </li>
+                        <li ng-show="!jobStatus.removed">
+                            <a ng-click="downloadJobDiagnosis()">
+                                <i class="icon-download-alt"></i> Download job diagnosis
+                            </a>
+                        </li>
+                        <li ng-show="!jobStatus.removed">
+                            <a ng-click="fetchYarnLogs()">
+                                <i class="icon-download-alt"></i> Fetch Yarn logs
+                            </a>
+                        </li>
+                        <li ng-show="!jobStatus.removed" class="divider"></li>
+                        <li ng-show="!jobStatus.removed">
+                            <a ng-click="clearJobLogs()" class="text-error">
+                                <i class="icon-trash"></i> Clear job logs
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dss-page">
+
+        <div block-api-error />
+
+        <section ng-if="jobState == 'NOT_STARTED'">
+            <h4 class="job-preview-not-started__message">Job is about to start, please wait.</h4>
+        </section>
+
+        <section ng-if="jobState == 'COMPUTING_DEPS'">
+            <h4 class="job-preview-computing__message">
+                <span class="dku-loader icon-spin job-preview-computing__loader"></span>
+                Please wait, computing job dependencies.
+            </h4>
+            <h3 class="job-preview-computing__time">
+                Started {{elapsedTime|friendlyDuration}} ago.
+            </h3>
+            <div class="job-preview-computing__buttons">
+                <button class="btn btn--success btn-icon" ng-click="refreshStatus()">
+                    <i class="icon-refresh"></i>Refresh
+                </button>
+                <button class="btn btn--danger btn-icon" ng-click="abortJob(jobDef.id)">
+                    <i class="icon-remove-sign"></i>Abort
+                </button>
+            </div>
+        </section>
+
+        <!-- WAITING CONFIRMATION / JOB PREVIEW -->
+        <section class="h100" ng-if="jobState == 'WAITING_CONFIRMATION'">
+           <div class="h100" include-no-scope="/templates/jobs/preview-status.html" />
+        </section>
+
+        <!-- REGULAR -->
+        <section class="h100" ng-if="jobState == 'RUNNING' || jobState == 'DONE' || jobState == 'FAILED' || jobState == 'ABORTED'">
+            <div class="h100" include-no-scope="/templates/jobs/regular-status.html" />
+        </section>
+    </div>

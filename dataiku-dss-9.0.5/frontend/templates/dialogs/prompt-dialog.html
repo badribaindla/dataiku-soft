@@ -1,0 +1,29 @@
+<div class="modal modal3">
+    <div dku-modal-header modal-title="{{title}}" />
+
+    <form name="renameForm" class="dkuform-horizontal">
+        <div class="modal-body" ng-switch="options.type">
+            <div class="control-group" ng-switch-default><!-- new scope => using $parent.value -->
+                <label class="control-label" for="promptInput">{{text}}</label>
+                <div class="controls">
+                    <input id="promptInput"
+                        type="{{options.type || 'text'}}"
+                        title="{{options.title}}" placeholder="{{options.placeholder}}"
+                        ng-model="$parent.value"  ng-pattern="options.pattern" required class="input-xlarge" name="newName"/>
+                </div>
+            </div>
+            <div ng-switch-when="textarea">
+                <label class="control-label" for="promptInput" style="width: 100%; text-align: left">{{text}}</label>
+                <textarea id="promptInput" style="width: 100%"
+                    rows="{{options.rows || '4'}}"
+                    title="{{options.title}}" placeholder="{{options.placeholder}}"
+                    ng-model="$parent.value" required class="input-xlarge" name="newName"></textarea>
+            </div>
+
+        </div>
+        <div class="modal-footer modal-footer-std-buttons" global-keydown="{'enter':'confirm();', 'esc': 'cancel();' }">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="cancel()">Cancel</button>
+            <input id="qa_generic-confirm-button" type="submit" class="btn btn--text btn--primary" ng-click="confirm()" ng-disabled="renameForm.$invalid" value="OK" />
+        </div>
+    </form>
+</div>

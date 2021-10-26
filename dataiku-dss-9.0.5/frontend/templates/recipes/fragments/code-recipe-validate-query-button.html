@@ -1,0 +1,40 @@
+<div class="btn-group dropup" style="margin-right: 5px;">
+    <button class="btn btn--secondary"
+        ng-disabled="isJobRunning()"
+        title="Only checks query syntax and schema consistency. Does not run the query."
+        ng-click="startedJob.job = null; validateRecipe()">
+
+        <i class="dib"
+            style="width: 15px; position: relative; top: 1px;"
+            ng-class="{'icon-check': !recipe.params.skipPrerunValidate, 'icon-check-empty': recipe.params.skipPrerunValidate}" />
+        Validate
+    </button>
+
+    <button class="btn btn--secondary btn--icon" data-toggle="dropdown">
+        <i class="icon-caret-up" />
+    </button>
+
+    <ul class="dropdown-menu">
+        <li ng-if="valCtx.validationResult.substitutedCode">
+            <a ng-disabled="isJobRunning()" ng-click="showExpandedQuery(valCtx.validationResult.substitutedCode)">
+                <i class="icon-code" />&nbsp;Display query after variables substitution
+            </a>
+        </li>
+        <li>
+            <a ng-disabled="isJobRunning()" ng-click="startedJob.job = null; showExecutionPlan()">
+                <i class="icon-cog" />&nbsp;Display execution plan
+            </a>
+        </li>
+        <li>
+            <a ng-disabled="isJobRunning()" ng-click="startedJob.job = null; run()">
+                <i class="icon-eye-open" />&nbsp;Display first rows
+            </a>
+        </li>
+        <li>
+            <a ng-disabled="isJobRunning()" ng-click="recipe.params.skipPrerunValidate = !recipe.params.skipPrerunValidate">
+                <i class="icon-check" />&nbsp;
+                {{recipe.params.skipPrerunValidate ? 'Enable validation before running' : 'Disable validation before running'}}
+            </a>
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,48 @@
+<div class="modal modal3 dku-modal">
+    <div dku-modal-header modal-title="Start continuous activity" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="startForm">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <div class="control-group">
+                <label for="" class="control-label">Run behavior</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="uiState.loopParamsPreset" ng-options="x.id as x.label for x in loopParamsPresets" />
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="['BOUNDED_ATTEMPTS', 'CUSTOM'].indexOf(uiState.loopParamsPreset) >= 0">
+                <label for="" class="control-label">Max nb. attempts</label>
+                <div class="controls">
+                    <input type="number" force-integer ng-model="uiState.abortAfterCrashes"/>
+                    <span class="help-inline">Use -1 for no bound</span>
+                </div>
+            </div>
+            <div class="control-group" ng-if="['CUSTOM'].indexOf(uiState.loopParamsPreset) >= 0">
+                <label for="" class="control-label">Min delay between attemps</label>
+                <div class="controls">
+                    <input type="number" force-integer ng-model="uiState.initialRestartDelayMS" min="0"/>
+                </div>
+            </div>
+            <div class="control-group" ng-if="['CUSTOM'].indexOf(uiState.loopParamsPreset) >= 0">
+                <label for="" class="control-label">Max delay between attemps</label>
+                <div class="controls">
+                    <input type="number" force-integer ng-model="uiState.maxRestartDelayMS" min="0"/>
+                </div>
+            </div>
+            <div class="control-group" ng-if="['CUSTOM'].indexOf(uiState.loopParamsPreset) >= 0">
+                <label for="" class="control-label">Delay increase between attemps</label>
+                <div class="controls">
+                    <input type="number" force-integer ng-model="uiState.restartDelayIncMS" min="0"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="start()" ng-disabled="startForm.$invalid">Start</button>
+        </div>
+    </form>
+
+</div>

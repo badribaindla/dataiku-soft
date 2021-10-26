@@ -1,0 +1,134 @@
+<div class="object-right-column-summary object-right-column-summary-multitab h100 vertical-flex" ng-if="selection.selectedObject">
+
+    <div item-header class="noflex insight-right-column-summary-header"
+         href="$state.href('projects.project.dashboards.insights.insight.view', {insightId:selection.selectedObject.id, insightName: (selection.selectedObject.name | slugify)})"
+         color="{{selection.selectedObject.type | insightTypeToColor }}"
+         icon="{{selection.selectedObject.type | insightTypeToIcon }}"
+         title="{{selection.selectedObject.name}}">
+        {{selection.selectedObject.name}}
+        <i class="icon-dku-promote" ng-if="selection.selectedObject.listed" />
+    </div>
+
+    <div class="column-header-tabs noflex" ng-if="!$state.current.name.startsWith('projects.project.dashboards.insights.insight') && !$state.current.name.startsWith('projects.project.dashboards.insights.list')">>
+        <div class="tab" ng-class="{active: uiState.activeTab == 'details'}"
+             ng-click="uiState.activeTab = 'details'">
+            <div class="title">Details</div>
+        </div>
+        <div class="tab" ng-class="{active: uiState.activeTab == 'discussions'}" ng-click="uiState.activeTab = 'discussions'">
+            <div class="title">Discussions</div>
+        </div>
+        <div class="tab" ng-class="{active: uiState.activeTab == 'actions'}"
+             ng-click="uiState.activeTab = 'actions'">
+            <div class="title">Actions</div>
+        </div>
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex oa">
+        <div ng-switch="uiState.activeTab" class="h100">
+            <div ng-switch-when="details" class="details-tab h100 oa">
+                <object-details
+                    object-type="INSIGHT"
+                    object-data="insightFullInfo"
+                    context="right-column"
+                    hover-intent-callback="QuickView"
+                    editable="canWriteProject()"
+                    edit-custom-fields="editCustomFields">
+                </object-details>
+            </div>
+
+            <!-- DISCUSSIONS tab -->
+            <div ng-switch-when="discussions" class="object-summary-tab-content discussions-tab h100 oa">
+                <div class="h100" discussions-widget watch-object="selection.selectedObject" selected-item="{projectKey: selection.selectedObject.projectKey, type: 'INSIGHT', id: selection.selectedObject.id}" />
+            </div>
+
+            <div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+                <div class="icons-section icons-grey icons-main">
+                    <div simple-right-col-action-href
+                        href="{{StateUtils.href.insight(selection.selectedObject.id, selection.selectedObject.projectKey, {name: selection.selectedObject.name})}}"
+                        label="Play"
+                        title="Play"
+                        icon="icon-play"
+                        />
+                    <div simple-right-col-action-href
+                        href="{{StateUtils.href.insight(selection.selectedObject.id, selection.selectedObject.projectKey, {name: selection.selectedObject.name, tab:'edit'})}}"
+                        label="Edit"
+                        title="Edit"
+                        icon="icon-edit"
+                        ng-if="canEditInsight(selection.selectedObject) && hasEditTab(selection.selectedObject)"
+                        />
+                    <div simple-right-col-action-click
+                        on-click="toggleInsightListed(selection.selectedObject, list)"
+                        label="{{selection.selectedObject.listed ? 'Unpromote' : 'Promote'}}"
+                        title="{{selection.selectedObject.listed ? 'Unpromote' : 'Promote'}}"
+                        icon="{{selection.selectedObject.listed ? 'icon-dku-promote' : 'icon-dku-promote-empty' }} "
+                        ng-if="canModerateDashboards()"
+                        />
+                    <div simple-right-col-action-click
+                        on-click="copy(selection.selectedObject, list)"
+                        label="Copy"
+                        title="Copy"
+                        icon="icon-copy"
+                        disabled-if="!canEditInsight(selection.selectedObject)"
+                        />
+                    <div simple-right-col-action-click on-click="mutiPin(selection.selectedObject, refreshData)"
+                        label="Add insight"
+                        title="Add to dashboard"
+                        icon="icon-pushpin"
+                        disabled-if="!canEditInsight(selection.selectedObject)"
+                        toggle="tooltip"
+                        />
+                    <div simple-right-col-action-click
+                         ng-show="!isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(true)"
+                         label="{{ actionLabels.WATCH }}"
+                         icon="icon-eye-open"
+                         ng-attr-title="{{ actionTooltips.WATCH }}"
+                         data-toggle="tooltip"
+                    />
+                    <div simple-right-col-action-click
+                         ng-show="isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(false)"
+                         label="{{ actionLabels.UNWATCH }}"
+                         icon="icon-eye-close"
+                         ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                         data-toggle="tooltip"
+                    />
+                    <div simple-right-col-action-click
+                         ng-show="!selection.selectedObject.interest.starred"
+                         on-click="starObjects(true)"
+                         label="{{ actionLabels.STAR }}"
+                         icon="icon-star"
+                         ng-attr-title="{{ actionTooltips.STAR }}"
+                         data-toggle="tooltip"
+                    />
+                    <div simple-right-col-action-click
+                         ng-show="selection.selectedObject.interest.starred"
+                         on-click="starObjects(false)"
+                         label="{{ actionLabels.UNSTAR }}"
+                         icon="icon-star-empty"
+                         ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                         data-toggle="tooltip"
+                    />
+                    <div simple-right-col-action-click
+                        ng-show="canEditInsight(insight) && appConfig.customFieldsPluginComponentRefs.length"
+                        on-click="editCustomFields()"
+                        label="Metadata"
+                        icon="icon-dku-fields"
+                        title="Edit metadata" />
+                    <div simple-right-col-action-click
+                        on-click="GlobalProjectActions.deleteTaggableObject(this, 'INSIGHT', selection.selectedObject.id, selection.selectedObject.name)"
+                        label="Delete"
+                        title="Delete"
+                        icon="icon-trash"
+                        ng-class="{'icons-danger': canEditInsight(selection.selectedObject)}"
+                        disabled-if="!canEditInsight(selection.selectedObject)"
+                        />
+
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,109 @@
+<div class="modal modal3">
+
+    <dku-modal-header modal-class="has-border">
+        <dku-modal-title>
+            <span>New Notebooks from git</span>
+        </dku-modal-title>
+    </dku-modal-header>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="notebookFromGitForm" filtered-multi-select-rows ng-model="remoteNotebooks" is-item-selectable-predicate="isItemSelectable">
+        <div class="modal-body modal-no-sizing">
+            <div block-api-error></div>
+            <div ng-if="!selection.loaded">
+                <div class="control-group">
+                    <label for="notebookRemote" class="control-label">Remote URL</label>
+                    <div class="controls">
+                        <input id="notebookRemote" name="notebookGitRemote" type="text" placeholder="git@github.com:user/repo.git" required ng-model="gitRef.repository"/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="notebookBranch" class="control-label">Branch</label>
+                    <div class="controls" id="notebookBranch" git-checkout-select repository="gitRef.repository" ng-model="gitRef.ref" />
+                </div>
+            </div>
+            <div class="list-page-4 flex list-page--flat-design h100" ng-if="selection.loaded">
+                <div class="summary-row summary-row--notebooks-import noflex horizontal-flex" ng-if="selection.allObjects.length > 0">
+                    <div class="noflex dropdown mass-action-btn">
+                        <input type="checkbox"
+                            class="select-cb"
+                            ng-model="selection.all"
+                            dku-indeterminate="selection.some"
+                            ng-change="updateMassSelectionCheckbox()"
+                        >
+                    </div>
+                    <div class="vertical-flex">
+                        <div class="std-list-search-box">
+                            <span class="add-on"><i class="icon-dku-search"></i></span>
+                            <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Search&hellip;" id="qa_generic_search-list-2" autofocus>
+                            <div class="error-drawer" ng-if="selection.filterParams.userQueryErrors">
+                                <div class="error" ng-repeat="(exp, err) in selection.filterParams.userQueryErrors">
+                                    <i class="icon icon-warning-sign"/>{{err.message}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-list-zone w100" ng-if="selection.allObjects.length > 0" style="height: min({{(selection.allObjects.length * 64) + 12}}px, 39vh);">
+                    <ul fat-repeat="selection.filteredObjects" as="item" row-height="64" class="list-items h100 w100">
+                        <li class="list-item h100" full-click ng-attr-toggle="{{!isItemSelectable(item) ? 'tooltip-left' : ''}}" ng-attr-container="{{!isItemSelectable(item) ? 'body':''}}" ng-attr-title="{{!isItemSelectable(item) ? 'The Notebook uses an unsupported format, we only support v4+ format' : ''}}">
+                            <div class="h100" ng-class="{'disabled-block': !isItemSelectable(item)}">
+                                <label disable-main-click>
+                                    <span style="display:none;" ng-if="isItemSelectable(item)" main-click ng-click="objectClicked(item, $event)"></span>
+                                    <input type="checkbox" ng-model="item.$selected" ng-disabled="!isItemSelectable(item)" ng-click="checkBoxChanged(item, $event)"/>
+                                </label>
+                                <div class="hit h100">
+                                    <div class="illustration">
+                                        <span ng-if="item.type == 'JUPYTER' && item.language && item.language.startsWith('python')">
+                                            <i class="icon-code_python_recipe universe-color notebook" />
+                                        </span>
+                                        <span ng-if="item.type == 'JUPYTER' && (item.language=='ir' || item.language=='R')">
+                                            <i class="icon-code_r_recipe universe-color notebook" />
+                                        </span>
+                                        <span ng-if="item.type == 'JUPYTER' && item.language.toLowerCase().startsWith('julia')">
+                                            <i class="icon-code_julia_recipe universe-color notebook" />
+                                        </span>
+                                        <span ng-if="item.type == 'JUPYTER' && (item.language=='toree' || item.language=='scala')">
+                                            <i class="icon-code_spark_scala_recipe universe-color notebook" />
+                                        </span>
+                                        <span ng-if="item.type == 'SQL'">
+                                            <i class="icon-code_sql_recipe universe-color notebook" />
+                                        </span>
+                                        <span ng-if="item.type == 'HIVE'">
+                                            <i class="icon-code_hive_recipe universe-color notebook" />
+                                        </span>
+                                        <span ng-if="item.type == 'SPARKSQL'">
+                                            <i class="icon-code_sparksql_recipe universe-color notebook" />
+                                        </span>
+                                        <span ng-if="item.type == 'IMPALA'">
+                                            <i class="icon-code_impala_recipe universe-color notebook" />
+                                        </span>
+                                    </div>
+                                    <div class="hitContent h100">
+                                        <div class="hit-content-main noflex">
+                                            <h5 class="hit-content-main__title">{{item.name}}</h5>
+                                            <div class="hit-content-main__subtitle">
+                                                {{item.path}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="notebook-list-empty-section text-weak" ng-if="selection.allObjects.length === 0">
+                    <h4>
+                        Cannot find any notebooks on the repository
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="button" class="btn btn--text btn--primary" ng-click="dismiss()" ng-if="selection.loaded && selection.allObjects.length === 0">OK</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="!gitRef.repository" ng-if="selection.loaded === false" ng-click="listNotebooks()">List Notebooks</button>
+            <button type="button" class="btn btn--text btn--primary" ng-disabled="selection.selectedObjects.length == 0" ng-if="selection.loaded && selection.allObjects.length > 0 " ng-click="importNotebooks()">Import {{selection.selectedObjects.length | pluralize :'Notebook' :'Notebooks'}}</button>
+        </div>
+    </form>
+</div>

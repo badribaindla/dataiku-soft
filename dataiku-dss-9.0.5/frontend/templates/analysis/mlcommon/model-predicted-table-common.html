@@ -1,0 +1,42 @@
+<!-- Predicted table for a single model in analysis -->
+<div class="mainPane">
+    <!-- Main pane top bar -->
+    <div ng-show="shaker" class="header table-view-header">
+        <div>
+            <h4>
+                <a ng-click="showWarningsDetails()" class="text-warning" ng-show="table.warnings.totalCount">
+                    <i class="icon-warning-sign" toggle="tooltip" title="Warnings occurred during processing" />
+                </a>
+                <a ng-click="showWarningsDetails()" class="text-warning" ng-show="table.warnings.totalCount">
+                    <i class="icon-warning-sign" toggle="tooltip" title="Warnings occurred during processing" />
+                </a>
+            </h4>
+        </div>
+        
+        <!-- Step summury -->
+        <div include-no-scope="/templates/shaker/shaker-summary-stats.html"></div>
+
+        <!-- filters -->
+        <div include-no-scope="/templates/shaker/filters-column.html"></div>
+    </div>
+
+    <!-- Main pane main zone -->
+    <div class="table-view" style="flex: 1; display: flex; flex-direction: column;">
+        <div class="fatalAPIErrorContainer" ng-show="fatalAPIError">
+            <block-api-error />
+        </div>
+
+        <div future-waiting response="future" dku-if="future && !future.hasResult"></div>
+
+        <div class="alert alert-error" ng-show="table.error" style="margin-top: 2em">
+            <h3>
+                <i class="icon-dku-error" />
+                Failed to run
+            </h3>
+            <p>{{table.error}}</p>
+        </div>
+
+        <div class="positionTable shakerTable" fattable fattable-data="table" ng-show="!table.error"></div>
+        <spinner ng-show="pendingRequests.length && spinnerPosition == 'shaker'"></spinner>
+    </div>
+</div>

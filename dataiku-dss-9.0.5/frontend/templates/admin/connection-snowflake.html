@@ -1,0 +1,250 @@
+<div ng-controller="SQLConnectionController" class="h100 vertical-flex">
+    <div class="oa vertical-flex">
+        <div class="w100 small-lr-padding">
+            <div class="generic-white-box">
+                <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                <div block-api-error />
+
+                <form name="connectionParamsForm" class="dkuform-horizontal">
+                    <div class="row-fluid">
+                        <div class="span7">
+
+                            <h2 class="settings-section-title">Basic params</h2>
+                            <div ng-if="connection.params.useURL != true">
+                                <div class="control-group" form-template-element model="connection.params"
+                                field="{name:'host',type:'string', mandatory:true, label:'Host'}" />
+                                <div class="alert alert-warning" ng-show="checkForHttpInHostUrl(connection.params.host)">
+                                    Host should not contain a http(s):// prefix.
+                                </div>
+
+                                <div class="control-group">
+                                    <label class="control-label">Database</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.db">
+                                        <span class="help-inline">
+                                            Default database for unqualified table lookups. If left blank, this will use the default from Snowflake user settings. Variable expansion is supported.<br />
+                                            In order to use in-database charts, this needs to be set to a database on which you have write permission.
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="control-group">
+                                    <label class="control-label">Warehouse</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.warehouse">
+                                        <span class="help-inline">
+                                            Warehouse to use. If left blank, this will use the default from Snowflake user settings. Variable expansion is supported and can be used for <doclink page="/connecting/sql/snowflake" title="dynamic Snowflake warehouse" />.
+                                        </span>
+                                    </div>
+                                </div>
+                                 <div class="control-group">
+                                    <label class="control-label">Role</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.role">
+                                        <span class="help-inline">
+                                            Role to use. If left blank, this will use the default from Snowflake user settings. Variable expansion is supported and can be used for <doclink page="/connecting/sql/snowflake" title="dynamic Snowflake role" />.
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="control-group">
+                                    <label class="control-label">Schema</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.defaultSchema">
+                                        <span class="help-inline">
+                                            Default schema for unqualified table lookups. If left blank, this will use the default from user settings. Variable expansion is supported.<br />
+                                            In order to use in-database charts, this needs to be set to a schema in the database on which you have write permission.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div ng-if="connection.params.useURL == true">
+                                <div class="control-group">
+                                    <label class="control-label">Connection URL</label>
+                                    <div class="controls">
+                                        <input type="text" class="input-xxlarge" ng-model="connection.params.url"
+                                        ng-required="true"
+                                        placeHolder="jdbc:snowflake://<HOST>/?<connection_params>" />
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Displayed URL</label>
+                                    <div class="controls">
+                                        <input type="text" class="input-xxlarge" ng-model="connection.params.displayedUrl"
+                                        ng-required="false"
+                                        placeHolder="jdbc:snowflake://<HOST>/?<connection_params>" />
+                                        <span class="help-inline">Visible URL for the logs</span>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Driver class</label>
+                                    <div class="controls">
+                                        <input type="text" class="input-xxlarge" ng-model="connection.params.driver"
+                                        ng-required="false" placeholder="Leave empty to use default driver class" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">Auth type</label>
+                                <div class="controls">
+                                    <select ng-init="connection.params.authType=connection.params.authType || 'PASSWORD'" ng-model="connection.params.authType" dku-bs-select>
+                                        <option value="PASSWORD">User/Password</option>
+                                        <option value="OAUTH2_APP">OAuth</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div ng-if="connection.credentialsMode == 'GLOBAL' && connection.params.authType == 'PASSWORD'">
+                                <div class="control-group" form-template-element model="connection.params"
+                                field="{name:'user', type:'string', mandatory:connection.params.useURL != true, label:'User'}" />
+
+                                <div class="control-group">
+                                    <label for="" class="control-label">Password</label>
+                                    <div class="controls">
+                                        <input type="password" ng-model="connection.params.password" autocomplete="new-password" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div ng-if="connection.credentialsMode == 'PER_USER' && connection.params.authType == 'OAUTH2_APP'">
+                            <div class="control-group"
+                                 form-template-element
+                                 model="connection.params"
+                                 field="{name:'appId',type:'string', mandatory:true, label:'Client id'}" />
+                            <div class="control-group"
+                                 form-template-element
+                                 model="connection.params"
+                                 field="{name:'appSecret',type:'password', mandatory:false, label:'Client secret'}" />
+                            <div class="control-group"
+                                     form-template-element
+                                     model="connection.params"
+                                     field="{name:'scope',type:'string', mandatory:false, label:'Scope'}" />
+                            <div class="control-group"
+                                 form-template-element
+                                 model="connection.params"
+                                 field="{name:'authorizationEndpoint',type:'string', false, label:'Auth authorization endpoint', description:'If not using default Snowflake OAuth authorization endpoint'}" />
+                            <div class="control-group"
+                                 form-template-element
+                                 model="connection.params"
+                                 field="{name:'tokenEndpoint',type:'string', false, label:'Auth token endpoint', description:'If not using default Snowflake OAuth token endpoint'}" />
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">Advanced JDBC properties</label>
+                                <div class="controls">
+                                    <ng2-connection-properties-list [(items)]="connection.params.properties" (on-validity-change)="setAdvancedPropertiesValidity($event)"></ng2-connection-properties-list>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="" class="control-label">Use custom JDBC URL</label>
+                                <div class="controls">
+                                    <label>
+                                        <input type="checkbox" ng-model="connection.params.useURL" ng-change="connection.params.useURL && (connection.params.useSparkNativeIntegration = false)"/>
+                                        <span class="help-inline">Used to customize JDBC connection URL</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <h2 class="settings-section-title">Advanced params</h2>
+                            <div class="control-group" ng-if="!connection.params.driver">
+                                <label for="" class="control-label">Driver to use</label>
+                                <div class="controls">
+                                     <select dku-bs-select ng-model="connection.params.driverMode" 
+                                            ng-options="x[0] as x[1] for x in [['MANAGED', 'Automatically managed'], ['CUSTOM', 'User-provided']]" />
+                                </div>
+                            </div>
+                            <div class="control-group" form-template-element model="connection.params"
+                                ng-if="connection.params.driverMode == 'CUSTOM' || connection.params.driver"
+                                 field="{name:'jarsDirectory',type:'string', mandatory:false, label:'Driver jars directory', tooltip:'Path to a directory containing the JDBC driver jars. The path can be absolute or relative to the DSS data directory. If empty, jars must be copied in [DSS home]/lib/jdbc directory.'}" />
+                            <div class="control-group">
+                                <label class="control-label">Spark native integration</label>
+                                <div class="controls">
+                                    <label>
+                                        <span disabled-message="Not available with custom JDBC URL" disabled-if="connection.params.useURL">
+                                            <input disabled-if="connection.params.useURL"
+                                             type="checkbox"
+                                             ng-model="connection.params.useSparkNativeIntegration"/>
+                                        </span>
+                                        <span class="help-inline">Allows Spark to connect directly to Snowflake.</span>
+                                        <span class="help-inline" ng-show="connection.params.driverMode == 'CUSTOM' || connection.params.driver">Requires additional setup. Please see documentation.</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="" class="control-label">Fetch size</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="connection.params.fetchSize" />
+                                     <span class="help-inline">Empty = default</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Use Java UDF (Experimental)</label>
+                                <div class="controls">
+                                    <label>
+                                        <input type="checkbox" ng-model="connection.params.useJavaUDF"/>
+                                        <span class="help-inline">Experimental. Leverages Snowflake Java UDF for enhanced in-database Prepare and Scoring. Requires Java UDF to be enabled on your Snowflake account (preview feature).</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="connection.params.useJavaUDF">
+                                <label for="" class="control-label">Stage for Java UDF</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="connection.params.javaUDFStage" />
+                                    <span class="help-inline">Support for Java UDFs requires a writable internal stage for various temporary files. This stage must already be created and be writable by all users</span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="connection.params.useJavaUDF">
+                                <label for="" class="control-label">Path in stage</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="connection.params.javaUDFPathInStage" />
+                                    <span class="help-inline">Path within the stage to put temporary files for Java UDFs</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Automatic fast-write</label>
+                                <div class="controls">
+                                    <label>
+                                        <input type="checkbox" ng-model="connection.params.useAutoFastPath"/>
+                                        <span class="help-inline">Experimental. Automatically uses a cloud connection and fast bulk load into Snowflake when using recipes writing data from the outside into Snowflake.</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="connection.params.useAutoFastPath">
+                                <label for="" class="control-label">Auto. fast-write connection</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="connection.params.autoFastPathConnection" />
+                                    <span class="help-inline">Name of a cloud connection (S3, Azure Blob or Google Cloud Storage) that will be used as staging area for fast bulk load.</span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="connection.params.useAutoFastPath">
+                                <label for="" class="control-label">Path in connection</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="connection.params.autoFastPathConnectionPath" />
+                                    <span class="help-inline">Path within the auto fast-write connection that will be used for temporary staging data.</span>
+                                </div>
+                            </div>
+                            <div include-no-scope="/templates/admin/fragments/connection-post-connect-statements.html" />
+                            <div include-no-scope="/templates/admin/fragments/connection-sql-flags.html" />
+                            <div include-no-scope="/templates/admin/fragments/connection-credentials-mode.html" />
+
+                        </div>
+
+                        <div class="span5">
+                            <div include-no-scope="/templates/admin/fragments/sql-naming-rule.html" />
+                            <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="small-lr-padding page-top-padding vertical-flex connection-page__connection-testing-section">
+        <div class="vertical-flex h100">
+            <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html"/>
+            <div class="vertical-flex oh" include-no-scope="/templates/admin/fragments/sql-connection-test.html"/>
+            <div include-no-scope="/templates/admin/fragments/connection-sql-mass-import.html"/>
+        </div>
+    </div>
+</div>

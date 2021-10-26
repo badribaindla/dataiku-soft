@@ -1,0 +1,61 @@
+<form class="dkuform-horizontal" ng-controller="HDFSDatasetController">
+    <div class="row-fluid">
+        <div class="span7 generic-white-box">
+            <div fs-provider-settings provider-type="'HDFS'" provider-connection-type="'HDFS'" config="dataset.params" path-change-needs-confirm="dataset.managed" on-change="onCoreParamsChanged()"></div>
+            <!-- we won't be able to get the files selection into Hadoop (Hive, MapReduce, Impala) so it's safer to not offer the option to mess up -->
+<!--             <div include-no-scope="/templates/datasets/fragments/fs-generic-advanced-options.html" /> -->
+        </div>
+
+        <div class="span5">
+            <button class="btn btn--secondary" ng-click="listFiles('HDFS')"> <i class="icon-refresh" />List files</button>
+            <div include-no-scope="/templates/datasets/fragments/fs-files-listing.html" />
+        </div>
+    </div>
+     <button style="margin-top: 20px" class="btn btn--primary btn--wide" ng-click="detectOrPreview()"> <i class="icon-refresh" />&nbsp;Test
+    </button>
+
+    <fieldset>
+
+        <h2 class="settings-section-title">Hive metastore</h2>
+        <div class="control-group">
+            <label for="" class="control-label">
+                Auto-sync to Hive metastore
+            </label>
+            <div class="controls">
+                <input type="checkbox" ng-model="dataset.params.metastoreSynchronizationEnabled" id="metastoreSynchronizationEnabled" />
+                <label class="help-inline" for="metastoreSynchronizationEnabled">
+                    Should the definition of this dataset be synchronized to the active metastore catalog?
+                </label>
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="" class="control-label">
+                Hive database
+            </label>
+            <div class="controls">
+                <input type="text" ng-model="dataset.params.hiveDatabase" name="hiveDatabaseName" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/" />
+                <span class="help-inline" ng-hide="connectionParamsForm.hiveDatabaseName.$invalid">
+                    You only need to fill this if you want to synchronize this dataset to or from the Hive metastore. If empty, defaults to the fallback DB of the connection.
+                </span>
+                <span class="help-inline error-text-color" ng-show="connectionParamsForm.hiveDatabaseName.$invalid">
+                    Hive database names can only contains letters, numbers and underscores.
+                </span>
+            </div>
+        </div>
+         <div class="control-group">
+            <label for="" class="control-label">
+                Hive table
+            </label>
+            <div class="controls">
+                <input type="text" ng-model="dataset.params.hiveTableName" name="hiveTableName" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/" />
+                <span class="help-inline" ng-hide="connectionParamsForm.hiveTableName.$invalid">
+                    You only need to fill this if you want to synchronize this dataset to or from the Hive metastore. If empty, defaults to the dataset name.
+                </span>
+                <span class="help-inline error-text-color" ng-show="connectionParamsForm.hiveTableName.$invalid">
+                    Hive table names can only contains letters, numbers and underscores.
+                </span>
+            </div>
+        </div>
+
+    </fieldset>
+</form>

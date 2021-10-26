@@ -1,0 +1,60 @@
+<div class="h100 script-left-pane" id="qa_prepare_wrapper" tabindex="0" auto-focus="true" paste-region copy-callback="keydownCopy" paste-callback="openPasteModalFromKeydown">
+    <div class="script-header" ng-show="shaker.steps.length > 0">
+        <div class="mass-actions" ng-if="isProjectAnalystRW()">
+            <!--<span class="toggle-btn">Mass</span>-->
+            <span class="control-pannel mass-action-btn" id="qa_prepare_mass-actions-btn">
+                <span ng-click="isAllStepsSelected() ? unselectSteps() : selectAllSteps()" class="styled-checkbox">
+                    <!-- none selected -->
+                    <i class="icon-check-empty" ng-show="isNoStepSelected()"></i>
+                    <!-- some selected -->
+                    <i class="icon-minus-sign-alt" ng-show="!isNoStepSelected() && !isAllStepsSelected()"></i>
+                    <!-- all selected -->
+                    <i class="icon-check-sign" ng-show="isAllStepsSelected()"></i>
+                </span>
+                <span class="control-group" close-on-click="true">
+                    <a ng-click="!isNoStepSelected() && openActionsMenu($event, 'SMART');" ng-class="{ 'disabled': isNoStepSelected() }" class="mainzone dropdown-toggle">
+                        <span ng-if="!isNoStepSelected()">ACTIONS</span> 
+                        <b class="caret"></b>
+                    </a>
+                </span>
+            </span>
+        </div>  
+        <span class="separator" ng-if="isProjectAnalystRW()">|</span>
+        <div class="search">
+            <span class="control-pannel">
+                <i class="icon-search"></i>
+                <input
+                    type='text'
+                    placeholder= 'Search steps...'
+                    ng-model='query.val'
+                    ng-change='searchSteps()'
+                    />
+            </span>
+        </div>
+    </div>
+    <div style="overflow: auto; max-height : 100%;" class="steps-wrapper" ng-class="{'nostep-wrapper' : shaker.steps.length == 0}">
+        <div ng-show="shaker.steps.length == 0" class="nostep">
+            <h4>No step yet in your script.</h4>
+            <p>You can add steps either by:</p>
+            <img ng-src="{{shakerState.activeView == 'columns' && '/static/dataiku/images/SHAKER-column-view.png' || '/static/dataiku/images/SHAKER-table-view.png'}}" />
+            <p>OR</p>
+        </div>
+        <div ui-tree="treeOptions" step-color-picker>
+            <ul ui-tree-nodes ng-model="shaker.steps" class="steps accordion" ng-class="{'select-disabled': isNoStepSelected() }">
+                <li ng-repeat="step in shaker.steps track by $id(step)" ui-tree-node>
+                    <div class="processor-wrapper" ng-if="step.metaType == 'PROCESSOR' || step.metaType == null" shaker-processor-step />
+                    <div class="processor-wrapper" ng-if="step.metaType == 'GROUP'" shaker-group-step />
+                </li>
+            </ul>
+        </div>
+        <div class="btn-zone">
+            <button class="btn btn--contained btn--full btn--tall btn-new-step" ng-click="toggleLibrary();">
+                <i plus-icon />&nbsp;Add a new step
+            </button>
+
+            <button class="btn btn--text btn--full btn--tall btn-new-group" ng-click="appendGroup();" ng-if="shaker.steps.length>0">
+                <i class="icon-plus-sign"></i>&nbsp;add a Group
+            </button>
+        </div>
+    </div>
+</div>

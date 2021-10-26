@@ -1,0 +1,39 @@
+<div class="modal modal3">
+    <div dku-modal-header modal-title="New streaming endpoint" modal-class="has-border" />
+
+    <form name="newStreamingEndpointForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body" >
+            <div block-api-error />
+            <div class="control-group">
+                <label class="control-label">Name</label>
+                <div class="controls">
+                    <input type="text" ng-pattern="/^[\w-_]+$/" custom-validation="isStreamingEndpointNameUnique" ng-model="newStreamingEndpoint.id" required placeholder="Name" name="newStreamingEndpointName"/>
+                </div>
+	            <div class="alert alert-error" ng-show="newStreamingEndpointForm.newStreamingEndpointName.$error.customValidation" style="margin: 10px 0px 0px"> <i class="icon-warning-sign"></i>
+   		            This name is already used by another streaming endpoint
+       		    </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Type</label>
+                <div class="controls">
+                    {{newStreamingEndpoint.type}}
+                </div>
+            </div>
+            <div class="control-group" ng-if="connections && connections.length">
+                <label for="" class="control-label">Store into</label>
+                <div class="controls">
+                    <select ng-model="newStreamingEndpoint.connection"
+                 dku-bs-select="{liveSearch:true,size:'auto'}"
+            ng-options="item.connectionName as item.connectionDisplayName for item in connections|orderBy:'connectionName'" />
+                </div>
+            </div>
+
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <div class="pull-right">
+                <button type="button" ng-click="dismiss()" class="btn btn--text btn--secondary">Close</button>
+                <button type="submit" class="btn btn--text btn--primary actions" ng-click="create()" ng-disabled="newStreamingEndpointForm.$invalid">Create</button>
+            </div>
+        </div>
+    </form>
+</div>

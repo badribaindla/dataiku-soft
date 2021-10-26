@@ -1,0 +1,76 @@
+<div class="modal modal3">
+	<div dku-modal-header modal-title="Schema changes" modal-class="has-border" modal-close="noCancel ? ignoreSchemaChangeSuggestion : cancelSave" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body oa" style="max-height: 500px;">
+        	<div block-api-error />
+			<h5 ng-if="!customMessage">
+				The current schema of output dataset(s) doesn't match what the recipe outputs.
+			</h5>
+			<h5 ng-if="customMessage" ng-bind="customMessage"></h5>
+
+			<ul ng-repeat="dataset in schemaChanges.computables" ng-show="dataset.incompatibilities.length > 0">
+				<h6>{{dataset.datasetName}}</h6>
+
+				<ul ng-if="dataset.incompatibilities.length<5" ng-repeat="incompatibility in dataset.incompatibilities">
+					<li>{{incompatibility}}</li>
+				</ul>
+
+				<div class="alert alert-warning" ng-if="dataset.lostComplexTypes.length">
+					<h4>Information loss</h4>
+					<p>Complex type information will be lost for <span ng-bind="dataset.lostComplexTypes.length"></span> columns</p>
+					<ul>
+						<li ng-repeat="lost in dataset.lostComplexTypes.slice(0, 5)" ng-bind="lost"></li>
+						<li ng-if="dataset.lostComplexTypes.length > 5">… and {{dataset.lostComplexTypes.length - 5}} more</li>
+					</ul>
+				</div>
+
+				<button ng-if="dataset.incompatibilities.length>=5" class="btn btn--success" dku-inline-popover placement="right" container="body">
+					<label>
+						More details
+						<span class="icon-question-sign"></span>
+					</label>
+					<content title="Incompatibilites">
+						<div>
+							<ul ng-repeat="incompatibility in dataset.incompatibilities">
+								<li>{{incompatibility}}</li>
+							</ul>
+						</div>
+					</content>
+				</button>
+
+				<div info-messages-raw-list-with-alert="dataset.messages"/>
+
+
+				<div class="alert" ng-class="{'alert-warning': dataset.isPartitioned, 'alert-info': !dataset.isPartitioned}" ng-if="dataset.type != 'STREAMING_ENDPOINT'">
+					It is recommended to drop the data of this dataset to avoid schema inconsistencies.
+					<br />
+					<span ng-if="dataset.isPartitioned">
+						Beware: this will drop all existing partitions.
+						<br />
+					</span>
+					<label>
+						<input type="checkbox" ng-model="dataset.dropAndRecreate" />
+						Drop and recreate
+					</label>
+				</div>
+
+				<div ng-show="dataset.isHDFS" class="alert alert-info">
+					This is a HDFS dataset. It is strongly recommended to re-synchronize its hive table.
+					<br />
+					<label>
+						<input type="checkbox" ng-model="dataset.synchronizeMetastore" />
+						Synchronize metastore
+					</label>
+				</div>
+			</ul>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+			<button type="button" class="btn btn--text btn--secondary" ng-click="cancelSave()" ng-if="!noCancel">Cancel save</button>
+			<button type="button" class="btn btn--text btn--danger" ng-click="ignoreSchemaChangeSuggestion()">Ignore</button>
+			<button type="submit" class="btn btn--text btn--primary" ng-click="updateSchemaFromSuggestion()" id="qa_recipe_update-schema-button">Update schema</button>
+        </div>
+
+    </form>
+
+</div>

@@ -1,0 +1,16 @@
+<div class="{{schema.fields?'clickable':''}}"
+	ng-click="schema.show=!schema.show">
+
+	<span class="pig-item-bullet" ng-if="schema.fields && schema.show"> <i class="icon-caret-down" /></span>
+	<span class="pig-item-bullet" ng-if="schema.fields && !schema.show"> <i class="icon-caret-right" /></span>
+	<span class="pig-item-bullet" ng-if="!schema.fields">&#9671;</span>
+	<span class="pig-field-name" ng-show="!!schema.name">{{ schema.name }}</span>
+	<span class="pig-field-unnamed" ng-show="!schema.name">(unnamed)</span>
+	<span class="{{ (['relation','tuple','bag','bag-of-tuples'].indexOf(schema.type)!=-1)?'pig-field-'+schema.type+'-type':'pig-field-value-type'}}">{{schema.type}}</span>
+</div>
+
+<ul ng-if="schema.fields" ng-show="schema.show">
+	<li ng-repeat="schema in schema.fields" ng-click="show=!show">
+		<div ng-include="'/templates/recipes/fragments/pig-schema-item.html'"></div>
+	</li>
+</ul>

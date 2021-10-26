@@ -1,0 +1,129 @@
+<div ng-show="dataset" class="h100">
+    <div include-no-scope="/templates/datasets/fragments/settings-save.html" />
+    <tabs class="tabs-with-margin vertical-flex">
+        <pane title="Connection">
+            <div class="container-fluid page-top-padding h100 oa">
+                <fieldset ng-show="connections && !connections.length">
+                    You do not yet have any connection for {{dataset.type|datasetTypeToName}}.
+                    You need to <a target="_blank" href="{{$state.href('admin.connections.list')}}">create a new connection</a>
+                    before creating datasets on this connection.
+                </fieldset>
+                <fieldset ng-show="connections && connections.length">
+                    <form class="dkuform-horizontal">
+                        <div>
+                            <div class="control-group" on-smart-change="test(true)">
+                                <label for="" class="control-label">Connection</label>
+                                <div class="controls">
+                                    <select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="dataset.params.connection" ng-options="connection for connection in connections"></select>
+                                    <a target="_blank" href="{{$state.href('admin.connections.list')}}">Manage connections</a>
+                                </div>
+                            </div>
+                            <fieldset>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Table</label>
+                                    <div class="controls">
+                                        <div ng-show="!testing && testResult.tablesList != null">
+                                            <!-- Only use a dku-bs-select when there are not too many tables.
+                                                Using a dku-bs-select with too many tables is insanely slow -->
+                                            <div ng-if="testResult.tablesList.length < 200">
+                                                <select dku-bs-select="{'liveSearch':true}"
+                                                        ng-model="dataset.params.table"
+                                                        ng-options="table for table in testResult.tablesList"/>
+                                                <button class="btn btn--secondary" ng-click="testResult.tablesList = null">
+                                                    Enter custom
+                                                </button>
+                                            </div>
+                                            <div ng-if="testResult.tablesList.length >= 200">
+                                                <select ng-model="dataset.params.table"
+                                                        ng-options="table for table in testResult.tablesList"/>
+                                                <button class="btn btn--secondary" ng-click="testResult.tablesList = null">
+                                                    Enter custom
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div ng-show="testing || testResult.tablesList == null">
+                                            <input type="text" ng-model="dataset.params.table" dku-enter="dataset.params.table && test(false,false,true)" />
+                                            <button type="button" class="btn btn--secondary" ng-click="getAllTables()">Get tables list</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="control-group" ng-if="!appConfig.communityEdition && dataset.managed ">
+                            <div class="controls">
+                                <label class="checkbox">
+                                    <input ng-model="dataset.params.partitioned" type="checkbox"  />
+                                    Partitioned
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="!appConfig.communityEdition && dataset.managed ">
+                            <div class="controls">
+                                <button type="button" class="btn btn--secondary" ng-click="updateIndex();">Update Index</button>
+                                <span class="help-inline">
+                                    Index need to be updated at each partitioning change. This will delete existing indexes and create the new one if the dataset is partitioned.
+                                </span>
+                            </div>
+                        </div>
+                        <div ng-show="dataset.params.partitioned" >
+                            <div class="control-group">
+                                <label for="" class="control-label">Partitioning column</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="dataset.params.partitioningColumn" ng-required="dataset.params.partitioned"/>
+                                </div>
+
+                            </div>
+                            <div class="control-group">
+                                <label for="" class="control-label">Forced list of partitions</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="dataset.params.explicitPartitionsList" />
+                                    <span class="help-inline">
+										Optional, forces the partitions to this predefined list. Use if listing partitions is too expensive.
+									</span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </fieldset>
+                <div include-no-scope="/templates/datasets/dynamodb-dataset-test.html" />
+            </div>
+        </pane>
+
+        <pane title="Preview">
+            <div class="container-fluid page-top-padding h100 oa">
+                <div schema-consistency-status current-schema="dataset.schema" consistency="consistency" managed="dataset.managed"
+                     check-consistency="checkConsistency" schema-detection="testResult.schemaDetection"
+                     discard-schema-changes="discardSchemaChanges" overwrite-schema="overwriteSchema"
+                     schema-just-modified="schemaJustModified" discard-consistency-error="discardConsistencyError" />
+                <div class="scroll dataset-preview-scroll">
+                    <div ng-show="testResult.previewErrorMsg" class="alert alert-error">{{testResult.previewErrorMsg}}</div>
+                    <div dku-if="testResult.preview">
+                        <div simple-detection-preview-table dataset="dataset" table="testResult.preview" headers="testResult.preview.headers"
+                             schema-is-user-editable="false"/>
+                    </div>
+                </div>
+                <div include-no-scope="/templates/datasets/dynamodb-dataset-test.html" />
+            </div>
+        </pane>
+
+        <pane title="Schema">
+            <div class="container-fluid page-top-padding h100 vertical-flex" style="position: relative;">
+                <div schema-consistency-status current-schema="dataset.schema" consistency="consistency" managed="dataset.managed"
+                     check-consistency="checkConsistency" schema-detection="testResult.schemaDetection"
+                     discard-schema-changes="discardSchemaChanges" overwrite-schema="overwriteSchema"
+                     schema-just-modified="schemaJustModified" discard-consistency-error="discardConsistencyError"
+                     class="noflex" />
+                <div include-no-scope="/templates/datasets/schema-edition.html" class="flex" />
+            </div>
+        </pane>
+
+
+        <pane title="Advanced">
+            <div class="h100 oa">
+                <div include-no-scope="/templates/datasets/advanced-fieldset-flow.html" />
+                <div include-no-scope="/templates/datasets/advanced-override-table.html" />
+                <div include-no-scope="/templates/datasets/advanced-fieldset-danger.html" />
+            </div>
+        </pane>
+    </tabs>
+</div>

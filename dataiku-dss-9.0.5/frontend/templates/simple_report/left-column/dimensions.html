@@ -1,0 +1,41 @@
+<div ng-hide="readOnly">
+    <ng-include ng-if="canAnimate" src="'/templates/simple_report/animation-options.html'"></ng-include>
+    <ng-include ng-if="canFacet" src="'/templates/simple_report/facet-controls.html'"></ng-include>
+
+    <div class="mbot20" ng-if="canHasTooltipMeasures && (!readOnly || chart.def.tooltipMeasures.length > 0)" dku-foldable open="false" open-on-drag-enter>
+        <h2 class="foldable-title" id="qa_charts_tooltip-submenu-header" ng-click="foldableToggle()">
+            <div class="pull-right nb-records" ng-if="chart.def.tooltipMeasures.length">
+                {{chart.def.tooltipMeasures.length + ' measure' | plurify: chart.def.tooltipMeasures.length}}
+            </div>
+
+            <i class="{{foldableOpen ? 'icon-caret-down' : 'icon-caret-right'}}" />
+            Tooltip
+        </h2>
+
+        <div ng-show="foldableOpen">
+            <div class="chartdef-dropzone chartdef-dropzone-vertical" ng-class="{'empty':chart.def.tooltipMeasures.length==0, 'notempty': chart.def.tooltipMeasures.length != 0}">
+                <div data-block="dim1-placeholder"  class="empty-placeholder no-icon">
+                    Drop to add tooltip measures
+                </div>
+                <div class="chartdef-dropzone-main qa_charts_tooltip-dropzone" multivalued-std-aggr-measure-zone list="chart.def.tooltipMeasures" accept-callback="acceptStdAggrTooltipMeasure" ng-init="isTooltipMeasure = true"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="mbot20" ng-if="canHaveUaTooltips" dku-foldable open="false" open-on-drag-enter>
+        <h2 class="foldable-title" ng-click="foldableToggle()">
+            <i class="{{foldableOpen ? 'icon-caret-down' : 'icon-caret-right'}}" />
+            Tooltip
+        </h2>
+
+        <div ng-show="foldableOpen">
+            <div class="chartdef-dropzone chartdef-dropzone-vertical" ng-class="{'empty':chart.def.uaTooltip.length==0, 'notempty': chart.def.uaTooltip.length != 0}">
+                <div data-block="dim1-placeholder"  class="empty-placeholder no-icon">
+                    Drop to add tooltip measures
+                </div>
+                <div class="chartdef-dropzone-main qa_charts_tooltip-dropzone" multi-ua-zone-no-opts list="chart.def.uaTooltip" accept-callback="acceptUaTooltip"></div>
+            </div>
+        </div>
+    </div>
+</div>

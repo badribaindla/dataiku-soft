@@ -1,0 +1,38 @@
+<div class="banner partition-banner {{displayedData.$isPlotted ? 'chart' : 'table'}} {{displayedData.$isArray ? 'array' : ''}}">
+    <div class="banner-title">
+        <div class="pull-right">
+            <div class="value-all" ng-if="displayedData.partitionAll && !displayedData.$isArray">
+            	<div class="average" ng-if="MetricsUtils.hasAverage(displayedData) && displayedData.$isPlotted"></div>
+            	<span class="date">{{displayedData.partitionAll.time | date: 'yyyy-MM-dd HH:mm'}}</span>
+                <span class="partition-name">ALL</span>
+	            <div class="single-value">
+	                    <div class="mx-textellipsis"
+                             auto-resize-text min-font-size="25"
+	                         content="MetricsUtils.getFormattedValue(displayedData.partitionAll.value)"
+	                         tooltip-placement="bottom"
+	                         tooltip-container="body"
+	                    ></div>
+	            </div>
+            </div>
+        </div>
+
+        <h4 class="tile-header horizontal-flex" style="max-width: 200px;"title="{{MetricsUtils.getMetricDisplayName(displayedMetric)}}">
+            <span class="metric-name flex">{{MetricsUtils.getMetricDisplayName(displayedMetric)}}</span>
+			<span class="metric-actions noflex" ng-include="'/templates/metrics/compute-metric-probe.html'" style="display: inline-block;"></span>
+        </h4>
+    </div>
+
+    <div ng-if="displayedData && MetricsUtils.hasData(displayedData)" class="content">
+        <div metric-history displayed-data="displayedData" displayed-metric="displayedMetric"
+             displayed-partitions="displayedPartitions"
+             displayed-partitions-range="displayedPartitionsRange"
+             tooltips-container=".metrics-wrapper"
+             average-value="displayedData.partitionAll.averageValue" class="history h100" />
+    </div>
+    <div ng-if="!displayedData || !MetricsUtils.hasData(displayedData)" class="empty-partition-banner">
+    	<div class="h100 center-children">
+			<span class="message">No data on individual partitions</span>
+    	</div>
+    </div>
+
+</div>

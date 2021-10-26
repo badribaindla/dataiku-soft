@@ -1,0 +1,131 @@
+<div class="performance-metrics" ng-controller="PredictionPerformanceMetricsController">
+    <div class="performance-metrics-title row-fluid">
+        <h2 class="span6 dku-grand-title mtop0 mbot0">Performance metrics
+        </h2>
+        <div class="span6 performance-metrics-title__threshold-slider" ng-if="isBinaryClassification()">
+            <label ng-if="modelData.hasProbas && modelData.backendType!=='VERTICA' && !isOnPartitionedBaseModel()">
+                <span>Threshold (cut-off)</span>
+                <span ng-if="!evaluation"> <input class="threshold-setter" type="range" min="0" max="1" step="0.025"
+                              ng-model="mu.activeClassifierThreshold"/></span>
+                <code ng-bind="mu.activeClassifierThreshold | number : 3"></code>
+            </label>
+        </div>
+    </div>
+    <div class="detailed-metrics vertical-flex">
+        <div class="metrics-header">
+            <h3 class="dku-medium-title-sb mtop0 mbot0">Detailed metrics</h3>
+        </div>
+        <div ng-if="!isClassification()" include-no-scope="templates/ml/prediction-model/r_detailed_metrics.html" puppeteer-hook-1></div>
+        <div ng-if="isClassification()" include-no-scope="templates/ml/prediction-model/c_detailed_metrics.html" puppeteer-hook-2></div>
+    </div>
+    <div class="assertion-result">
+        <div class="assertion-header row-fluid">
+            <div class="span8">
+                <h3 class="assertion-header__title dku-medium-title-sb">Assertions</h3>
+                <span class="mleft8" ng-if="modelData.assertionsParams.assertions.length && !isOnPartitionedBaseModel()"> computed on
+                    <span ng-if="!evaluation && modelData.trainInfo.fullRows">{{modelData.trainInfo.fullRows}} rows (full train set).</span>
+                    <span ng-if="!evaluation && !modelData.trainInfo.fullRows">{{modelData.trainInfo.testRows}} rows (test set).</span>
+                    <span ng-if="evaluation && evaluation.evaluatedDataStatistics.nbRows">{{evaluation.evaluatedDataStatistics.nbRows}} rows (sample).</span>
+                </span>
+                <span class="mleft8" ng-if="modelData.assertionsParams.assertions.length && isOnPartitionedBaseModel()"> computed on
+                    <!-- There is no notion of partitioned base model for evaluation, no need to take into account this case-->
+                    <span ng-if="modelData.trainInfo.fullRows">full train set of each partition.</span>
+                    <span ng-if="!modelData.trainInfo.fullRows">test set of each partition.</span>
+                </span>
+            </div>
+            <div class="span4 padtop4 assertion-header__threshold-info"
+                 ng-if="isBinaryClassification() && modelData.assertionsParams.assertions.length && !isOnPartitionedBaseModel()">
+                Threshold-dependent (current threshold = {{currentCutData.cut | mlMetricFormat:'CUT' : 3}})
+            </div>
+        </div>
+        <p ng-if="!evaluation && !modelData.assertionsParams.assertions.length  && !modelData.modeling.algorithm.endsWith('_ENSEMBLE') && (modelData.backendType == 'PY_MEMORY')" class="placeholder-block">
+            No assertions were configured. Set them in Design > Debugging.
+        </p>
+        <p ng-if="!evaluation && modelData.modeling.algorithm.endsWith('_ENSEMBLE')" class="placeholder-block">
+            Assertions not available for ensemble models
+        </p>
+        <p ng-if="!evaluation && !(modelData.backendType == 'PY_MEMORY')" class="placeholder-block">
+            Assertions are only available for in-memory python backend
+        </p>
+        <p ng-if="!!evaluation && !modelData.assertionsParams.assertions.length" class="placeholder-block">
+            No Assertions were configured
+        </p>
+        <table ng-if="modelData.assertionsParams.assertions.length" class="assertion-result-table">
+            <tr class="font-weight-bold">
+                <td>Name</td>
+                <td ng-if="isClassification()">Expected Class</td>
+                <td ng-if="isRegression()">Expected Range</td>
+                <td>Expected valid ratio</td>
+                <td class="assertion-result-table--border-sides assertion-result-table--wide-title">Rows matching criteria</td>
+                <td>Outcomes</td>
+                <td class="assertion-result-table--border-right">Result</td>
+            </tr>
+            <tr class="assertion-result-table__sub-line">
+                <td class="assertion-result-table__sub-line-criteria"> Criteria</td>
+                <td></td>
+                <td>
+                    <div class="assertion-result-table__expected-valid-ratio-marker">
+                        <div class="assertion-result-table__expected-valid-ratio-marker-background"></div>
+                        <div class="assertion-result-table__expected-valid-ratio-marker-bar"></div>
+                    </div>
+                </td>
+                <td class="assertion-result-table--border-sides"></td>
+                <td>
+                    <span class="span4 assertion-result-table__outcomes-number--valid">
+                        <i class="icon-circle assertion-result-table__icon-valid-rows"></i>valid rows
+                    </span>
+                    <span class="span4 assertion-result-table__outcomes-number--dropped">
+                        <span ng-if="assertionsResult.hasAnyDroppedRows">
+                            dropped <i class="icon-question-sign assertion-result-table__dropped-details"
+                            toggle="tooltip-top" title="Rows dropped by the model (e.g. no target, dropped by preprocessing)"></i>
+                        </span>
+                    </span>
+                    <span class="span4 assertion-result-table__outcomes-number--invalid">
+                        <i class="icon-circle assertion-result-table__icon-invalid-rows"></i>invalid rows
+                    </span>
+                </td>
+                <td></td>
+            </tr>
+            <tr ng-repeat-start="assertion in modelData.assertionsParams.assertions">
+                <td class="font-weight-bold">{{assertion.name}}</td>
+                <td ng-if="isClassification()"> {{assertion.assertionCondition.expectedClass}}</td>
+                <td ng-if="isRegression()">{{assertion.assertionCondition.expectedMinValue}} -
+                    {{assertion.assertionCondition.expectedMaxValue}}
+                </td>
+                <td>≥ {{assertion.assertionCondition.expectedValidRatio | percentage}}</td>
+                <td class="assertion-result-table--border-sides">{{assertionsResult[assertion.name].nbMatchingRows}}
+                </td>
+                <td class="row-fluid assertion-result-table__valid-ratio" ng-if="assertionsResult[assertion.name].nbMatchingRows && assertionsResult[assertion.name].nbMatchingRows != assertionsResult[assertion.name].nbDroppedRows">
+                    <span class="span4 assertion-result-table__outcomes-number--valid">{{assertionsResult[assertion.name].nbPassing}} ({{assertionsResult[assertion.name].validRatio | mlMetricFormat:'CUT' :2 | percentage }})</span>
+                    <span class="span4 assertion-result-table__outcomes-number--dropped">
+                        <span ng-if="assertionsResult.hasAnyDroppedRows">{{assertionsResult[assertion.name].nbDroppedRows}}</span>
+                    </span>
+                    <span class="span4 assertion-result-table__outcomes-number--invalid">{{assertionsResult[assertion.name].nbFailing}} ({{1-assertionsResult[assertion.name].validRatio | mlMetricFormat:'CUT' :2 | percentage }})</span>
+                </td>
+                <td ng-if="assertionsResult[assertion.name].nbMatchingRows == assertionsResult[assertion.name].nbDroppedRows && assertionsResult[assertion.name].nbMatchingRows">
+                    All rows were dropped
+                </td>
+                <td ng-if="!assertionsResult[assertion.name].nbMatchingRows">
+                    No matching row
+                </td>
+                <td class="assertion-result-table__result">
+                    <span ng-if="assertionsResult[assertion.name].result" class="assertion-result-table__result--pass">Pass <i class="icon-dku-success"></i></span>
+                    <span ng-if="assertionsResult[assertion.name].result === false" class="assertion-result-table__result--fail">Fail <i class="icon-dku-error mleft8"></i></span>
+                    <span ng-if="assertionsResult[assertion.name].result === undefined">-</span>
+                </td>
+            </tr>
+            <tr ng-repeat-end class="assertion-result-table__sub-line">
+                <td colspan="3" class="assertion-result-table__filter">
+                    <div show-tooltip-on-text-overflow text-tooltip="assertion.filter | filterNiceRepr | stripHtml" class="text-weak"></div>
+                </td>
+                <td class="assertion-result-table--border-sides"></td>
+                <td><progress-bar-with-threshold ng-if="assertionsResult[assertion.name].nbMatchingRows && assertionsResult[assertion.name].nbMatchingRows != assertionsResult[assertion.name].nbDroppedRows"
+                                                 success="{{assertionsResult[assertion.name].passingPercentage}}"
+                                                 error="{{assertionsResult[assertion.name].failingPercentage}}"
+                                                 threshold="{{100 * assertion.assertionCondition.expectedValidRatio}}">
+                </progress-bar-with-threshold></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+</div>

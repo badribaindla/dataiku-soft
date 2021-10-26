@@ -1,0 +1,60 @@
+<div class="modal modal3 dku-modal">
+    <div dku-modal-header modal-class="has-border" modal-title="{{ isEditingGitRef ? 'Edit Git reference' : 'Import from Git'}}"/>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body" style="max-height: 350px !important;">
+
+            <div block-api-error/>
+
+            <div class="control-group">
+                <label class="control-label">Repository</label>
+                <div class="controls">
+                    <input type="text" ng-model="gitRef.remote" required="required" placeholder="git@github.com:user/repo.git"/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Checkout</label>
+                <div class="controls dkuform-modal-horizontal">
+                    <div git-checkout-select repository="gitRef.remote" ng-model="gitRef.checkout" />
+                    <div class="help-inline">Branch, tag or hash.</div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Path in repository</label>
+                <div class="controls">
+                    <input type="text" ng-model="gitRef.remotePath" />
+                    <div class="help-inline">Leave empty to checkout the entire repository.</div>
+                </div>
+            </div>
+            <hr />
+
+            <div class="control-group">
+                <label class="control-label">Target path</label>
+                <div class="controls">
+                    <input type="text" ng-model="gitRefPath" required="required" ng-disabled="isEditingGitRef"/>
+                    <div class="help-inline">Local path, relative to root of libraries.</div>
+                </div>
+            </div>
+
+            <div class="alert alert-error" ng-if="!isGitRefPathUnique">
+                <i class="icon-dku-error" /> This Git reference path is already used.
+            </div>
+
+            <div class="control-group" ng-hide="isEditingGitRef">
+                <label class="control-label">Add to Python path</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="addPythonPath"/>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="setGitRef()" ng-disabled="theform.$invalid || !isGitRefPathUnique">
+                Save and retrieve
+            </button>
+        </div>
+    </form>
+</div>

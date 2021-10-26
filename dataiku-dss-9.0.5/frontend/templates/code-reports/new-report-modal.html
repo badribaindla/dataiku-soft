@@ -1,0 +1,41 @@
+<div class="modal modal3 modal-wide" ng-controller="NewReportModalController">
+    <div dku-modal-header modal-title="New RMarkdown report" modal-class="has-border" />
+    <div class="top-info-zone">
+        You can learn more about reports in
+        <a target="_blank" rel="noopener noreferrer" href="https://knowledge.dataiku.com/latest/courses/advanced-code/r/rmarkdown.html">
+            our tutorial
+        </a>
+    </div>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="newReportForm">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <ul class="selectable-items-list">
+                <li ng-repeat="template in availableTemplates"
+                    class="selectable-item selectable"
+                    ng-click="report.template = template"
+                    ng-class="{selected: report.template.id == template.id}">
+                    <span class="selection-indicator">
+                        <i class="icon-ok" title="active" ng-if="report.template.id == template.id"></i>
+                    </span>
+                    <span class="selectable-item__title">{{template.label}}</span>
+                </li>
+            </ul>
+
+            <div class="control-group">
+                <label class="control-label">Report name</label>
+                <div class="controls">
+                    <input type="text" name="datasetName" ng-model="report.name" style="width: 290px;" required/>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button class="btn btn--text btn--primary" ng-disabled="newReportForm.$invalid" ng-click="create()">
+                Create
+            </button>
+        </div>
+    </form>
+
+</div>

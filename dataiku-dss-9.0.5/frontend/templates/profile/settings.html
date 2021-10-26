@@ -1,0 +1,246 @@
+<div class="boxed-next-to-sidebar">
+    <div>
+        <form name="usersettingsForm" class="dkuform-horizontal" global-keydown="{'ctrl-s meta-s':'saveUserSettings()'}">
+
+            <h1 class="page-title">
+                My Settings
+            </h1>
+
+
+            <h2 class="settings-section-title" id="instant-notification">
+                Instant notifications
+            </h2>
+            <div class="helper">
+                These notifications appear on the lower right corner of your screen (<a ng-click="sampleMessengerNotification()">example</a>)
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Show notifications when</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="userSettings.frontendNotifications.loginLogout">
+                        other users log in/out
+                    </label>
+                    <label>
+                        <input type="checkbox" ng-model="userSettings.frontendNotifications.watchedObjectsEditions">
+                        objects I'm watching are edited
+                    </label>
+                    <label>
+                        <input type="checkbox" ng-model="userSettings.frontendNotifications.objectOnProjectCreatedDeleted">
+                        an object is created/deleted on the project I'm browsing
+                    </label>
+                    <label>
+                        <input type="checkbox" ng-model="userSettings.frontendNotifications.anyObjectOnProjectEdited">
+                        any object is edited on the project I'm browsing
+                    </label>
+                    <label>
+                        <input type="checkbox" ng-model="userSettings.frontendNotifications.watchStar">
+                        an object is watched or starred on the project I'm browsing
+                    </label>
+                    <label>
+                        <input type="checkbox" ng-model="userSettings.frontendNotifications.otherUsersTasks">
+                        other users run jobs/scenarios/ML tasks
+                    </label>
+                </div>
+            </div>
+
+            <div ng-if="wl.userEmailsEnabled">
+            <h2 class="settings-section-title" style="line-height: 27px;">
+                <label class="dku-toggle"
+                    ng-class="{error: userSettings.mentionEmails.enabled && !profile.user.email}"
+                    title="{{userSettings.mentionEmails.enabled && !profile.user.email ? 'Your email address is required, fill it in the account tab' : ''}}">
+                    <input type="checkbox"
+                        ng-model="userSettings.mentionEmails.enabled">
+                    <span/>
+                </label>
+                Email me when I'm mentioned
+            </h2>
+            <div class="helper">
+                Other users can mention you in discussions or commit messages using
+                "<span style="font-style:italic">@{{profile.user.login}}</span>"
+                You can activate e-mails whenever it happens.
+            </div>
+            <div class="alert alert-error" ng-show="userSettings.mentionEmails.enabled && !profile.user.email">
+                You need to fill in your e-mail address in the <a ui-sref="profile.my.account"> account tab </a>
+            </div>
+
+
+            <h2 class="settings-section-title" style="line-height: 27px;">
+                <label class="dku-toggle"
+                    ng-class="{error: userSettings.discussionEmails.enabled && !profile.user.email}"
+                    title="{{userSettings.discussionEmails.enabled && !profile.user.email ? 'Your email address is required, fill it in the account tab' : ''}}">
+                    <input type="checkbox"
+                        ng-model="userSettings.discussionEmails.enabled">
+                    <span/>
+                </label>
+                Email me when users comment on objects I'm watching
+            </h2>
+            <div class="helper">
+                Enabling this option will send you an email as soon as a user write in a discussion thread from any item you are watching.
+            </div>
+            <div class="alert alert-error" ng-show="userSettings.discussionEmails.enabled && !profile.user.email">
+                You need to fill in your e-mail address in the <a ui-sref="profile.my.account"> account tab </a>
+            </div>
+
+
+            <h2 class="settings-section-title" style="line-height: 27px;">
+                <label class="dku-toggle"
+                    ng-class="{error: userSettings.offlineQueue.enabled && !profile.user.email}"
+                    title="{{userSettings.offlineQueue.enabled && !profile.user.email ? 'Your email address is required, fill it in the account tab' : ''}}">
+                    <input type="checkbox" ng-model="userSettings.offlineQueue.enabled">
+                    <span/>
+                </label>
+                Offline activity e-mails
+            </h2>
+            <div class="helper">
+                DSS can send you e-mails to notify you periodically about its activity while you are offline. <br/>
+            </div>
+            <div class="alert alert-error" ng-show="userSettings.offlineQueue.enabled && !profile.user.email">
+                You need to fill in your e-mail address in your <a ui-sref="profile.my.account"> account tab </a>
+            </div>
+
+
+            <h2 class="settings-section-title" style="line-height: 27px;">
+                <label class="dku-toggle"
+                    ng-class="{error: userSettings.digests.enabled && !profile.user.email}"
+                    title="{{userSettings.digests.enabled && !profile.user.email ? 'Your email address is required, fill it in the account tab' : ''}}">
+                    <input type="checkbox"
+                        ng-model="userSettings.digests.enabled">
+                    <span/>
+                </label>
+                Daily digests
+            </h2>
+            <div class="helper">
+                DSS can send you e-mails to sum-up the day activity regardless of whether you logged-in or not.
+            </div>
+            <div class="alert alert-error" ng-show="userSettings.digests.enabled && !profile.user.email">
+                You need to fill in your e-mail address in your <a ui-sref="profile.my.account"> account tab </a>
+            </div>
+            </div>
+
+
+            <!-- Code Editor -->
+
+            <h2 class="settings-section-title" id="code_editor">Code Editor</h2>
+
+            <div class="control-group">
+                <label class="control-label">Auto close brackets</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="userSettings.codeEditor.autoCloseBrackets"></input>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Auto close tags</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="userSettings.codeEditor.autoCloseTags"></input>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Indent Unit</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="userSettings.codeEditor.indentUnit" ng-options="indentUnit for indentUnit in [1, 2, 3, 4]"></select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Tab Size</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="userSettings.codeEditor.tabSize" ng-options="tabSize for tabSize in [1, 2, 3, 4]"></select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Indent with tabs</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="userSettings.codeEditor.indentWithTabs"></input>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Keymap</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="userSettings.codeEditor.keyMap" ng-options="keymap for keymap in ['default', 'emacs', 'vim', 'sublime']" ng-change="updatePreview();"></select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Theme</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="userSettings.codeEditor.theme" ng-options="theme for theme in codeMirrorThemeList" ng-change="updatePreview();" ></select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Font Size</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="userSettings.codeEditor.fontSize" ng-options="fontSize for fontSize in fontSizes" ng-change="updatePreview();"></select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Preview</label>
+                <div class="controls">
+                    <textarea ng-model="sample" ui-codemirror="editorOptions" ui-refresh="reflow"></textarea>
+                </div>
+            </div>
+
+            <h2 class="settings-section-title" style="line-height: 27px;" id="flow-remember-position">
+                <label class="dku-toggle">
+                    <input type="checkbox"
+                        ng-model="isEnableFlowZoomTracking" ng-model-options="{getterSetter:true}">
+                    <span/>
+                </label>
+                Remember your position in the flow
+            </h2>
+            <div class="helper">
+                By default the flow will remember your zoom settings and will automatically re-select the last item you viewed when you return to it.
+            </div>
+            <h2 class="settings-section-title" id="homepage">Homepage</h2>
+            <div class="control-group">
+                <label class="control-label">Bird button behavior</label>
+                <div class="controls">
+                    <select id="qa_user_settings_bird-behavior" dku-bs-select ng-model="userSettings.home.behavior" ng-options="item.state as item.label for item in homeBehaviorList"></select>
+                    <span class="help-inline">
+                        By <strong>Default</strong>, clicking the {{wl.productLongName}} logo sends you to the homepage. <strong>Projects</strong> changes it to see all the projects and <strong>Last</strong> changes it to the last viewed page of <em>All Projects</em>, <em>All Dashboards</em>, <em>All Wikis</em>, <em>My Items</em>.
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Homepage layout</label>
+                <div class="controls">
+                    <div class="project-status-settings">
+                        <div ui-tree="treeOptions" class="project-status-list-wrapper" ng-show="userSettings.home.rows.length > 0">
+                            <ul ui-tree-nodes ng-model="userSettings.home.rows" class="editable-list__items ">
+                                <li ng-repeat="row in userSettings.home.rows | filter: { visible: true } track by row.tileType" ui-tree-node class="editable-list__item project-status">
+                                    <i class="editable-list__drag-icon icon-reorder" ui-tree-handle></i>
+                                    <span class="status-index">{{$index + 1}}</span>
+                                    <span class="status-title">{{row.name}}</span>
+                                    <button class="btn btn--text btn--danger btn-icon editable-list__delete" ng-click="removeRow(row, $index)"><i class="icon-trash"></i></button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="dkuform-horizontal project-status-form project-status project-status--add" ng-if="nonVisibleRows.length > 0">
+                            <span class="status-index">{{userSettings.home.rows.length - nonVisibleRows.length + 1}}</span>
+                            <select dku-bs-select ng-options="row as row.name for row in nonVisibleRows" ng-model="selected.option"></select>
+                            <button class="btn btn--primary editable-list__add-label" ng-click="addNewRow(selected.option)" ng-disabled="selected.option === undefined">
+                                <i class="icon-plus"></i>Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h2 class="settings-section-title" id="projects-list">Projects list</h2>
+            <div class="control-group">
+                <label for="showAppInstances" class="control-label">Show app instances</label>
+                <div class="controls">
+                    <label>
+                        <input id="showAppInstances" type="checkbox" ng-model="userSettings.showAppInstances">
+                        <span class="help-inline">If unchecked, app instances can only be accessed via their app</span>
+                    </label>
+                    
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

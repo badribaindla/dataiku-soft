@@ -1,0 +1,186 @@
+<div class="job-preview job-preparation h100 vertical-flex">
+    <div block-api-error />
+
+    <div ng-if="jobState == 'WAITING_CONFIRMATION'" class="job-preparation-grid job-preview h100" job-preview >
+        <!-- Job flow -->
+        <div class="job-flow" ng-class="{'job-flow--hidden': uiState.isFlowVisible === false}">
+            <div class="job-status-graph h100" flow-common>
+                <section class="job-flow-no-preview" ng-if="jobStatus.removed">
+                    <h3><i class="icon-ban-circle"></i></h3>
+                    <h4>Cannot preview flow. Job details have been removed.</h4>
+                </section>
+                <section class="h100" ng-if="!jobStatus.removed" job-status-graph preview>
+                    <flow-graph id="flow-graph"></flow-graph>
+                </section>
+            </div>
+        </div>
+        <!-- Activities list -->
+        <div class="job-preparation-activities" ng-class="{'job-flow--hidden': uiState.isFlowVisible === false}">
+            <div class="h100 vertical-flex">
+                <div class="job-activities__header">
+                    <h2>Job Preview<span class="job-activities__duration" ng-if="jobPreviewResultTable.length > 1"><span ng-bind="jobPreviewResultTable.length"></span> Activities</span></h2>
+                    <div class="actions pull-right">
+                        <div class="job-activities__header-right">
+                            <div ng-if="disabledActivities.length > 0" class="job-preview__disabled-activities">
+                                {{disabledActivities.length }} / {{jobPreviewResultFlat.length}} activities disabled. <a ng-click="disabledActivities.splice(0, disabledActivities.length)">Re-enable all</a>
+                            </div>
+                            <a class="btn btn--secondary mleft8"
+                                ng-show="uiState.isFlowVisible === true"
+                                ng-click="setFlowVisibility(false)">
+                                Hide Flow
+                            </a>
+                            <a class="btn btn--secondary mleft8"
+                                ng-show="uiState.isFlowVisible === false"
+                                ng-click="setFlowVisibility(true)">
+                                Show Flow
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="padleftright16 job-activities__sort-box" include-no-scope="/templates/jobs/activity-table-sort-filter.html" />
+                <div class="flex job-preview__activities-list">
+                    <div fat-repeat="jobPreviewResultTable" as="activity" class="fh" row-height="48">
+                        <div class="job-preview__activity" 
+                            ng-click="selectActivity(activity)"
+                            ng-class="{'selected': activity.activityId === selectedActivity.activityId, 'highlighted': activity.highlighted === true, 'disabled' : disabledActivities.indexOf(activity.activityId) >= 0}">
+                            <div class="job-preview__activity-icon">
+                                <i class="{{activity.recipeType|recipeTypeToIcon}} universe-color"
+                                    ng-class="{'recipe-code': activity.recipeType.indexOf('code') >= 0, 'recipe-visual': activity.recipeType.indexOf('code') < 0}"></i>
+                            </div>
+
+                            <div class="mx-textellipsis job-preview__activity-title"
+                                ng-show="activity.activityType == 'RECIPE'">
+                                {{activity.recipeName}}
+                            </div>
+
+                            <pipeline-activity-title activity="activity"/>
+
+                            <div class="job-preview__activity-dataset">
+                                {{activity.targets[0].datasetName}}
+                            </div>
+
+                            <div class="job-preview__activity-partition" ng-if="activity.mainPartition != 'N/A'">
+                                {{activity.mainPartition}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Selected Activity summary -->
+        <div class="job-preparation-summary" ng-show="selectedActivity" ng-class="{'job-flow--hidden': uiState.isFlowVisible === false}">
+            <div class="h100 vertical-flex">
+                <div class="activity-logs__header">
+                    <h2>{{selectedActivity.recipeName}}<span ng-show="selectedActivity.mainPartition">({{selectedActivity.mainPartition}})</span></h2>
+                    <div class="actions pull-right">
+                        <div class="activity-logs__header-right">
+                            <div class="btn-group" ng-if="showEnableActivity(selectedActivity.activityId)">
+                                <button class="btn btn--secondary job-preparation__button" ng-click="enableActivity(selectedActivity)">Enable</button>
+                                <button class="btn btn--secondary btn--icon job-preparation__button " data-toggle="dropdown">
+                                    <i class="icon-caret-down" />
+                                </button>
+                                <ul class="dropdown-menu pull-right">
+                                    <li>
+                                        <a ng-click="disableAllForRecipe(selectedActivity.recipeName)">
+                                            Disable all activities for this recipe
+                                        </a>
+                                        </li>
+                                        <li>
+                                        <a ng-click="enableAllForRecipe(selectedActivity.recipeName)">
+                                            Enable all activities for this recipe
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="btn-group" ng-if="!showEnableActivity(selectedActivity.activityId)">
+                                <button class="btn btn--secondary job-preparation__button" ng-click="disableActivity(selectedActivity)">Disable</button>
+                                <button class="btn btn--secondary btn--icon job-preparation__button" data-toggle="dropdown">
+                                    <i class="icon-caret-down" />
+                                </button>
+                                <ul class="dropdown-menu pull-right">
+                                    <li>
+                                        <a ng-click="disableAllForRecipe(selectedActivity.recipeName)">
+                                            Disable all activities for this recipe
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a ng-click="enableAllForRecipe(selectedActivity.recipeName)">
+                                            Enable all activities for this recipe
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="noflex alert alert-info activity-preview__required-reason" ng-if="selectedActivity.requiredReason.type">
+                    <span activity-required-reason activity="selectedActivity" sentence="true" past="false" />
+                </div>
+                
+                <div class="activity-preview-details m16 h100 oa">
+                    <div class="activity-preview-dependencies">
+                        <h5 class="activity-preview-dependencies__title">Depends on</h5>
+                        <p ng-show="selectedActivity.dependencies.length == 0">
+                            This activity does not depend on another one.
+                        </p>
+                        <ul class="activity-preview-dependencies__list">
+                            <li ng-repeat="depends in selectedActivity.dependencies|orderBy:'toString()'|uniqueStrings" class="mx-textellipsis" ng-scope="{{depended  = getInJobPreviewAllActivities(depends)}}">
+                                <i class="{{depended.recipeType|typeToIcon}} universe-color"
+                                    ng-class="{'recipe-code': depended.recipeType.indexOf('code') >= 0, 'recipe-visual': depended.recipeType.indexOf('code') < 0}"></i>
+                                <a ng-click="selectActivity(depended)" title="{{depends}}">{{depends}}</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="activity-preview-needs">
+                        <h5 class="activity-preview-dependencies__title">Needed by</h5>
+                        <p ng-show="!jobPreviewResult.reverseDeps[selectedActivity.activityId]">
+                            No activity depends on this one.
+                        </p>
+                        <ul class="activity-preview-dependencies__list">
+                            <li ng-repeat="depends in jobPreviewResult.reverseDeps[selectedActivity.activityId]|orderBy:'toString()'|uniqueStrings" class="mx-textellipsis" ng-scope="{{depended  = getInJobPreviewAllActivities(depends)}}">
+                                <i class="{{depended.recipeType|typeToIcon}} universe-color"
+                                    ng-class="{'recipe-code': depended.recipeType.indexOf('code') >= 0, 'recipe-visual': depended.recipeType.indexOf('code') < 0}"></i>
+                                <a ng-click="selectActivity(depended)" title="{{depends}}">{{depends}}</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="activity-preview-inputs">
+                        <h5 class="activity-preview-dependencies__title">Inputs</h5>
+                        <p ng-show="selectedActivity.sources.length === 0">
+                            This activity has no input.
+                        </p>
+                        <ul class="activity-preview-dependencies__list">
+                            <li ng-repeat="source in selectedActivity.sources">
+                                {{source.datasetName}}
+                                <span ng-if="source.partitionIds.length == 1">({{source.partitionIds[0]}})</span>
+                                <div ng-if="source.partitionIds.length > 1">
+                                        <p>Partitions</p>
+                                        <ul>    
+                                            <li ng-repeat="partition in source.partitionIds|orderBy:'toString()'" ng-if="partition != 'NP'">
+                                                {{partition}}
+                                            </li>
+                                        </ul>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="activity-preview-outputs">
+                        <h5 class="activity-preview-dependencies__title">Outputs</h5>
+                        <p ng-show="selectedActivity.targets.length ==0">
+                            This activity has no output.
+                        </p>
+                        <ul class="activity-preview-dependencies__list">
+                            <li ng-repeat="target in selectedActivity.targets">
+                                {{target.datasetName}}
+                                <span ng-show="target.partitionId != 'NP'">({{target.partitionId}})</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    

@@ -1,0 +1,99 @@
+<div ng-controller="ProjectDeployerDeploymentScenarioRunsController" ng-class="{'mx-center-children': loadingScenarioRuns}">
+    <div class="pad24" ng-if="!loadingScenarioRuns && !scenarioRuns.rows.length">
+        <div class="empty-list-cta">
+            <p>No recent scenario runs</p>
+        </div>
+    </div>
+    <div class="pad24 status-icon" ng-if="loadingScenarioRuns">
+        <i class="dku-loader icon-spin"></i>
+    </div>
+    <div class="padbot16" ng-if="!loadingScenarioRuns && scenarioRuns.rows.length">
+        <div class="content-item scenario-outcomes scenario-outcomes--deployer">
+            <h3 class="standard-container__title pad24 padbot0">
+                Scenarios
+            </h3>
+            <div class="graph-header horizontal-flex">
+                <div class="scenario-names graph-header__item noflex">
+                    Scenario
+                </div>
+                <div class="past-runs past-runs--last graph-header__item noflex">
+                    Last run
+                </div>
+                <div class="past-runs graph-header__item noflex">
+                    Past runs
+                </div>
+                <div class="graph flex">
+                    <div class="cell-pane graph-header__item">
+                        <div class="tick-label" ng-repeat="column in columns" style="left: {{100 * ($index + 0.5) / columns.length}}%">
+                            <div ng-if="column.dow == 0 && column.date != hovered.date" class="date-label" >{{column.dateFormatted}}</div>
+                            <div ng-if="column.date == hovered.date" class="hovered-date-label" >
+                                {{column.dateDay}}<br/>{{column.dateFormatted}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="graph-body">
+                <div class="horizontal-flex">
+                    <div class="scenario-names noflex">
+                        <ul>
+                            <li ng-repeat="scenarioRow in scenarioRuns.rows">
+                                <div class="horizontal-flex" ng-class="{'activated' : scenarioRow.info.active, 'deactivated' : !scenarioRow.info.active}">
+                                    <a class="standard-list__external-link horizontal-flex mx-textellipsis" href="{{ getScenarioLastRunsUrl(scenarioRow.target.scenarioId) }}" target="blank">
+                                        <div show-tooltip-on-text-overflow class="scenario-name" text-tooltip="scenarioRow.info.name" tooltip-direction="'tooltip-top'" observe-resize="false"></div>
+                                    </a>
+                                    <a class="no-underline standard-list__external-link padleft4" href="{{ getScenarioLastRunsUrl(scenarioRow.target.scenarioId) }}" target="blank">
+                                        <i class="smaller-font icon-external-link"></i>
+                                    </a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="past-runs past-runs--last noflex">
+                        <ul>
+                            <li ng-repeat="scenarioRow in scenarioRuns.rows">
+                                <div class="run-count" ng-class="{'activated' : scenarioRow.info.active, 'deactivated' : !scenarioRow.info.active}">
+                                    <i ng-class="[scenarioRow.lastRun.outcome, {
+                                        'icon-ok-sign' : scenarioRow.lastRun.outcome == 'success',
+                                        'icon-remove-sign' : scenarioRow.lastRun.outcome == 'failed',
+                                        'icon-exclamation-sign' : scenarioRow.lastRun.outcome == 'warning',
+                                        'icon-ban-circle' : scenarioRow.lastRun.outcome == 'aborted'
+                                    }]"></i>
+                                    <span>
+                                        {{scenarioRow.lastRun.date}}
+                                    </span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="past-runs noflex">
+                        <ul>
+                            <li ng-repeat="scenarioRow in scenarioRuns.rows">
+                                <div class="run-count" ng-class="{'activated' : scenarioRow.info.active, 'deactivated' : !scenarioRow.info.active}">
+                                    <span>
+                                        {{ scenarioRow.info.totalRunCount }}
+                                    </span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="graph flex">
+                        <ul class="cell-pane">
+                            <li ng-repeat="scenarioRow in scenarioRuns.rows">
+                                <a class="cell clickable" style="width: {{100 / columns.length}}%;"
+                                    ng-repeat="column in columns" 
+                                    ng-class="{'weekend' : column.dow == 6 || column.dow == 0 }"
+                                    ng-mouseenter="hover(column)"
+                                    ng-mouseleave="unhover()"
+                                    href="{{ getDailyRunsUrl(column.date) }}" target="blank">
+                                    <div class="line {{ getCellGlobalOutcome(column.date, scenarioRow.uniqueId) }}"></div>
+                                    <div class="fh" ng-class="{ 'hover-active' : hovered.date === column.date }"></div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>    

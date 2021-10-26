@@ -1,0 +1,376 @@
+<div class="row-fluid offset0 h100 vertical-flex features-page"
+    ng-controller="PMLTaskFeaturesController"
+    filtered-multi-select-rows
+    select-click-behaviour="select-one"
+    ng-model="mlTaskDesign.preprocessing.per_feature"
+    auto-focus-first="true">
+
+    <div class="noflex design-tab-title">
+        Features Handling
+        <button class="btn btn--text btn--primary mleft8" ng-click="copyFeaturesHandling(true)"
+            data-container="body" data-toggle="tooltip" data-placement="bottom"
+            title="Copy the features handling of this modeling task to another modeling task.">
+            Copy to...
+        </button>
+        <button class="btn btn--text btn--primary" ng-click="copyFeaturesHandling(false)" ng-disabled="!canWriteProject()"
+            data-container="body" data-toggle="tooltip" data-placement="bottom"
+            title="Copy the features handling of another modeling task to this modeling task.">
+            Copy from...
+        </button>
+        <button class="btn btn--text btn--primary" ng-if="isMLBackendType('KERAS')" ng-click="setSubsampleFit()" 
+            data-container="body" data-toggle="tooltip" data-placement="bottom"
+            title="Set the subsample of the data used to show the statistics and plot of the values of that feature.">
+            Set stats subsample...
+        </button>
+    </div>
+    <div class="flex">
+        <div class="fh">
+
+    <div class="span4 offset0 h100 list-zone " style="width:32%; position: relative;">
+	<div class="vertical-flex h100">
+        <div  class="feature-headers noflex">
+            <table style="width:100%">
+                <tr>
+                    <td full-click>
+                        <input type="checkbox"
+                            ng-model="selection.all"
+                            dku-indeterminate="selection.some"
+                            ng-change="updateMassSelectionCheckbox()" />
+                    </td>
+                    <td>
+                        <div class="std-list-sort-box" style="display: inline-block;">
+                            <sort-order-button  class="order" sob-opt="{'buttonClass':'btn'}" value="selection.orderReversed" ></sort-order-button>
+
+                            <select dku-bs-select="{'width':'70px'}"
+                                    ng-model="selection.orderQuery"
+                                    class="mx-sort-box"
+                                    ng-init="selection.orderQuery='datasetColumnId'">
+                                <option value="datasetColumnId">Dataset</option>
+                                <option value="_name">Name</option>
+                                <option value="type">Type</option>
+                                <option value="role">Role</option>
+                                <option value="sendToInput" ng-if="isMLBackendType('KERAS')">Model input</option>
+                            </select>
+                        </div>
+                        <!-- <small class="pull-left">{{selection.selectedObjects.length}} / {{selection.allObjects.length}}</small> -->
+                        <div class="std-list-search-box" style="display: inline-block;width: calc(100% - 100px)">
+                            <span class="add-on"><i class="icon-dku-search"></i></span>
+                            <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Filter" style="width: calc(100% - 34px)">
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="feature-list flex">
+            <div ng-show="selection.filteredObjects.length>0" class="fh">
+                <div fat-repeat="selection.filteredObjects"
+                    as="feature"
+                    class="h100"
+                    row-height="50"
+                    digest-child-only="true"
+                    ng-keydown="multiSelectKeydown($event, true)"
+                    tabindex="0"
+                    style="outline:none;">
+                    <div class="tr horizontal-flex" ng-class="{focused: selection.selectedObject===feature,selected: feature.$selected,rejected:feature.role=='REJECT'}" full-click>
+                        <div class="td noflex" style="line-height: 22px;">
+                            <input type="checkbox" ng-model="feature.$selected" ng-click="checkBoxChanged(feature, $event)" />
+                        </div>
+
+                        <div ng-click="objectClicked(feature, $event)" main-click class="td noflex" style="width: 1.5em; line-height: 22px;">
+                            <span ng-show="feature.type=='NUMERIC'">#</span> <i class="icon-font" ng-show="feature.type=='CATEGORY'"></i>
+                            <i class="icon-italic" ng-show="feature.type=='TEXT'"></i><span style="font-size: 14px" ng-show="feature.type=='VECTOR'">[ ]</span>
+                            <i class="icon-picture" ng-show="feature.type=='IMAGE'"></i>
+                        </div>
+                        <div class="td flex content-text mx-textellipsis">
+                            <span ng-bind-html="feature._name | boldify:selection.filterParams.userQueryResult"></span>
+                            <br />
+
+                            <span class="feature-handling">
+                                <span ng-show="feature.role=='REJECT'">Reject<span ng-if="feature.autoReason != null">ed, {{ featureAutoHandlingShortReason[feature.autoReason] }}</span></span>
+                                <span ng-show="feature.role=='TARGET'">Target variable</span>
+                                <span ng-show="feature.role=='PROFILING'">Display only</span>
+                                <span ng-show="feature.role=='INPUT' || feature.role=='PROFILING'">
+                                    <span ng-show="feature.type == 'CATEGORY'">
+                                        <span ng-if="feature.category_handling == 'DUMMIFY'">Dummy-encode</span>
+                                        <span ng-if="feature.category_handling == 'NONE'">None</span>
+                                        <span ng-if="feature.category_handling == 'IMPACT'">Impact-code</span>
+                                        <span ng-if="feature.category_handling == 'FLAG_PRESENCE'">Flag presence</span>
+                                        <span ng-if="feature.category_handling == 'HASHING'">Hashing</span>
+                                        <span ng-if="feature.category_handling == 'CUSTOM'">Custom</span>
+                                        <span ng-if="feature.category_handling != 'FLAG_PRESENCE'">
+                                            <span ng-show="feature.missing_handling=='DROP_ROW'">, drop missing</span>
+                                            <span ng-show="feature.missing_handling=='IMPUTE'">, impute missing</span>
+                                        </span>
+                                    </span>
+                                    <span ng-show="feature.type == 'NUMERIC'">
+                                        <span ng-if="feature.numerical_handling == 'FLAG_PRESENCE'">
+                                            Flag presence
+                                        </span>
+                                        <span ng-if="feature.numerical_handling == 'CUSTOM'">
+                                            Custom
+                                        </span>
+                                        <span ng-if="feature.numerical_handling == 'REGULAR'">
+                                            <span ng-show="feature.rescaling=='AVGSTD'">Avg-std rescaling</span>
+                                            <span ng-show="feature.rescaling=='MINMAX'">Min-max rescaling</span>
+                                        </span>
+                                        <span ng-if="feature.numerical_handling == 'BINARIZE'">
+                                            Binarize
+                                        </span>
+                                        <span ng-if="feature.numerical_handling == 'QUANTILE_BIN'">
+                                            Bin in {{feature.quantile_bin_nb_bins}} quantiles
+                                        </span>
+                                    </span>
+                                    <span ng-show="feature.type == 'TEXT'">
+                                        <span ng-show="feature.text_handling=='TOKENIZE_HASHING'">Term hashing</span>
+                                        <span ng-show="feature.text_handling=='TOKENIZE_HASHING_SVD'">Term hashing + SVD</span>
+                                        <span ng-show="feature.text_handling=='TOKENIZE_TFIDF'">TF/IDF vectorization</span>
+                                        <span ng-show="feature.text_handling=='TOKENIZE_COUNTS'">Count vectorization</span>
+                                        <span ng-show="feature.text_handling=='CUSTOM'">Custom</span>
+                                    </span>
+                                    <span ng-show="feature.type == 'VECTOR'">
+                                        <span ng-show="feature.vector_handling=='UNFOLD'">Unfold</span>
+                                    </span>
+                                    <span ng-show="feature.type == 'IMAGE'">
+                                        <span ng-show="feature.image_handling=='CUSTOM'">Custom</span>
+                                    </span>
+                                    <span ng-show="isMLBackendType('KERAS') && mlTaskDesign.modeling.keras.kerasInputs.length > 1">
+                                        <span><span class="icon-arrow-right"></span>&nbsp;{{feature.sendToInput}}</span>
+                                    </span>
+                                </span>
+                            </span>
+                        </div>
+
+                        <!-- Make sure we create a new label element every time the name changes instead of reusing the same one because that would trigger animation on fat-repeat scroll -->
+                        <div ng-switch on="feature._name" class="td noflex" ng-if="feature.role=='INPUT'||feature.role=='REJECT'">
+                            <label ng-switch-default class="dku-toggle" style="margin: 0 5px;">
+                                <input type="checkbox" ng-true-value="'INPUT'" ng-false-value="'REJECT'" ng-model="feature.role">
+                                <span />
+                            </label>
+                        </div>
+
+                        <div class="td noflex role-icon" style="width: 60px;text-align: center;" ng-if="feature.role=='TARGET'||feature.role=='PROFILING'||feature.role=='WEIGHT'">
+                            <i class="icon-bullseye" ng-show="feature.role=='TARGET'"></i>
+                            <i class="icon-eye-open" ng-show="feature.role=='PROFILING'"></i>
+                            <i class="icon-dku-weight" ng-show="feature.role=='WEIGHT'"></i>
+                            <!-- <i class="icon-remove" ng-show="feature.role=='REJECT'"></i> -->
+                            <!-- <i class="icon-ok" ng-show="feature.role=='INPUT'"></i> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-show="selection.filteredObjects.length==0"
+                class="alert alert-info">
+                <i class="icon-info">&nbsp;</i>
+                No features matching filters
+            </div>
+        </div>
+    </div>
+	</div>
+
+    <div class="span7 offset0 h100 main-zone oa" style="width: 68%;" >
+
+        <!--<div ng-show="selection.none" class="alert alert-info">
+            <i class="icon-info">&nbsp;</i>
+            Select one or several features
+        </div>-->
+        <div ng-show="selection.selectedObjects.length>1">
+            <form class="dkuform-horizontal features-mass-actions">
+                <fieldset>
+                    <legend class="main-zone-element">
+                        Handling of the {{selection.selectedObjects.length}} selected features, of {{selection.allObjects.length}} available.
+                    </legend>
+
+                    <div>
+                        <div>
+                            <div class="control-group required">
+                                <p>
+                                <label class="control-label">Role</label>
+                                <div class="controls">
+                                    <button class="btn btn--secondary" ng-click="groupSet({role:'REJECT'})"
+                                    ng-class="{ 'btn--active': !isGroupSetUseful({role:'REJECT'}) }">Reject</button>
+                                    <button class="btn btn--secondary" ng-click="groupSet({role:'INPUT'})"
+                                    ng-class="{ 'btn--active': !isGroupSetUseful({role:'INPUT'}) }">Input</button>
+                                    <button class="btn btn--secondary"
+                                            ng-show="mlTaskDesign.taskType=='CLUSTERING'"
+                                            ng-click="groupSet({role:'PROFILING'})"
+                                            ng-class="{ 'btn--active': !isGroupSetUseful({role:'PROFILING'}) }">Display only</button>
+
+                                </div>
+                            </p>
+                            </div>
+                            <div class="control-group required">
+                                <p>
+                                <label class="control-label">Type</label>
+                                <div class="controls">
+                                        <button class="btn btn--secondary" ng-click="groupSet({type:'NUMERIC'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({type:'NUMERIC'}) }">Numeric</button>
+                                        <button class="btn btn--secondary" ng-click="groupSet({type:'CATEGORY'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({type:'CATEGORY'}) }">Category</button>
+                                        <button class="btn btn--secondary" ng-click="groupSet({type:'TEXT'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({type:'TEXT'}) }">Text</button>
+                                        <button class="btn btn--secondary" ng-click="groupSet({type:'VECTOR'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({type:'VECTOR'}) }">Vector</button>
+                                        <button class="btn btn--secondary" ng-click="groupSet({type:'IMAGE'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({type:'IMAGE'}) }">Image</button>
+
+                                </div>
+                            </p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="control-group required" ng-if="groupCheck({type:'NUMERIC'}) || groupCheck({type:'CATEGORY'}) || groupCheck({type:'VECTOR'}) || groupCheck({type:'IMAGE'})">
+                                <label class="control-label">Missing values handling</label>
+                                <div class="controls">
+                                    <!-- Missing / Category -->
+                                    <p ng-if="groupCheck({type:'CATEGORY'})">
+                                        <button class="btn btn--secondary" ng-click="groupSet({missing_handling:'NONE'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({missing_handling:'NONE'}) }">Treat as value</button>
+                                    </p>
+
+                                    <!-- Missing / Category && Vector -->
+                                    <p ng-if="groupCheck({type:'CATEGORY'}) || groupCheck({type:'VECTOR'})">
+                                        <button class="btn btn--secondary" ng-click="groupSet({missing_handling:'IMPUTE',missing_impute_with:'MODE'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({missing_handling:'IMPUTE',missing_impute_with:'MODE'}) }">Impute with mode</button>
+                                    </p>
+
+                                    <!-- Missing / Numeric -->
+                                    <p ng-if="groupCheck({type:'NUMERIC'})">
+                                        <button class="btn btn--secondary" ng-click="groupSet({missing_handling:'IMPUTE',missing_impute_with:'MEDIAN'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({missing_handling:'IMPUTE',missing_impute_with:'MEDIAN'}) }">Impute with median</button>
+                                    </p>
+                                    <p ng-if="groupCheck({type:'NUMERIC'})">
+                                        <button class="btn btn--secondary" ng-click="groupSet({missing_handling:'IMPUTE',missing_impute_with:'MEAN'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({missing_handling:'IMPUTE',missing_impute_with:'MEAN'}) }">Impute with mean</button>
+                                    </p>
+
+                                    <!-- Missing / Numeric && Category && Vector -->
+                                    <p>
+                                        <button class="btn btn--secondary" ng-if="!groupCheck({type:'IMAGE'})" ng-click="imputeWithConstant()"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({missing_handling:'IMPUTE',missing_impute_with:'CONSTANT'}) }">Impute with const&hellip;</button>
+                                    </p>
+
+                                    <!-- Missing / Vector -->
+                                    <p ng-if="groupCheck({type:'VECTOR'}) || groupCheck({type:'IMAGE'})">
+                                        <button class="btn btn--secondary" ng-click="groupSet({missing_handling:'NONE'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({missing_handling:'NONE'}) }">Fail if missing values</button>
+                                    </p>
+
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({missing_handling:'DROP_ROW'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({missing_handling:'DROP_ROW'}) }">Drop row</button>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="control-group required" ng-if="groupCheck({type:'NUMERIC'})">
+                                <label class="control-label">Rescaling</label>
+                                <div class="controls">
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({rescaling:'MINMAX'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({rescaling:'MINMAX'}) }">Min-max rescaling</button>
+                                    </p>
+                                    <p n>
+                                        <button class="btn btn--secondary" ng-click="groupSet({rescaling:'AVGSTD'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({rescaling:'AVGSTD'}) }">Avg-std rescaling</button>
+                                    </p>
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({rescaling:'NONE'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({rescaling:'NONE'}) }">No rescaling</button>
+                                    </p>
+                                </div>
+                            </div>
+
+
+                            <div class="control-group required" ng-if="groupCheck({type:'NUMERIC'})">
+                                <label class="control-label">Make derived features
+                                    <br/><small>(&radic;x, x&sup2;, log(x))</small>
+                                </label>
+                                <div class="controls">
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({generate_derivative:true})"
+                                                ng-class="{ 'btn--active': !isGroupSetUseful({'generate_derivative': true}) }">Yes</button>
+                                    </p>
+                                    <p n>
+                                        <button class="btn btn--secondary" ng-click="groupSet({generate_derivative:false})"
+                                                ng-class="{ 'btn--active': !isGroupSetUseful({'generate_derivative': false}) }">No</button>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="control-group required" ng-if="groupCheck({type:'CATEGORY'})">
+                                <label class="control-label">Category handling</label>
+                                <div class="controls">
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({category_handling:'NONE'})"
+                                                ng-class="{ 'btn--active': (!isGroupSetUseful({category_handling:'NONE'})) || (!isMLBackendType('H2O')) }">None</button>
+                                    </p>
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({category_handling:'DUMMIFY'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({category_handling:'DUMMIFY'}) }">Dummy-encode</button>
+                                    </p>
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({category_handling:'IMPACT'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({category_handling:'IMPACT'}) }"
+                                        ng-show="mlTaskDesign.taskType=='PREDICTION'">Impact-code</button>
+                                    </p>
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({category_handling:'FLAG_PRESENCE'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({category_handling:'FLAG_PRESENCE'}) }"
+                                                ng-show="isMLBackendType('PY_MEMORY')"
+                                        >Flag presence</button>
+                                    </p>
+                                     <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({category_handling:'HASHING'})"
+                                        ng-class="{ 'btn--active': !isGroupSetUseful({category_handling:'HASHING'}) }"
+                                                ng-show="isMLBackendType('PY_MEMORY')"
+                                        >Hashing (sparse)</button>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="control-group required" ng-if="groupCheck({type:'TEXT'}) && isMLBackendType('PY_MEMORY')">
+                                <label class="control-label">Text handling</label>
+                                <div class="controls">
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({text_handling:'TOKENIZE_HASHING'})"
+                                                ng-class="{ 'btn--active': !isGroupSetUseful({text_handling:'TOKENIZE_HASHING'}) }">Hashing (sparse)</button>
+                                    </p>
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({text_handling:'TOKENIZE_HASHING_SVD'})"
+                                                ng-class="{ 'btn--active': !isGroupSetUseful({text_handling:'TOKENIZE_HASHING_SVD'}) }">Hashing with SVD</button>
+                                    </p>
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({text_handling:'TOKENIZE_COUNTS'})"
+                                                ng-class="{ 'btn--active': !isGroupSetUseful({text_handling:'TOKENIZE_COUNTS'}) }">Count vectorization</button>
+                                    </p>
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="groupSet({text_handling:'TOKENIZE_TFIDF'})"
+                                                ng-class="{ 'btn--active': !isGroupSetUseful({text_handling:'TOKENIZE_TFIDF'}) }">TF/IDF vectorization</button>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="control-group required" ng-if="isMLBackendType('KERAS')">
+                                <label class="control-label">Deep Learning Input Handling</label>
+                                <div class="controls">
+                                    <p>
+                                        <button class="btn btn--secondary" ng-click="sendToDeepLearningInput()">Send to Input</button>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </fieldset>
+            </form>
+        </div>
+
+        <div ng-if="selection.selectedObjects.length<=1" class="feature-details">
+            <div include-no-scope="/templates/analysis/mlcommon/settings/features-one.html" />
+        </div>
+
+    </div>
+        </div>
+    </div>
+</div>

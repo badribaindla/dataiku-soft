@@ -1,0 +1,90 @@
+<div class="model-snippets models-header" ng-if="mlTaskStatus.fullModelIds.length">
+    <div style="display: inline-block">
+        <div class="dropdown auto mass-action-btn">
+            <input type="checkbox"
+                ng-model="selection.all"
+                dku-indeterminate="selection.some"
+                ng-change="updateMassSelectionCheckbox();">
+            <a data-toggle="dropdown"
+                class="dropdown-toggle unselectable"
+                ng-class="{disabled: selection.selectedObjects.length == 0,collapsed:selection.none}">
+                <span ng-hide='selection.none'>ACTIONS</span>
+                <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
+                <li ng-if="canDeleteSelectedModels()">
+                    <a ng-click="deleteSelectedModels()"><i class="icon-trash"/>Delete</a>
+                </li>
+                <li ng-if="canStarSelectedModels()">
+                    <a ng-if="!allStarredModels()" ng-click="starSelectedModels(true)"><i class="icon-star"/>Star</a>
+                    <a ng-if="allStarredModels()" ng-click="starSelectedModels(false)"><i class="icon-star"/>Un Star</a>
+                </li>
+                <li ng-if="canCreateEnsemble()">
+                    <a ng-click="createEnsemble()"><i class="icon-group"></i>Create ensemble model</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- search -->
+    <div class="std-list-search-box list-control-widget mleft16">
+        <span class="add-on">
+            <i class="icon-dku-search"></i>
+        </span>
+        <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Search..." style="width: 130px" >
+    </div>
+
+    <!-- filters -->
+    <div custom-element-popup class="list-customfilter-box dib mleft16">
+        <span class="add-on">
+            <i class="icon-filter"></i>
+        </span>
+        <div class="mainzone" full-click style="display: inline-block">
+            <a main-click ng-click="togglePopover()" class="btn dku-select-button"
+                    style="display: inline-block; width: 70px; text-align: left;">
+                <span class="pull-right caret" /> Filter </a>
+        </div>
+        <div class="popover dropdown-menu custom-element-popup-popover models-list-filter-popover">
+            <div include-no-scope="/templates/ml/advanced-models-filter.html"></div>
+        </div>
+    </div>
+
+    <!-- metrics -->
+    <div class="metric-box list-customfilter-box list-control-widget dib mleft16"
+            ng-if="uiState.viewMode !== 'table'">
+        <span class="add-on"><i class="icon-trophy"></i></span>
+        <select dku-bs-select="{'style': 'dku-select-button', titlePrefix:'Metric'}"
+            ng-model="uiState.currentMetric" ng-options="m[0] as m[1] for m in possibleMetrics" headless-browser-hooks="{{ possibleMetricsHooks }}" />
+    </div>
+
+    <!-- sorting  -->
+    <div ng-if="uiState.viewMode === 'models'" class="list-sort-box list-control-widget" style="display: inline-block; margin-left: 20px">
+        <sort-order-button class="order" sob-opt="{'buttonClass':'btn'}"
+            value="selection.orderReversed" ></sort-order-button>
+        <select dku-bs-select="{'style':'sort-button dku-select-button'}" ng-model="selection.orderQuery" ng-init="selection.orderQuery='sessionDate'">
+            <option value="algorithm">Algorithm</option>
+            <option value="sessionDate">Training date</option>
+            <option value="mainMetric">Metric</option>
+            <option value="userMeta.name">Name</option>
+        </select>
+    </div>
+
+    <!-- refresh -->
+    <a class="refresh-button link-std mleft8" ng-click="refreshStatus()">
+        <i class="icon-refresh"></i>
+    </a>
+    <i class="dku-loader icon-spin h20 w20 dku-loader--inlined" ng-show="pendingRequests.length"></i>
+
+    <!-- switch -->
+    <div class="dib btn-group pull-right" ng-show="mlTaskStatus.fullModelIds.length">
+        <button class="btn btn--contained btn--secondary btn-doctor-switch" ng-click="uiState.viewMode = 'sessions'" ng-class="{'btn--active':uiState.viewMode==='sessions'}">
+            <i class="icon-list" /> Sessions
+        </button>
+        <button class="btn btn--contained btn--secondary btn-doctor-switch" ng-click="uiState.viewMode='models'" ng-class="{'btn--active':uiState.viewMode==='models'}" ng-disabled="!mlTaskStatus.fullModelIds.length" >
+            <i class="icon-th" /> Models
+        </button>
+        <button class="btn btn--contained btn--secondary btn-doctor-switch" ng-click="uiState.viewMode='table'" ng-class="{'btn--active':uiState.viewMode==='table'}" ng-disabled="!mlTaskStatus.fullModelIds.length" >
+            <i class="icon-table" /> Table
+        </button>
+    </div>
+</div>

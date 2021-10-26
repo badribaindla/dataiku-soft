@@ -1,0 +1,30 @@
+<div ng-controller="CheckDatasetStepController">
+    <div ng-include ="'/templates/scenarios/fragments/step-header.html'" style="display: inline-block;"></div>
+    <div class="alert alert-info">
+        This step executes data checks on one or several "computable" items of the Flow (datasets, managed folders, saved models).<br />
+        Note that you can also configure datasets and managed folders to execute checks automatically on build.
+    </div>
+
+    <step-items-table type="step.type" items="step.params.checks" can-dataset="true" can-managed-folder="true" can-saved-model="true" version-level-saved-model="true" needs-partitions="false" datasets="datasets" savedmodels="savedmodels" managedfolders="managedfolders"  action-verb="to check"></step-items-table>
+
+    <hr />
+    
+	<form name="setupForm" class="dkuform-horizontal" >
+		<div class="control-group">
+			<label class="control-label">Fail on warnings</label>
+			<div class="controls">
+				<input type="checkbox" ng-model="step.params.warningsAsErrors "/>
+                <span class="help-inline">Consider warnings as failures</span>
+			</div>
+		</div>
+        <div class="control-group">
+            <label class="control-label">Ignore failure</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="step.params.proceedOnFailure"></input>
+                <span class="help-inline">Don't mark the scenario as failed, even if the checks fails</span>
+            </div>
+        </div>
+	</form>
+    <div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+
+</div>

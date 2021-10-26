@@ -1,0 +1,78 @@
+<feature-locked feature-name="'API Deployer capabilities'"
+    class="dss-page container-fluid"
+    ng-if="isFeatureLocked">
+</feature-locked>
+
+<div class="h100 oa" ng-if="!isFeatureLocked">
+    <div block-api-error></div>
+    <div ng-if="serviceStatusList.length" class="standard-list standard-container">
+        <div class="standard-container__wrap">
+            <div class="standard-list__header horizontal-flex">
+                <div class="standard-list__title">
+                    <i class="icon-api-service standard-list__title-icon universe-color api-deployer"></i>
+                    API Services
+                </div>
+                <div class="deployer__search-box">
+                    <input type="search" ng-model="uiState.query" placeholder="Search services...">
+                </div>
+                <div class="standard-list__actions">
+                    <button class="btn btn--primary"
+                        disabled-if="!canCreateServices()"
+                        disabled-message="You don't have the right to create services"
+                        ng-click="startCreateService()">
+                        <span plus-icon /> New API service
+                    </button>
+                </div>
+            </div>
+
+            <table sort-table class="table table-hover table-fixed standard-list__table">
+                <thead>
+                    <tr>
+                        <th class="standard-list__table-cell" sort-col="serviceBasicInfo.id" style="width: 30%">API Service ID</th>
+                        <th sort-col="serviceBasicInfo.name" style="width: 20%">API Service Name</th>
+                        <th sort-col="packages.length">Version count</th>
+                        <th sort-col="[deployments.length, enabledDeploymentCount]">Deployments (Enabled / Total)</th>
+                        <th sort-col="lastUpdated">Last updated</th>
+                        <!-- <th>&nbsp;</th> -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr full-click class="standard-list__table-row" ng-repeat="serviceStatus in serviceStatusList | toArray | filter:uiState.query | orderBy:sortColumn:sortDescending">
+                        <td class="standard-list__table-cell">
+                            <a class="db standard-list__row-title"
+                               ui-sref="apideployer.services.service.status({serviceId : serviceStatus.serviceBasicInfo.id})"
+                               show-tooltip-on-text-overflow
+                               text-tooltip="serviceStatus.serviceBasicInfo.id"
+                               tooltip-direction="'tooltip'"
+                               main-click></a>
+                        </td>
+                        <td>
+                            <div show-tooltip-on-text-overflow text-tooltip="serviceStatus.serviceBasicInfo.name" tooltip-direction="'tooltip'"></div>
+                        </td>
+                        <td>{{serviceStatus.packages.length}}</td>
+                        <td>{{serviceStatus.enabledDeploymentCount}} / {{serviceStatus.deployments.length}}</td>
+                        <td>
+                            <span toggle="tooltip" data-placement="right" title="{{ serviceStatus.lastUpdated | date:'yyyy-MM-dd – HH:mm:ss' }}">
+                                {{serviceStatus.lastUpdated | friendlyTimeDeltaShort}}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div ng-if="serviceStatusList && !serviceStatusList.length" class="flex empty-list-cta">
+        <h1>
+            No API services available
+        </h1>
+        <p>API Services contain your APIs.<br /> API Services are created in the <strong>API Designer</strong> component of your project.</p>
+        <p>
+            <span doclink-wrapper page="apinode/index">Read the documentation</span> to learn more and create your first API Service
+        </p>
+        <button class="btn btn--primary btn--large"
+                ng-if="canCreateServices()"
+                ng-click="startCreateService()">
+            <span plus-icon />&nbsp;New API service
+        </button>
+    </div>
+</div>

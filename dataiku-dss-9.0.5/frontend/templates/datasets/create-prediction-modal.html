@@ -1,0 +1,23 @@
+<div class="modal modal3" id="create-prediction-modal" ng-class="{'modal-w1000': appConfig.userProfile.mayVisualML}">
+    <dku-modal-header>
+        <dku-modal-title ng-show="appConfig.userProfile.mayVisualML">
+            Create prediction model on <select dku-bs-select="{ liveSearch: true, noneSelectedText: '(select feature)', width: 'auto' }"
+                class="dku-bs-select--flat target-bs-select" ng-model="predictionTaskData.targetVariable"
+                ng-options="column for column in possibleColumns">
+            </select>
+        </dku-modal-title>
+        <dku-modal-title ng-show="!appConfig.userProfile.mayVisualML">
+            You are not allowed to create prediction models
+        </dku-modal-title>
+    </dku-modal-header>
+
+    <div class="modal-body" ng-class="{'modal-body--disabled': appConfig.userProfile.mayVisualML && !predictionTaskData.targetVariable}" visual-ml-access-check>
+        <div block-api-error></div>
+        <div ng-include="'/templates/analysis/mlcommon/policies-card-list.html'"></div> 
+        <div class="dkuform noflex pull-right">
+            <span ng-if="!analysisCoreParams" class="mright8 font-weight-semi-bold">Name your analysis</span>
+            <input ng-if="!analysisCoreParams" type="text" ng-model="predictionTaskData.analysisName" class="guess-policy-name-input"/>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="!canCreatePredictionTemplate(predictionTaskData)" ng-click="createPredictionTemplate()">Create</button>
+        </div>
+    </div>
+</div>

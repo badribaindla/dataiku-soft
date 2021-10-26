@@ -1,0 +1,55 @@
+<div class="modal modal3 modal-max-height400" auto-size="false" ng-controller="ShakerSelectColumnsController">
+    <div dku-modal-header modal-title="Displayed columns" modal-class="has-border" />
+    <div class="modal-body" filtered-multi-select-rows ng-model="allColumnNames">
+        <div block-api-error></div>
+
+        <form class="dkuform-modal-horizontal">
+            <div class="control-group">
+                <label for="" class="control-label">Display</label>
+                <div class="controls">
+                    <select ng-model="shaker.columnsSelection.mode">
+                        <option value="ALL">All columns</option>
+                        <option value="SELECT">Selected columns</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+
+        <div ng-if="shaker.columnsSelection.mode == 'SELECT'" >
+            <div class="dku-border-bottom" style="padding-bottom: 10px">
+                <input type="checkbox" 
+                    ng-model="selection.all" 
+                    dku-indeterminate="selection.some" 
+                    ng-change="updateMassSelectionCheckbox()" style="margin: 0 8px" />
+
+                <div class="std-list-search-box projects-search dibvam">
+                    <span class="add-on">
+                        <i class="icon-dku-search"></i>
+                    </span>
+                    <input auto-focus="true" type="search" ng-model="selection.filterQuery.name" placeholder="Search columns..." style="width:350px"/>
+                </div>
+                <span style="padding-left:10px">{{selection.selectedObjects.length}}/{{selection.allObjects.length}}</span>
+            </div>
+            <div class="fattable-default-style" style="height: 250px;outline: none" tabindex="0" fat-repeat="selection.filteredObjects" as="column" row-height="36" ng-keydown="multiSelectKeydown($event,true)">
+                <div full-click ng-class="{focused: selection.selectedObject === column,selected: column.$selected}">
+                    <div style="width: 23px">
+                        <span class="display-none" main-click
+                            ng-click="column.$selected = !column.$selected; checkBoxChanged(column, $event)"></span>
+                        <input type="checkbox" ng-model="column.$selected" ng-click="checkBoxChanged(column, $event)" />
+                    </div>
+                    <div class="mx-textellipsis">
+                        {{column.name}}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer modal-footer-std-buttons">
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+        <button type="submit" class="btn btn--text btn--primary" ng-click="ok()">OK</button>
+
+    </div>
+
+</div>

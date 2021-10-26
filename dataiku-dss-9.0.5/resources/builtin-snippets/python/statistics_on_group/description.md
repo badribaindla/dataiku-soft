@@ -1,0 +1,1 @@
+Group on a column's values and aggregate values on another column.

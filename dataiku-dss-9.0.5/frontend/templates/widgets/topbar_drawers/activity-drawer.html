@@ -1,0 +1,35 @@
+<div class="instance-drawer top-bar-drawer vertical-flex" ng-if="shown">
+    <div class="drawer-header break-all noflex" full-click style="height: 44px">
+    <i class="icon-refresh pull-right" main-click ng-click="refreshActivityDrawer()" style="padding-top: 15px"></i>
+        <i class="icon-dkubird pull-left" style="font-size:36px; position: absolute; left: 15px; top: 20px;" />
+
+        <div class="users" ng-show="connectedUsers.length > 0" style="{{connectedUsers.length == 0 ? 'margin-top: 12px' : ''}}">
+            <span>{{connectedUsers.length | pluralize :'other user':'other users'}} connected</span>
+            <div style="max-height: 35px; overflow: hidden">
+                <a ng-repeat="user in connectedUsers track by user.login" title="{{user.displayName}}" href="/profile/{{user.login}}/" class="link-std">
+                    <span user-picture="user.login" size="20" class="avatar20" />
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="flex oa">
+        <div block-api-error />
+
+        <div ng-if="runnings.length == 0" class="placeholder-block">No running tasks at the moment</div>
+        <div ng-if="running.length > 6" class="counter">
+            <strong>{{running.length}}</strong>
+            tasks running
+        </div>
+
+        <div ng-repeat="running in runnings">
+            <div ng-if="running.$runningType == 'job'" activity-job-display="running" refresh-list="refreshActivityDrawer" class="item"></div>
+            <div ng-if="running.$runningType == 'scenario'" activity-scenario-display="running" refresh-list="refreshActivityDrawer" class="item"></div>
+            <div ng-if="running.$runningType == 'notebook'" activity-notebook-display="running" refresh-list="refreshActivityDrawer" class="item"></div>
+            <div ng-if="running.$runningType == 'future'" activity-future-display="running" refresh-list="refreshActivityDrawer" class="item"></div>
+        </div>
+
+
+    </div>
+</div>

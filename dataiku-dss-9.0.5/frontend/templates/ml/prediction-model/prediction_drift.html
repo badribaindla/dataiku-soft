@@ -1,0 +1,98 @@
+<div ng-controller="PMLReportDriftController" class="prediction-drift">
+    <drift-references-selector
+        cur="currentMEReference"
+        ref="driftState.selectedReference"
+        compatible-references="compatibleReferences"
+        action="computePredictionDrift"
+        fn-label="perfDriftLabel"
+        ref-labels="driftState.refLabels">
+    </drift-references-selector>
+    <div ng-if="('REGRESSION' !== evaluation.evaluation.predictionType)">
+        <hr>
+        <h1 class="dku-medium-title-sb">Fugacity</h1>
+        <div class="row-fluid">
+            <div class="span8" ng-if="driftState.curPredValueCount && !driftState.unavailableReference && !driftState.unavailableCurrent">
+                <table class="table confusion-matrix">
+                    <tr>
+                        <th></th>
+                        <th class="current" ng-if="evaluation.details.coreParams.prediction_type === 'BINARY_CLASSIFICATION'">Current (threshold: <span ng-bind="evaluation.details.userMeta.activeClassifierThreshold | nicePrecision:2"></span>)</th>
+                        <th class="current" ng-if="evaluation.details.coreParams.prediction_type !== 'BINARY_CLASSIFICATION'">Current</th>
+                        <th class="reference">Reference</th>
+                    </tr>
+                    <tr ng-repeat="currentClass in driftState.classes">
+                        <th>Predicted <code>{{currentClass}}</code> (%)</th>
+                        <td><span ng-if="driftState.curPredValueCount">{{driftState.curPredValueCount[currentClass].pct}}</span><span ng-if="!driftState.curPredValueCount">Not available</span></td>
+                        <td><span ng-if="driftState.refPredValueCount">{{driftState.refPredValueCount[currentClass].pct}}</span><span ng-if="!driftState.refPredValueCount">Not available</span></td>
+                    </tr>
+                </table>
+                <ng2-lazy-echart [options]="driftState.predHistogramOptions" ng-if="driftState.predHistogramOptions"></ng2-lazy-echart>
+            </div>
+            <div class="span8" ng-if="driftState.unavailableReference || driftState.unavailableCurrent">
+                <p>Performance data are not available</p>
+            </div>
+            <div class="doctor-explanation span4">
+                <p><b>Fugacity</b> expresses the difference between the expected "ideal" data your model
+                    was trained on and the observed "real" data you are analyzing. We compare the proportion
+                    of samples predicted in each class when scoring on both the test and your input datasets.</p>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="('REGRESSION' !== evaluation.evaluation.predictionType) && driftState.pdd">
+        <hr>
+        <div>
+            <div class="pull-right">
+                <span class="prediction-drift__reference-label">Class&nbsp;:</span>
+                <select ng-model="driftState.currentClass" dku-bs-select
+                        ng-options="curClass for curClass in evaluation.details.classes"/>
+            </div>
+            <h1 class="dku-medium-title-sb">Predicted probability density chart</h1>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span8 perf-drift-density__chart">
+                <svg
+                    multi-line-chart
+                    data-ys="driftState.pdd.ys"
+                    data-x="driftState.pdd.x"
+                    data-labels="driftState.pdd.labels"
+                    data-axes="['Predicted probability', 'Probability density']"
+                    data-colors="driftState.pdd.colors"
+                    data-format="'.02f'"
+                    data-options="{area: true}">
+                </svg>
+            </div>
+            <div class="span4 doctor-explanation">
+                <p>This charts represents the probability density estimation for a given prediction class when scoring both the test dataset and your input dataset.</p>
+                <p>Visually different probability density estimations indicate high data drift.</p>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="('REGRESSION' === evaluation.evaluation.predictionType) && driftState.pdfs.labels">
+        <hr>
+        <h1 class="dku-medium-title-sb">Predicted probability density chart</h1>
+
+        <p ng-if="driftState.unavailableReference">Data unavailable for Reference.</p>
+        <p ng-if="driftState.unavailableCurrent">Data unavailable for current model evaluation.</p>
+
+        <div class="row-fluid" ng-if="('REGRESSION' === evaluation.evaluation.predictionType) && driftState.pdfs.labels">
+            <div class="perf-drift-density__chart span8" ng-if="driftState.pdfs.labels && driftState.pdfs.labels.length">
+                <svg
+                    multi-line-chart
+                    data-ys="driftState.pdfs.ys"
+                    data-xs="driftState.pdfs.xs"
+                    data-labels="driftState.pdfs.labels"
+                    data-axes="['Probability density function']"
+                    data-colors="driftState.pdfs.colors"
+                    data-format="'.02f'"
+                    data-options="{area: true}">
+                </svg>
+            </div>
+            <div class="doctor-explanation span4">
+                <p>This chart represents the density estimation of the prediction values when scoring both the test dataset and your input dataset.</p>
+                <p>Visually different density estimations indicate high data drift.</p>
+            </div>
+        </div>
+    </div>
+</div>

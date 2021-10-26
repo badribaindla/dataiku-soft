@@ -1,0 +1,130 @@
+<form name="form.UDMForm" class="dkuform-modal-horizontal h100 udm-definition-form" ng-controller="UDMFormController"
+      ng-class="{'mouse-over-save': form.mouseOverSave}">
+    <div class="row-fluid h100">
+        <div class="span6 h100">
+            <div>
+                <div class="control-group" ng-if="!creation">
+                    <label class="control-label" style="cursor: default;">ID</label>
+                    <div class="controls">
+                        <span>{{udm.id}}</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="udmLabelInput">Label</label>
+                    <div class="controls">
+                        <input type="text" id="udmLabelInput" ng-model="udm.label" autocomplete="off" required />
+                    </div>
+                </div>
+
+                <div class="control-group" ng-if="creation">
+                    <label class="control-label" for="udmIdInput">
+                        ID
+                        <span ng-show="form.UDMForm.id.$error.unique" class="error">already used</span>
+                        <span ng-show="form.UDMForm.id.$error.pattern" class="error">invalid</span>
+                    </label>
+                    <div class="controls">
+                        <input type="text" id="udmIdInput" ng-model="udm.id" autocomplete="off" name="id" ng-pattern="/^\w+$/" required />
+                    </div>
+                </div>
+
+
+                <div class="control-group">
+                    <label class="control-label" for="udmDescriptionTextarea">Description</label>
+                    <div class="controls">
+                        <textarea id="udmDescriptionTextarea" ng-model="udm.description"></textarea>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="udmTypeSelect">Type</label>
+                    <div class="controls">
+                        <select dku-bs-select="{'style' : 'dku-select-button'}"
+                                remember-choice="sortCookieKey+'k'"
+                                ng-model="udm.type"
+                                ng-options="type as label for (type, label) in udmTypes"
+                                id="udmTypeSelect"
+                                required
+                                />
+                    </div>
+                </div>
+
+
+                <div class="control-group" ng-show="udm.type !== 'DECLARATIVE'">
+                    <label class="control-label" for="udmDetectableCheckbox">Auto detect</label>
+                    <div class="controls">
+                        <input type="checkbox" id="udmDetectableCheckbox" ng-model="udm.detectable" style="width: initial !important" />
+                        <div class="help-inline" style="display: inline">
+                            Use with caution - see documentation
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="span6 h100" style="padding-top: 40px;">
+            <div ng-switch="udm.type" class="h100">
+                <div ng-switch-when="DECLARATIVE">
+
+                </div>
+
+                <div ng-switch-when="VALUES_LIST" class="vertical-flex h100">
+                    <div class="control-group noflex">
+                        <label class="control-label" for="udmNormalizationSelect">Normalization mode</label>
+                        <select dku-bs-select="{'style' : 'dku-select-button'}"
+                                ng-model="udm.normalizationMode"
+                                class="submit-on-blur"
+                                next-on-enter ng-options="x[0] as x[1] for x in normalizationModes"
+                                id="udmNormalizationSelect" />
+                    </div>
+
+                    <div class="control-group flex vertical-flex" style="margin-top: 0; padding-right: 20px;">
+                        <label class="control-label noflex">Values</label>
+                        <div class="values" class="flex" style="clear: both;">
+                            <editable-list ng-model="udm.mappings"
+                                    add-label="Add value" sortable="true" on-change="onListChange" validate="validate">
+                                <div><input type="text" ng-model="it.from" ng-trim="false" placeholder="No value" name="name" required/></div>
+                                <div class="color-preview editable-list__noflex" style="background-color: {{it.color || 'grey'}}" colorpicker colorpicker-position="center" colorpicker-with-input="true" ng-model="it.color"></div>
+                            </editable-list>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="VALUES_MAPPING" class="vertical-flex h100">
+                    <div class="control-group noflex">
+                        <label class="control-label" for="udmNormalizationSelect">Normalization mode</label>
+                        <select dku-bs-select="{'style' : 'dku-select-button'}"
+                                ng-model="udm.normalizationMode"
+                                class="submit-on-blur"
+                                next-on-enter ng-options="x[0] as x[1] for x in normalizationModes"
+                                id="udmNormalizationSelect" />
+                    </div>
+
+                    <div class="control-group flex vertical-flex" style="margin-top: 0;">
+                        <label class="control-labelnoflex">Values</label>
+                        <div class="values" class="flex" style="clear: both;">
+                            <mapping-editor ng-model="udm.mappings" add-label="Add value"
+                                            on-change="onListChange(mapping)" validate="validate" with-color="true"></mapping-editor>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="PATTERN">
+                    <div class="control-group">
+                        <label class="control-label" for="udmNormalizationSelect">Normalization mode</label>
+                        <select dku-bs-select="{'style' : 'dku-select-button'}"
+                                ng-model="udm.normalizationMode"
+                                class="submit-on-blur"
+                                next-on-enter ng-options="x[0] as x[1] for x in normalizationModes"
+                                id="udmNormalizationSelect" />
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label" for="udmPatternInput">Pattern</label>
+                        <input type="text" id="udmPatternInput" ng-model="udm.pattern" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,202 @@
+<div remaining-height style="position:relative;height:{{remainingHeight}}px;">
+    <div fixed-panes class="fixedPanes showLeftPane" show-left-pane="true">
+        <div class="leftPane">
+            <div class="header-tabs noflex">
+                <div class="tab" ng-class="{'active' : notebookLocalState.leftPaneTab == 'Tables'}"
+                    ng-click="notebookLocalState.leftPaneTab = 'Tables'">
+                    <div class="title">Tables</div>
+                </div>
+                <div class="tab" ng-class="{'active' : notebookLocalState.leftPaneTab == 'Cells'}"
+                    ng-click="notebookLocalState.leftPaneTab = 'Cells'">
+                    <div class="title">Queries</div>
+                </div>
+            </div>
+            <div class="table-explorer" ng-show="notebookLocalState.leftPaneTab == 'Tables'">
+                <sql-table-explorer
+                    ng-if="notebookLocalState"
+                    connection="notebookParams.connection"
+                    connection-details="connectionDetails"
+                    notebook="notebookLocalState"
+                    on-table-clicked="onTableClicked(table)"
+                    on-field-clicked="onFieldClicked(field)">
+                </sql-table-explorer>
+            </div>
+
+            <div include-no-scope="/templates/notebooks/sql-notebook-cells-list.html" ng-if="notebookLocalState" ng-show="notebookLocalState.leftPaneTab == 'Cells'"></div>
+        </div>
+
+        <div class="mainPane fh">
+            <div class="h100 vertical-flex">
+                <div block-api-error />
+                <div class="sql-notebook-toolbar noflex">
+                    <div class="tools pull-right">
+                        <span class="btn-group">
+                            <button class="btn btn--secondary btn--icon"
+                                ng-class="{'btn--active': notebookLocalState.cellMode == 'SINGLE'}"
+                                ng-click="notebookLocalState.cellMode = 'SINGLE'"
+                                title="Fullscreen query mode">
+                                <i class="icon-resize-full"/>
+                            </button>
+                            <button class="btn btn--secondary btn--icon"
+                                ng-class="{'btn--active': notebookLocalState.cellMode == 'MULTI'}"
+                                ng-click="notebookLocalState.cellMode = 'MULTI'"
+                                title="Stacked queries mode">
+                                <i class="icon-reorder"/>
+                            </button>
+                        </span>
+
+                        <span class="btn-group">
+                            <button class="btn btn--secondary" ng-click="addCell('QUERY')" title="Add a new Query cell">
+                                <span plus-icon /> Query
+                            </button>
+                            <button class="btn btn--secondary" ng-click="addCell('MARKDOWN')" title="Add a new Markdown cell">
+                                <span plus-icon /> Markdown
+                            </button>
+                        </span>
+                        <span class="btn-group" ng-if="notebookLocalState.cellMode == 'MULTI'">
+                            <button class="btn btn--secondary btn--icon" ng-click="moveCell(getSelectedCellIndex(), -1)" ng-disabled="!getSelectedCellIndex()" title="Move cell up">
+                                <i class="icon-arrow-up"/>
+                            </button>
+                            <button class="btn btn--secondary btn--icon"
+                                ng-click="moveCell(getSelectedCellIndex(), 1)"
+                                ng-disabled="getSelectedCellIndex() === undefined || getSelectedCellIndex() == cells.length - 1"
+                                title="Move cell down">
+                                <i class="icon-arrow-down"/>
+                            </button>
+                        </span>
+
+                        <span code-snippet-editor-switch code-samples-selector-visible="uiState.codeSamplesSelectorVisible" />
+                    </div>
+
+                    <a class="link-std" title="Collapse all cells" toggle="tooltip" ng-click="unfoldAllCells(false)" ng-show="hasUnfoldedCell()" ng-if="notebookLocalState.cellMode == 'MULTI'">
+                        <i class="icon-caret-down" style="margin-right: 3px;"/>
+                    </a>
+                    <a class="link-std" title="Expand all cells" toggle="tooltip" ng-click="unfoldAllCells(true)" ng-show="!hasUnfoldedCell()" ng-if="notebookLocalState.cellMode == 'MULTI'">
+                        <i class="icon-caret-right" style="margin-right: 3px;"/>
+                    </a>
+
+                    <span class="title"
+                        ng-show="connectionDetails && !connectionFailed"
+                        title="Connected to {{connectionDetails.label}} {{connectionDetails.hostname ? (' - ' + connectionDetails.hostname) : ''}} ">
+                        Connected to <strong>{{connectionDetails.label}}</strong> ({{connectionDetails.type}})
+                        <span custom-element-popup>
+                            <a class="mainzone dropdown-toggle" ng-click="togglePopover()">
+                                <i class="icon-info-sign" style="color:#999;margin-left: 4px;position: relative;top: 1px;"/>
+                            </a>
+                            <ul class="popover custom-element-popup-popover dropdown-menu pull-right simple connection-info-popup" style="padding: 10px 20px;">
+                                <li>
+                                    <span class="label">Connection name</span>
+                                    <span class="value">{{connectionDetails.label}}</span>
+                                </li>
+                                <li>
+                                    <span class="label">Type</span>
+                                    <span class="value">{{connectionDetails.type}}</span>
+                                </li>
+                                <li ng-if="connectionDetails.hostname">
+                                    <span class="label">Host</span>
+                                    <span class="value">{{connectionDetails.hostname}}</span>
+                                </li>
+                                <li>
+                                    <span class="label">Database name</span>
+                                    <span class="value">{{connectionDetails.database}}</span>
+                                </li>
+                            </ul>
+                        </span>
+                    </span>
+
+                    <span class="title" ng-hide="connectionDetails || connectionFailed">
+                        <i class="icon-spin icon-spinner"></i>&nbsp;Connection...
+                    </span>
+
+                    <span class="title" ng-show="connectionFailed">
+                        <span class="text-error">
+                            <i class="icon-warning-sign"></i>
+                            <strong>Connection failed</strong>
+                        </span>
+                    </span>
+                </div>
+
+                <div ng-if="cells && !cells.length" style="text-align: center">
+                    <h4 style="padding-top: 40px;color: #999;"> No query yet in this notebook</h4>
+
+                    <div class="sql-notebook-footer">
+                        <span class="btn-group">
+                            <button class="btn btn--secondary" ng-click="addCell('QUERY')" title="Add a new Query cell">
+                               <span plus-icon /> Query
+                            </button>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="multi-query-editor selectable-list flex oa"
+                    ng-if="cells.length && notebookLocalState.cellMode == 'MULTI'" sql-notebook-multi-cell-editor watch-scroll>
+                    <div ng-repeat="cell in cells track by cell.id"
+                            sql-notebook-cell
+                            ng-switch="cell.type"
+                            class="sql-notebook-cell multi selectable-item"
+                            ng-click="selectCell($index)"
+                            ng-class="{selected: cell.$localState.selected}"
+                            ng-show="!cell.$tmpState.filteredOut"
+                            tabindex="1">
+                        <div ng-switch-when="QUERY"
+                            sql-notebook-query-cell
+                            ng-if="!cell.$tmpState.filteredOut"
+                            class="sql-notebook-query-cell multi"
+                            ng-class="{running: cell.$tmpState.runningQuery || cell.$tmpState.initializingQuery}"/>
+                        <div ng-switch-when="MARKDOWN" sql-notebook-md-cell class="sql-notebook-md-cell multi" ng-if="!cell.$tmpState.filteredOut" />
+                        <div ng-switch-default class="alert" sql-notebook-cell class="sql-notebook-other-cell" ng-if="!cell.$tmpState.filteredOut" style="padding-right: 20px;">
+                            <div class="tools pull-right">
+                                <a ng-click="removeCell($index)" class="cell-tool link-std">
+                                    <i class="icon-trash" />
+                                </a>
+                            </div>
+                            UNKNOWN CELL TYPE: {{cell.type}}
+                        </div>
+                    </div>
+
+                    <div class="sql-notebook-footer">
+                        <span class="btn-group">
+                            <button class="btn btn--secondary" ng-click="addCell('QUERY')" title="Add a new Query cell">
+                                <i class="icon-plus"/> Query
+                            </button>
+                            <button class="btn btn--secondary" ng-click="addCell('MARKDOWN')" title="Add a new Markdown cell">
+                                <i class="icon-plus"/> Markdown
+                            </button>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="single-query-editor flex fh" ng-if="notebookLocalState.cellMode == 'SINGLE'" sql-notebook-single-cell-editor>
+                    <div ng-repeat="cell in cells track by cell.id" sql-notebook-cell class="sql-notebook-cell selected fh" ng-switch="cell.type" visible-if="cell.$localState.selected">
+                        <div ng-switch-when="QUERY"
+                            sql-notebook-query-single-cell
+                            ng-if="!cell.$tmpState.filteredOut"
+                            class="sql-notebook-query-cell single fh"
+                            ng-class="{running: cell.$tmpState.runningQuery || cell.$tmpState.initializingQuery}"
+                            visible-if="cell.$localState.selected"/>
+                        <div ng-switch-when="MARKDOWN" sql-notebook-md-single-cell class="sql-notebook-md-cell single fh" visible-if="cell.$localState.selected" ng-if="!cell.$tmpState.filteredOut" />
+                        <div ng-switch-default class="alert" sql-notebook-cell class="sql-notebook-other-cell" visible-if="cell.$localState.selected" ng-if="!cell.$tmpState.filteredOut" style="padding-right: 20px;">
+                            <div class="tools pull-right">
+                                <a ng-click="removeCell($index)" class="cell-tool link-std">
+                                    <i class="icon-trash" />
+                                </a>
+                            </div>
+                            UNKNOWN CELL TYPE: {{cell.type}}
+                        </div>
+                    </div>
+                </div>
+
+
+                <code-snippet-sample-selector
+                    insert-code-func="insertCodeSnippet"
+                    ng-show="uiState.codeSamplesSelectorVisible"
+                    code-samples-selector-visible="uiState.codeSamplesSelectorVisible"
+                    sample-type="'sql'"
+                    categories="[]"
+                    save-category="'na'">
+                </code-snippet-sample-selector>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,68 @@
+<div class="runnables">
+    <div class="fh oa runnables__tiles mtop20">
+        <div class="runnables__explanation">
+                <h1 class="page-title"><i class="icon-macro" ></i>&nbsp;Macros</h1>
+                <p class="larger-grey-text">
+                    Macros are one-shot actions, aimed at the maintenance of your project.<br />
+                    Click on a macro to enter parameters and run it.
+                </p>
+                <p class="larger-grey-text">
+                    Macros can also be run from multiple DSS elements. Please see <doclink page="operations/macros" title="the documentation" /> for more information.
+                </p>
+        </div>
+
+        <div class="horizontal-flex runnables__summary-row mtop20">
+            <div class="std-list-search-box-120 list-control-widget mleft16">
+                <span class="add-on">
+                    <i class="icon-dku-search"></i>
+                </span>
+                <input type="search" ng-model="searchQuery" placeholder="Search...">
+            </div>
+            <div custom-element-popup class="list-customfilter-box dib mleft16">
+                <span class="add-on">
+                    <i class="icon-filter"></i>
+                </span>
+                <div class="mainzone runnables__pop-over" full-click>
+                    <a main-click ng-click="togglePopover()" class="btn dku-select-button runnables__pop-over-link">
+                        <span class="pull-right caret" ></span> Categories </a>
+                </div>
+                <div class="popover sort-box-menu checkable-items">
+                    <div ng-click="$event.stopPropagation()">
+                        <ul>
+                            <li ng-class="{'selected': noCategoryFiltered()}" ng-click="resetFilter()"><span>All category</span></li>
+                            <li ng-repeat="category in filteredCategories" ng-class="{'selected': !noCategoryFiltered() && category.enabled}"
+                                ng-click="selectCategory(category)">
+
+                                <span>{{category.label}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="!anyMacroAvailable()" class="runnables__empty-tile">
+            <h3> No Macros available</h3>
+        </div>
+        <div ng-if="anyMacroAvailable()">
+            <div ng-repeat="category in filteredCategories | filter:{enabled: true}">
+                <div ng-if="hasEnabledMacros(category)">
+                    <h2 class="settings-section-title">{{category.label}}</h2>
+                    <div ng-repeat="macroWrapper in category.macros | filter:{enabled: true}" class="runnables__tile" full-click>
+                        <div class="h100 vertical-flex">
+                            <a ng-click="showCreateRunnable(macroWrapper.macro)" main-click></a>
+                            <div class="noflex runnables__tile-label">
+                                <i class="{{macroWrapper.macro.desc.meta.icon || pluginDesc.meta.icon}} runnables__tile-icon"></i>
+                                <br/>{{macroWrapper.macro.desc.meta.label || macroWrapper.macro.id}}
+                            </div>
+                            <div class="flex runnables__tile-description">
+                                {{macroWrapper.macro.desc.meta.description}}
+                                <div class="runnables__fadeout"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

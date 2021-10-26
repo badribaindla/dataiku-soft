@@ -1,0 +1,50 @@
+<div class="models-table__cell" ng-class="{focused: selection.selectedObject===cell.summ, selected: cell.summ.$selected}">
+    <span ng-if="cell.isModelSel">
+        <span style="display:none;" main-click ng-click="objectClicked(cell.summ, $event)"></span>
+        <input class="model-sel__input" type="checkbox" ng-model="cell.summ.$selected" ng-click="checkBoxChanged(cell.summ, $event)" />
+        <i class="model-sel__icon icon-ok" ng-show="cell.summ.trainInfo.state==='DONE'"></i>
+        <i class="model-sel__icon icon-warning-sign" ng-show="cell.summ.trainInfo.state==='FAILED'"></i>
+        <i class="model-sel__icon icon-warning-sign" ng-show="cell.summ.trainInfo.state==='ABORTED'"></i>
+        <i class="model-sel__icon icon-spinner icon-spin" ng-show="cell.summ.trainInfo.state==='RUNNING'"></i>
+        <i class="model-sel__icon icon-spinner icon-spin" ng-show="cell.summ.trainInfo.state==='PENDING'"></i>
+    </span>
+    <span class="model-name"
+         ui-sref="{{ sRefPrefix + '.model.report({fullModelId: \'' + cell.summ.fullModelId + '\'})' }}"
+         ng-if="cell.isModelName && cell.summ.trainInfo.state==='DONE'">
+        {{cell.summ.userMeta.name}}
+        <span ng-if="!cell.summ.partitionedModelEnabled && cell.summ.trainDiagnostics.diagnostics" diagnostics-modal diagnostics="cell.summ.trainDiagnostics.diagnostics" display-popup="true" icon-placement="left" icon-size="small"/>
+        <span ng-if="cell.summ.partitionedModelEnabled && hasDiagnostics(cell.summ)"
+               display-popup="true" popup-content="{{getDiagnosticsTextForPartitions(cell.summ)}}"
+               diagnostics-modal diagnostics="cell.summ.trainDiagnostics.diagnostics" icon-size="small"/>
+    </span>
+    <span class="model-name" ng-bind="cell.summ.userMeta.name"
+         ng-class="{failed:cell.summ.trainInfo.state==='FAILED'}"
+         ng-if="cell.isModelName && cell.summ.trainInfo.state!=='DONE'">
+        {{cell.summ.userMeta.name}}
+        <span ng-if="cell.summ.trainDiagnostics.diagnostics" diagnostics-modal diagnostics="cell.summ.trainDiagnostics.diagnostics" display-popup="true" icon-placement="left" icon-size="small"/>
+    </span>
+    <span ng-if="cell.isModelTrainTime" class="model-traintime">
+        <time ng-bind="cell.summ.trainInfo.startTime | date:'yyyy-MM-dd HH:mm:ss'"></time>
+    </span>
+    <span ng-if="cell.isModelTrainTimeMetric" class="model-metric value">
+        {{cell.summ.trainInfo.trainingTime | durationHHMMSS}}
+    </span>
+    <span ng-if="cell.isSampleWeights && cell.summ.trainInfo.sampleWeightsEnabled" class="model-metric value"
+         ng-bind="cell.summ.trainInfo.sampleWeightsVariable">
+    </span>
+    <span ng-if="cell.isSampleWeights && !cell.summ.trainInfo.sampleWeightsEnabled" class="model-metric value">
+        -
+    </span>
+    <span ng-if="cell.isModelMetric" class="model-metric value"
+         ng-bind-html="cell.summ[metricMap[cell.metric[0]]] | mlMetricFormat
+                        : cell.metric[0]
+                        :(cell.metric[0].substr(0, 3) === 'NB_' ? 0 : 2)
+                        :cell.summ[metricMap[cell.metric[0]] + 'std']"
+         ng-style="{'color': metricScales[cell.metric[0]](cell.summ[metricMap[cell.metric[0]]])}"></span>
+    <span ng-if="cell.isModelStarred" class="model-fav model-starred">
+        <i ng-click="cell.summ.userMeta.starred=true; saveMeta(cell.summ)" ng-if="cell.summ.trainInfo.state==='DONE'&&!cell.summ.userMeta.starred"
+           class="icon-star-empty"></i>
+        <i ng-click="cell.summ.userMeta.starred=false; saveMeta(cell.summ)" ng-if="cell.summ.trainInfo.state==='DONE'&&cell.summ.userMeta.starred"
+           class="icon-star"></i>
+    </span>
+</div>

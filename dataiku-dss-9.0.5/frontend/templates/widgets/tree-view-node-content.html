@@ -1,0 +1,53 @@
+<li ng-repeat="node in nodes track by $index" scroll-to-me="{{shouldScrollToNode(node)}}" scroll-to-me-duration="scrollDuration(node)" on-scroll-triggered="onScrollTriggered(node)">
+    <div class="tree-view-node horizontal-flex {{nodeClass(node)}}" ng-class="{'tree-view-node--right-clicked': node.$rightClicked}" full-click>
+
+        <!-- ARTICLE NAME -->
+        <div class="flex oh horizontal-flex">
+            <!-- CARRET -->
+            <i class="tree-view-caret no-flex"
+               ng-class="{'icon-caret-down': !(node.$reduced || node.$tempReduced), 'icon-caret-right': (node.$reduced || node.$tempReduced)}"
+               ng-if="node.children.length"
+               ng-click="setReduceFn(node, !node.$reduced)"
+               style="left: {{MARGIN_PER_DEPTH * depth}}px;">
+            </i>
+            <a main-click
+               class="link-std tree-view-link flex oh ellipsed"
+               ng-click="onNodeClick(node, $event)"
+               ng-right-click="openContextMenu(node, $event)"
+               title="{{nodeName(node)}}"
+               style="padding-left: {{MARGIN_PER_DEPTH*(depth + 1)}}px;"
+            >
+                    <span class="name ellipsed tree-view-node-name">
+                        <i class="{{iconClass(node)}}" title="{{iconTitle(node)}}" ng-if="iconClass(node)"></i>
+                        {{nodeName(node)}}
+                    </span>
+            </a>
+            <div class="noflex" ng-if="rightIconClass(node)" style="margin-left: 6px;">
+                <i class="{{rightIconClass(node)}}" title="{{rightIconTitle(node)}}"></i>
+            </div>
+            <!-- DRAG HANDLE-->
+            <div ng-if="showDragHandles && ($parent.$parent.$parent.node || $parent.$parent.uiState).$sortableEnabled" class="noflex tree-view-drag-handle" ng-mousedown="onNodeMouseDown(node)" ng-mouseup="onSortableStop()">
+                <i class="icon-reorder" />
+            </div>
+        </div>
+    </div>
+    <div ng-if="!(node.$reduced || node.$tempReduced)"
+         class="tree-view-children"
+         tree-view="node.children"
+         root-nodes="rootNodes"
+         depth="depth+1"
+         node-name="nodeName"
+         on-click="onClick"
+         node-class="nodeClass"
+         icon-class="iconClass"
+         right-icon-class="rightIconClass"
+         right-icon-title="rightIconTitle"
+         show-drag-handles="showDragHandles"
+         set-unfolded-node-ids-fn="setUnfoldedNodeIdsFn"
+         get-unfolded-node-ids-fn="getUnfoldedNodeIdsFn"
+         get-node-ids-having-children-fn="getNodeIdsHavingChildrenFn"
+         get-right-click-menu-template="getRightClickMenuTemplate"
+         context-menu-fns="contextMenuFns"
+         show-context-menu="showContextMenu"
+    />
+</li>

@@ -1,0 +1,148 @@
+<div class="design-tab-title">Hyperparameters</div>
+<div class="doctor-settings-page" ng-controller="PMLTaskHyperparametersController">
+    <div block-api-error />
+    <div class="row-fluid">
+        <div class="span7 doctor-settings-hyperparameters">
+            <form class="dkuform-horizontal">
+                <p>
+                    The settings define how the search for the best model hyperparameters is done. <br>
+                    During the <span class="font-weight-bold">hyperparameters optimization</span> phase,
+                    each set of hyperparameters (defined in the <a ng-click="uiState.settingsPane = 'algorithms'">Algorithms</a> page)
+                    will be evaluated with the metric defined in the <a ng-click="uiState.settingsPane = 'evaluation-metric'">Metrics</a> page.
+                </p>
+                <h2 class="settings-section-title mtop0">Search Strategy</h2>
+                <div class="control-group required">
+                    <label class="control-label">Strategy</label>
+                    <div class="controls">
+                        <label>
+                            <select dku-bs-select ng-model="mlTaskDesign.modeling.gridSearchParams.strategy" ng-options="x[0] as x[1] for x in uiState.hyperparamSearchStrategies">
+                            </select>
+                            <div ng-if="mlTaskDesign.modeling.gridSearchParams.strategy==='GRID'" class="help-inline">Traverses all the combinations of the selected values. </div>
+                            <div ng-if="mlTaskDesign.modeling.gridSearchParams.strategy==='RANDOM'" class="help-inline">Samples random combinations of hyperparameters on the selected ranges. Generally performs better than grid search with identical computing resources.</div>
+                            <div ng-if="mlTaskDesign.modeling.gridSearchParams.strategy==='BAYESIAN'" class="help-inline">Samples random combinations of hyperparameters on the selected ranges and keeps track of past experiments to optimize hyperparameters in future experiments.</div>
+                        </label>
+                    </div>
+                </div>
+                <div class="alert alert-warning dib" ng-if="!appConfig.isAutomation && mlTaskDesign.modeling.gridSearchParams.strategy === 'BAYESIAN' && !isCodeEnvCompatibleWithBayesian()">
+                    <strong>Warning:</strong> runtime isn't using a code-env with required packages to run visual ML models with bayesian search. Please select one in <a ng-click="uiState.settingsPane = 'runtime'">Runtime environment</a>.
+                </div>
+
+                <h2 class="settings-section-title mtop0">Search parameters</h2>
+                <p>The search will conclude when either the time or search space limit is reached.</p>
+                <div class="control-group required">
+                    <label class="control-label"
+                           toggle="tooltip-bottom"
+                           title="The search space limit parameter can be set independently for the grid search (default: unlimited) and for the random or bayesian search (default: limited to a preset-dependent value).">
+                        Search space limit
+                    </label>
+                    <div class="controls">
+                        <input type="number" force-integer min="0" step="1" ng-if="mlTaskDesign.modeling.gridSearchParams.strategy==='GRID'" ng-model="mlTaskDesign.modeling.gridSearchParams.nIter">
+                        <input type="number" force-integer min="0" step="1" ng-if="mlTaskDesign.modeling.gridSearchParams.strategy!=='GRID'" ng-model="mlTaskDesign.modeling.gridSearchParams.nIterRandom">
+                        <div class="help-inline">Maximum number of hyperparameter combinations to explore. Set to 0 to unconstrain.</div>
+                    </div>
+                </div>
+                <div class="control-group required">
+                    <label class="control-label">Time limit</label>
+                    <div class="controls">
+                        <input type="number" force-integer min="0" step="1" ng-model="mlTaskDesign.modeling.gridSearchParams.timeout">
+                        <div class="help-inline">In minutes. Set to 0 to unconstrain.</div>
+                    </div>
+                </div>
+
+                <ml-hp-distribution
+                        ng-if="isMLBackendType('PY_MEMORY')"
+                        search-params="mlTaskDesign.modeling.gridSearchParams"
+                        has-selected-k8s-container="hasSelectedK8sContainer"
+                        k8s-runtime-env-tooltip="Distributed search requires a Kubernetes container configuration to be selected in section &quot;Runtime environment&quot;"
+                />
+
+                <div class="control-group required">
+                    <label class="control-label">Random state</label>
+                    <div class="controls">
+                        <label>
+                            <input type="number"
+                                   force-integer min="0" step="1"
+                                   ng-model="mlTaskDesign.modeling.gridSearchParams.seed"
+                                   ng-disabled="mlTaskDesign.modeling.gridSearchParams.strategy==='GRID' && !mlTaskDesign.modeling.gridSearchParams.randomized">
+                            <div class="help-inline">Modify the seed to change hyperparameters sampling</div>
+                        </label>
+                    </div>
+                </div>
+                <div ng-if="mlTaskDesign.modeling.gridSearchParams.strategy==='GRID'" class="control-group required">
+                    <label class="control-label">Randomize grid search</label>
+                    <div class="controls">
+                        <label>
+                            <input type="checkbox" ng-model="mlTaskDesign.modeling.gridSearchParams.randomized">
+                            <div class="help-inline">Shuffle the grid before doing the search (using the random state)</div>
+                        </label>
+                    </div>
+                </div>
+                <div ng-if="!isSearchNeeded()">
+                    <div class="doctor-explanation" style="text-align: center;">
+                        <b>No hyperparameter to optimize</b>
+                        <br/>
+                        None of the selected algorithms' parameters has several possible values to choose from. No search will be performed.
+                    </div>
+                </div>
+
+                <h2 ng-if="isSearchNeeded()" class="settings-section-title">Cross-validation</h2>
+                <div ng-if="isSearchNeeded()">
+
+                <div class="control-group required">
+                    <label class="control-label">Cross-validation strategy</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="mlTaskDesign.modeling.gridSearchParams.mode" ng-options="x[0] as x[1] for x in getCrossvalModes()">
+                        </select>
+                        <div ng-if="mlTaskDesign.time.enabled" class="help-inline">Since time-based ordering is enabled, cross-validation strategies take the time variable into account</div>
+                    </div>
+                </div>
+                <div class="control-group required" ng-if="mlTaskDesign.modeling.gridSearchParams.mode == 'SHUFFLE' || mlTaskDesign.modeling.gridSearchParams.mode == 'TIME_SERIES_SINGLE_SPLIT'">
+                    <label class="control-label">Split ratio</label>
+                    <div class="controls">
+                        <input type="number" min="0" max="1" step="0.001" ng-model="mlTaskDesign.modeling.gridSearchParams.splitRatio">
+                        <div class="help-inline"></div>
+                    </div>
+                </div>
+                <div class="control-group required" ng-if="mlTaskDesign.modeling.gridSearchParams.mode == 'KFOLD' || mlTaskDesign.modeling.gridSearchParams.mode == 'TIME_SERIES_KFOLD'">
+                    <label class="control-label">Number of folds</label>
+                    <div class="controls">
+                        <input type="number" force-integer min="2" max="1000" step="1" ng-model="mlTaskDesign.modeling.gridSearchParams.nFolds">
+                        <div class="help-inline"></div>
+                    </div>
+                </div>
+                <div class="control-group required" ng-if="mlTaskDesign.modeling.gridSearchParams.mode != 'CUSTOM'">
+                    <label class="control-label">Random state</label>
+                    <div class="controls">
+                        <label>
+                            <input type="number" force-integer ng-model="mlTaskDesign.modeling.gridSearchParams.cvSeed">
+                            <div class="help-inline">Random state for cross-validation</div>
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group required" ng-if="isClassification() && mlTaskDesign.modeling.gridSearchParams.mode != 'CUSTOM' && isMLBackendType('PY_MEMORY')">
+                    <label class="control-label">Stratified</label>
+                    <div class="controls">
+                        <label>
+                            <input type="checkbox" ng-model="mlTaskDesign.modeling.gridSearchParams.stratified">
+                            <div class="help-inline">Keeps the same target distribution in the splits</div>
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group required" ng-if="mlTaskDesign.modeling.gridSearchParams.mode == 'CUSTOM'">
+                    <div class="code-snippet-editor-parent" style="height: 380px;">
+                        <div code-snippet-editor code="mlTaskDesign.modeling.gridSearchParams.code" sample-type="'python'" categories="['py-crossval']" save-category="'py-crossval'" />
+                    </div>
+                    <div class="help-inline">
+                        <small>
+                            The code must define a variable named <code>cv</code> that follows the scikit-learn crossvalidation object protocol
+                        </small>
+                    </div>
+                </div>
+                </div>
+            </form>
+        </div>
+        <div class="span5">
+            <div include-no-scope="/templates/analysis/prediction/settings/train-test-explanation.html" />
+        </div>
+    </div>
+</div>

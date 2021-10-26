@@ -1,0 +1,75 @@
+<div class="modal modal3 lambda-new-endpoint-modal" ng-switch="uiState.selectedMode">
+    <div dku-modal-header modal-title="New API endpoint" modal-class="has-border" modal-totem="icon-cloud" />
+
+    <form name="newEndpointForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body" ng-switch="ep.type">
+            <div block-api-error />
+            <div class="control-group">
+                <div class="control-label">
+                    <label for="sdtPredictionEndpointID">Endpoint unique ID</label>
+                </div>
+                <div class="controls">
+                    <input id="sdtPredictionEndpointID" type="text" ng-model="ep.id" ng-pattern="/^[\w-_]+$/" required />
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="control-label">
+                    <label>Endpoint type</label>
+                </div>
+                <div class="controls inline-labels">
+                    <label><input type="radio" name="eptype" ng-model="ep.type" value="STD_PREDICTION">&nbsp;Prediction model</label><br />
+                    <label><input type="radio" name="eptype" ng-model="ep.type" value="CUSTOM_PREDICTION">&nbsp;Custom prediction (Python)</label><br />
+                    <label><input type="radio" name="eptype" ng-model="ep.type" value="CUSTOM_R_PREDICTION">&nbsp;Custom prediction (R)</label><br />
+                    <label><input type="radio" name="eptype" ng-model="ep.type" value="R_FUNCTION">&nbsp;R function</label><br />
+                    <label><input type="radio" name="eptype" ng-model="ep.type" value="PY_FUNCTION">&nbsp;Python function</label><br />
+                    <label><input type="radio" name="eptype" ng-model="ep.type" value="SQL_QUERY">&nbsp;SQL Query (parameterizable)</label><br />
+                    <label><input type="radio" name="eptype" ng-model="ep.type" value="DATASETS_LOOKUP">&nbsp;Dataset(s) lookup</label>
+                </div>
+            </div>
+            <div class="control-group" ng-switch-when="STD_PREDICTION">
+                <div class="control-label">
+                    <label for="newSdtPredictionEndpointModel">Prediction model (visual)</label>
+                </div>
+                <div class="controls">
+                    <select dku-bs-select
+                        id="newSdtPredictionEndpointModel"
+                        ng-options="sm.id as sm.name for sm in savedModels"
+                        ng-model="ep.modelRef"
+                        required>
+                    </select>
+                </div>
+            </div>
+            <div class="control-group" ng-switch-when="STD_PREDICTION">
+                <div class="control-label">
+                    <label for="newSdtPredictionEndpointJava">Use optimized scoring</label>
+                </div>
+                <div class="controls" disabled-if="ep.backendType !== 'PY_MEMORY'" disabled-message="Backend selection is not available for this model">
+                    <input id="newSdtPredictionEndpointJava" type="checkbox" ng-model="ep.useJava" ng-disabled="ep.backendType !== 'PY_MEMORY'">
+                    <span class="help-inline">See reference doc. for more info.</span>
+                </div>
+            </div>
+            <div class="control-group" ng-switch-when="CUSTOM_PREDICTION">
+                <div class="control-label">
+                    <label>Prediction type</label>
+                </div>
+                <div class="controls inline-labels">
+                    <label><input type="radio" name="epmtype" ng-model="ep.modelType" value="CLASSIFICATION">&nbsp;Classification</label>
+                    <label><input type="radio" name="epmtype" ng-model="ep.modelType" value="REGRESSION">&nbsp;Regression</label>
+                </div>
+            </div>
+             <div class="control-group" ng-switch-when="CUSTOM_R_PREDICTION">
+                <div class="control-label">
+                    <label>Prediction type</label>
+                </div>
+                <div class="controls inline-labels">
+                    <label><input type="radio" name="epmtype" ng-model="ep.modelType" value="CLASSIFICATION">&nbsp;Classification</label>
+                    <label><input type="radio" name="epmtype" ng-model="ep.modelType" value="REGRESSION">&nbsp;Regression</label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" ng-click="dismiss()" class="btn btn--text btn--secondary">Cancel</button>
+            <button type="submit" ng-click="resolveModal(ep)" ng-disabled="newEndpointForm.$invalid" class="btn btn--text btn--primary">Append</button>
+        </div>
+    </form>
+</div>

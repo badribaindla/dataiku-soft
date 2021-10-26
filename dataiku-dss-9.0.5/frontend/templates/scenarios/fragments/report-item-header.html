@@ -1,0 +1,66 @@
+<div class="report-item-header horizontal-flex" ng-switch="item.target.type">
+	<span class="flex label" ng-switch-when="SCENARIO">Scenario {{item.info.name || item.target.scenarioId}} <span class="extension" ng-if="!$stateParams.projectKey">- {{item.target.projectKey}}</span></span>
+	<span class="flex label" ng-switch-when="SCENARIO_STEP">Step {{item.info.name || item.info.type}}</span>
+	<span class="flex label" ng-switch-when="SCENARIO_TRIGGER" ng-if="!inGantt">Trigger {{item.info.name || item.info.type}}</span>
+	<span class="flex label" ng-switch-when="SCENARIO_TRIGGER" ng-if="inGantt">Triggers</span>
+	<span class="flex label" ng-switch-when="DATASET">Dataset {{item.target.datasetName}}</span>
+	<span class="flex label" ng-switch-when="RECIPE">Recipe {{item.target.recipeName}}</span>
+	<span class="flex label" ng-switch-when="DATASET_PARTITION">Dataset {{item.target.datasetName}} ({{item.target.partition}})</span>
+    <span class="flex label" ng-switch-when="SAVED_MODEL">Model {{item.info.name || item.target.modelId}}</span>
+    <span class="flex label" ng-switch-when="SAVED_MODEL_PARTITION">Model {{item.info.name || item.target.modelId}} ({{item.target.partition}})</span>
+    <span class="flex label" ng-switch-when="MANAGED_FOLDER">Folder {{item.info.name || item.target.folderId}}</span>
+    <span class="flex label" ng-switch-when="MANAGED_FOLDER_PARTITION">Folder {{item.info.name || item.target.folderId}} ({{item.target.partition}})</span>
+    <span class="flex label" ng-switch-when="MANAGED_FOLDER_FILE">File in folder {{item.info.name || item.target.folderId}}</span>
+	<span class="flex label" ng-switch-when="SQL_CONNECTION">SQL on {{item.target.connection}}</span>
+	<span class="flex label" ng-switch-when="JOBS">Job</span>
+	<span class="flex label" ng-switch-when="PYTHON">Python script</span>
+    <span class="flex label" ng-switch-when="INSIGHT">Insight {{item.info.name || item.target.insightId}}</span>
+	<span class="flex label" ng-switch-when="JUPYTER_NOTEBOOK">Notebook {{item.target.notebookId}}</span>
+    <span class="flex label" ng-switch-when="LAMBDA_SERVICE">API service {{item.target.serviceId}}</span>
+    <span class="flex label" ng-switch-when="KEPT_FILE">File {{item.target.path}}</span>
+    <span class="flex label" ng-switch-when="INLINE_HTML">Html data </span>
+    <span class="flex label" ng-switch-when="URL">Url</span>
+    <span class="flex label" ng-switch-when="CLUSTER">Cluster {{item.info.name || item.target.clusterId}}</span>
+    <span class="flex label" ng-switch-when="CONTINUOUS_ACTIVITY">Continuous activity {{item.info.name || item.target.continuousActivityId}}</span>
+	<span class="flex label" ng-switch-when="_root_">Gantt</span>
+
+	<a class="noflex goto" ng-switch-when="SCENARIO"
+		ui-sref="projects.project.scenarios.scenario.runs.list({projectKey: item.target.projectKey, scenarioId: item.target.scenarioId})"
+	>&ensp;<i class="icon-arrow-right "></i></a>
+	<a class="noflex goto" ng-switch-when="DATASET"
+		ui-sref="projects.project.datasets.dataset.explore({projectKey : item.target.projectKey, datasetName: item.target.datasetName })"
+	>&ensp;<i class="icon-arrow-right "></i></a>
+	<a class="noflex goto" ng-switch-when="RECIPE"
+		ui-sref="projects.project.recipes.recipe({projectKey : item.target.projectKey, recipeName: item.target.recipeName })"
+	>&ensp;<i class="icon-arrow-right "></i></a>
+	<a class="noflex goto" ng-switch-when="DATASET_PARTITION"
+		ui-sref="projects.project.datasets.dataset.explore({projectKey : item.target.projectKey, datasetName: item.target.datasetName })"
+	>&ensp;<i class="icon-arrow-right "></i></a>
+    <a class="noflex goto" ng-switch-when="SAVED_MODEL"
+        ui-sref="projects.project.savedmodels.savedmodel.versions({projectKey : item.target.projectKey, smId: item.target.modelId })"
+    >&ensp;<i class="icon-arrow-right "></i></a>
+    <a class="noflex goto" ng-switch-when="SAVED_MODEL_PARTITION"
+        ui-sref="projects.project.savedmodels.savedmodel.versions({projectKey : item.target.projectKey, smId: item.target.modelId })"
+    >&ensp;<i class="icon-arrow-right "></i></a>
+    <a class="noflex goto" ng-switch-when="MANAGED_FOLDER"
+        ui-sref="projects.project.managedfolders.managedfolder.view({projectKey : item.target.projectKey, odbId: item.target.folderId })"
+    >&ensp;<i class="icon-arrow-right "></i></a>
+    <a class="noflex goto" ng-switch-when="MANAGED_FOLDER_PARTITION"
+        ui-sref="projects.project.managedfolders.managedfolder.view({projectKey : item.target.projectKey, odbId: item.target.folderId })"
+    >&ensp;<i class="icon-arrow-right "></i></a>
+    <a class="noflex goto" ng-switch-when="MANAGED_FOLDER_FILE"
+        ui-sref="projects.project.managedfolders.managedfolder.view({projectKey : item.target.projectKey, odbId: item.target.folderId })"
+    >&ensp;<i class="icon-arrow-right "></i></a>
+    <a class="noflex goto" ng-switch-when="JUPYTER_NOTEBOOK"
+        ui-sref="projects.project.notebooks.jupyter_notebook({notebookId:item.target.notebookId, projectKey: item.target.projectKey})"
+    >&ensp;<i class="icon-arrow-right "></i></a>
+    <a class="noflex goto" ng-switch-when="LAMBDA_SERVICE"
+        ui-sref="projects.project.lambdaservices.service.endpoints({projectKey: item.target.projectKey, serviceId: item.target.serviceId})"
+    >&ensp;<i class="icon-arrow-right "></i></a>
+    <a class="noflex goto" ng-switch-when="CLUSTER"
+        ui-sref="admin.clusters.cluster({clusterId: item.target.clusterId })"
+    >&ensp;<i class="icon-arrow-right "></i></a>
+    <a class="noflex goto" ng-switch-when="CONTINUOUS_ACTIVITY"
+        ui-sref="projects.project.continuous-activities.continuous-activity.runs({projectKey: item.target.projectKey, continuousActivityId: item.target.continuousActivityId })"
+    >&ensp;<i class="icon-arrow-right "></i></a>
+</div>

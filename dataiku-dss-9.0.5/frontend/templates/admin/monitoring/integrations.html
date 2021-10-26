@@ -1,0 +1,76 @@
+<div class="h100 list-page-4 negative-margin">
+    <div data-extend-template="/templates/layouts/list-items-3.html" class="vertical-flex scenario-triggers">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            Integrations
+        </span>
+
+        <div data-block="table-header" class="main-list-zone row-fluid">
+            <div class="span12 offset0 h30">
+                <ul class="list-items noflex">
+                    <li data-block="header-item" class="list-item" style="display:block">
+                        <label style="visibility: hidden">
+                            <span style="display:none;" main-click></span>
+                            <input type="checkbox" ng-model="item.$selected" />
+                        </label>
+                        <div class="hit h14">
+                            <div class="chunk">
+                                <strong>Project</strong>
+                            </div>
+                            <div class="chunk">
+                                <strong>Integration</strong>
+                            </div>
+                            <div class="chunk"style="width: 46%">
+                                <strong>Properties</strong>
+                            </div>
+                            <div class="active-indicator chunk" style="width: 10%;">
+                                <strong>Active</strong>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div data-block="empty">
+            <h1>
+                No project with integrations in this instance
+            </h1>
+        </div>
+
+        <div data-block="item">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit" dataset="item" ng-class="{'scenario-inactive' : !item.active}">
+                <div class="chunk">
+                    <a class="dib w100 mx-link-nodecoration mx-textellipsis"
+                        show-tooltip-on-text-overflow
+                        text-tooltip="item.projectKey | boldify:selection.filterParams.userQueryResult"
+                        ui-sref="projects.project.integrations({projectKey: item.projectKey})" ></a>
+                </div>
+                <div class="chunk">
+                    <span class="dib w100 mx-textellipsis"
+                        show-tooltip-on-text-overflow
+                        text-tooltip="item.integrationName | boldify:selection.filterParams.userQueryResult"></span>
+                    <a show-tooltip-on-text-overflow text-tooltip="'('+item.integrationDetails+')'"
+                        class="dib w100 mx-link-nodecoration mx-textellipsis"
+                        ui-sref="projects.project.integrations({projectKey: item.projectKey})"
+                        ng-if="item.integrationDetails"></a>
+                </div>
+                <div class="chunk mx-textellipsis"
+                    show-tooltip-on-text-overflow
+                    text-tooltip="item.integrationProperties | boldify:selection.filterParams.userQueryResult"
+                    style="width: 48%"></div>
+                <div class="active-indicator chunk" style="width: 10%;">
+                    <label class="dku-toggle list-item__toggle" style="margin-left: 0;">
+                        <input type="checkbox" ng-model="item.active" ng-change="toggleActive(item)"></input>
+                        <span style="display: inline-block; position: relative;" ></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

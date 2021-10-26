@@ -1,0 +1,106 @@
+<div class="dkuform-horizontal paned-settings-page-pane" ng-controller="GlobalTagsController">
+    <h1>Global tag categories</h1>
+    <div class="section" style="display:flex">
+        <div ng-show="generalSettings.globalTagsCategories.length == 0" class="empty-list-cta no-gtc-yet">
+            <h1 class="no-gtc-yet__title">
+                No category yet.
+            </h1>
+            <p>
+                Create categories with a list of related tags to apply to objects </br> (projects, datasets, recipes, ...) throughout your instance.
+            </p>
+            <div>
+                <a class="btn btn--contained btn--large btn--primary" ng-click="addCategory()">
+                    <span plus-icon></span>
+                    &nbsp;Add a new category
+                </a>
+            </div>
+        </div>
+        <div ng-show="generalSettings.globalTagsCategories.length > 0" class="global-tag-categories-list">
+            <div ng-repeat="category in generalSettings.globalTagsCategories track by $index" class="padtop16" filtered-multi-select-rows ng-model="category.globalTags">
+                <div class="control-group">
+                    <label class="control-label">Tag category name</label>
+                    <div ng-form="categoryInputForm" class="controls global-tag-category-form">
+                        <input type="text" ng-model="category.name" name="categoryInput"
+                               class="global-tag-category-input"
+                               ng-class="{'global-tag-category-input__error': categoryInputForm.categoryInput.$error.unique || (categoryInputForm.categoryInput.$error.required && (categoryInputForm.categoryInput.$touched || !category.isNew))}"
+                               placeholder="New Category"
+                               ng-keydown="$event.which == 13 ? $event.preventDefault() : null"
+                               check-category-name-unique
+                               required
+                        />
+                        <div ng-if="(categoryInputForm.categoryInput.$touched || !category.isNew) && categoryInputForm.categoryInput.$error.required">
+                            <div class="editable-list__input-error-message" ng-hide="!categoryInputForm.$error.required">Please fill this field.</div>
+                        </div>
+                        <div ng-if="categoryInputForm.categoryInput.$error.unique">
+                            <div class="editable-list__input-error-message" ng-hide="categoryInputForm.$error.required">Duplicate entry.</div>
+                        </div>
+                    </div>
+                    <button class="btn btn--text btn--danger btn-icon pull-right editable-list__delete" ng-click="deleteGlobalCategory($index, category.name)"><i class="icon-trash"></i></button>
+                </div>
+                <div class="control-group">
+                    <p>
+                        <label class="control-label"> Apply to </label>
+                        <select dku-bs-select="{noneSelectedText: 'Select an object', size: 10, actionsBox: true, 'width': '206px'}"
+                                ng-model="category.appliesTo"
+                                class="controls"
+                                ng-options="o as (o | niceTaggableType:2 | capitalize) for o in taggableTypes"
+                                multiple="multiple"/>
+                    </p>
+                </div>
+                <div style="margin-bottom: 10px">
+                    <div class="noflex dropdown mass-action-btn" data-block="mass-actions">
+                        <input type="checkbox"
+                               class="select-cb"
+                               ng-model="selection.all"
+                               dku-indeterminate="selection.some"
+                               ng-change="updateMassSelectionCheckbox();">
+                        <a data-toggle="dropdown"
+                           class="dropdown-toggle unselectable"
+                           ng-class="{disabled: selection.selectedObjects.length == 0,collapsed:selection.none}">
+                            <span>ACTIONS</span>
+                            <b class="caret"></b>
+                        </a>
+                        <ul data-block="mass-action-dropdrop-menu" class="dropdown-menu">
+                            <li ng-show="selection.selectedObjects.length > 1">
+                                <a ng-click="mergeTags($index, selection.selectedObjects)"><i class="icon-link icon-rotate-90"/>Merge Tags</a>
+                            </li>
+                            <li class="divider" style="margin:0" ng-if="selection.selectedObjects.length > 1"/>
+                            <li>
+                                <a class="text-error" ng-click="deleteGlobalTags($index, selection.selectedObjects)"><i class="icon-trash"/>Delete Tags</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div ng-if="category.globalTags.length" class="tag-help-text">
+                    <span class="tag-help-text__name">Tag name</span>
+                    <span class="tag-help-text__usage">Tag usage</span>
+                </div>
+                <div class="section global-tags-list-section" style="padding: 8px 0 16px 6px">
+                    <div class="no-global-tags-yet" ng-show="category.globalTags.length == 0">
+                        <p>No tags in this category yet.</p>
+                    </div>
+                    <editable-list class="global-tags-editable-list" ng-model="category.globalTags"
+                                   transcope="{deleteGlobalTags: deleteGlobalTags, updateItem: updateItem, getGlobalTagUsage: getGlobalTagUsage, linkToCatalog: linkToCatalog}"
+                                   sortable="false" template="computeItemTemplate"
+                                   add-label="Add a tag" disable-remove="true" full-width-list="true" has-divider="false">
+
+                        <input type="checkbox" style="margin: 6px 8px auto 0" ng-model="it.$selected" ng-click="$parent.$parent.checkBoxChanged(it, $event)" tabindex="-1"/>
+                        <span class="tag-color" style="background-color:{{it.color}}; padding: 0" colorpicker colorpicker-with-input="true" ng-model="it.color">
+                            <i class="icon-tint"></i>
+                        </span>
+                        <editable-list-input type="text" ng-model="it.name" on-change="updateItem($parent.$parent.category.name, it.name, it)" required="true" unique="true"/>
+                        <span class="tag-usage">
+                            <a ng-show="usage = getGlobalTagUsage($parent.$parent.category.name, it)" href="{{linkToCatalog($parent.$parent.category.name,it)}}" >
+                                <span ng-bind-html="usage"></span>
+                            </a>
+                            <span ng-show="!usage">-</span>
+                        </span>
+                        <button class="btn btn--text btn--danger btn-icon editable-list__delete m0" tabindex="-1" ng-click="it.isNew ? remove(it.$idx).bind(this): deleteGlobalTags($parent.$parent.$index, [it])"> <i class="icon-trash"></i></button>
+                    </editable-list>
+                </div>
+
+            </div>
+            <button ng-show="generalSettings.globalTagsCategories.length > 0" type="button" class="btn btn--text btn--primary" ng-click="addCategory()" style="margin: 16px 0"><i class="icon-plus"/>Add a category</button>
+        </div>
+    </div>
+</div>

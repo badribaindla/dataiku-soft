@@ -1,0 +1,22 @@
+<form class="dkuform-horizontal custom-fields-form" ng-scope="{{errorScope = this}}">
+    <div block-api-error />
+    <div class="pull-right custom-fields-form-edit-zone">
+        <div ng-if="!ui.editing"><a class="link-std edit-button" ng-click="editCF()"><i class="icon-pencil" /></a></div>
+        <div ng-if="ui.editing">
+            <button class="btn btn--success" ng-click="saveCF()">Save</button>
+            <button class="btn btn--secondary" ng-click="discardCF()">Cancel</button>
+        </div>
+    </div>
+    <div ng-repeat="map in customFieldsMap track by $index" class="custom-fields-form-component">
+        <div style="font-size: 16px; font-weight: 600;">{{map.meta.label}}</div>
+        <!-- TODO MHO: see for the track by index if needed (not present everywhere) -->
+        <autoconfig-form params="map.customFields"
+                         ng-if="ui.customFields"
+                         model="ui.customFields"
+                         plugin-id="map.ref.pluginId"
+                         component-id="map.ref.componentId"
+                         error-scope="errorScope"
+                         view-mode='!ui.editing'>
+        </autoconfig-form>
+    </div>
+</form>

@@ -1,0 +1,137 @@
+<div class="processor group-processor"
+    ng-class="{'active': isGroupActive(),
+        'selected': step.selected,
+        'matched' : step.match,
+        'disabled': step.disabled,
+        'softdisabled': step.$stepState.softDisabled,
+        'error': invalidScriptError.type && invalidScriptError.index == $index,
+        'colored': step.mainColor}"
+    ng-style="step.secondaryColor && step.mainColor && {'background-color': step.secondaryColor, 'border-left': '4px ' + step.mainColor + ' solid'}" 
+    ng-right-click="!step.$stepState.softDisabled && openShakerMenu($event, step)" ng-right-click-prevent-default="false">
+    <div class="main" ng-click="toggleGroup();">
+        <h5 ng-show="invalidScriptError.type && invalidScriptError.index == $index">{{invalidScriptError.message}}</h5>
+        <div class="processor-dragger" ng-click="toggleStepSelection(step, $event);$event.stopPropagation();">
+            <a class="processor-handle" ui-tree-handle>
+                <i class="icon-dku-handle"></i>
+            </a>
+        <span class="processor-selector">
+                <i class="icon-check-empty" ng-show="!step.selected"></i>
+                <i class="icon-check-sign" ng-show="step.selected"></i>
+            </span>
+        </div>
+        <div class="processor-infos">
+            <div class="processor-header" group-name-editor>
+                <p class="processor-name in-box" ng-show="!showGroupNameForm">
+                    <span class="processor-description" ng-bind-html="getGroupName(step)"></span>
+                </p>
+                <i class="icon-info"
+                    style="margin-left: 5px;"
+                    ng-if="step.comment && step.comment.length>0 && !step.alwaysShowComment"
+                    ng-show="!showGroupNameForm"
+                    toggle="tooltip-bottom"
+                    title="{{step.comment}}">
+                </i>
+                <i class="icon-pencil show-group aligned" ng-click="toggleGroupNameForm($event);$event.stopPropagation();" ng-show="!showGroupNameForm"></i>
+                <fieldset ng-show="showGroupNameForm">
+                    <input
+                        type='text'
+                        ng-model='step.name'
+                        placeholder="Enter group name"
+                        blur-on-enter-and-esc
+                        ng-blur="toggleGroupNameForm($event);isRecipe || saveOnly();"
+                        />
+                </fieldset>
+                <span class="group-meta-inf"><b>{{step.steps.length}}</b>&nbsp;<span ng-bind-html="step.steps.length > 1 ? 'steps' : 'step'"></span></span>
+            </div>
+    		<div class="actions" ng-class="{'preview':step.preview}">
+                <!-- changes resulting -->
+                <span class="changes" ng-show="step.$stepState.change">
+                    <span class="change created" title="Created" ng-show="step.$stepState.change.createdRows">
+                        <i class="icon-plus" /> {{step.$stepState.change.createdRows}}
+                    </span>
+                    <span class="change modified" title="Modified" ng-show="step.$stepState.change.modifiedRows">
+                        <i class="icon-pencil" /> {{step.$stepState.change.modifiedRows}}
+                    </span>
+                    <span class="change deleted" title="Deleted" ng-show="step.$stepState.change.deletedRows">
+                        <i class="icon-minus" /> {{step.$stepState.change.deletedRows}}
+                    </span>
+                </span>
+                <!-- warning -->
+                <span class="backend-warning" dku-html-tooltip ng-if="isStepInWarning(step)">
+                    <tooltip-trigger><i class="icon-warning-sign" /></tooltip-trigger>
+                    <tooltip-content ng-bind-html="getWarningMessage(step)"></tooltip-content>
+                </span>
+                <!-- preview -->
+                <a class="previewbutton" ng-click="togglePreview(step); $event.stopPropagation();"
+                    title="{{ previewTitle(step) }}" ng-if="!step.disabled" ng-class="{'previewActive': step.preview}">
+                    <i alt="Preview" class="icon-eye-open"  />
+                </a>
+                <!-- disable -->
+                <a class="disablebutton" ng-click="toggleDisable(step); $event.stopPropagation();"
+                    title="{{ disableTitle(step) }}">
+                    <i alt="Disable" class="icon-off" />
+                </a>
+                <!-- delete -->
+                <a ng-click=";remove({step:step}); $event.stopPropagation();" title="Delete step">
+                    <i class="icon-trash"></i>
+                </a>
+                <!-- more options -->
+                <a ng-click="!step.$stepState.softDisabled && openStepMenu($event, step, false); $event.stopPropagation();" class="shaker-step__menu-more" title="More options">
+                    <i class="icon-dku-more"/>
+                </a>
+    		</div>
+        </div>
+    </div>
+    <div class="content">
+        <ul class="steps" ui-tree-nodes ng-model="step.steps">
+            <li ng-repeat="substep in step.steps track by $id(substep)" ui-tree-node>
+                <div ng-init="step = substep">
+                    <div shaker-processor-step />
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div class="processor-footer" processor-footer ng-show="showFooter(isGroupActive())">
+        <!-- comment -->
+        <div class="comment" ng-if="showComment(isGroupActive()) || showCommentEditor(isGroupActive())" ng-class="{'editing-comment': editingComment}">
+            <div class="text">
+                <p ng-if="showComment(isGroupActive())">{{step.comment}}</p>
+                <fieldset child-focus ng-show="showCommentEditor(isGroupActive())">
+                    <textarea
+                        type='text'
+                        ng-model='step.comment'
+                        auto-focus="true"
+                        placeholder='Write your comment here...'
+                        ng-blur="saveComment()"
+                        />
+                </fieldset>
+                <label ng-show="isGroupActive()">
+                    <input type="checkbox" ng-model='step.alwaysShowComment' ng-change="isRecipe || saveOnly()"/>&nbsp; Always show comment
+                </label>
+            </div>
+            <ul class="comment-edition-toolbar" ng-if="isGroupActive()">
+                <li ng-click="saveComment()" ng-show="editingComment">
+                    <i class="icon-save"></i>
+                </li>
+                <li ng-click="toggleEditingComment($event)" ng-show="!editingComment">
+                    <i class="icon-pencil"></i>
+                </li>
+                <li ng-click="deleteComment()">
+                    <i class="icon-trash"></i>
+                </li>
+            </ul>
+        </div>
+        <!-- processor-subaction -->
+        <div class="group-actions" ng-show="isGroupActive()">
+            <a title="comment" ng-click="toggleEditingComment($event)">
+                <i class="icon-info-sign" />
+            </a>
+            <a title="color" ng-click="openColorPicker(step, $event)">
+                <i class="icon-dku-color_picker_2" />
+            </a>
+            <a title="Duplicate step" ng-click="duplicateStep(step)">
+                <i class="icon-dku-clone" />
+            </a>
+        </div>
+    </div>
+</div>

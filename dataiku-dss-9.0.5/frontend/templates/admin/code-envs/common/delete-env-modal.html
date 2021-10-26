@@ -1,0 +1,25 @@
+<div class="modal modal3">
+	<div dku-modal-header modal-title="Delete env used in {{usageByProject | objectSize}} projects" />
+
+	<form class="dkuform-modal-wrapper dkuform-modal-horizontal">
+		<div class="modal-body">
+            <div block-api-error />
+            <div>Code env used in <strong>{{usageByProject | objectSize}}</strong> projects</div>
+            
+            <div ng-repeat="(envUsage, usages) in usageByType">
+                <div><strong>{{usages.length}}</strong> use(s) in {{envUsage.toLowerCase().replace('_', ' ')}}s</div>
+                <ul>
+                    <li ng-repeat="usage in usages">
+                        {{usage.objectId}} ({{usage.projectKey}})
+                    </li>
+                </ul>
+            </div>
+		</div>
+
+		<div class="modal-footer modal-footer-std-buttons">
+            <button type="submit" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="button" class="btn btn--text btn--danger" ng-click="delete()">Delete</button>
+		</div>
+	</form>
+
+</div>

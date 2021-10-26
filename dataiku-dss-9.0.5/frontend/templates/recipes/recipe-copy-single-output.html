@@ -1,0 +1,34 @@
+<div ng-controller="SingleOutputRecipeCopyController">
+    <div include-no-scope="/templates/recipes/io/visual-recipe-creation-new-dataset.html" ng-show="io.newOutputTypeRadio == 'create'"/>
+    <div include-no-scope="/templates/recipes/io/visual-recipe-creation-new-streaming-endpoint.html" ng-show="io.newOutputTypeRadio == 'new-se'"/>
+    <div include-no-scope="/templates/recipes/io/visual-recipe-creation-new-model-evaluation-store.html" ng-show="io.newOutputTypeRadio == 'new-mes'"/>
+    <div ng-show="io.newOutputTypeRadio == 'select'">
+        <div class="suggested-new-output-dataset h100">
+            <form name="forms.newOutputDatasetForm" class="dkuform-vertical-larger">
+                <div class="control-group">
+                    <label for="" class="control-label"></label>
+                    <div class="controls">
+                        <div dataset-selector="io.existingOutputDataset" available-datasets="editOutput.usable" ></div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="noflex dku-switches">
+        <div style="clear: both;"></div>
+        <div ng-show="role.acceptsDataset && !noDataset" style="display: inline-block;">
+            <a ng-click="io.newOutputTypeRadio = 'create';" ng-class="{'selected' : io.newOutputTypeRadio == 'create'}">New dataset</a>
+            |
+        </div>
+        <a ng-click="io.newOutputTypeRadio = 'select';" ng-class="{'selected' : io.newOutputTypeRadio == 'select'}">Use existing</a>
+        <div ng-show="role.acceptsModelEvaluationStore && !noEvaluationStore && featureFlagEnabled('model_evaluation_stores')" style="display: inline-block;">
+            |
+            <a ng-click="io.newOutputTypeRadio = 'new-mes';" ng-class="{'selected' : io.newOutputTypeRadio == 'new-mes'}">New evaluation store</a>
+        </div>
+        <div ng-show="role.acceptsStreamingEndpoint && !noStreamingEndpoint" style="display: inline-block;">
+            |
+            <a ng-click="io.newOutputTypeRadio = 'new-se';" ng-class="{'selected' : io.newOutputTypeRadio == 'new-se'}">New streaming endpoint</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,183 @@
+<div ng-if="insight && isPartitionedModel()" include-no-scope="/templates/ml/prediction-model/partition_summary.html" />
+<div ng-if="modelData && (!insight || !isPartitionedModel())" ng-controller="PMLReportSummaryController" class="model-info-page summary-page">
+    <div class="edit-name-desc" include-no-scope="/templates/ml/common/edit-name-desc.html" />
+    <div style="text-align: center" ng-if="activeMetric && !fullModelEvaluationId">
+        <div class="model-score">
+            <span class="metric-name">{{printWeightedIfWeighted()}} {{activeMetric | mlMetricName : modelData.modeling.metrics }}</span>
+            <span class="metric-value" ng-bind-html="getMetricValueFromModel(modelData, activeMetric, currentCutData)  | mlMetricFormat :activeMetric :3 :false" />
+        </div>
+    </div>
+
+    <div ng-if="modelData.classes.length > 50" class="alert alert-warning dib" style="margin-top:20px">
+        <strong>Warning</strong> : your model has a large number of classes and the data was downsampled to 30k records
+        to compute this metric.
+    </div>
+
+    <div>
+        <div class="summary-legended">
+            <div class="summary-section summary-section--highlighted" ng-if="fullModelEvaluationId">
+                <div class="summary-section__title"><i class="icon-model-evaluation-store universe-color saved_model" /> Model evaluation</div>
+                <table class="summary-section__table summary-section__table--highlighted">
+                    <tr>
+                        <th>Model evaluation ID</th>
+                        <td ng-bind="fullModelEvaluationId"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="summary-section">
+                <div class="summary-section__title"><i class="icon-machine_learning_regression universe-color saved_model" /> Model</div>
+                <table class="summary-section__table">
+                    <tr ng-if="!fullModelEvaluationId">
+                        <th>Model ID</th>
+                        <td ng-bind="modelData.fullModelId" />
+                    </tr>
+                    <tr ng-if="!fullModelEvaluationId">
+                        <th>Backend</th>
+                        <td ng-bind="modelData.backendType | niceMLBackendType" />
+                    </tr>
+                    <tr>
+                        <th>Algorithm</th>
+                        <td ng-bind="modelData.modeling.algorithm | niceConst" />
+                    </tr>
+                    <tr>
+                        <th>Trained on</th>
+                        <td ng-bind="modelData.trainInfo.startTime | date : 'yyyy/MM/dd HH:mm'" />
+                    </tr>
+                    <tr>
+                        <th>Columns (train set)</th>
+                        <td ng-bind="modelData.splitDesc.schema.columns.length" />
+                    </tr>
+                    <tr ng-if="!modelData.splitDesc.params.kfold">
+                        <th>Rows (train set)</th>
+                        <td ng-bind="modelData.splitDesc.trainRows || modelData.trainInfo.trainRows" />
+                    </tr>
+                    <tr ng-if="modelData.splitDesc.params.kfold">
+                        <th>Number of folds</th>
+                        <td ng-bind="modelData.splitDesc.params.nFolds" />
+                    </tr>
+                    <tr ng-if="areMetricsWeighted()">
+                        <th>Sample weights variable</th>
+                        <td ng-bind="modelData.coreParams.weight.sampleWeightVariable" />
+                    </tr>
+                    <tr ng-if="isTimeOrderingEnabled()">
+                        <th>Time variable</th>
+                        <td ng-bind="modelData.coreParams.time.timeVariable" />
+                    </tr>
+                    <tr>
+                        <th>Calibration method</th>
+                        <td ng-bind="modelData.coreParams.calibration.calibrationMethod | niceConst" />
+                    </tr>
+                    <tr ng-if="evaluation && evaluation.evaluation && evaluation.evaluation.modelType == 'SAVED_MODEL'">
+                        <th>Evaluated model</th>
+                        <td ng-init="smParams = evaluation.evaluation.modelParams" class="model-info-page__object-link">
+                            <a ng-if="!evaluation.backingModelVersionDeleted"
+                                href="{{StateUtils.href.savedModelVersion('PREDICTION', evaluation.evaluation.modelRef.smId, evaluation.evaluation.modelRef.fullId, evaluation.evaluation.modelRef.projectKey)}}">
+                                {{smParams.name}} ({{evaluation.evaluation.modelRef.fullId}})
+                            </a>
+                            <a ng-if="!evaluation.backingModelDeleted && evaluation.backingModelVersionDeleted" 
+                                href="{{StateUtils.href.savedModel(evaluation.evaluation.modelRef.smId, evaluation.evaluation.modelRef.projectKey)}}">
+                                {{smParams.name}}
+                            </a>
+                            <span ng-if="evaluation.backingModelDeleted && evaluation.backingModelVersionDeleted">
+                                {{smParams.name}} (deleted)
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="summary-section summary-section--legend summary-metrics" ng-if="evaluation && !uiState.noperf">
+            <div class="summary-section__title">Metrics<span dku-html-tooltip>
+                <tooltip-trigger>
+                    <i class="icon-info-sign mleft8"></i>
+                </tooltip-trigger>
+                <tooltip-content>
+                    See <i>Metrics and assertions</i> section for more details on the metrics below
+                </tooltip-content>
+                </span>
+            </div>
+            <table class="summary-section__table">
+                <tr ng-repeat="cur in uiState.currentFormattedNames">
+                    <th ng-class="{'summary-metrics__metric--active': cur.code == activeMetric}">{{cur.label}}</th>
+                    <td ng-class="{'summary-metrics__metric--active': cur.code == activeMetric}">{{uiState.formattedMetrics[cur.key]}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="summary-section" style="clear:both" ng-if="evaluation.evaluation.dataType == 'DATASET'">
+        <div class="summary-section__title">
+            <i ng-if="!evaluation.evaluatedDatasetDeleted" class="{{evaluation.evaluatedDatasetType | datasetTypeToIcon}} universe-color dataset" />
+            <i ng-if="evaluatedDatasetType" class="icon-dataset universe-color dataset" />
+            Evaluation dataset</div>
+        <table class="summary-section__table">
+            <tr>
+                <th>Evaluated dataset</th>
+                <td ng-init="dsParams = evaluation.evaluation.dataParams" class="model-info-page__object-link">
+                    <a ng-if="!evaluation.evaluatedDatasetDeleted" href="{{StateUtils.href.dssObject('DATASET', dsParams.ref)}}">
+                        {{dsParams.ref}}
+                    </a>
+                    <span ng-if="evaluatedDatasetType">
+                        {{dsParams.ref}} (deleted)
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <th>Sample row count</th>
+                <td ng-bind="evaluation.evaluatedDataStatistics.nbRows"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="clear:both">
+        <div class="summary-section summary-legended" ng-if="featureFlagEnabled('model_evaluation_stores') && !modelData.modelEvaluation">
+            <div class="summary-section__title">Metadata</div>
+            <form class="dkuform-std-vertical">
+                <div class="control-group required">
+                    <div class="controls">
+                        <ng2-key-values-list
+                            [(items)]="modelData.userMeta.labels"
+                            [icon-fn]="setIcon"
+                            add-label="Add a label"
+                            key-placeholder="Label key"
+                            value-placeholder="Label value"
+                        ></ng2-key-values-list>
+                        <div class="help-inline">
+                            Optional. Informative labels for the model.
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="summary-section summary-legended" ng-if="featureFlagEnabled('model_evaluation_stores') && modelData.modelEvaluation">
+            <div class="summary-section__title">Metadata</div>
+            <form class="dkuform-std-vertical mbot0">
+                <div class="control-group required mbot0">
+                    <div class="controls">
+                        <ng2-key-values-list
+                            [(items)]="modelData.modelEvaluation.labels"
+                            [icon-fn]="setIcon"
+                            add-label="Add a label"
+                            key-placeholder="Label key"
+                            value-placeholder="Label value"
+                        ></ng2-key-values-list>
+                        <div class="help-inline">
+                            Optional. Informative labels for the model evaluation.
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="summary-section summary-section--legend" ng-if="featureFlagEnabled('model_evaluation_stores')">
+            <ul class="raw-unstyled-ul">
+                <li><i class="icon-dataset universe-color dataset"></i>Dataset</li>
+                <li><i class="icon-machine_learning_regression universe-color saved_model"></i>Model</li>
+                <li ng-if="evaluation"><i class="icon-model-evaluation-store universe-color saved_model"></i>Evaluation</li>
+                <li><i class="icon-dku-edit"></i>Custom</li>
+            </ul>
+        </div>
+    </div>
+</div>

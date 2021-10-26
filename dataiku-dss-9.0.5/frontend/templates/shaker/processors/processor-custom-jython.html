@@ -1,0 +1,68 @@
+<form ng-controller="CustomJythonProcessorController" name="processorForm" publish-in-grand-grand-parent="processorForm">
+    <fieldset on-any-blur="checkAndRefresh()" ng-if="loadedDesc.desc.mode == 'CELL'">
+        <label class="control-label">Output column</label>
+        <input  type="text"
+        ng-model="step.params.outputColumn"
+        ng-required="true"
+        required="required"
+        class="submit-on-blur"
+        next-on-enter/>
+    </fieldset>
+
+    <!-- ng-if ensures that onAnyBlur is initialized at the right time -->
+    <div  on-any-blur-watch="checkAndRefresh()" watch="desc">
+       <div custom-params-form
+	       desc="desc"
+	       plugin-desc="pluginDesc"
+	       component-id="loadedDesc.id"
+	       config="step.params.customConfig"
+	       columns-per-input-role="columnsPerInputRole">
+	   </div>
+	</div>
+	
+	<fieldset on-any-blur="checkAndRefresh()">
+	    <label class="control-label">Error column</label>
+	    <input  type="text"
+	    ng-model="step.params.errorColumn"
+	    ng-required="false"
+	    required="false"
+	    class="submit-on-blur"
+	    next-on-enter/>
+	</fieldset>
+	
+    <fieldset ng-if="loadedDesc.desc.useKernel && loadedDesc.desc.vectorize">
+        <span class="fieldLabel">Vector size</span>
+        <input type="number"
+            force-integer
+            min="1"
+            autocomplete="off"
+            ng-model="step.params.vectorSize"
+            class="submit-on-blur"
+            next-on-enter/>
+        <span class="help-inline">
+            Max size for the vectors passed to the UDF
+        </span>
+    </fieldset>
+    <fieldset ng-if="loadedDesc.desc.useKernel">
+        <span class="fieldLabel">Used input columns</span>
+        <ng2-values-list 
+            [(items)]="step.params.sourceColumnsList"
+            [suggestions]="step.$stepState.change.columnsBeforeStep"
+            add-label="Add a column" 
+            (on-blur)="checkAndRefresh()"
+            (on-delete)="checkAndRefresh()"
+            value-placeholder="E.g. a column of the schema">
+        </ng2-values-list>
+         <span class="help-inline">
+             Access to these columns will be faster
+         </span>
+     </fieldset>
+    <fieldset ng-if="loadedDesc.desc.useKernel">
+         <span class="fieldLabel">Used input columns (pattern)</span>
+         <input type="text" class="submit-on-blur" ng-trim="false" ng-model="step.params.sourceColumnsPattern" next-on-enter />
+         <span class="help-inline">
+             Access to these columns will be faster
+         </span>
+     </fieldset>
+	
+</form>

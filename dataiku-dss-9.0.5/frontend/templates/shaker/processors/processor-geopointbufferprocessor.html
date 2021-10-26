@@ -1,0 +1,97 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-parent="processorForm">
+
+	<!-- Input column selection -->
+	<fieldset>
+		<span class="fieldLabel">Input column</span>
+		<input
+				type='text'
+				bs-typeahead='step.$stepState.change.columnsBeforeStep'
+				autocomplete='off'
+				ng-trim="false"
+				ng-required="true"
+				required="required"
+				data-min-length='0'
+				ng-model='step.params.inputColumn'
+				class="submit-on-blur"
+				next-on-enter/>
+	</fieldset>
+
+	<!-- Output column selection -->
+	<fieldset>
+		<span class="fieldLabel">Output column</span>
+		<input
+				type='text'
+				bs-typeahead='step.$stepState.change.columnsBeforeStep'
+				autocomplete='off'
+				ng-trim="false"
+				ng-required="true"
+				required="required"
+				data-min-length='0'
+				ng-model='step.params.outputColumn'
+				class="submit-on-blur"
+				next-on-enter/>
+	</fieldset>
+
+	<!-- Shape (Rectangular, Circular) -->
+	<fieldset>
+		<div class="fieldLabel">Shape</div>
+		<select dku-bs-select
+				ng-model="step.params.shapeMode"
+				class="submit-on-blur"
+				next-on-enter
+				required
+		>
+			<option value="RECTANGLE">Rectangle</option>
+			<option value="CIRCLE">Circle</option>
+		</select>
+	</fieldset>
+
+	<fieldset ng-if="step.params.shapeMode === 'RECTANGLE'">
+		<span class="fieldLabel">Width</span>
+		<input
+				type="number"
+				ng-model="step.params.width"
+				ng-required="param.mandatory"
+				class="submit-on-blur"
+				next-on-enter
+		/>
+		<span class="help-inline" style="padding-left: 0;"></span>
+		<span class="fieldLabel">Height</span>
+		<input
+				type="number"
+				ng-model="step.params.height"
+				ng-required="param.mandatory"
+				class="submit-on-blur"
+				next-on-enter
+		/>
+	</fieldset>
+
+
+	<fieldset ng-if="step.params.shapeMode === 'CIRCLE'">
+		<span class="fieldLabel">Radius</span>
+		<input
+				type="number"
+				ng-model="step.params.radius"
+				ng-required="param.mandatory"
+				class="submit-on-blur"
+				next-on-enter
+		/>
+	</fieldset>
+
+
+	<!-- Unit (km, miles) -->
+	<fieldset>
+		<div class="fieldLabel">Distance unit</div>
+		<select dku-bs-select
+				ng-model="step.params.unitMode"
+				class="submit-on-blur"
+				next-on-enter
+				required
+		>
+			<option value="KILOMETERS">Kilometers</option>
+			<option value="MILES">Miles</option>
+		</select>
+	</fieldset>
+
+</form>
+

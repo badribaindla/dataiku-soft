@@ -1,0 +1,381 @@
+<form class="dkuform-horizontal">
+	<div class="section" ng-if="mask">
+	    <div class="control-group" ng-if="mask">
+	        <label class="control-label">Override global settings</label>
+	        <div class="controls">
+	            <label>
+	                <input type="checkbox" ng-model="mask.enabled">
+	                <span class="help-inline">If disabled, this cluster will use globally-defined settings for everything related to Hive</span>
+	            </label>
+	        </div>
+	    </div>
+    </div>
+
+	<div class="section" ng-if="!mask || mask.enabled">
+		<div class="control-group" ng-if="!mask || mask.enabled">
+		    <label class="control-label">Enable Hive</label>
+		    <div class="controls">
+		        <label>
+		            <input type="checkbox" ng-model="settings.enabled"/>
+	                <span class="help-inline">Enable support of Hive {{mask ? 'for this cluster' : ''}}</span>
+		        </label>
+		    </div>
+		</div>
+	</div>
+
+    <div ng-if="(!mask || mask.enabled) && settings.enabled">
+    	<div class="section">
+        <h2 id="hiveserver2">HiveServer2</h2>
+
+        <div ng-if="mask" class="control-group">
+            <label class="control-label">Override connection settings</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.jdbc">
+                    <span class="help-inline">If disabled, this cluster will use globally-defined HiveServer2 connection settings</span>
+                </label>
+            </div>
+        </div>
+
+        <div ng-if="!mask || mask.jdbc">
+
+            <div class="control-group">
+                <label for="hiveUseURLcheckbox" class="control-label">Use advanced URL syntax</label>
+                <div class="controls">
+                    <input id="hiveUseURLcheckbox" type="checkbox" ng-model="settings.useURL"/>
+                </div>
+            </div>
+            <div ng-show="settings.useURL != true">
+                <div class="control-group">
+                    <label for="hiveserver2Host" class="control-label">Host</label>
+                    <div class="controls">
+                        <input type="text" id="hiveserver2Host" ng-model="settings.hiveServer2Host"/>
+                        <span class="help-inline">HiveServer2 host</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="hiveserver2Port" class="control-label">Port</label>
+                    <div class="controls">
+                        <input type="number" id="hiveserver2Port" min="0" max="65535" step="1" ng-model="settings.hiveServer2Port"/>
+                        <span class="help-inline">HiveServer2 port</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="hivePrincipal" class="control-label">Principal</label>
+                    <div class="controls">
+                        <input type="text" id="hivePrincipal" ng-model="settings.hiveServer2Principal"/>
+                        <span class="help-inline">Kerberos principal of the HiveServer2</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="extraUrl" class="control-label">Extra URL</label>
+                    <div class="controls">
+                        <input type="text" id="extraUrl" ng-model="settings.extraUrl"/>
+                        <span class="help-inline">Appended to the JDBC URL after the jdbc:hive2://host:port/db</span>
+                    </div>
+                </div>
+            </div>
+            <div ng-show="settings.useURL == true">
+                <div class="control-group">
+                    <label class="control-label">Driver class</label>
+                    <div class="controls">
+                        <input type="text" ng-model="settings.driver"/>
+                        <span class="help-inline">Default: org.apache.hive.jdbc.HiveDriver</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Connection URL</label>
+                    <div class="controls">
+                        <input type="text" ng-model="settings.url" ng-if="!appConfig.hiveUrlContainsSecret" />
+                        <input type="password" ng-model="settings.url" ng-if="appConfig.hiveUrlContainsSecret" />
+                        <span class="help-inline">Mandatory</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Displayed connection URL</label>
+                    <div class="controls">
+                        <input type="text" ng-model="settings.displayedUrl"/>
+                        <span class="help-inline">Shown in logs instead of connection URL if present. Useful to hide passwords</span>
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label  class="control-label">Connection properties</label>
+                <div class="controls">
+                    <ng2-credentials-list 
+                        [(items)]="settings.connectionProperties"
+                        key-placeholder="Configuration key"
+                        value-placeholder="Configuration value"
+                        add-label="Add configuration">
+                    </ng2-credentials-list>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="mask" class="control-group">
+            <label class="control-label">Override charts settings</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.canChart">
+                    <span class="help-inline">If disabled, this cluster will use globally-defined settings for charts on HiveServer2</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="!mask || mask.canChart">
+            <label class="control-label">Use HiveServer2 for charts</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="settings.canChart"/>
+                    <span class="help-inline">Charts can be done using Hive if Impala is not available.</span>
+                </label>
+            </div>
+        </div>
+        </div>
+
+
+        <div class="section">
+            <h2 id="recipes">Hive recipes</h2>
+
+        <div ng-if="mask" class="control-group">
+            <label class="control-label">Override creation settings</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.engineCreationSettings">
+                    <span class="help-inline">
+                        If disabled, this cluster will use globally-defined settings for Hive recipe creation settings
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="!mask || mask.engineCreationSettings">
+            <label class="control-label">Default execution engine</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="settings.engineCreationSettings.executionEngine">
+                    <option value="HIVECLI_LOCAL">(Deprecated) Hive CLI (Isolated metastore)</option>
+                    <option value="HIVECLI_GLOBAL">(Deprecated) Hive CLI (Global metastore)</option>
+                    <option value="HIVESERVER2">HiveServer2</option>
+                </select>
+                <span class="help-inline">Default value for new Hive recipes</span>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="mask && impersonationEnabled">
+            <label class="control-label">Override 'Hive user'</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.additionalUserToGrantAccessToWhenImpersonating">
+                    <span class="help-inline">If disabled, this cluster will use globally-defined setting for 'which user runs Hive'</span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-if="impersonationEnabled && (!mask || mask.additionalUserToGrantAccessToWhenImpersonating)">
+            <label class="control-label">Hive user</label>
+            <div class="controls">
+                <input type="text" ng-model="settings.additionalUserToGrantAccessToWhenImpersonating"/>
+                <span class="help-inline">In impersonation mode, DSS needs to grant access to this user</span>
+            </div>
+        </div>
+    
+        <div ng-if="mask" class="control-group">
+            <label class="control-label">Override 'Force database'</label>
+             <div class="controls">
+                <label>
+                <input type="checkbox" ng-model="mask.overrideDatabaseInLocalMetastore">
+                    <span class="help-inline">Advanced usage</span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!mask || mask.overrideDatabaseInLocalMetastore">
+            <label class="control-label">Force database</label>
+            <div class="controls">
+                <label>
+                <input type="checkbox" ng-model="settings.overrideDatabaseInLocalMetastore"/>
+                <span class="help-inline">Should DSS override the Hive database to 'dataiku' whenever using the isolated metastore mode and validating</span>
+            </label>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="mask && impersonationEnabled">
+            <label class="control-label">Override 'Write ACL'</label>
+             <div class="controls">
+                <label>
+                <input type="checkbox" ng-model="mask.addWriteACLOnDataUsabilityACL">
+                    <span class="help-inline">Advanced usage</span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-if="impersonationEnabled && (!mask || mask.addWriteACLOnDataUsabilityACL)">
+            <label class="control-label">Write ACL in datasets</label>
+            <div class="controls">
+                <label>
+                <input type="checkbox" ng-model="settings.addWriteACLOnDataUsabilityACL"/>
+                <span class="help-inline">Add write ACL to Hive on managed datasets? Required if Storage-based authorization is enabled in Hive metastore</span>
+            </label>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="mask && !impersonationEnabled">
+            <label class="control-label">Override 'pre-create managed'</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.preCreateManagedDatasetFolderBeforeMetastoreSyncForHS2Recipes">
+                    <span class="help-inline">Advanced usages</span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!impersonationEnabled && (!mask || mask.preCreateManagedDatasetFolderBeforeMetastoreSyncForHS2Recipes)">
+            <label class="control-label">Pre-create folder for HS2 recipes</label>
+            <div class="controls">
+                <label>
+                <input type="checkbox" ng-model="settings.preCreateManagedDatasetFolderBeforeMetastoreSyncForHS2Recipes"/>
+                <span class="help-inline">When running a recipe through a non-impersonating HiveServer2, should DSS create the folder before doing the synchronization? Must be disabled for "inherit permissions mode". See documentation for more info.</span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-if="mask && impersonationEnabled">
+            <label class="control-label">Override 'pre-create managed'</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.preCreateManagedDatasetFolderBeforeMetastoreSyncForMUSHS2Recipes">
+                    <span class="help-inline">Advanced usages</span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-if="impersonationEnabled && (!mask || mask.preCreateManagedDatasetFolderBeforeMetastoreSyncForMUSHS2Recipes)">
+            <label class="control-label">Pre-create folder for HS2 recipes</label>
+            <div class="controls">
+                <label>
+                <input type="checkbox" ng-model="settings.preCreateManagedDatasetFolderBeforeMetastoreSyncForMUSHS2Recipes"/>
+                <span class="help-inline">When running a recipe through a impersonating HiveServer2, should DSS create the folder before doing the synchronization? See documentation for more info.</span>
+                </label>
+            </div>
+        </div>
+        </div>
+
+        <div class="section">
+            <h2 id="query-alterations">Query alterations</h2>
+
+        <div ng-if="mask" class="control-group">
+            <label class="control-label">Override global settings</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.queryAlterations">
+                    <span class="help-inline">
+                        Advanced usage
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="!mask || mask.queryAlterations">
+            <label class="control-label">Add compression commands</label>
+            <div class="controls">
+                <label>
+                <input type="checkbox" ng-model="settings.addCompressionCommands"/>
+                <span class="help-inline">Should DSS add 'SET ...' commands to Hive jobs in order to set the output's compression? (Snappy, Deflate, ...)</span>
+            </label>
+            </div>
+        </div>
+        <div class="control-group" ng-if="$root.isDSSAdmin() && (!mask || mask.queryAlterations)">
+            <label class="control-label">Auxiliary jars and UDFs</label>
+            <div class="controls">
+                <textarea ng-model="settings.auxJarsAndUdfs"
+                        ui-codemirror="codeMirrorSettingService.get('text/x-sql')">
+                </textarea>
+            </div>
+        </div>
+        <div class="control-group" ng-if="$root.isDSSAdmin() && (!mask || mask.queryAlterations)">
+            <label class="control-label">Run before table creation scripts</label>
+            <div class="controls">
+                <span class="help-inline">Commands to run before creating tables in DSS-produced Hive scripts</span>
+                <textarea ng-model="settings.initQueryPreStatements"
+                        ui-codemirror="codeMirrorSettingService.get('text/x-sql')">
+                </textarea>
+            </div>
+        </div>
+        <div class="control-group" ng-if="$root.isDSSAdmin() && (!mask || mask.queryAlterations)">
+            <label class="control-label">Run after table creation scripts</label>
+            <div class="controls">
+                <span class="help-inline">Commands to run after creating tables in DSS-produced Hive scripts</span>
+                <textarea ng-model="settings.initQueryPostStatements"
+                        ui-codemirror="codeMirrorSettingService.get('text/x-sql')">
+                </textarea>
+            </div>
+        </div>
+        <div class="control-group" ng-if="$root.isDSSAdmin() && (!mask || mask.queryAlterations)">
+            <label class="control-label">Aux. jars for validation</label>
+            <div class="controls">
+                <input type="text" ng-model="settings.hiveAdditionalJars"/>
+                <span class="help-inline">Additional jars to use when validating Hive recipes (colon-separated list)</span>
+            </div>
+        </div>
+
+        </div>
+
+        <div class="section">
+            <h2 id="runtime-configurations">Hive runtime configurations</h2>
+
+	        <div ng-if="mask" class="control-group">
+	            <label class="control-label">Override</label>
+	            <div class="controls">
+	                <label>
+	                    <input type="checkbox" ng-model="mask.properties">
+	                    <span/>
+	                </label>
+	            </div>
+	        </div>
+
+        <div ng-if="!mask || mask.properties">
+            <div ng-if="mask" style="margin-bottom: 20px">
+                <h3>Config keys added to all configurations <button type="button" ng-if="hadoopSettings" class="btn btn--secondary pull-right" ng-click="copyHadoopSettings()">Copy Hadoop settings</button></h3>
+                <ng2-credentials-list 
+                    [(items)]="settings.executionConfigsGenericOverrides"
+                    key-placeholder="Configuration key"
+                    value-placeholder="Configuration value"
+                    add-label="Add configuration">
+                </ng2-credentials-list>
+            </div>
+            <div ng-if="mask">
+                <h3>Per-configuration overrides</h3>
+            </div>
+            <div add-remove ng-model="settings.executionConfigs" ng-init="preAddConfig = false">
+
+                <div ng-repeat="execConfig in settings.executionConfigs" class="repeatable-config-block" >
+
+                    <button type="button" class="pull-right btn btn--danger" style="margin: 10px" ng-click="remove($index)">
+                        Remove
+                    </button>
+                    <h3>Basic</h3>
+                    <div class="control-group">
+                        <label for="" class="control-label">Config name</label>
+                        <div class="controls">
+                            <input type="text" ng-model="execConfig.name" />
+                            <div class="help-inline">
+                                NB: Make sure a named configuration is not used before removing or renaming it.
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="mask && execConfig.name && execConfig.name.length > 0 && appConfig.hiveExecutionConfigs.indexOf(execConfig.name) < 0" class="alert alert-warning">
+                        <p>No runtime configuration named <em>{{execConfig.name}}</em> exists at the instance level.</p>
+                        <p>Runtime configurations defined at the cluster level are only overrides of configurations defined in <a href="{{$state.href('admin.general')}}">Administration</a></p>
+                    </div>
+                    <h3>Config keys</h3>
+                    <small>
+                        Define here Hive configuration keys.
+                    </small>
+                    <ng2-credentials-list 
+                        [(items)]="execConfig.conf"
+                        key-placeholder="Hive configuration key"
+                        value-placeholder="Hive configuration value"
+                        add-label="Add Hive configuration">
+                    </ng2-credentials-list>
+                </div>
+
+                <button type="button" class="btn btn--text btn--primary" ng-click="preAddConfig = true; add({conf : []})"><span plus-icon />&nbsp;Add another config</button>
+            </div>
+            </div>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,62 @@
+<div class="plugin-content plugin-usages fh oa">
+    <h4 class="plugin-details__title">Usages</h4>
+    <div class="alert alert-info">
+        <p>Here you can compute the instanciations of the components of this plugin across projects.</p>
+        <div block-api-error></div>
+    </div>
+
+    <button ng-if="isDSSAdmin()" type="button" class="btn btn--primary" ng-click="getUsages()">Fetch usages</button>
+
+    <div class="alert alert-error" ng-if="pluginUsages.missingTypes.length > 0 && isDSSAdmin()">
+        <p>
+            Errors occured during the analysis. They may hide some uses of this plugin.
+        </p>
+        <p>
+            They may be caused references to other uninstalled plugins. Fixing/removing those references or reinstalling the plugins could help.
+        </p>
+    </div>
+
+    <table ng-if="pluginUsages && pluginUsages.missingTypes.length > 0 && isDSSAdmin()" sort-table class="table table-striped table-hover permissions alert-error" >
+        <thead>
+            <tr>
+                <th sort-col="missingType" style="text-align: left;">Missing Type</th>
+                <th sort-col="objectType" style="text-align: left;">Type</th>
+                <th sort-col="projectKey" style="text-align: left;">Project</th>
+                <th sort-col="objectId" style="text-align: left;">Object using this type</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="missing in pluginUsages.missingTypes | orderBy:sortColumn:sortDescending" full-click>
+                <td class="mx-textellipsis">{{missing.missingType}}</a></td>
+                <td class="mx-textellipsis">{{missing.objectType}}</td>
+                <td class="mx-textellipsis">{{missing.projectKey?missing.projectKey:'-'}}</td>
+                <td class="mx-textellipsis">{{missing.objectId?missing.objectId:'-'}}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table ng-if="pluginUsages && pluginUsages.usages.length > 0 && isDSSAdmin()" sort-table class="table table-striped table-hover permissions" >
+        <thead>
+            <tr>
+                <th sort-col="elementKind">Kind</th>
+                <th sort-col="elementType" style="text-align: left;">Name</th>
+                <th sort-col="objectType" style="text-align: left;">Type</th>
+                <th sort-col="projectKey" style="text-align: left;">Project</th>
+                <th sort-col="objectId" style="text-align: left;">Id</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="usage in pluginUsages.usages | orderBy:sortColumn:sortDescending" full-click>
+                <td class="mx-textellipsis">{{usage.elementKind}}</td>
+                <td class="mx-textellipsis"><a href="{{computeUsageLink(usage)}}" main-click title="{{usage.elementType}}">{{usage.elementType}}</a></td>
+                <td class="mx-textellipsis">{{usage.objectType}}</td>
+                <td class="mx-textellipsis">{{usage.projectKey}}</td>
+                <td class="mx-textellipsis">{{usage.objectId}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="m16" ng-if="pluginUsages && pluginUsages.usages.length === 0 && isDSSAdmin()">
+        No usage found for this plugin. 
+    </div>
+</div>
+    

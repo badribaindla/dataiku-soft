@@ -1,0 +1,37 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Lasso Path
+    </div>
+    <div data-block="algorithm-description">
+        <p><strong>Lasso Path</strong> is a method which uses a linear model with a L1 regularization and computes the LASSO path (ie. for all values of the regularization parameter).</p>
+        <p>
+                This computation allows to select a given number of non-zero coefficients, ie. to select a given number of features. After training, you will be able to visualize the LASSO path and select a new number of features.
+        </p>
+        <p>
+            <span ng-if="!isMulticlass()">This is performed using LARS regression. It requires a number of passes on the data
+            equal to the number of features. If this number is large, computation may be slow.</span>
+            <span ng-if="isMulticlass()">It usually requires a large number of passes on the data, and as such may be
+                unsuited for large datasets.</span>
+        </p>
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group required">
+            <label class="control-label">Maximum features</label>
+            <div class="controls">
+                <input type="text" force-integer ng-model="mlTaskDesign.modeling.lars_params.max_features" min="0">
+                <div class="help-inline">
+                    The number of kept features. Input 0 to have all features enabled (no regularization). Has no impact on training time.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required" ng-if="!isRegression()">
+            <label class="control-label">Number of tests</label>
+            <div class="controls">
+                <input type="text" force-integer ng-model="mlTaskDesign.modeling.lars_params.K" min="0">
+                <div class="help-inline">
+                    The number of values of the regularization parameter to test. The path will be extrapolated from the resulting coefficients. Increases training time linearly.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

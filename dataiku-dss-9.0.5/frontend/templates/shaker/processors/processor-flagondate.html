@@ -1,0 +1,134 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-parent="processorForm" ng-controller="DateRangeShakerController">
+
+    <ng-include src="'/templates/shaker/processors/processor-filter-and-flag.html'"></ng-include>
+
+    <fieldset ng-if="step.params">
+        <span class="fieldLabel">Date column</span><br />
+        <input
+                type='text'
+                bs-typeahead='step.$stepState.change.columnsBeforeStep'
+                autocomplete='off'
+                ng-trim="false"
+                ng-required="true"
+                required="required"
+                data-min-length='0'
+                ng-model='step.params.columns[0]    '
+                class="submit-on-blur"
+                next-on-enter/>
+    </fieldset>
+
+    <fieldset ng-if="step.params">
+        <span class="fieldLabel">Flag on</span><br />
+        <select
+          dku-bs-select
+          ng-model="step.params.filterType"
+          class="submit-on-blur"
+          required
+        >
+          <option value="RANGE">Date Range</option>
+          <option value="RELATIVE">Relative Range</option>
+          <option value="PART">Date Part</option>
+        </select>
+    </fieldset>
+
+    <div ng-if="step.params.filterType === 'RANGE'">
+        <fieldset>
+            <span class="fieldLabel">From</span><br />
+            <input ng-model="displayed.min" ng-blur="updateBoundaries('min')" ng-mouseup="updateBoundariesWithDelay('min')" type="date" style="width: 106px" />
+            <input ng-model="displayed.min" ng-blur="updateBoundaries('min')" ng-mouseup="updateBoundariesWithDelay('min')" type="time" step="1" ng-style="timeInputStyle" />
+        </fieldset>
+        <fieldset>
+            <span class="fieldLabel">To</span><br />
+            <input ng-model="displayed.max" ng-blur="updateBoundaries('max')" ng-mouseup="updateBoundariesWithDelay('max')" type="date" style="width: 106px" />
+            <input ng-model="displayed.max" ng-blur="updateBoundaries('max')" ng-mouseup="updateBoundariesWithDelay('max')" type="time" step="1" ng-style="timeInputStyle" />
+        </fieldset>
+
+        <fieldset>
+            <span class="fieldLabel">Timezone</span>
+            <select
+                    dku-bs-select
+                    ng-model="step.params.timezone_id"
+                    ng-options="item.value as item.label for item in processor.params[8].advancedChoices"
+                    class="submit-on-blur"
+                    next-on-enter
+                    required>
+            </select>
+        </fieldset>
+    </div>
+
+    <div ng-if="step.params.filterType === 'RELATIVE'">
+        <fieldset>
+            <span class="fieldLabel">Part</span><br />
+            <select
+            dku-bs-select
+            ng-model="step.params.part"
+            class="submit-on-blur"
+            required
+            >
+                <option value="YEAR">Year</option>
+                <option value="QUARTER_OF_YEAR">Quarter</option>
+                <option value="MONTH_OF_YEAR">Month</option>
+                <option value="DAY_OF_MONTH">Day</option>
+                <option value="HOUR_OF_DAY">Hour</option>
+            </select>
+        </fieldset>
+
+        <div class="control-group">
+            <div class="controls">
+                <label>
+                    <input type="radio" class="submit-on-blur" ng-model="step.params.option" value="THIS"/>
+                    This {{dateRelativeFilterPartsLabel}}
+                </label>
+                <label>
+                    <input type="radio" class="submit-on-blur" ng-model="step.params.option" value="LAST"/>
+                    Last <input type="number" class="submit-on-blur" ng-model="step.params.relativeMin" style="width: 50px;" />
+                    {{dateRelativeFilterPartsLabel}}{{step.params.relativeMin > 1 ? 's' : ''}}
+                </label>
+                <label>
+                    <input type="radio" class="submit-on-blur" ng-model="step.params.option" value="NEXT"/>
+                    Next <input type="number" class="submit-on-blur" ng-model="step.params.relativeMax" min="1" style="width: 50px;" />
+                    {{dateRelativeFilterPartsLabel}}{{step.params.relativeMax > 1 ? 's' : ''}}
+                </label>
+                <label>
+                    <input type="radio" class="submit-on-blur" ng-model="step.params.option" value="TO"/>
+                    {{dateRelativeFilterPartsLabel}} to date
+                </label>
+                <div class="ff-relative-date-filter-hint">
+                    <i class="icon-info-sign"></i> This filter is calculated relative to the current date and will update itself over time.
+                    Currently it flags rows with values between <b>{{dateRelativeFilterComputedStart}}</b> and <b>{{dateRelativeFilterComputedEnd}}</b>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="step.params.filterType === 'PART'">    
+        <fieldset>
+            <span class="fieldLabel">Part</span><br />
+            <select
+            dku-bs-select
+            ng-model="step.params.part"
+            class="submit-on-blur"
+            required
+            >
+                <option value="YEAR">Year</option>
+                <option value="QUARTER_OF_YEAR">Quarter of year</option>
+                <option value="WEEK_OF_YEAR">Week of year</option>
+                <option value="MONTH_OF_YEAR">Month of year</option>
+                <option value="DAY_OF_MONTH">Day of month</option>
+                <option value="DAY_OF_WEEK">Day of week</option>
+                <option value="HOUR_OF_DAY">Hour of day</option>
+                <option value="INDIVIDUAL">Individual dates</option>
+            </select>
+        </fieldset>
+
+        <fieldset>
+            <div class="fieldLabel">Values</div>
+            <ng2-values-list [(items)]="displayed.values" (on-blur)="checkAndRefresh($event)"></ng2-values-list>
+            <span ng-if="step.params.part === 'INDIVIDUAL'" class="help-inline" style="padding-left: 0;">
+              Values should be formatted as YYYY-MM-DD
+            </span>
+        </fieldset>
+    </div>
+
+</form>
+

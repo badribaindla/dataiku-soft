@@ -1,0 +1,24 @@
+<div class="execution-plan" ng-if="executionPlan.type == 'TEXT'">
+<pre>
+<div ng-repeat="step in executionPlan.steps track by $index" class="{{step.warningLevel.toLowerCase()}}">{{step.content}}</div>
+</pre>
+</div>
+
+<div ng-if="executionPlan.type == 'TABULAR'">
+    <table class="table table-striped table-bordered table-condensed sql-results-table" >
+        <thead>
+            <tr class="{{step.warningLevel.toLowerCase()}}">
+                <th class="column-header" ng-repeat="column in executionPlan.columns track by $index">
+                    <div class="name">{{column}}</div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="step in executionPlan.steps track by $index">
+                <td ng-repeat="cell in step.content track by $index" style="white-space:nowrap; font-size: 0.8em;">
+                    <div ng-class="{O:cell, U:cell, cell:true}">{{cell}}</div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

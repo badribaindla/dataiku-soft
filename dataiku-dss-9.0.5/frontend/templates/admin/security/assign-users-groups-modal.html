@@ -1,0 +1,38 @@
+<div class="modal modal3 dku-modal users-groups-modal" auto-size="false">
+    <div class="vertical-flex h100">
+        <div dku-modal-header modal-title="Assign users to group" class="noflex has-border"></div>
+        <div class="modal-body horizontal-flex oa">
+            <div class="modal-column">
+                <div class="modal-column__header">
+                    <span class="modal-column__title">Selected users</span>
+                </div>
+                <ul>
+                    <li ng-repeat="user in users">
+                        <span toggle="tooltip" title="{{user.displayName}}">
+                            {{user.login}}
+                        </span>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-column" ng-model="groups">
+                <div class="modal-column__header">
+                    <span class="modal-column__title">Groups</span>
+                    <div class="std-list-search-box">
+                        <span class="add-on"><i class="icon-dku-search"></i></span>
+                        <input type="search" ng-model="query" placeholder="Filter">
+                    </div>
+                </div>
+                <label ng-repeat="group in groups" ng-show="([group.name] | filter:query).length">
+                    <input type="checkbox" ng-model="group.selected" ng-click="assignGroup(group)" dku-indeterminate="group.indeterminate" />
+                    {{group.name}}
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <input type="submit" class="btn btn--text btn--primary"value="Save" ng-click="assignGroups(users)" ng-disabled="!wereGroupsChanged()"/>
+        </div>
+    </div>
+</div>
+
+
+

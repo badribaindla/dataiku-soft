@@ -1,0 +1,627 @@
+<div class="home-page dss-home-page" ng-class="{'automation-node' : appConfig.isAutomation}">
+
+ <div class="vertical-flex h100">
+    <div class="noflex header-zone">
+        <div class="horizontal-flex project-home-nav-title-bar">
+            <div class="flex">
+                <h2 class="home-nav-title">
+                    <span class="home-nav-title-element folder-name root project-home-nav-title-bar"><a ui-sref="home" id="qa_homepage_home-button">Home</a></span>
+                    <span class="home-nav-title-element"><i class="icon-angle-right"/></span>
+                    <span ui-sref="project-list({folderId: null})" class="folder-name home-nav-title-element">Projects</span>
+                    <span ng-repeat="folder in ProjectFolderContext.getProjectFoldersInPath()">
+                        <span class="home-nav-title-element"><i class="icon-angle-right"/></span>
+                        <span class="home-nav-title-element folder-name" ui-sref="project-list({folderId: folder.id})" ng-if="!$last">{{folder.name}}</span>
+                        <span ng-if="$last" class="home-nav-title-element">
+                            <span>{{folder.name}}</span>
+                            <span ng-if="folder.noPermissions && folder.isAdmin">&nbsp;<a ng-click="displayProjectFolderPermissionsModal(folder)" title="{{ NO_PERMISSION_TOOLTIP_MSG }}" toggle="tooltip" placement="bottom" container="body"><i class="icon-eye-close" /></a></span>
+                            <span>&nbsp;<a ng-click="openFolderMenu(folder, $event, folder)"><i class="icon-caret-down" /></a></span>
+                        </span>
+                    </span>
+                </h2>
+            </div>
+            <div class="noflex new-project-btn-container">
+                <new-project-btn ></new-project-btn>
+				<new-folder-btn list-content-fn="listContent()"></new-folder-btn>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex main-zone vertical-flex">
+        <!-- TOP BAR -->
+        <div class="noflex top-bar" ng-class="{'flow-display-mode': displayMode.mode == 'flow'}">
+
+            <div class="left-side-items" ng-show="displayMode.mode != 'flow'">
+
+                <!-- Full text filtering -->
+                <div class="std-list-search-box projects-search">
+                    <span class="add-on">
+                        <i class="icon-dku-search"></i>
+                    </span>
+                    <input type="search"
+                        auto-focus="true"
+                        ng-model="query.q"
+                        placeholder="Search projects..."
+                        style="display: inline-block; margin: 0 auto;"
+                        ui-keydown="{'enter': 'goToFirstFilteredProject()'}"/>
+                </div>
+
+                <!-- Status filtering -->
+                <div custom-element-popup close-on-click="true" class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown">
+                    <span class="add-on"><i class="icon-circle-blank" /></span>
+                    <button class="dku-select-button mainzone has-caret" ng-click="togglePopover()">
+                        Status
+                        <span ng-if="query.projectStatus.length > 0">
+                            |
+                            <span class="nb-selected-elements" ng-if="!isArchivedProjectsDisplayed()">{{query.projectStatus.length}} selected</span>
+                            <span class="nb-selected-elements" ng-if="isArchivedProjectsDisplayed()">Archived</span>
+                        </span>
+                        <b class="caret" />
+                    </button>
+                    <div class="popover custom-element-popup-popover project-status-list-popover" id="home-project-status-list-popover" project-status-list="appConfig.projectStatusList" selected-project-status-list="query.projectStatus"></div>
+                </div>
+
+                <!-- Tags filtering -->
+                <div custom-element-popup class="tags-widget list-customfilter-box list-control-widget list-control-dropdown">
+                    <span class="add-on"><i class="icon-tags" /></span>
+                    <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                        Tags <span ng-if="query.tags.length > 0"> | <span class="nb-selected-elements">{{query.tags.length}} selected</span></span>
+                        <b class="caret" />
+                    </button>
+                    <div class="popover custom-element-popup-popover global-tags-list-popover tags-list-popover" id="home-global-tag-list-popover">
+                          <div ng-click="$event.stopPropagation()">
+                            <div style="max-height:300px">
+                                <div global-tags-list="tagsList" selected-tags="query.tags" on-click-func="toggleTag" ></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contributors filtering -->
+                <div custom-element-popup class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown">
+                    <span class="add-on"><i class="icon-group" /></span>
+                    <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                        Users <span ng-if="query.contributors.length > 0"> | <span class="nb-selected-elements">{{query.contributors.length}} selected</span></span>
+                        <b class="caret" />
+                    </button>
+
+                    <div class="vertical-flex popover custom-element-popup-popover contributors-list-popover" id="home-contributors-list-popover" users-list="contributorsList" selected-users-list="query.contributors" style="width:initial" ></div>
+                </div>
+
+                <!-- Clear filters btn -->
+                <div class="clear-filters-btn" ng-click="clearFilters();" ng-if="isFiltering()">Clear filters</div>
+            </div>
+
+            <div class="left-side-items" ng-show="displayMode.mode == 'flow'">
+                <div class="counters" style="line-height: 26px;" ng-if="projectsList.length > 0 && displayMode.mode == 'flow'">
+                    <strong>{{ projectsList.length }}</strong> projects
+                </div>
+            </div>
+
+            <span class="pull-right qa_homepage_project-list_options">
+                <!-- List View Mode for Automation Node -->
+                <div custom-element-popup close-on-click="true" class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown" ng-if="appConfig.isAutomation" ng-show="displayMode.mode == 'list'">
+                    <span class="add-on"><i class="icon-cog"></i></span>
+                    <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                        {{ listModeTitles[displayMode.listMode] }}
+                        <b class="caret"></b>
+                    </button>
+                    <div class="popover custom-element-popup-popover contributors-list-popover" id="home-flow-layout-engine-popover">
+                        <ul>
+                            <li ng-click="displayMode.listMode = 'scenarios'" ng-bind="listModeTitles.scenarios"></li>
+                            <li ng-click="displayMode.listMode = 'contributions'" ng-bind="listModeTitles.contributions"></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Sorting projects -->
+                <div custom-element-popup close-on-click="true" class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown" ng-show="displayMode.mode != 'flow'">
+                    <span class="add-on" ng-click="sortBy.isReversedSort = !sortBy.isReversedSort" style="cursor:pointer"><i ng-class="sortBy.isReversedSort ? 'icon-sort-by-attributes-alt' : 'icon-sort-by-attributes'" /></span>
+                    <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                        {{ sortByModeTitles[sortBy.mode] }}
+                        <b class="caret" />
+                    </button>
+                    <div class="popover custom-element-popup-popover contributors-list-popover" id="home-sort-project-popover">
+                        <div style="max-height:300px">
+                            <ul>
+                                <li ng-click="sortBy.mode = 'name';">{{ sortByModeTitles['name'] }}</li>
+                                <li ng-click="sortBy.mode = 'status';">{{ sortByModeTitles['status'] }}</li>
+                                <li ng-click="sortBy.mode = 'commit';">{{ sortByModeTitles['commit'] }}</li>
+                                <li ng-click="sortBy.mode = 'commit_for_user';">{{ sortByModeTitles['commit_for_user'] }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flow Layout Engine -->
+                <div custom-element-popup close-on-click="true" class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown" ng-show="displayMode.mode == 'flow'">
+                    <span class="add-on"><i class="icon-cog" /></span>
+                    <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                        {{ displayMode.recursive ? 'All descendants' : 'Current folder' }}
+                        <b class="caret" />
+                    </button>
+                    <div class="popover custom-element-popup-popover contributors-list-popover" id="home-flow-layout-engine-popover">
+                        <div style="max-height:300px">
+                            <ul>
+                                <li ng-click="displayMode.recursive = false;">Current folder</li>
+                                <li ng-click="displayMode.recursive = true;">All descendants</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div custom-element-popup close-on-click="true" class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown" ng-show="displayMode.mode == 'flow'">
+                    <span class="add-on"><i class="icon-cog" /></span>
+                    <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                        {{ flowLayoutEngineTitles[displayMode.flowLayoutEngine] }}
+                        <b class="caret" />
+                    </button>
+                    <div class="popover custom-element-popup-popover contributors-list-popover" id="home-flow-layout-engine-popover">
+                        <div style="max-height:300px">
+                            <ul>
+                                <li ng-click="displayMode.flowLayoutEngine = 'dot';">{{ flowLayoutEngineTitles['dot'] }}</li>
+                                <li ng-click="displayMode.flowLayoutEngine = 'neato';">{{ flowLayoutEngineTitles['neato'] }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Display Mode -->
+                <div custom-element-popup close-on-click="true" class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown">
+                    <span class="add-on"><i ng-class="{'mosaic':'icon-shaker', 'list':'icon-list', 'flow':'icon-dku-nav_flow'}[displayMode.mode]" /></span>
+                    <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                        <span style="text-transform: capitalize;">{{ displayMode.mode == 'flow' ? 'graph' : displayMode.mode }}</span>
+                        <b class="caret" />
+                    </button>
+                    <div class="popover custom-element-popup-popover display-mode-list-popover" id="home-projects-display-mode-popover">
+                        <div style="max-height:300px">
+                            <ul>
+                                <li ng-click="displayMode.mode = 'mosaic';"><i class="display-mode-icon icon-shaker" /><span class="display-mode-title">Mosaic</span></li>
+                                <li ng-click="displayMode.mode = 'list';"><i class="display-mode-icon icon-list" /><span class="display-mode-title">List</span></li>
+                                <li ng-click="displayMode.mode = 'flow';"><i class="display-mode-icon icon-dku-nav_flow" /><span class="display-mode-title">Graph</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </span>
+
+            <!-- Counter -->
+            <div class="counters" style="padding: 10px 0;" ng-if="uiState.displayedItemCounts.nbTotalProjects >= 0 && displayMode.mode != 'flow'">
+                <!-- not full string filtering -->
+                <span ng-if="!isFullStringQuerying()">
+                    <!-- nb projects if any -->
+                    <span ng-if="uiState.displayedItemCounts.nbTotalProjects > 0">
+                        <strong>{{ uiState.displayedItemCounts.nbFilteredProjectsInCurrentFolder }}</strong>
+                        <span ng-if="uiState.displayedItemCounts.nbFilteredProjectsInCurrentFolder != uiState.displayedItemCounts.nbTotalProjectsInCurrentFolder">of <strong>{{ uiState.displayedItemCounts.nbTotalProjectsInCurrentFolder }}</strong></span>
+                        <span ng-if="isArchivedProjectsDisplayed()">archived</span>
+                        {{'project' | plurify: uiState.displayedItemCounts.nbTotalProjects}}<span ng-if="uiState.displayedItemCounts.nbFolders > 0">, </span>
+                    </span>
+                    <!-- nb folders if any -->
+                    <span ng-if="uiState.displayedItemCounts.nbFolders > 0">
+                        <strong>{{ uiState.displayedItemCounts.nbFilteredFolders }}</strong>
+                        <span ng-if="uiState.displayedItemCounts.nbFilteredFolders != uiState.displayedItemCounts.nbFolders">of <strong>{{ uiState.displayedItemCounts.nbFolders }}</strong></span>
+                        {{'folder' | plurify: uiState.displayedItemCounts.nbFolders}}
+                    </span>
+                </span>
+
+                <!-- full string filtering -->
+                <span ng-if="isFullStringQuerying()">
+                    <!-- nb projects -->
+                    <strong>{{ uiState.displayedItemCounts.nbFilteredProjectsInCurrentFolder }}</strong>
+                    <span ng-if="uiState.displayedItemCounts.nbTotalProjectsInCurrentFolder > 0">of <strong>{{ uiState.displayedItemCounts.nbTotalProjectsInCurrentFolder }}</strong></span>
+                    <span ng-if="isArchivedProjectsDisplayed()">archived</span>
+                    {{'project' | plurify: uiState.displayedItemCounts.nbFilteredProjectsInCurrentFolder + uiState.displayedItemCounts.nbTotalProjects}}
+                    <!-- nb projects in subfolders if any -->
+                    <span ng-if="uiState.displayedItemCounts.nbFilteredProjectsInSubFolders > 0">
+                        in <strong>{{ (ProjectFolderContext.getCurrentProjectFolder() || {}).name || 'projects'}}</strong>, <strong>{{ uiState.displayedItemCounts.nbFilteredProjectsInSubFolders }}</strong> more in its subfolders.
+                    </span>
+                </span>
+            </div>
+
+        </div>
+
+        <div block-api-error></div>
+        <!-- PROJECTS -->
+        <div class="flex">
+            <div class="fh">
+                <div class="h100 oa">
+                    <!-- List or Mosaic mode -->
+                    <div class="projects fh" ng-if="displayMode.mode == 'mosaic' || displayMode.mode == 'list'" ng-class="{'project-tiles': displayMode.mode == 'mosaic', 'project-rows': displayMode.mode == 'list'}">
+                        <div id="drag-preview" class="drag-preview__{{displayMode.mode}}">
+                            <div class="drag-preview__number">
+                                {{selectedFolders.length + selectedProjects.length}}
+                            </div>
+                        </div>
+                        <!-- No project or folder at all -->
+                        <div ng-if="projectsList.length === 0 && folders.length === 0" class="h100">
+                            <!-- Can create project -->
+                            <div ng-if="isDSSAdmin() || canWriteInProjectFolder()" class="no-project">
+                                <div>
+                                    You do not have any projects or project folders in the current folder.
+                                </div>
+                                <div ng-if="!appConfig.isAutomation && (isDSSAdmin() || appConfig.globalPermissions.mayCreateProjects)">
+                                    Use the '+ New Project' button to start a tutorial, import a sample project, or create your own project
+                                </div>
+                                <div ng-if="appConfig.isAutomation && (isDSSAdmin() || appConfig.globalPermissions.mayCreateProjects)">
+                                    <button ng-click="newAutomationProject()" class="btn btn--contained btn--large btn--settings">
+                                        <span plus-icon/> Import your first project bundle
+                                    </button>
+                                </div>
+                                <div ng-if="(isDSSAdmin() || canWriteInProjectFolder())">
+                                    Use the '+ New Folder' button to create a project folder here
+                                </div>
+                            </div>
+                            <!-- Cannot create project -->
+                            <div ng-if="!(isDSSAdmin() || canWriteInProjectFolder())" class="no-project">
+                                You do not yet have access to any project or project folder in the current folder.
+                                <br />
+                                Please contact your {{wl.productShortName}} administrator.
+                            </div>
+                        </div>
+
+                        <!-- Some projects or folders -->
+                        <div ng-if="projectsList.length > 0 || folders.length > 0" class="h100">
+                            <!-- All filtered out -->
+                            <div ng-if="itemsRows.length == 0 && isFiltering()" class="no-project">
+                                No projects match your search
+                            </div>
+
+                            <!-- Mosaic -->
+                            <div ng-if="itemsRows.length > 0 && displayMode.mode == 'mosaic'" class="h100">
+                                <!-- items rows -->
+                                <div fat-repeat="itemsRows" as="row" row-height="rowHeight" style="height: 100%;">
+                                    <div ng-class="{'subitems-row': isSubItemsRow(row)}" class="items-row h100">
+                                        <!-- items mosaic -->
+                                        <div  ng-repeat="item in row" class="tile-wrapper">
+                                            <!-- folder -->
+                                            <div ng-if="item.type == 'FOLDER'" full-click main-click
+                                                 data-id="{{item.id}}"
+                                                 data-type="folder"
+                                                 ui-sref="project-list({ folderId: item.id })"
+                                                 class="project-folder"
+                                                 ng-right-click="openFolderMenu(item, $event, $scope.currentFolder)"
+                                                 ng-click="clickOnFolder(item, $event)"
+                                                 ng-class="{'selected' : isFolderSelected(item), 'dragging-progress': isDragging === true}"
+                                                 draggable="true"
+                                                 ondragstart="angular.element(this).scope().onDragStart(event)"
+                                                 ondragend="{const scope = angular.element(this).scope(); if (scope) {scope.onDragEnd(event)}}"
+                                                 ondrop="angular.element(this).scope().onDrop(event)"
+                                                 ondragleave="angular.element(this).scope().onDragLeave(event)"
+                                                 ondragover="angular.element(this).scope().onDragOver(event)">
+                                                <project-folder item="item" is-filtering="isFiltering" display-project-folder-permissions-modal="displayProjectFolderPermissionsModal" toggle-menu="toggleMenu" open-folder-menu="openFolderMenu" is-folder-selected="isFolderSelected"/>
+                                            </div>
+
+                                            <!-- project -->
+                                            <div ng-if="item.type == 'REAL_PROJECT'" class="project" full-click
+                                                 data-id="{{item.projectKey}}"
+                                                 data-type="project"
+                                                 ng-right-click="openProjectMenu(item, $event)"
+                                                 ng-class="{'selected' : isProjectSelected(item)}"
+                                                 ondragstart="angular.element(this).scope().onDragStart(event)"
+                                                 ondragend="{const scope = angular.element(this).scope(); if (scope) {scope.onDragEnd(event)}}"
+                                                 draggable="true">
+                                                <!-- Image -->
+                                                <div class="image row-cell">
+                                                    <totem project-name="item.name"
+                                                           project-key="item.projectKey"
+                                                           project-app-type="item.projectAppType"
+                                                           is-app-as-recipe="item.isAppAsRecipe"
+                                                           object-type="'PROJECT'"
+                                                           object-id="item.projectKey"
+                                                           object-img-hash = "item.objectImgHash"
+                                                           sizeX="80" sizeY="200"
+                                                           editable="false",
+                                                           img-color="item.imgColor",
+                                                           img-pattern="item.imgPattern",
+                                                           show-initials="item.showInitials",
+                                                           is-project-img="item.isProjectImg",
+                                                           default-img-color="item.defaultImgColor"/>
+                                                </div>
+                                                <!-- Body -->
+                                                <div class="body project-body row-cell">
+                                                    <a main-click ng-click="clickOnProject(item, $event)" class="title">
+                                                        <h3 show-tooltip-on-text-overflow text-tooltip="item.name"></h3>
+                                                    </a>
+                                                    <div class="description">
+                                                        <div from-markdown = "item.shortDesc || item.description" project-key="{{item.projectKey}}" class="description description-on-home h100" />
+                                                    </div>
+
+                                                    <div class="project-people">
+                                                        <a class="contributor"  title="{{item.ownerDisplayName}}" href="/profile/{{item.ownerLogin}}/">
+                                                            <span user-picture="item.ownerLogin" size="23" />
+                                                        </a>
+                                                        <a class="contributor hidden-contributors" ng-if="item.contributors.length > 1">
+                                                            <div><span class="plus">+</span>{{ item.contributors.length - 1 }}</div>
+                                                        </a>
+                                                    </div>
+                                                    <div class="project-status horizontal-flex" ng-if="item.projectStatus">
+                                                        <span class="status-title flex">{{item.projectStatus}}</span>
+                                                    </div>
+
+                                                </div>
+                                                <span class="status-color noflex" style="background-color:{{getProjectStatusColor(item.projectStatus)}};" ng-if="item.projectStatus"></span>
+
+                                                <div class="tile-menu popover-btn" ng-click="toggleMenu(item, $event, openProjectMenu, isProjectSelected)">
+                                                    <i class="compute-cog icon-ellipsis-vertical mainzone cursor-pointer"></i>
+                                                </div>
+                                            </div>
+
+                                            <!-- Image -->
+                                            <div style="width:100%; height: 100%;" ng-if="item.type == 'IMAGE'">
+                                                <img class="image-project-image" style="width:100%; height: 100%;" ng-src="{{item.url}}" />
+                                            </div>
+
+                                            <!-- Haiku -->
+                                            <div ng-if="item.type == 'HAIKU'" class="haiku">
+                                                <p>“ {{haiku.first}}</p>
+                                                <p>{{haiku.second}}</p>
+                                                <p>{{haiku.third}} ”</p>
+                                                <p class="signature">
+                                                    <a target="_blank" rel="noopener noreferrer" href="{{haiku.link}}">
+                                                        <i>{{haiku.author}}</i>
+                                                    </a>
+                                                </p>
+                                            </div>
+
+                                            <!-- News -->
+                                            <div ng-if="item.type == 'NEWS'" class="tile-carousel news">
+                                                <h1>
+                                                    <i class="icon icon-dku-news"></i><br/>Latest news
+                                                </h1>
+                                                <div class="carousel-wrapper" style="position: relative;"> <!-- for the class='fh' below -->
+                                                    <div class="fh dku-carousel" dku-carousel="news.feed.entries">
+                                                        <a ng-bind="entry.title | unescapeHtml"
+                                                           title="{{entry.contentSnippet | unescapeHtml | replace : '&quot;' : '&amp;quot;' }}"
+                                                           class="article"
+                                                           target="_blank"
+                                                           href="{{entry.link}}"
+                                                           rel="noopener noreferrer"
+                                                        ></a>
+                                                    </div>
+                                                </div>
+                                                <div class="carousel-footer">
+                                                    <a target="_blank" rel="noopener noreferrer"
+                                                       href="https://www.dataiku.com/blog">More News</a>
+                                                </div>
+                                            </div>
+
+                                            <!-- Messages -->
+                                            <div ng-if="item.type == 'MESSAGE'" class="tile-carousel messages news">
+                                                <div class="carousel-wrapper" style="position: relative;"> <!-- for the class='fh' below -->
+                                                    <div class="fh dku-carousel" dku-carousel="appConfig.homeMessages">
+                                                        <div class="slide-wrapper h100">
+                                                            <h1 ng-show="entry.name.length">
+                                                                <i class="icon icon-comments-alt"></i> {{entry.name}}
+                                                            </h1>
+                                                            <div class="article-wrapper">
+                                                                <p class="article">
+                                                                    <span from-markdown="entry.content" />
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Tips -->
+                                            <div ng-if="item.type == 'TIPS'" class="tile-carousel tips">
+                                                <div class="dku-carousel" dku-carousel="tipsObj.tips" initial-index="randomTipsIndex">
+                                                    <div class="slide-wrapper h100">
+                                                        <h1>
+                                                            <i class="icon {{entry.icon}}">&nbsp;</i>{{entry.title}}
+                                                        </h1>
+                                                        <div class="article-wrapper">
+                                                            <p class="article">
+                                                                {{entry.text}}
+                                                            </p>
+                                                        </div>
+                                                        <div class="carousel-footer">
+                                                            <a target="_blank" rel="noopener noreferrer"
+                                                               href="{{entry.link_url}}">{{entry.link_text}}</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- List -->
+                            <div ng-if="itemsRows.length > 0 && displayMode.mode == 'list'" class="h100">
+
+                                <!-- project rows -->
+                                <div fat-repeat="itemsList" as="project" row-height="rowHeight" style="height: 100%;">
+                                    <!-- items mosaic -->
+                                    <div class="items-row h100 " ng-if="isFolderRow(project)">
+                                        <div  ng-repeat="item in project" class="tile-common">
+                                            <!-- folder -->
+                                            <div class="project-folder"
+                                                ng-if="item.type == 'FOLDER'"
+                                                ui-sref="project-list({ folderId: item.id })"
+                                                data-id="{{item.id}}"
+                                                data-type="folder"
+                                                ng-right-click="openFolderMenu(item, $event, $scope.currentFolder)"
+                                                ng-class="{'selected' : isFolderSelected(item), 'dragging-progress': isDragging === true}"
+                                                ondragstart="angular.element(this).scope().onDragStart(event)"
+                                                ondragend="{const scope = angular.element(this).scope(); if (scope) {scope.onDragEnd(event)}}"
+                                                ondrop="angular.element(this).scope().onDrop(event)"
+                                                ondragleave="angular.element(this).scope().onDragLeave(event)"
+                                                ondragover="angular.element(this).scope().onDragOver(event)">
+                                                <project-folder item="item" is-filtering="isFiltering" display-project-folder-permissions-modal="displayProjectFolderPermissionsModal" toggle-menu="toggleMenu" open-folder-menu="openFolderMenu" is-folder-selected="isFolderSelected"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Project -->
+                                    <div ng-if="project.type == 'REAL_PROJECT'"
+                                        class="project"
+                                        full-click
+                                        data-id="{{project.projectKey}}"
+                                        data-type="project"
+                                        ondragstart="angular.element(this).scope().onDragStart(event)"
+                                        ondragend="{const scope = angular.element(this).scope(); if (scope) {scope.onDragEnd(event)}}"
+                                        draggable="true">
+                                        <!-- Image -->
+                                        <div class="project-image row-cell">
+                                            <a href="{{$state.href('projects.project.home.regular', {projectKey : project.projectKey})}}" main-click>
+                                                <totem project-name="project.name"
+                                                       project-key="project.projectKey"
+                                                       project-app-type="project.projectAppType"
+                                                       is-app-as-recipe="project.isAppAsRecipe"
+                                                       object-type="'PROJECT'"
+                                                       object-id="project.projectKey"
+                                                       object-img-hash = "project.objectImgHash"
+                                                       size="130"
+                                                       editable="false",
+                                                       img-color="project.imgColor",
+                                                       img-pattern="project.imgPattern",
+                                                       show-initials="project.showInitials",
+                                                       is-project-img="project.isProjectImg",
+                                                       default-img-color="project.defaultImgColor" />
+                                            </a>
+                                        </div>
+                                        <!-- Body -->
+                                        <div class="project-body row-cell">
+                                            <div class="project-title">
+                                                <h3 ng-show="project.effectivePermission == 'READER'">
+                                                    <a href="{{ $state.href('projects.project.pinboard',  {projectKey : project.projectKey}) }}" main-click>{{project.name}}</a>
+                                                </h3>
+                                                <h3 ng-show="project.effectivePermission != 'READER'">
+                                                    <a href="{{$state.href('projects.project.home.regular', {projectKey : project.projectKey})}}" main-click>{{project.name}}</a>
+                                                </h3>
+                                            </div>
+                                            <div class="project-description">
+                                                <div from-markdown = "project.shortDesc || project.description" project-key="{{project.projectKey}}" class="description description-on-home" />
+                                            </div>
+                                            <div class="project-status" ng-if="project.projectStatus">
+                                                <span class="status-color" style="background-color:{{getProjectStatusColor(project.projectStatus)}};"></span> <span class="status-title">{{project.projectStatus}}</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tags -->
+                                        <div class="project-tags row-cell" ng-if="!appConfig.isAutomation || displayMode.listMode == 'contributions'">
+                                            <ul class="tags inline">
+                                                <li ng-repeat="tag in project.tags">
+                                                    <span class="tag" color-contrast="{{ project.tagsFile.tags[tag].color || getDefaultTagColor(tag) }}" ng-click="toggleTag(tag)">
+                                                        <span ui-global-tag="tag" object-type="'PROJECT'"></span>
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <!-- Metrics -->
+                                        <div class="project-metrics row-cell" ng-if="!appConfig.isAutomation || displayMode.listMode == 'contributions'">
+                                            <ul>
+                                                <!-- Tasks -->
+                                                <li ng-if="project.projectSummaryStatus.totalTasks"><span class="count"><span ng-class="{'uncompleted-todo': project.projectSummaryStatus.checkedTasks < project.projectSummaryStatus.totalTasks}">{{project.projectSummaryStatus.checkedTasks}}</span> / {{project.projectSummaryStatus.totalTasks}}</span> {{'task' | plurify: project.projectSummaryStatus.totalTasks}}</li>
+                                                <!-- Scenarios -->
+                                                <li ng-if="project.projectSummaryStatus.activeScenarios && project.projectSummaryStatus.activeScenarios < project.projectSummaryStatus.totalScenarios"><span class="count">{{project.projectSummaryStatus.activeScenarios}} / {{project.projectSummaryStatus.totalScenarios}}</span> {{'scenario' | plurify: project.projectSummaryStatus.activeScenarios}}</li>
+                                                <li ng-if="project.projectSummaryStatus.activeScenarios && project.projectSummaryStatus.activeScenarios == project.projectSummaryStatus.totalScenarios"><span class="count">{{project.projectSummaryStatus.totalScenarios}}</span> {{'scenario' | plurify: project.projectSummaryStatus.activeScenarios}}</li>
+                                                <li ng-if="project.projectSummaryStatus.totalRuns"><span class="count">{{project.projectSummaryStatus.totalRuns}}</span> {{'run' | plurify: project.projectSummaryStatus.totalRuns}}</li>
+                                                <!-- Flow -->
+                                                <li ng-if="project.projectSummaryStatus.datasets"><span class="count">{{project.projectSummaryStatus.datasets}}</span> {{'dataset' | plurify: project.projectSummaryStatus.datasets}}</li>
+                                                <li ng-if="project.projectSummaryStatus.recipes"><span class="count">{{project.projectSummaryStatus.recipes}}</span> {{'recipe' | plurify: project.projectSummaryStatus.recipes}}</li>
+                                                <li ng-if="project.projectSummaryStatus.flowModels"><span class="count">{{project.projectSummaryStatus.flowModels}}</span> {{'model' | plurify: project.projectSummaryStatus.flowModels}}</li>
+                                                <!-- Data Analysis -->
+                                                <li ng-if="project.projectSummaryStatus.jupyterNotebooks"><span class="count">{{project.projectSummaryStatus.jupyterNotebooks}}</span> {{'notebook' | plurify: project.projectSummaryStatus.jupyterNotebooks}}</li>
+                                                <li ng-if="project.projectSummaryStatus.analyses"><span class="count">{{project.projectSummaryStatus.analyses}}</span> {{'analyse' | plurify: project.projectSummaryStatus.analyses}}</li>
+                                                <!-- Dashboard -->
+                                                <li ng-if="project.projectSummaryStatus.sharedInsights"><span class="count">{{project.projectSummaryStatus.sharedInsights}}</span> {{'insight' | plurify: project.projectSummaryStatus.sharedInsights}}</li>
+                                            </ul>
+                                        </div>
+                                        <!-- Activity -->
+                                        <div class="project-activity row-cell" ng-if="!appConfig.isAutomation || displayMode.listMode == 'contributions'">
+                                            <svg week-day-heatmap data="project.commits" light="true"
+                                                 svg-titles formatter="project.commits === 'presenceHours' ? niceHours : null" ng-if="project.commits"></svg>
+                                        </div>
+                                        <!-- Contributors -->
+                                        <div class="project-people row-cell" ng-if="!appConfig.isAutomation || displayMode.listMode == 'contributions'">
+                                            <a class="contributor" ng-repeat="contributor in getProjectContributorDisplayList(project.contributors, 8)" title="{{contributor.displayName}}" href="/profile/{{contributor.login}}/">
+                                                <span user-picture="contributor.login" size="28" />
+                                            </a>
+                                            <a class="contributor hidden-contributors" ng-if="project.contributors.length != getProjectContributorDisplayList(project.contributors, 8).length">
+                                                <div><span class="plus">+</span>{{ project.contributors.length - getProjectContributorDisplayList(project.contributors, 8).length }}</div>
+                                            </a>
+                                        </div>
+                                        <!-- Scenario runs -->
+                                        <div class="automation row-cell vertical-flex" ng-if="appConfig.isAutomation && displayMode.listMode == 'scenarios'">
+                                            <h3 ng-class="{'no-bundle': !project.activeBundleState}" class="noflex">
+                                                <a ui-sref="projects.project.bundlesautomation.list({ projectKey: project.projectKey })"><i class="icon-bundle"></i>&nbsp;{{project.activeBundleState ? 'Active Bundle: ' + project.activeBundleState.bundleId : 'No Active Bundle'}}</a>
+                                            </h3>
+                                            <project-scenarios-runs
+                                                    ng-if="project.activeBundleState"
+                                                    total-scenarios="project.projectSummaryStatus.totalScenarios"
+                                                    active-scenarios="project.projectSummaryStatus.activeScenarios"
+                                                    scenarios-days="project.scenariosDays"
+                                                    project-key="project.projectKey"
+                                                    class="flex">
+                                            </project-scenarios-runs>
+                                            <div ng-if="!project.activeBundleState" class="no-bundle-placeholder">
+                                                This project has no active bundle, please activate one from <a ui-sref="projects.project.bundlesautomation.list({ projectKey: project.projectKey })">here</a>.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Graph Mode -->
+                    <div ng-if="displayMode.mode == 'flow'" projects-flow flow-common class="projects projects-graph display-right-pane">
+                        <!-- Graph -->
+                        <div class="main-pane">
+                            <div class="h100" ng-show="nodesGraph && !isFlowEmpty">
+                                <flow-graph id="flow-graph" graph="nodesGraph" highlight-dependencies-on-hover flow-graph-with-tooltips tooltip-type="project-flow-tooltip"></flow-graph>
+                            </div>
+                            <div class="h100" ng-if="isFlowEmpty">
+                                <!-- Can create project -->
+                                <div ng-if="isDSSAdmin() || canWriteInProjectFolder()" class="no-project">
+                                    <div>
+                                        You do not have any projects or project folders in the current folder.
+                                    </div>
+                                    <div ng-if="!appConfig.isAutomation && (isDSSAdmin() || appConfig.globalPermissions.mayCreateProjects)">
+                                        Use the '+ New Project' button to start a tutorial, import a sample project, or create your own project
+                                    </div>
+                                    <div ng-if="appConfig.isAutomation && (isDSSAdmin() || appConfig.globalPermissions.mayCreateProjects)">
+                                        <button ng-click="newAutomationProject()" class="btn btn-settings btn-cta-big-mod">
+                                            <span plus-icon/> Import your first project bundle
+                                        </button>
+                                    </div>
+                                    <div ng-if="(isDSSAdmin() || canWriteInProjectFolder())">
+                                        Use the '+ New Folder' button to create a project folder here
+                                    </div>
+                                </div>
+                                <!-- Cannot create project -->
+                                <div ng-if="!(isDSSAdmin() || canWriteInProjectFolder())" class="no-project">
+                                    You do not yet have access to any project or project folder in the current folder.
+                                    <br />
+                                    Please contact your DSS administrator.
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Additionnal info on objects -->
+                        <div class="right-pane">
+                            <div class="content h100" flow-right-column style="overflow: auto" ng-switch="rightColumnItem.nodeType">
+                                <!-- DEFAULT -->
+                                <div ng-switch-default class="default">
+                                    <h4 class="notselected small-lr-padding">Click an item to view details</h4>
+                                </div>
+
+                                <!-- PROJECT FOLDER VIEW -->
+                                <div class="h100" ng-switch-when="PROJECT_FOLDER" project-folder-right-column-summary />
+
+                                <!-- PROJECT VIEW -->
+                                <div class="h100" ng-switch-when="PROJECT" project-right-column-summary />
+
+                                <!-- EXPORTED OBJECTS BUNDLE -->
+                                <div class="h100" ng-switch-when="BUNDLE_EO" eo-bundle-right-column-summary />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div ui-view></div>
+</div>

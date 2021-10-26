@@ -1,0 +1,56 @@
+<div class="modal modal3 dku-modal codemirror-editor-modal" ng-controller="AddEditorDSSObjectModalController">
+    <div dku-modal-header-with-totem modal-title="Add reference" modal-totem="icon-plus" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <div class="control-group">
+                <label class="control-label">Project</label>
+                <div class="controls">
+                    <div project-key-picker project="uiState.selectedProject" project-key="newReference.projectKey" id="projectKeyInput"></div>
+                    <span class="help-inline"></span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Type</label>
+                <div class="controls" ng-switch="taggableTypesWithNoItems">
+                    <span ng-switch-default>
+                        <div object-type-picker object-type="newReference.taggableType" id="objectTypeInput" exclude="taggableTypesWithNoItems"></div>
+                        <span class="help-inline"></span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="newReference.taggableType != 'PROJECT' && newReference.taggableType && newReference.projectKey">
+                <label class="control-label">Object</label>
+                <div class="controls">
+                    <div ng-switch on="newReference.projectKey" ng-if="newReference.taggableType && newReference.projectKey">
+                        <div object-picker="newReference.id"
+                            type="{{newReference.taggableType}}"
+                            project-key="newReference.projectKey"
+                            error-scope="$parent.$parent"
+                            object="uiState.selectedObject"
+                            ng-switch-default
+                            >
+                        </div>
+                    </div>
+                    <span class="help-inline"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" id="qa_wiki_cancel-reference-button" ng-click="dismiss()">Cancel</button>
+            <button type="submit"
+                class="btn btn--text btn--primary"
+                id="qa_wiki_confirm-reference-button"
+                ng-disabled="!newReference.taggableType || !newReference.projectKey || (newReference.taggableType != 'PROJECT' && !newReference.id)"
+                ng-click="addReference(newReference)"
+                >
+                Add
+            </button>
+        </div>
+    </form>
+</div>

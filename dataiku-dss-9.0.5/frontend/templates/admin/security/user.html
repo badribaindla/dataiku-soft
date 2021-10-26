@@ -1,0 +1,152 @@
+<div class="paned-settings-page-pane" global-keydown="{'ctrl-s meta-s': 'prepareSaveUser()'}">
+    <div class="paned-settings-page-pane__sticky">
+        <div class="pad16 pull-right">
+            <button type="button"
+                class="btn btn--primary"
+                ng-show="userIsDirty()"
+                ng-click="prepareSaveUser()"
+                ng-disabled="userDescriptionForm.$invalid">
+                <i class="icon-save" /> Save
+            </button>
+    
+            <button disabled type="button" class="btn btn--primary" ng-show="!userIsDirty()">
+                <i class="icon-save" /> Saved!
+            </button>
+        </div>
+        <h1 ng-show="creation">New user</h1>
+        <h1 ng-show="!creation">Edit user "{{user.login}}"</h1>
+    </div>
+
+    <div block-api-error />
+
+    <form name="userDescriptionForm" class="dkuform-horizontal">
+        <div class="section">
+            <h2>General</h2>
+            <div class="control-group" ng-show="creation">
+                <label class="control-label">Login</label>
+                <div class="controls">
+                <input type="text" required ng-model="user.login" />
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="generalSettings">
+                <label class="control-label">Type</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="user.sourceType">
+                        <option value="LOCAL">LOCAL</option>
+                        <option value="LDAP" ng-disabled="! generalSettings.ldapSettings.enabled">LDAP</option>
+                        <option value="LOCAL_NO_AUTH">Local (no auth, for SSO only)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group" >
+                <label class="control-label">Display name</label>
+                <div class="controls">
+                <input type="text" required ng-model="user.displayName" />
+                </div>
+            </div>
+
+            <div class="control-group" >
+                <label class="control-label">Email</label>
+                <div class="controls">
+                <input type="text" ng-model="user.email" />
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="appConfig.licensedFeatures.userSecurityAllowed">
+                <label class="control-label" ng-show="user.sourceType == 'LOCAL' || user.sourceType == 'LOCAL_NO_AUTH'">Groups</label>
+                <label class="control-label" ng-show="user.sourceType == 'LDAP'">Local groups</label>
+                <div class="controls">
+                    <select dku-bs-select="{ liveSearch: true }" multiple="multiple" ng-model="user.groups" ng-options="g for g in allGroups"></select>
+                </div>
+            </div>
+            <div class="control-group" ng-show="!appConfig.licensedFeatures.userSecurityAllowed">
+                <label class="control-label">Groups</label>
+                <div class="controls">
+                    <em>Not available in your DSS license</em>
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="appConfig.licensedFeatures.userSecurityAllowed">
+                <label class="control-label">Profile</label>
+                <div class="controls">
+                    <label>
+                        <select dku-bs-select ng-model="user.userProfile" ng-options="x as x|niceProfileName for x in appConfig.licensing.userProfiles" />
+                    </label>
+                </div>
+            </div>
+            <div class="control-group" ng-show="!appConfig.licensedFeatures.userSecurityAllowed">
+                <label class="control-label">Profile</label>
+                <div class="controls">
+                    <em>Not available in your DSS license</em>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="user.sourceType == 'LOCAL'" >
+                <h3 ng-show="creation">Password</h3>
+                <h3 ng-show="!creation">Change password</h3>
+
+                <div class="control-group">
+                    <label class="control-label" ng-show="creation">Password</label> <label
+                        class="control-label" ng-show="!creation">New password</label>
+
+                    <div class="controls">
+                        <input type="password" ng-model="user.password" autocomplete="new-password" />
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Confirm password</label>
+                    <div class="controls">
+                        <input type="password" ng-model="user.confirmPassword"
+                            password-match="user.password" autocomplete="new-password" />
+                    </div>
+                </div>
+            </div>
+
+            <h3>Properties</h3>
+
+            <div class="control-group">
+                <label class="control-label">User properties</label>
+                <div class="controls">
+                    <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+                        <textarea json-object-pretty-view name="userProps" ui-codemirror="codeMirrorSettingService.get('text/json')" ng-model="user.userProperties" required></textarea>
+                    </div>
+                    <div ng-show="userDescriptionForm.userProps.$invalid" class="alert alert-error">
+                        JSON is invalid<br />{{userDescriptionForm.userProps.dkuJSONError}}
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Admin properties</label>
+                <div class="controls">
+                    <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+                        <textarea json-object-pretty-view name="adminProps" ui-codemirror="codeMirrorSettingService.get('text/json')" ng-model="user.adminProperties" required></textarea>
+                    </div>
+                    <div ng-show="userDescriptionForm.adminProps.$invalid" class="alert alert-error">
+                        JSON is invalid<br />{{userDescriptionForm.adminProps.dkuJSONError}}
+                    </div>
+                </div>
+            </div>
+
+            <h3>Other credentials</h3>
+
+            <div class="alert alert-info">
+                These credentials can be retrieved in recipe code or by plugins. They are readable by the user.
+            </div>
+
+            <div class="control-group mbot16">
+                <ng2-credentials-list
+                    [(items)]="user.secrets"
+                    key-identifier="name"
+                    key-placeholder="Name"
+                    [can-be-final]="false"
+                    add-label="Add a credential">
+                </ng2-credentials-list>
+            </div>
+        </form>
+    </form>
+</div>
+
+<div block-api-error />

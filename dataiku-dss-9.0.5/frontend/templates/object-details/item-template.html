@@ -1,0 +1,214 @@
+<div ng-if="!inRightColumn()">
+    <div data-block="item-header"></div>
+</div>
+
+<div class="row-fluid object-right-column-summary">
+    <div class="object-details">
+        <div data-block="left">
+            <!-- Details -->
+            <div class="accordion accordion--first metadata-details" ng-if="isMetaDataSupported()" dku-foldable dku-foldable-right-panel name="details.details" open="true">
+                <h4 class="accordion-title accordion-title--first" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                    Details
+                </h4>
+                <div ng-show="foldableOpen">
+                    <div data-block="details">
+                        <div ng-class="{'hover-edit' : uiState.isHoverEdit}">
+                            <div class="line">
+                                <h4>About</h4>
+                                <div ng-if="isMetaDataEditable()" class="block grey edit-link">
+                                    <button ng-click="showEditMetadataModal()" ng-mouseenter="setHoverEdit(true)" ng-mouseleave="setHoverEdit(false)"
+                                        wt1-click-id="rightpanel_details_editmetadata" class="btn btn--secondary" disabled-if-ro>
+                                        EDIT
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Tags -->
+                            <div class="block horizontal-flex" ng-class="{'cursor-pointer': editable && object.tags && object.tags.length === 0}" wt1-click-id="rightpanel_details_editmetadata">
+                                <tag-edit-popover ng-model="object.tags"
+                                                   get-all-tags="getAllTagsForProject()"
+                                                   object-type="objectType"
+                                                   empty-text="No tags have been assigned"
+                                                   no-tag-icon="true"
+                                                   editable="editable"
+                                                   class="flex"
+                                />
+                            </div>
+                            <!-- "Add description" placeholder (if there is no short description and no long description) -->
+                            <div ng-if="(!object.shortDesc || !object.shortDesc.length) && (!object.description || !object.description.length) && editable"class="block horizontal-flex flow-description">
+                                <div class="flex">
+                                    <div class="help-text cursor-pointer" ng-click="showEditMetadataModal()" wt1-click-id="rightpanel_details_editmetadata">
+                                        Add a description
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Short description -->
+                            <div ng-if="object.shortDesc && object.shortDesc.length" class="block horizontal-flex flow-description">
+                                <div class="flex">
+                                    <div ng-if="object.shortDesc.length" class="markdown" from-markdown="object.shortDesc"></div>
+                                </div>
+                            </div>
+                            <!-- Long description -->
+                            <div ng-if="object.description && object.description.length" class="block">
+                                <div ng-class="{long: !isDescMoreLinkSupported() || object.$descriptionExpanded}" class="description-wrapper">
+                                    <div from-markdown="object.description" class="markdown"></div>
+                                </div>
+                                <a ng-if="showDescMoreLink()" ng-click="expandDescription()">+ more</a>
+                            </div>
+                        </div>
+
+                        <!-- Creation info from creationTag if present -->
+                        <div class="line" ng-if="object.creationTag">
+                            <h4>Creation</h4>
+                            <p style="overflow: visible">
+                                <span ng-if="object.creationTag.lastModifiedOn"
+                                      title="{{object.creationTag.lastModifiedOn | friendlyDateTime}}"
+                                      toggle="tooltip"
+                                      placement="left">
+                                    {{object.creationTag.lastModifiedOn | friendlyTimeDeltaShort}}
+                                </span>
+                                <span ng-if="object.creationTag.lastModifiedBy.login">
+                                    by
+                                    <a href="/profile/{{object.creationTag.lastModifiedBy.login}}/"
+                                           title="{{ data.timeline.createdBy.displayName || object.creationTag.lastModifiedBy.login }}"
+                                           class="avatar"
+                                           style="margin-left: 5px;"
+                                           toggle="tooltip"
+                                           placement="left"
+                                           animation="false">
+                                        <span user-picture="object.creationTag.lastModifiedBy.login" size="24" class="avatar24"></span>
+                                    </a>
+                                </span>
+                            </p>
+                        </div>
+
+                        <!-- Creation info from createdBy if present -->
+                        <div class="line" ng-if="!object.creationTag && object.createdBy">
+                            <h4>Creation</h4>
+                            <p style="overflow: visible">
+                                <span ng-if="object.createdOn || data.timeline.createdOn"
+                                      title="{{(object.createdOn || data.timeline.createdOn) | friendlyDateTime}}"
+                                      toggle="tooltip"
+                                      placement="left">
+                                    {{(object.createdOn || data.timeline.createdOn) | friendlyTimeDeltaShort}}
+                                </span>
+                                <span ng-if="object.createdBy.login">
+                                    by
+                                    <a href="/profile/{{object.createdBy.login}}/"
+                                           title="{{ object.createdBy.displayName || object.createdBy.login }}"
+                                           class="avatar"
+                                           style="margin-left: 5px;"
+                                           toggle="tooltip"
+                                           placement="left"
+                                           animation="false">
+                                        <span user-picture="object.createdBy.login" size="24" class="avatar24"></span>
+                                    </a>
+                                </span>
+                            </p>
+                        </div>
+
+                        <!-- Creation info from timeline if no creationTag -->
+                        <div class="line" ng-if="!object.creationTag && !object.createdBy && (data.timeline.createdBy.login || data.timeline.createdOn)">
+                            <h4>Creation</h4>
+                            <p style="overflow: visible">
+                                <span ng-if="data.timeline.createdOn"
+                                      title="{{data.timeline.createdOn | friendlyDateTime}}"
+                                      toggle="tooltip"
+                                      placement="left">
+                                    {{data.timeline.createdOn | friendlyTimeDeltaShort}}
+                                </span>
+                                <span ng-if="data.timeline.createdBy.login">
+                                    by
+                                    <a href="/profile/{{data.timeline.createdBy.login}}/"
+                                           title="{{ data.timeline.createdBy.displayName || data.timeline.createdBy.login }}"
+                                           class="avatar"
+                                           style="margin-left: 5px;"
+                                           toggle="tooltip"
+                                           placement="left"
+                                           animation="false">
+                                        <span user-picture="data.timeline.createdBy.login" size="24" class="avatar24"></span>
+                                    </a>
+                                </span>
+                            </p>
+                        </div>
+
+                        <!-- Creation info from versioning as last resort -->
+                        <div class="line" ng-if="!object.creationTag && (data.versioning.createdBy.login || data.versioning.createdOn)">
+                            <h4>Creation</h4>
+                            <p style="overflow: visible">
+                                <span ng-if="data.versioning.createdOn"
+                                      title="{{data.versioning.createdOn | friendlyDateTime}}"
+                                      toggle="tooltip"
+                                      placement="left">
+                                    {{data.versioning.createdOn | friendlyTimeDeltaShort}}
+                                </span>
+                                <span ng-if="data.versioning.createdBy.login">
+                                    by
+                                    <a href="/profile/{{data.versioning.createdBy.login}}/"
+                                           title="{{ data.versioning.createdBy.displayName || data.versioning.createdBy.login }}"
+                                           class="avatar"
+                                           style="margin-left: 5px;"
+                                           toggle="tooltip"
+                                           placement="left"
+                                           animation="false">
+                                        <span user-picture="data.versioning.createdBy.login" size="24" class="avatar24"></span>
+                                    </a>
+                                </span>
+                            </p>
+                        </div>
+
+                        <!-- Last modification -->
+                        <div class="line" ng-if="data.versioning.lastModifiedBy.login || data.versioning.lastModifiedOn">
+                            <h4>Last modification</h4>
+                            <p style="overflow: visible">
+                                <span ng-if="data.versioning.lastModifiedOn"
+                                      title="{{data.versioning.lastModifiedOn| friendlyDateTime}}"
+                                      toggle="tooltip"
+                                      placement="left">
+                                    {{data.versioning.lastModifiedOn | friendlyTimeDeltaShort}}
+                                </span>
+                                <span ng-if="data.versioning.lastModifiedBy.login">
+                                    by
+                                    <a href="/profile/{{data.versioning.lastModifiedBy.login}}/"
+                                           title="{{ data.versioning.lastModifiedBy.displayName || data.versioning.lastModifiedBy.login }}"
+                                           class="avatar"
+                                           style="margin-left: 5px;"
+                                           toggle="tooltip"
+                                           placement="left"
+                                           animation="false">
+                                        <span user-picture="data.versioning.lastModifiedBy.login" size="24" class="avatar24"></span>
+                                    </a>
+                                </span>
+                            </p>
+                        </div>
+
+                        <!-- Last modification (alternate) -->
+                        <div class="line" ng-if="!data.versioning.lastModifiedBy && (data.versioningobject.versionTag.lastModifiedBy.login || object.versionTag.lastModifiedOn)">
+                            <h4>Last modification</h4>
+                            <p style="overflow: visible">
+                                <span ng-if="object.versionTag.lastModifiedOn"
+                                      title="{{object.versionTag.lastModifiedOn| friendlyDateTime}}"
+                                      toggle="tooltip"
+                                      placement="left">
+                                    {{object.versionTag.lastModifiedOn | friendlyTimeDeltaShort}}
+                                </span>
+                                <span ng-if="object.versionTag.lastModifiedBy.login">
+                                    by
+                                    <a href="/profile/{{object.versionTag.lastModifiedBy.login}}/"
+                                           title="{{ object.versionTag.lastModifiedBy.displayName || object.versionTag.lastModifiedBy.login }}"
+                                           class="avatar"
+                                           style="margin-left: 5px;"
+                                           toggle="tooltip"
+                                           placement="left"
+                                           animation="false">
+                                        <span user-picture="object.versionTag.lastModifiedBy.login" size="24" class="avatar24"></span>
+                                    </a>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div data-block="right"></div>
+    </div>
+</div>

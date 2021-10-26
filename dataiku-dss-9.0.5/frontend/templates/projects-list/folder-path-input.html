@@ -1,0 +1,32 @@
+<div>
+    <div class="browse-path-input input-wrapper horizontal-flex noflex">
+        <input id={{inputId}} ng-disabled="!inputEnabled() || browseActive" ng-model="folder.pathElts" type="text" ng-focus="onToggleBrowse($event)" />
+    </div>
+    <div class="browse-path-dropdown flex" style="z-index: 99999">
+        <div class="fh" global-keydown="{'esc':'onCancelClick()', 'enter':'onOKClick()'}">
+            <div class="h100 vertical-flex" ng-if="browseActive">
+                <!-- File system explorer -->
+                <browse-path class="flex vertical-flex"
+                    title="{{title}}"
+                    path="navObj.browsePath"
+                    selected-items="navObj.selectedItems"
+                    browse-fn="browseFn"
+                    can-select-fn="canSelect"
+                    can-browse-fn="canBrowse"
+                    display-item-fn="displayItem"
+                    on-browse-done-fn="browseDoneFn"
+                    cant-write-content-verb="{{cantWriteContentVerb}}"
+                    searchable="{{searchable}}"
+                    items-are-projects="true"
+                >
+                </browse-path>
+                <!-- Validation -->
+                <div class="actions">
+                    <p ng-if="currentFolder.canWriteContents === false" class="text-error pull-left margin-bottom-none">{{cantWriteContentVerb}}</p>
+                    <button class="btn btn--secondary" ng-click="onCancelClick()">Cancel</button>
+                    <button class="btn btn--primary" ng-class="{disabled: currentFolder.canWriteContents === false}" ng-click="onOKClick()" ng-disabled="currentFolder.canWriteContents === false">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

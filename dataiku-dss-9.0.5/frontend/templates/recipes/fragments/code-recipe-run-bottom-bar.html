@@ -1,0 +1,16 @@
+<div class="horizontal-flex">
+	<span class="noflex" include-no-scope="/templates/recipes/fragments/run-job-buttons.html" />
+
+	<div class="recipe-noneditable-exec-options oh" ng-click="editRunOptions()" style="margin-left: 10px; line-height: 26px; flex: 0 1 auto;">
+		<span ng-if="testRun.runMode != 'NON_RECURSIVE_FORCED_BUILD'">({{testRun.runMode | buildModeDescription}})</span>
+		<!-- clip to something not too long, it's going to overlap on small screens anyway -->
+		<span ng-if="hasPartitionedOutput() && !hasInvalidPartitionSelection()" class="recipe-run-partition-display horizontal-flex">
+			<span class="no-flex">(</span>
+			<span ng-repeat="dimension in getOutputDimensions()" class="partition flex  mx-textellipsis" ng-class="{'first-partition': $index==0}">
+				{{ dimension.name }} : {{testRun.build_partitions[dimension.name] | buildPartitionsDesc}}
+			</span>
+			<span class="no-flex">)</span>
+		</span>
+		<span ng-if="hasInvalidPartitionSelection()" class="btn-btn--secondary">Select partitions</span>
+	</div>
+</div>

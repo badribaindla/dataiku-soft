@@ -1,0 +1,149 @@
+<!-- layouts/list-items-repeat.html -->
+<div class="row-fluid fh vertical-flex" filtered-multi-select-rows ng-model="listItems"> <!-- same as list-items-2 but with ng-repeat and more flexible row height (you can override) -->
+
+    <div data-block="summary-row" class="summary-row noflex horizontal-flex">
+
+        <div class="noflex dropdown mass-action-btn" data-block="mass-actions">
+            <input type="checkbox"
+                class="select-cb"
+                ng-model="selection.all"
+                dku-indeterminate="selection.some"
+                ng-change="updateMassSelectionCheckbox();">
+            <a data-toggle="dropdown"
+                class="dropdown-toggle unselectable"
+                ng-class="{disabled: selection.selectedObjects.length == 0,collapsed:selection.none}">
+                <span ng-hide='selection.none'>ACTIONS</span>
+                <b class="caret"></b>
+            </a>
+            <ul data-block="mass-action-dropdrop-menu" class="dropdown-menu">
+                <li ng-show="!noTags&&projectSummary.canWriteProjectContent">
+                    <a ng-click="startApplyTagging()"><i class="icon-tags"/>Tag</a>
+                </li>
+                <li ng-show="!noWatch">
+                    <a ng-if="!allWatching(selection.selectedObjects)"
+                       ng-click="watchObjects('YES')"
+                       ng-attr-title="{{ actionTooltips.WATCH }}"
+                       data-toggle="tooltip"
+                       data-container="body"
+                    >
+                        <i class="icon-eye"/> {{ actionLabels.WATCH }}
+                    </a>
+                    <a ng-if="allWatching(selection.selectedObjects)"
+                       ng-click="watchObjects('ENO')"
+                       ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                       data-toggle="tooltip"
+                       data-container="body"
+                    >
+                        <i class="icon-eye"/> {{ actionLabels.UNWATCH }}
+                    </a>
+                </li>
+                <li ng-show="!noStar">
+                    <a ng-if="!allStarred(selection.selectedObjects)"
+                       ng-click="starObjects(true)"
+                       ng-attr-title="{{ actionTooltips.STAR }}"
+                       data-toggle="tooltip"
+                       data-container="body"
+                    >
+                        <i class="icon-star"/> {{ actionLabels.STAR }}
+                    </a>
+                    <a ng-if="allStarred(selection.selectedObjects)"
+                       ng-click="starObjects(false)"
+                       ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                       data-toggle="tooltip"
+                       data-container="body"
+                    >
+                        <i class="icon-star"/> {{ actionLabels.UNSTAR }}
+                    </a>
+                </li>
+                <li ng-show="canMassMakeListed && canModerateDashboards()">
+                    <a ng-if="!isAllListed(selection.selectedObjects)" ng-click="massMakeListed(selection.selectedObjects,true)">
+                        <i class="icon-dku-promote"/>Make public
+                    </a>
+                    <a ng-if="isAllListed(selection.selectedObjects)" ng-click="massMakeListed(selection.selectedObjects,false)">
+                        <i class="icon-dku-promote"/>Make private
+                    </a>
+                </li>
+
+                <li class="divider"
+                    ng-show="showClearData && projectSummary.canWriteProjectContent || !noDelete && projectSummary.canWriteProjectContent"
+                    style="margin: 1px 1px"/>
+
+                <li ng-show="showClearData && projectSummary.canWriteProjectContent">
+                    <a ng-click="clearSelected()"><i class="icon-remove"/>Clear Data</a>
+                </li>
+                <li ng-show="!noDelete && projectSummary.canWriteProjectContent">
+                    <a ng-click="deleteSelected()"><i class="icon-trash"/>Delete</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="flex horizontal-flex" data-block="summary-controls" ></div>
+
+    </div>
+
+    <div data-block="table-header" class="noflex"></div>
+
+    <div class="flex">
+        <div class="fh row-fluid offset0">
+            <div class="offset0 h100" ng-class="{'span9': !hidePreviewColumn}">
+                <div block-api-error></div>
+                <div class="vertical-flex h100" >
+                    <div class="main-list-zone h100 vertical-flex">
+
+                        <div class="flex">
+                            <div class="scroll-zone fh">
+                                <div class="info-zone" ng-show="selection.filteredObjects == undefined">
+                                    <div class="alert alert-info" data-block="not_yet_loaded"></div>
+                                </div>
+
+
+                                <div class="empty-list-cta" ng-show="selection.loaded && selection.allObjects.length === 0">
+                                    <div class="alert alert-info" data-block="empty">
+                                        <h4>No item</h4>
+                                        <p>You can create a new one</p>
+                                        <!-- Are there more ? -->
+                                        <p ng-show="selection.filteredObjects.length!==selection.allObjects.length">
+                                            Or you could remove your filters to see all the items
+                                            <a class="btn btn--secondary" ng-click="clearFilters()">See all items</a>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="all-filtered-out" ng-show="selection.allObjects.length && !selection.filteredObjects.length">
+                                    <div class="alert alert-info" data-block="all-filtered-out">
+                                        <h4>No item match your filter</h4>
+                                        <div style="margin: 10px 0">
+                                            <a class="btn btn--secondary" ng-click="clearFilters()">Clear filters</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <ul class="list-items fh" ng-if="selection.filteredObjects.length" >
+                                    <li data-block="header-item" style="display:none">
+                                    <li class="list-item"
+                                        ng-repeat="item in selection.filteredObjects"
+                                        ng-class="{focused: selection.selectedObject === item, selected: item.$selected}"
+                                        full-click>
+                                        <div data-block="item" class="h100">
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div ng-if="!hidePreviewColumn" class="span3 offset0 h100 right-sidebar">
+                <div ng-show="!selection.selectedObject && !selection.selectedObjects.length">
+                    <h4 class="empty-right-column small-lr-padding" ng-show="selection.filteredObjects.length">
+                        Click an item to view details
+                    </h4>
+                </div>
+                <div data-block="preview">PREVIEW</div>
+            </div>
+        </div>
+    </div>
+</div>

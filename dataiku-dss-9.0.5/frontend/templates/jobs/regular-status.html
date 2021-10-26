@@ -1,0 +1,217 @@
+<!-- Job status for job in 'regular' state, ie RUNNING, DONE, FAILED or ABORTED -->
+
+<div job-status-regular job-preview class="job-status-regular h100 vertical-flex">
+
+    <!-- Job error -->
+    <div class="flex row-fluid" ng-if="topNav.tab == 'activities' && !jobStatus.baseStatus.incompatibilities && jobStatus.baseStatus.unexpectedFailure">
+        <div class="fh oa small-lr-padding">
+            <h4 class="empty-list-cta job-status__error-title">
+                This job failed to execute.
+            </h4>
+
+            <div class="alert alert-error">
+                <h4>{{jobStatus.baseStatus.unexpectedFailure.detailedMessage}}</h4>
+                <h5>More information might be available in full log (Actions &gt; View full job log)</h5>
+                <pre>
+                    {{jobStatus.baseStatus.unexpectedFailure.stackTraceStr}}
+                </pre>
+                <pre ng-show="jobStatus.baseStatus.unexpectedFailure.logTail" style="max-height: 250px" smart-log-tail="jobStatus.baseStatus.unexpectedFailure.logTail" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Unavailable information -->
+    <div class="flex row-fluid" ng-if="topNav.tab == 'activities' && activitiesFlat.length == 0 && !jobStatus.baseStatus.incompatibilities && !jobStatus.baseStatus.unexpectedFailure">
+        <div class="fh oa small-lr-padding">
+            <h4 class="empty-list-cta job-status__error-title" ng-if="jobStatus.removed">
+                Information unavailable. <br> Job details have been removed.
+            </h4>
+
+            <h4 class="empty-list-cta job-status__error-title" ng-if="!jobStatus.removed">
+                There was nothing to do for this job.
+            </h4>
+        </div>
+    </div>
+
+    <!-- Checks failures (if any) -->
+    <div class="noflex m16" ng-if="jobStatus.baseStatus.checksFailure">
+        <div class="alert alert-error">
+            <h5>{{jobStatus.baseStatus.checksFailure.detailedMessage}}</h5>
+        </div>
+    </div>
+
+    <!-- Available information -->
+    <div class="job-grid h100" ng-if="topNav.tab == 'activities' && activitiesFlat.length > 0 && !jobStatus.baseStatus.incompatibilities && !jobStatus.baseStatus.unexpectedFailure">
+        <!-- Job flow -->
+        <div class="job-flow" ng-class="{'job-flow--hidden': uiState.isFlowVisible == false}">
+            <div class="job-status-graph h100" flow-common job-status-graph>
+                <section class="job-flow-no-preview" ng-if="jobStatus.removed">
+                    <h3><i class="icon-ban-circle"></i></h3>
+                    <h4>Cannot preview flow. Job details have been removed.</h4>
+                </section>
+                <section class="job-preview__no-flow h100" ng-if="hasBigFlow && !forceFlow">
+                    <h3><i class="icon-dku-warning"></i></h3>
+                    <h4>Flow is very large and could take a while to render.</h4>
+                    <button class="btn btn--secondary mtop16" ng-click="drawJobGraph(true)">Render anyway</button>
+                </section>
+                <section class="h100" ng-show="!jobStatus.removed && (!hasBigFlow || forceFlow)" >
+                    <flow-graph id="flow-graph"></flow-graph>
+                </section>
+            </div>
+        </div>
+
+        <!-- Activities List -->
+        <div class="job-activities" ng-class="{'job-flow--hidden': uiState.isFlowVisible == false}">
+            <debug data="jobStatus"></debug>
+            <div class="h100 vertical-flex">
+                <div class="job-activities__header">
+                    <h2 ng-if="activitiesFatTable.length > 1">
+                        <span ng-bind="activitiesFatTable.length" ng-if="activitiesFatTable.length === activitiesFlat.length"></span>
+                        <span ng-if="activitiesFatTable.length < activitiesFlat.length">
+                            {{activitiesFatTable.length}} / {{activitiesFlat.length}}
+                        </span> Activities
+                        <span class="job-activities__duration">
+                            <span ng-if="jobTotalEndedActivities < activitiesFlat.length">
+                                {{jobTotalEndedActivities}} / {{activitiesFlat.length}}
+                            </span>
+                        </span>
+                    </h2>
+                    <h2 ng-if="activitiesFatTable.length === 1">
+                        <span ng-if="activitiesFatTable.length === activitiesFlat.length">1 Activity </span>
+                        <span ng-if="activitiesFatTable.length < activitiesFlat.length">
+                            {{activitiesFatTable.length}} / {{activitiesFlat.length}} Activities
+                        </span>
+                    </h2>
+                    <h2 ng-if="activitiesFatTable.length === 0">No matching activity</h2>
+                    <div class="actions pull-right">
+                        <div class="job-activities__header-right">
+                            <span class="dku-loader icon-spin" ng-if="totalRunningActivities > 0" title="{{totalRunningActivities}} running" toggle="tooltip-bottom"></span><span ng-if="totalRunningActivities > 0">{{totalRunningActivities}}</span>
+                            <i class="icon-dku-success text-success" ng-if="totalDoneActivities > 0" title="{{totalDoneActivities}} done" toggle="tooltip-bottom"></i><span ng-if="totalDoneActivities > 0">{{totalDoneActivities}}</span>
+                            <i class="icon-dku-warning text-warning" ng-if="totalWarningActivities > 0" title="{{totalWarningActivities}} with warnings" toggle="tooltip-bottom"></i><span ng-if="totalWarningActivities > 0">{{totalWarningActivities}}</span>
+                            <i class="icon-dku-error text-error" ng-if="totalFailedActivities > 0" title="{{totalFailedActivities}} failed" toggle="tooltip-bottom"></i><span ng-if="totalFailedActivities > 0">{{totalFailedActivities}}</span>
+                            <i class="icon-dku-pause text-debug" ng-if="totalAbortedActivities > 0" title="{{totalAbortedActivities}} aborted" toggle="tooltip-bottom"></i><span ng-if="totalAbortedActivities > 0">{{totalAbortedActivities}}</span>
+                            <i class="icon-dku-queued text-weak" ng-if="totalNotStartedActivities > 0" title="{{totalNotStartedActivities}} in queue" toggle="tooltip-bottom"></i><span ng-if="totalNotStartedActivities > 0">{{totalNotStartedActivities}}</span>
+                            <a class="btn btn--secondary mleft8"
+                                ng-show="uiState.isFlowVisible == true"
+                                ng-click="setFlowVisibility(false)">
+                                Hide Flow
+                            </a>
+                            <a class="btn btn--secondary mleft8"
+                                ng-show="uiState.isFlowVisible == false"
+                                ng-click="setFlowVisibility(true)">
+                                Show Flow
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="padleftright16 job-activities__sort-box" include-no-scope="/templates/jobs/activity-table-sort-filter.html" />
+
+                <job-activities-list activities-fat-table='activitiesFatTable'
+                                     row-height='48'
+                                     job-removed='jobStatus.removed'
+                                     on-activity-click='selectActivity'/>
+            </div>
+        </div>
+
+        <!-- Selected Activity Logs -->
+        <div class="activity-logs" ng-class="{'job-flow--hidden': uiState.isFlowVisible == false}">
+            <div class="h100 vertical-flex">
+                <debug data="selectedActivity"></debug>
+                <div class="activity-logs__header">
+                    <h2>Activity Log
+                        <a ng-if="selectedActivity.state != 'NOT_STARTED'" target="_new" href="/dip/api/flow/jobs/cat-activity-log?projectKey={{$stateParams.projectKey}}&jobId={{jobStatus.baseStatus.def.id}}&activityId={{selectedActivity.activityId}}" class="open-logs-icon">
+                            <i class="icon-external-link" title="Read complete logs"></i>
+                        </a>
+                    </h2>
+                    <div class="actions pull-right">
+                        <div class="activity-logs__header-right">
+                            <a class="activity-logs__summary-link padleftright16" ng-click="showSummary()" ng-if="selectedActivity.warnings.totalCount === 0">Show summary</a>
+                            <i class="icon-dku-warning text-warning" ng-if="selectedActivity.warnings.totalCount > 0"></i>
+                            <a class="activity-logs__summary-link padright16 text-warning" ng-click="showSummary()" ng-if="selectedActivity.warnings.totalCount > 0">Show Warnings</a>
+                            <a class="btn btn--secondary mright8"
+                                ng-show="selectedActivity.activityType == 'RECIPE'"
+                                ui-sref="projects.project.recipes.recipe({projectKey: selectedActivity.def.recipeProjectKey,
+                                    recipeName: selectedActivity.recipeName})">
+                                Recipe
+                            </a>
+                            <ng-switch on="selectedActivity.targets.length">
+                                <span ng-switch-when="1">
+                                    <a ng-if="selectedActivity.targets[0].type == 'DATASET'" class="btn btn--secondary" href="{{datasetSmartHRef(selectedActivity.targets[0].id,'explore')}}">
+                                        Output dataset
+                                    </a>
+                                    <a ng-if="selectedActivity.targets[0].type == 'SAVED_MODEL'" class="btn btn--secondary" ui-sref="projects.project.savedmodels.savedmodel.versions({smId:selectedActivity.targets[0].smId})">
+                                        Model
+                                    </a>
+                                    <a ng-if="selectedActivity.targets[0].type == 'MANAGED_FOLDER'" class="btn btn--secondary" ui-sref="projects.project.managedfolders.managedfolder.view({odbId:selectedActivity.targets[0].odbId})">
+                                        Folder
+                                    </a>
+                                    </span>
+
+                                <div ng-switch-default class="btn-group">
+                                    <button class="btn btn--secondary dropdown-toggle" data-toggle="dropdown">
+                                        Outputs
+                                        <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu pull-right">
+                                        <li ng-repeat="target in selectedActivity.targets">
+                                            <a ng-if="target.type == 'DATASET'" href="{{ $state.href('projects.project.datasets.dataset.explore', {datasetName: target.id.split('.')[1]}) }}">{{ target.id.split(".")[1] }}</a>
+                                            <a ng-if="target.type == 'SAVED_MODEL'" ui-sref="projects.project.savedmodels.savedmodel.versions({smId:target.smId})">{{ target.label || target.id.split(".")[1] }}</a>
+                                            <a ng-if="target.type == 'MODEL_EVALUATION_STORE'" ui-sref="projects.project.modelevaluationstores.modelevaluationstore.evaluations({mesId:target.mesId})">{{ target.label || target.id.split(".")[1] }}</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </ng-switch>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex">
+                    <div class="fh">
+                        <section class="vertical-flex h100">
+                            <div ng-if="selectedActivity.state != 'NOT_STARTED' && selectedActivity.state != 'SKIPPED'" class="h100 vertical-flex" style="position: relative;">
+                                <div class="flex oa activity-logs__error-alert">
+                                    <div class="noflex oa mleftright16" style="max-height: 200px; word-break: break-word;" ng-if="selectedActivity.firstFailure" api-error-alert="selectedActivity.firstFailure"/>
+                                    <div class="noflex padleftright16" ng-show="selectedActivity.state != 'DONE' && selectedActivity.message"><small>Status: {{selectedActivity.message}}</small></div>
+                                    <pre id="logTailPre" ng-bind-html="logTail"></pre>
+                                </div>
+                            </div>
+                            <div ng-if="selectedActivity.state == 'NOT_STARTED' && jobState != 'RUNNING'">
+                                <h5 class="activity-logs__no-logs">This activity has not been executed yet.</h5>
+                            </div>
+
+                            <div ng-if="selectedActivity.state == 'NOT_STARTED' && jobState == 'RUNNING'">
+                                <h5 class="activity-logs__no-logs">The activity has not started yet.</h5>
+                            </div>
+                            <div ng-if="selectedActivity.state == 'SKIPPED'">
+                                <h5 class="activity-logs__no-logs">This activity was skipped (partial build)</h5>
+                            </div>
+
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activities tab (failed on incompatibilities) -->
+    <div class="flex row-fluid" style="box-sizing: border-box" ng-if="topNav.tab == 'activities' && jobStatus.baseStatus.incompatibilities">
+        <div class="fh oa small-lr-padding">
+            <h4 class="empty-list-cta job-status__error-title">
+                This job could not be executed because some datasets were already being built.
+            </h4>
+
+            <table class="table table-small table-hover table-striped">
+                <tr ng-repeat="inc in jobStatus.baseStatus.incompatibilities">
+                    <td>
+                        <a href="/projects/{{inc.datasetProjectKey}}/datasets/{{inc.datasetName}}.summary/}}">{{inc.datasetName}}</a>
+                        <span ng-show="inc.partition != 'NP'">(partition {{inc.partition}})</span>
+                    </td>
+                    <td>
+                        in job <a href="/projects/{{inc.jobProjectKey}}/jobs/{{inc.jobId}}/">{{inc.jobId}}</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

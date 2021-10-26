@@ -1,0 +1,341 @@
+<div>
+    <div class="timeline-item-picture" >
+        <div class="avatar">
+            <div user-picture="item.user" size="20"></div>
+        </div>
+    </div>
+
+
+    <div class="timeline-item-content">
+        <date>{{ item.time|date:'HH:mm' }}</date>
+
+
+        <div class="timeline-item-message" >
+            <div class="header" ng-switch on="item.action">
+
+                <div ng-switch-when="DASHBOARD_LISTED">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            made dashboard public
+                        </div>
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            made this dashboard public
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="DASHBOARD_UNLISTED">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            made dashboard private
+                        </div>
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            made this dashboard private
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="INSIGHT_LISTED">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            made insight public
+                        </div>
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            made this insight public
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="INSIGHT_UNLISTED">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            made insight private
+                        </div>
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            made this insight private
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="SAVED_MODEL_CHANGE_ACTIVE_VERSION">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            changed a model version
+                        </div>
+                        <span tl-savedmodel-target />
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            changed this model version
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="LAMBDA_SERVICE_PACKAGE">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            packaged version
+                            <strong class="dib">{{item.details.packageId}} </strong>
+                            of API service
+                            <span dss-object-link item="item" ng-if="item.humanReadableObjectType" class="target {{item.humanReadableObjectType}}"/>
+                        </div>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            packaged version
+                            <strong class="dib">{{item.details.packageId}} </strong>
+                            of this service
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="COMMENT">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            commented on {{item.humanReadableObjectType}}
+                        </div>
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            commented on this {{item.humanReadableObjectType}}
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="EDIT_COLLABORATIVE_METADATA">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            <span ng-show="TimelineItemUtils.isAboutTagsOnly(item)">
+                                tagged {{item.humanReadableObjectType}}
+                            </span>
+                            <span ng-show="TimelineItemUtils.isAboutTasksOnly(item)">
+                                edited tasks on {{item.humanReadableObjectType}}
+                            </span>
+                            <span ng-show="TimelineItemUtils.isMoreComplex(item)">
+                                edited metadata on {{item.humanReadableObjectType}}
+                            </span>
+                        </div>
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            <span ng-show="TimelineItemUtils.isAboutTagsOnly(item)">
+                                tagged this {{item.humanReadableObjectType}}
+                            </span>
+                            <span ng-show="TimelineItemUtils.isAboutTasksOnly(item)">
+                                edited tasks on this {{item.humanReadableObjectType}}
+                            </span>
+                            <span ng-show="TimelineItemUtils.isMoreComplex(item)">
+                                edited metadata on this {{item.humanReadableObjectType}}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="PROJECT_GIT_PULL">
+                    <div class="description">
+                        <span tl-user />
+                        pulled remote changes on project
+                        <span dss-object-link item="item" ng-if="item.humanReadableObjectType" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                </div>
+
+                <div ng-switch-when="PROJECT_GIT_CHECKOUT">
+                    <div class="description">
+                        <span tl-user />
+                        switched project to branch {{item.details.branchName}}
+                        <span dss-object-link item="item" ng-if="item.humanReadableObjectType" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                </div>
+
+                <div ng-switch-default>
+                    <!-- This should not happen but in case of bug or old action not used anymore, still try to show the object -->
+                    <div ng-if="!(item.action.endsWith('_CREATE') ||
+                        item.action.endsWith('_EDIT') ||
+                        item.action.endsWith('_RENAME') ||
+                        item.action.endsWith('_DELETE') ||
+                        item.action.endsWith('_DUPLICATE') ||
+                        item.action.endsWith('_GIT_PULL') ||
+                        item.action.endsWith('_GIT_CHECKOUT') ||
+                        item.action.endsWith('_UPDATE_METRICS'))">
+                        Unknown action {{item.action}}
+                        <span ng-show="item.humanReadableObjectType">
+                            on {{item.humanReadableObjectType}}
+                        </span>
+                        <span dss-object-link item="item" ng-if="item.humanReadableObjectType" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                </div>
+
+
+                <!--            Generic actions:             -->
+
+
+                <div ng-if="item.action.endsWith('_CREATE')">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            created {{item.humanReadableObjectType}}
+                        </div>
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            created this {{item.humanReadableObjectType}}
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-if="item.action.endsWith('_EDIT')">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            edited {{item.humanReadableObjectType}}
+                        </div>
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            edited this {{item.humanReadableObjectType}}
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-if="item.action.endsWith('_RENAME')">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            renamed {{item.humanReadableObjectType}}
+                        </div>
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            renamed this {{item.humanReadableObjectType}}
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-if="item.action.endsWith('_UPDATE_METRICS')">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            updated the metrics for {{item.humanReadableObjectType}}
+                        </div>
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            updated the metrics for this {{item.humanReadableObjectType}}
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-if="item.action.endsWith('_DELETE')">
+                    <div class="description">
+                        <span tl-user />
+                        deleted {{item.humanReadableObjectType}}
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                </div>
+
+                <div ng-if="item.action.endsWith('_DUPLICATE')">
+                    <div ng-if="context != 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            duplicated {{item.humanReadableObjectType}}
+                        </div>
+                        <span dss-object-link item="item" class="target {{item.humanReadableObjectType}}"/>
+                    </div>
+                    <div ng-if="context == 'object'">
+                        <div class="description">
+                            <span tl-user />
+                            duplicated this {{item.humanReadableObjectType}}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="details">
+                <div ng-if="item.action == 'COMMENT'">
+                    <div from-markdown="item.details.text.length ? item.details.text : 'No text'" class="oa dib" style="max-height: 300px; width: 100%;"/>
+                </div>
+
+                <div ng-if="item.action == 'EDIT_COLLABORATIVE_METADATA'">
+                    <div ng-show="item.details.shortDescEdited" from-markdown="'Description changed: ' + item.details.newShortDesc"></div>
+                    <div ng-repeat="checklist in item.details.addedChecklists track by $index">
+                        <i class="icon-plus" title="Added" /> Todo list: {{checklist}}
+                    </div>
+                    <div ng-repeat="checklist in item.details.removedChecklists track by $index">
+                        <i class="icon-remove" title="Removed" /> Todo list: {{checklist}}
+                    </div>
+
+                    <div ng-repeat="task in item.details.addedTasks track by $index">
+                        <i class="icon-plus" title="Added" /> {{task}}
+                    </div>
+                    <div ng-repeat="task in item.details.doneTasks track by $index">
+                        <i class="icon-ok" title="Completed" /> {{task}}
+                    </div>
+                    <div ng-repeat="task in item.details.removedTasks track by $index">
+                        <i class="icon-remove" title="Removed" /> {{task}}
+                    </div>
+                    <div ng-repeat="task in item.details.undoneTasks track by $index">
+                        <i class="icon-undo" title="Undone" /> {{task}}
+                    </div>
+
+                    <div ng-if="item.details.doneAllTasks" style="margin-top: 10px;">
+                        All {{item.details.totalTasks}} done!
+                    </div>
+                    <div ng-if="!item.details.doneAllTasks && item.details.totalTasks" style="margin-top: 10px;">
+                        Currently completed tasks: {{item.details.totalDoneTasks}} / {{item.details.totalTasks}}
+                    </div>
+                </div>
+
+                <div ng-if="item.action.endsWith('_RENAME')">
+                    From: {{item.details.oldName}} <br/>
+                    To: {{item.details.newName}}
+                </div>
+
+                <div ng-if="item.action.endsWith('_DUPLICATE')">
+                    From: {{item.objectType}} <br/>
+                    To: {{item.projectKey}}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

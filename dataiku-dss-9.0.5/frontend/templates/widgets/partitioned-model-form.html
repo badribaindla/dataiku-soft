@@ -1,0 +1,26 @@
+<div>
+    <div class="control-group required">
+        <label class="control-label">Partitioning</label>
+        <div class="controls">
+            <label>
+                <input type="checkbox" ng-model="partitionedModel.enabled" ng-disabled="partitioningDisabledReason()" />
+                <div class="help-inline" ng-if="!partitioningDisabledReason() && !partitionedModel.enabled">
+                    Create one model per partition in your input dataset.
+                </div>
+                <div class="help-inline" ng-if="!partitioningDisabledReason() && partitionedModel.enabled">
+                    Partition by <span ng-bind-html="dimensionsList()"></span>.
+                </div>
+                <div class="help-inline" ng-if="partitioningDisabledReason()">
+                    Not available: {{partitioningDisabledReason()}}.
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <div ng-if="partitionedModel.enabled">
+        <div dataset-selection-partitions-selection-controlgroups
+             selection="partitionedModel.ssdSelection"
+             partitioned="dataset.partitioning.dimensions.length > 0"
+             get-partitions-list="getPartitionsList"></div>
+    </div>
+</div>

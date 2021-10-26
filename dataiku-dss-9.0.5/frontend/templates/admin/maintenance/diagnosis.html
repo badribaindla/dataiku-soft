@@ -1,0 +1,87 @@
+<div class="paned-settings-page-pane h100 oa">
+    <div class="paned-settings-page-pane__sticky">
+        <h1>DSS diagnosis</h1>
+    </div>
+    <div class="section">
+
+    <div class="alert alert-info">
+        The diagnosis report helps Dataiku support team understand and troubleshoot issues you may encounter.
+        <br/>
+        Please note that job execution logs are not included in this diagnosis. If the issue at hand happened while running of a job, you should instead download the job-specific diagnosis from the job’s page.
+    </div>
+
+    <div class="row-fluid">
+        <div class="span12 text-center">
+        	<button ng-click="runDiagnosis()" class="btn btn--success btn--large">
+                <i class="icon-cogs"/>&nbsp;
+                Create diagnosis
+            </button>
+        </div>
+    </div>
+
+    <div class="row-fluid">
+        <div class="span8">
+    
+            <div class="mbot20">
+            
+            </div>
+
+            <form class="dkuform-horizontal">
+                <h2>Options</h2>
+                <div class="options-list">
+                    <label>
+                        <input type="checkbox" ng-model="options.includeFullLogs" style="margin: 0 4px;">Include full logs history</label>
+                    <label>
+                </div>
+
+                <p class="mtop20"><a ng-click="options.$showAdvanced = !options.$showAdvanced">{{options.$showAdvanced ? 'Hide advanced options': 'Show advanced options'}}</a></p>
+
+                <div ng-if="options.$showAdvanced">
+                    <div class="alert alert-warning">
+                        Changing some of these options may prevent Dataiku Support from providing efficient assistance.
+                        Please only change these options at the direction of Dataiku Support
+                    </div>
+                    
+                    <div class="options-list">
+                        <label>
+                            <input type="checkbox" ng-model="options.includeConfigDir" style="margin: 0 4px;">Include config/ folder
+                        </label>
+                        <label>
+                            <input type="checkbox" ng-model="options.includeIOVM" style="margin: 0 4px;">Report I/O and virtual memory information
+                        </label>
+                        <label>
+                            <input type="checkbox" ng-model="options.includeBackendStacks" style="margin: 0 4px;">Report backend stacks
+                        </label>
+                        <label>
+                            <input type="checkbox" ng-model="options.includeDockerImagesListing" style="margin: 0 4px;">Include list of Docker images
+                        </label>
+                        <label>
+                            <input type="checkbox" ng-model="options.includeFullDataDirListing" style="margin: 0 4px;">Include full datadir listing
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="span4">
+
+            <div class="mbot20">
+            
+            </div>
+
+            <div ng-if="latestDiagnosis" style="margin: 10px 0;">
+                <h2>
+                    Latest diagnosis ({{latestDiagnosis.date | friendlyTimeDeltaShort}})
+                </h2>
+                <a ng-click="downloadLatestDiagnosis()">
+                    <i class="icon-download" ng-if="latestDiagnosis.size"/>
+                    Download ({{latestDiagnosis.size |filesize}})
+                </a>
+                <div ng-if="now - latestDiagnosis.date > 3*3600*1000" class="alert alert-warning">
+                    Beware: this diagnosis was captured long ago ({{latestDiagnosis.date | friendlyTimeDeltaShort}}). It may 
+                    not contain up-to-date troubleshooting information.
+                </div> 
+            </div>
+        </div>
+    </div>
+    </div>
+</div>

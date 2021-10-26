@@ -1,0 +1,47 @@
+<div ng-class="{'noflex' : !role.editing, 'flex' : role.editing}">
+    <div class="fh" ng-if="role.editing">
+	   	<div class="vertical-flex h100">
+       		<div class="flex">
+				<div class="floating-close" ng-show="role.arity != 'UNARY' || !role.required || (recipe.outputs[role.name].items && recipe.outputs[role.name].items.length > 0)">
+					<a ng-click="cancelAddOutput()" class="icon-remove pull-right btn-close " title="Cancel addition"></a>
+				</div>
+
+           		<div class="fh" include-no-scope="/templates/recipes/io/modal-create-managed-dataset.html" ng-show="io.newOutputTypeRadio == 'create'"/>
+
+           		<div class="fh" include-no-scope="/templates/recipes/io/modal-existing-output-selector.html" ng-show="io.newOutputTypeRadio == 'select'"/>
+
+                <div class="fh" include-no-scope="/templates/recipes/io/modal-create-box.html" ng-show="io.newOutputTypeRadio == 'new-odb'"/>
+
+                <div class="fh" include-no-scope="/templates/recipes/io/modal-create-model-evaluation-store.html" ng-show="io.newOutputTypeRadio == 'new-mes'"/>
+
+                <div class="fh" include-no-scope="/templates/recipes/io/modal-create-streaming-endpoint.html" ng-show="io.newOutputTypeRadio == 'new-se'"/>
+       		</div>
+			<div class="noflex dku-switches">
+                <div style="clear: both;"></div>
+				<div ng-show="role.acceptsDataset && !noDataset" style="display: inline-block;">
+					<a ng-click="io.newOutputTypeRadio = 'create';" ng-class="{'selected' : io.newOutputTypeRadio == 'create'}">New dataset</a>
+					|
+				</div>
+				<a ng-click="io.newOutputTypeRadio = 'select';" ng-class="{'selected' : io.newOutputTypeRadio == 'select'}">Use existing</a>
+                <div ng-show="role.acceptsManagedFolder && !noFolder" style="display: inline-block;">
+                    |
+                    <a ng-click="io.newOutputTypeRadio = 'new-odb';" ng-class="{'selected' : io.newOutputTypeRadio == 'new-odb'}">New folder</a>
+                </div>
+                <div ng-show="role.acceptsModelEvaluationStore && !noEvaluationStore && featureFlagEnabled('model_evaluation_stores')" style="display: inline-block;">
+                    |
+                    <a ng-click="io.newOutputTypeRadio = 'new-mes';" ng-class="{'selected' : io.newOutputTypeRadio == 'new-mes'}">New evaluation store</a>
+                </div>
+                <div ng-show="role.acceptsStreamingEndpoint && !noStreamingEndpoint" style="display: inline-block;">
+                    |
+                    <a ng-click="io.newOutputTypeRadio = 'new-se';" ng-class="{'selected' : io.newOutputTypeRadio == 'new-se'}">New streaming endpoint</a>
+                </div>
+			</div>
+       	</div>
+    </div>
+
+	<div class="bottom-button" ng-if="!role.editing && editOutputs.length == 0" >
+    	<button class="btn btn--primary btn--xlarge btn--full" ng-click="enterAddOutput(role.name)">
+            {{role.arity == "UNARY" ? (recipe.outputs[role.name].items.length > 0 ? 'Change' : 'Set') : '+ Add'}}
+        </button>
+	</div>
+</div>

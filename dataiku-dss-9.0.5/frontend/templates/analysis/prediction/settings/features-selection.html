@@ -1,0 +1,102 @@
+<div class="design-tab-title">Feature reduction</div>
+<div class="doctor-settings-page feature-selection" ng-controller="PMLTaskFeatureSelectionController" ng-init="params = mlTaskDesign.preprocessing.feature_selection_params">
+	<div class="alert alert-info">Feature reduction operates on the preprocessed features. It allows you to
+	reduce the dimension of the feature space in order to regularize your model or make it more interpretable. </div>
+	<form class="dkuform-horizontal">
+		<div class="control-group">
+			<label class="control-label">Reduction method</label>
+			<div class="controls">
+				<select dku-bs-select ng-model="params.method"  ng-options="type[0] as type[1] for type in featureSelectionKinds" />
+			</div>
+		</div>
+
+		<div ng-switch on="params.method" class="control-group">
+			<div ng-switch-when="NONE">
+				No feature reduction enabled.
+			</div>
+			<div ng-switch-when="RANDOM_FOREST">
+				<div class="alert alert-info">
+					This creates a Random Forest model to predict the target. Only
+					the top features according to the feature importances computed by the algorithm will be selected.
+				</div>
+				<div class="control-group">
+					<label for="" class="control-label">Number of features to keep</label>
+					<div class="controls">
+						<input type="number" force-integer ng-model="params.random_forest_params.n_features" min="1" />
+					</div>
+				</div>
+
+				<div class="control-group">
+					<label for="" class="control-label">Number of trees</label>
+					<div class="controls">
+						<input type="number" force-integer ng-model="params.random_forest_params.n_trees" min="1" />
+					</div>
+				</div>
+
+				<div class="control-group">
+					<label for="" class="control-label">Depth of trees</label>
+					<div class="controls">
+						<input type="number" force-integer ng-model="params.random_forest_params.depth" min="1" />
+					</div>
+				</div>
+			</div>
+			<div ng-switch-when="LASSO">
+				<div class="alert alert-info">
+					This creates a LASSO model to predict the target, using 3-fold cross-validation to select the
+					best value of the regularization term. Only the features with nonzero coefficients will be selected.
+				</div>
+				<label for="" class="control-label">Regularization</label>
+				<div class="controls">
+					<input type="text"
+						   comma-separated-float-view
+						   ng-model="params.lasso_params.alpha"/>
+                    <span class="multi-valued-field-marker icon-list-ol" toggle="tooltip"
+						  title="You can specify several values separated by commas (slower)" />
+				</div>
+			</div>
+			<div ng-switch-when="PCA">
+				<div class="alert alert-info">
+					The feature space dimension will be reduced using Principal Component Analysis. Only the top principal
+					components will be selected.
+				</div>
+				<div class="alert alert-warning">
+					This method will generate non-interpretable feature names as its output. The model may be performant,
+					but will not be interpretable.
+				</div>
+				<label for="" class="control-label">Maximum components</label>
+				<div class="controls">
+					<input type="number" force-integer ng-model="params.pca_params.n_features" min="1" />
+				</div>
+				<div ng-if="mlTask.backendType == 'PY_MEMORY'">
+					<label for="" class="control-label">Proportion of variance to keep</label>
+					<div class="controls">
+						<input type="number" ng-model="params.pca_params.variance_proportion" min="0" max="1" />
+					</div>
+				</div>
+			</div>
+			<div ng-switch-when="CORRELATION">
+				<div class="alert alert-info">
+					Only the features most correlated (Pearson) with the target will be selected. A threshold for
+					minimum and maximum absolute correlation can be set.
+				</div>
+				<div ng-if="isRegression()">
+					<label for="" class="control-label">Minimum absolute correlation</label>
+					<div class="controls">
+						<input type="number" ng-model="params.correlation_params.min_abs_correlation" min="0" max="1"/>
+					</div>
+				</div>
+				<div ng-if="isRegression()">
+					<label for="" class="control-label">Maximum absolute correlation</label>
+					<div class="controls">
+						<input type="number" ng-model="params.correlation_params.max_abs_correlation" min="0" max="1"/>
+					</div>
+				</div>
+				<label for="" class="control-label">Number of features to keep</label>
+				<div class="controls">
+					<input type="number" force-integer ng-model="params.correlation_params.n_features" min="1" />
+				</div>
+
+			</div>
+		</div>
+	</form>
+</div>

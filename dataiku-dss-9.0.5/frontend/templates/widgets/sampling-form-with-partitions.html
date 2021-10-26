@@ -1,0 +1,21 @@
+<div>
+    <div class="control-group required">
+        <label for="" class="control-label">Sampling method</label>
+        <div class="controls">
+            <select ng-model="selection.samplingMethod"
+                 ng-options="x[0] as x[1] for x in SamplingData.streamSamplingMethods" options-descriptions="SamplingData.streamSamplingMethodsDesc" dku-bs-select layout="list">
+            </select>
+            <span class="help-inline" ng-if="backendType == 'MLLIB' && (!dataset || dataset.type == 'HDFS')">
+                Beware that sampling HDFS datasets other than with a fixed ratio can be slow.
+            </span>
+        </div>
+    </div>
+    <div ng-if="dataset">
+        <div dataset-selection-partitions-selection-controlgroups
+             selection="selection"
+             partitioned="dataset.partitioning.dimensions.length > 0"
+             get-partitions-list="getPartitionsList"></div>
+    </div>
+
+    <div dataset-selection-sampling-details-controlgroups selection="selection"></div>
+</div>

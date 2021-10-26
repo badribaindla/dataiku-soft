@@ -1,0 +1,69 @@
+<div scrolly-menu style="display: inline-block" class="dropdown">
+    <a name="new-dataset-menu-dropdown-toggle" id="qa_flow_add-dataset" data-toggle="dropdown" class="btn btn--secondary dropdown-toggle" style="white-space: nowrap;" disabled-if-ro>
+        <span plus-icon />
+        {{title}} <b class="caret"></b>
+    </a>
+    <div class="scrolly-wrapper dropdown-menu pull-right">
+        <div class="anchor-for-popups">
+            <ul class="dropdown-menu new-dataset-menu">
+                <li ng-repeat="result in displayedItems" ng-class="{'divider': result.divider, 'dataset-disabled': result.disabled, 'dropdown-submenu' : result.isSection, 'nav-header': result.header}" ng-mouseover="posnMenu($event)" title="{{result.disabled ? result.reason : undefined}}">
+
+                    <a ng-if="result.isSection" href>
+                        <new-dataset-menu-item-label item="result"></new-dataset-menu-item-label>
+                    </a>
+                    <div class="scrolly-wrapper" ng-if="result.isSection" >
+                        <ul class="dropdown-menu" ng-if="result.isSection">
+                            <li ng-repeat="item in result.items" title="{{item.disabled ? item.reason : undefined}}">
+                                <a ng-if="item.isInfo" ng-click="displayPluginInfo(item.pluginId, true, false)">
+                                    Learn more...
+                                </a>
+                                <a ng-if="!item.fn && !item.isInfo && !item.disabled && item.licenseStatus.status == 'OK'" ui-sref="projects.project.datasets.new_with_type.settings({type:item.type, zoneId:relevantZoneId})" ng-click="getRelevantZoneId($stateParams.zoneId)">
+                                    <new-dataset-menu-item-label item="item"></new-dataset-menu-item-label>
+                                </a>
+                                <a ng-if="item.fn && !item.isInfo && !item.disabled && item.licenseStatus.status == 'OK'" ng-click="do(item.fn)">
+                                    <new-dataset-menu-item-label item="item"></new-dataset-menu-item-label>
+                                </a>
+                                <a ng-if="!item.isInfo && !item.disabled && item.licenseStatus.status == 'NOT_LICENSED_CE'" class="dataset-notlicensed-ce" ng-click="showCERestrictionModal(item.label + ' dataset')">
+                                    <new-dataset-menu-item-label item="item"></new-dataset-menu-item-label>
+                                </a>
+                                <!-- The item.licenseStatus.status == 'NOT_LICENSED_EE' is handled in the javascript and is just a sub-case of disabled here -->
+                                <a ng-if="!item.isInfo && item.disabled" class="dataset-disabled disabled">
+                                    <new-dataset-menu-item-label item="item"></new-dataset-menu-item-label>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div ng-if="result.header && result.label">
+                        {{ result.label }}
+                    </div>
+
+
+                    <a ui-sref="projects.project.datasets.new_with_type.settings({type:result.type, zoneId: relevantZoneId})" ng-if="!result.fn && !result.isSection && !result.disabled && result.licenseStatus.status == 'OK'" ng-click="getRelevantZoneId($stateParams.zoneId)" id="qa_flow_upload-dataset">
+                        <new-dataset-menu-item-label item="result"></new-dataset-menu-item-label>
+                    </a>
+
+                    <a ng-click="do(result.fn)" ng-if="result.fn && !result.isSection && !result.disabled && result.licenseStatus.status == 'OK'">
+                        <new-dataset-menu-item-label item="result"></new-dataset-menu-item-label>
+                    </a>
+
+                    <a ng-click="showCERestrictionModal(result.type + ' dataset')" ng-if="!result.isSection && !result.disabled && result.licenseStatus.status == 'NOT_LICENSED_CE'">
+                        <new-dataset-menu-item-label item="result"></new-dataset-menu-item-label>
+                    </a>
+                    <!-- The item.licenseStatus.status == 'NOT_LICENSED_EE' is handled in the javascript and is just a sub-case of disabled here -->
+                    <a class="disabled" ng-if="!result.isSection && result.disabled" title="{{result.reason}}">
+                        <new-dataset-menu-item-label item="result"></new-dataset-menu-item-label>
+                    </a>
+                </li>
+
+                <li class="divider" />
+
+                <li>
+                    <a ui-sref="projects.project.datasets.new({zoneId:relevantZoneId})" ng-click="getRelevantZoneId($stateParams.zoneId)">
+                        <em>All dataset types ...</em>
+                    </a>
+                </li>
+             </ul>
+        </div>
+    </div>
+ </div>

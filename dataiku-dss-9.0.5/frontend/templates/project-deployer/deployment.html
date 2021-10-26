@@ -1,0 +1,82 @@
+<div class="vertical-flex" global-keydown="{'ctrl-s meta-s':'saveProjectDeployment()'}">
+    <div class="top-level-tabs">
+        <div class="horizontal-flex object-nav">
+            <div class="object-breadcrumb object-breadcrumb--tooltip-on-overflow">
+                <div class="item">
+                    <a class="object-breadcrumb__link-icon" ui-sref="projectdeployer.deployments.dashboard">
+                        <i class="icon icon-deploy-bundle universe-background project-deployer" />
+                    </a>
+                    <div class="title">
+                        <a ui-sref="projectdeployer.deployments.dashboard"
+                            class="object-breadcrumb__link"
+                            title="Go back to project list">
+                        Deployments</a>
+                        <i class="object-breadcrumb__divider">/</i>
+                        <div class="object-breadcrumb__item" show-tooltip-on-text-overflow text-tooltip="lightStatus.deploymentBasicInfo.id" tooltip-direction="'tooltip-bottom'"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="noflex">
+                <a class="tab" ng-class="{enabled: $state.current.name.includes('status')}" ui-sref="projectdeployer.deployments.deployment.status" fw500-width>
+                    Status
+                </a>
+                <a class="tab" ng-class="{enabled: $state.current.name.includes('settings')}" ui-sref="projectdeployer.deployments.deployment.settings" fw500-width>
+                    Settings
+                </a>
+                <a class="tab" ng-class="{enabled: $state.current.name.includes('history')}" ui-sref="projectdeployer.deployments.deployment.history" fw500-width>
+                    History
+                </a>
+
+                <div class="otherLinks">
+                    <button class="btn btn--secondary" ng-click="refreshLightAndHeavy(); getScenarioRuns()">
+                        <i class="icon-refresh"></i>
+                        &nbsp;Refresh
+                    </button>
+                    <span ng-if="projectDeploymentIsDirty()">
+                        <button class="btn btn--success" ng-click="saveAndUpdateProjectDeployment()">
+                            <i class="icon-play"></i>
+                            &nbsp;Save and update
+                        </button>
+                        <button class="btn btn--primary" ng-click="saveProjectDeployment()">
+                            <i class="icon-save"></i>
+                            &nbsp;Save
+                        </button>
+
+                    </span>
+                    <span ng-if="!projectDeploymentIsDirty()">
+                        <button class="btn btn--success" ng-click="updateOnly(true)">
+                            <i class="icon-play"></i>
+                            &nbsp;{{lightStatus && lightStatus.neverEverDeployed ? 'Deploy' : 'Update'}}
+                        </button>
+                        <button class="btn btn--primary" disabled>
+                            <i class="icon-save"></i>
+                            &nbsp;Saved!
+                        </button>
+                    </span>
+
+                    <button class="btn btn--secondary dropdown-toggle" data-toggle="dropdown" href>
+                        Actions <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu pull-right text-left">
+                        <li>
+                            <a ng-click="copyDeployment()">
+                                <i class="icon-copy" />&nbsp;Copy this deployment
+                            </a>
+                        </li>
+                        <li>
+                            <a ng-click="deleteDeployment()">
+                                <span class="text-error">
+                                    <i class="icon-trash" />&nbsp;Delete this deployment
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="dss-page fh oa">
+        <div ui-view />
+    </div>
+</div>

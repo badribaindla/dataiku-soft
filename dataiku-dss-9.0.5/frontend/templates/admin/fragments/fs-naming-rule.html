@@ -1,0 +1,92 @@
+<div ng-show="connection.allowManagedDatasets || connection.allowManagedFolders">
+    <h2 class="settings-section-title">Naming rules for new datasets/folders</h2>
+    <p>
+        <small class="help-inline" style="padding: 0">
+            These settings define how managed datasets and folders are located and mapped to
+            paths. These settings are only applied when creating a new managed dataset or folder.
+            You can always modify these afterwards in the dataset settings.
+            See <doclink page="/connecting/relocation" title="the documentation" /> for more information.
+        </small>
+    </p>
+
+    <div class="control-group">
+        <label for="" class="control-label">Path prefix</label>
+        <div class="controls">
+            <input ng-model="connection.params.namingRule.pathDatasetNamePrefix" type="text"
+                placeholder="{{connection.params.namingRule.pathDatasetNameSuffix ? '' : '${projectKey}/'}}"/>
+            <div class="help-inline">
+                This will be prepended before the dataset name in the path, relative
+                to the connection root. You may reference variables here, they will
+                be expanded dynamically
+            </div>
+        </div>
+    </div>
+    <div class="control-group">
+        <label for="" class="control-label">Path suffix</label>
+        <div class="controls">
+            <input ng-model="connection.params.namingRule.pathDatasetNameSuffix" type="text" />
+            <div class="help-inline">
+                This will be appended after the dataset name in the path, relative
+                to the connection root. You may reference variables here, they will
+                be expanded dynamically
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="['EC2', 'Azure', 'GCS'].indexOf(connection.type) >= 0">
+        <div class="control-group">
+            <label for="" class="control-label">Metastore database name</label>
+            <div class="controls">
+                <input ng-model="connection.params.namingRule.metastoreDatabaseName" type="text"  name="metastoreDatabaseName" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/" />
+
+                <div class="help-inline error-text-color" ng-show="connectionParamsForm.metastoreDatabaseName.$invalid">
+                    Metastore database names can only contains letters, numbers and underscores.
+                </div>
+                <br/>
+                <div class="help-inline">
+                    You may reference variables here, they will be expanded dynamically
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="" class="control-label">Metastore table name prefix</label>
+            <div class="controls">
+                <input ng-model="connection.params.namingRule.metastoreTableNameDatasetNamePrefix" type="text" name="metastoreTableNamePrefix" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/" />
+
+                <div class="help-inline error-text-color" ng-show="connectionParamsForm.metastoreTableNamePrefix.$invalid">
+                    MEtastore table names can only contains letters, numbers and underscores.
+                </div>
+                <br/>
+                <div class="help-inline">
+                    This will be prepended before the dataset name in the Metastore table name.
+                    You may reference variables here, they will be expanded dynamically
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="" class="control-label">Metastore table name suffix</label>
+            <div class="controls">
+                <input ng-model="connection.params.namingRule.metastoreTableNameDatasetNameSuffix" type="text" name="metastoreTableNameSuffix" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/"  />
+                <div class="help-inline error-text-color" ng-show="connectionParamsForm.metastoreTableNameSuffix.$invalid">
+                    Metastore table names can only contains letters, numbers and underscores.
+                </div>
+                <br/>
+                <div class="help-inline">
+                    This will be appended after the dataset name in the Metastore table name.
+                    You may reference variables here, they will be expanded dynamically
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="control-group">
+    <h2 class="settings-section-title">Custom properties</h2>
+    <label  class="control-label">Advanced connection properties</label>
+    <div class="controls">
+        <ng2-connection-properties-list [(items)]="connection.params.dkuProperties" (on-validity-change)="setAdvancedConnectionPropertiesValidity($event)"></ng2-connection-properties-list>
+        <span class="help-inline">
+            For specific use cases
+        </span>
+    </div>
+</div>

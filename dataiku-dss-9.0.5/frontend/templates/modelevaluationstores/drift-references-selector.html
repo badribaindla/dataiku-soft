@@ -1,0 +1,40 @@
+<div class="w100">
+    <table class="table table-small drift-current-reference-table" ng-if="$ctrl.cur">
+        <thead>
+            <tr>
+                <th colspan="2" class="title list-customfilter-box">
+                    <select dku-bs-select="{'style': 'dku-select-button', titlePrefix:'Labels', 'selectedTextFormat': 'count'}" multiple="multiple" ng-model="uiState.selectedLabels"
+                            ng-options="l as labelSuffix(l) group by labelPrefix(l) for l in uiState.allLabels">
+                    </select>
+                <th class="current">Current Model Evaluation</th>
+                <th class="reference">
+                    {{$ctrl.ref.refType == 'MODEL_EVALUATION'?'Reference Model Evaluation':'Reference Saved Model'}} ({{($ctrl.cur.modelUniqueId == $ctrl.ref.modelUniqueId)?'Original model':'Different model'}})
+                    <button ng-click="changeReference()"class="btn btn--outline btn--primary pull-right change-ref-btn">
+                        Change
+                    </button>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="2" class="title">Model / evaluation ID</td>
+                <td class="data">{{ $ctrl.cur.refStr || $ctrl.cur.ref.fullId }}</td>
+                <td class="data">{{ $ctrl.ref.refStr || $ctrl.cur.ref.fullId }}</td>
+            </tr>
+            <tr ng-if="uiState.titleLabels && uiState.titleLabels.length" ng-repeat="tl in uiState.titleLabels">
+                <td ng-if="tl.domain" rowspan="{{tl.span}}" class="title first">{{tl.domain}}{{tl.domain != '-'?':':''}}</td>
+                <td class="title">{{tl.subLabel}}</td>
+                <td class="data">{{$ctrl.cur.labels.get(tl.fullLabel) || '-'}}</td>
+                <td class="data">{{$ctrl.ref.labels.get(tl.fullLabel) || '-'}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="w100">
+    <div class="pull-right drift-current-reference-action">
+        <span ng-if ="$ctrl.driftParams" class="computation-params-gear computation-params-gear--left" ng-click="toggleComputationParamsPopin($event)">
+            <i class="icon-gear"></i>
+        </span>
+        <button ng-click="$ctrl.action()" ng-disabled="!$ctrl.ref" class="btn btn--primary">Compute</button>
+    </div>
+</div>

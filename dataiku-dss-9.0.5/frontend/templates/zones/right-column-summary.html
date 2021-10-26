@@ -1,0 +1,79 @@
+<div class="object-right-column-summary h100 vertical-flex" ng-if="selection.selectedObject">
+    <div item-header class="noflex"
+         href=""
+         color="" icon="icon-zone" title="{{selection.selectedObject.name}}">
+        {{selection.selectedObject.name}} {{selection.selectedObject.id == "default" ? ' [DEFAULT]' : ''}}
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex oa">
+        <div class="h100" ng-switch="uiState.activeTab">
+            <div ng-switch-when="details" class="details-tab h100 oa">
+                <object-details object-type="FLOW_ZONE" object-data="zoneFullInfo" context="right-column" hover-intent-callback="QuickView" editable="canWriteProject()" edit-custom-fields="editCustomFields"/></object-details>
+            </div>
+
+            <!-- DISCUSSIONS tab -->
+            <div ng-switch-when="discussions" class="object-summary-tab-content discussions-tab h100 oa">
+                <div class="h100" discussions-widget watch-object="selection.selectedObject" selected-item="{projectKey: selection.selectedObject.projectKey, type: 'ANALYSIS', id: selection.selectedObject.id}" />
+            </div>
+
+            <div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+                <div class="icons-section icons-grey icons-main">
+                    <div simple-right-col-action-click
+                         ng-show="!$stateParams.zoneId"
+                         on-click="zoomOnZone(selection.selectedObject.cleanId)"
+                         label="Open"
+                         icon="icon-DKU_expand" />
+
+                    <div simple-right-col-action-click
+                         ng-show="$stateParams.zoneId"
+                         on-click="zoomOutOfZone('zone_'+$stateParams.zoneId)"
+                         label="View in Flow"
+                         icon="icon-sitemap icon-rotate-90" />
+
+                    <div simple-right-col-action-click
+                         on-click="editZone()"
+                         label="Edit"
+                         icon="icon-pencil"
+                         disabled-if-ro
+                    />
+                    <div simple-right-col-action-click
+                        on-click="startApplyTagging()"
+                        label="Tag"
+                        icon="icon-tags"
+                        disabled-if-ro
+                        wt1-click-id="rightpaneldataset_actions_tag" />
+                    <div simple-right-col-action-click
+                         ng-show="selection.selectedObject.id != 'default'"
+                         on-click="deleteZone()"
+                         ng-class="{'icons-danger': isProjectAnalystRW()}"
+                         label="Delete"
+                         icon="icon-trash"
+                         disabled-if-ro
+                    />
+                    <div simple-right-col-action-click
+                        ng-show="!$stateParams.zoneId"
+                        on-click="toggleZoneCollapse([selection.selectedObject].map(TaggableObjectsUtils.fromObjectItem), selection.selectedObject.isCollapsed ? 'expandAll' : 'collapseAll')"
+                        label="{{selection.selectedObject.isCollapsed ? 'Expand' : 'Collapse'}}"
+                        icon="{{selection.selectedObject.isCollapsed ? 'icon-resize-full' : 'icon-resize-small'}}"
+                    />
+
+                    <div simple-right-col-action-click
+                        ng-show="!$stateParams.zoneId"
+                        on-click="collapseAllZones()"
+                        label="Collapse all"
+                        icon="icon-resize-small"
+                    />
+                    <div simple-right-col-action-click
+                        ng-show="!$stateParams.zoneId"
+                        on-click="expandAllZones()"
+                        label="Expand all"
+                        icon="icon-resize-full"
+                    />
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

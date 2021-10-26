@@ -1,0 +1,45 @@
+<div class="modal modal3 dku-modal modal-half-panes">
+    <div dku-modal-header-with-totem modal-title="Duplicate this scenario" modal-totem="icon-copy" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <div class="control-group">
+                <label class="control-label">Project</label>
+                <div class="controls">
+                    <select dku-bs-select="{'liveSearch':true}"
+                            ng-model="projectKey"
+                            ng-options="project.projectKey as project.name for project in writableProjects"/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Scenario name</label>
+                <div class="controls">
+                    <input name="scenarioName" ng-model="name" type="text"/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Scenario id</label>
+                <div class="controls">
+                    <input name="scenarioId" ng-model="id" type="text" ng-focus="fillId()"/>
+                    <span class="help-inline">Must be unique in the project.</span>
+                </div>
+            </div>
+            <br/>
+            <div class="alert alert-warning">
+                    <div>
+                        All triggers will be turned off in the duplicated scenario.
+                    </div>
+                    <div ng-if="scenario.projectKey != projectKey">
+                        References to content specific to the current project might cause unpredictable behavior
+                        on the duplicated scenario and should be updated or removed.
+                    </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="!name" ng-click="duplicate()">Duplicate</button>
+        </div>
+    </form>
+</div>

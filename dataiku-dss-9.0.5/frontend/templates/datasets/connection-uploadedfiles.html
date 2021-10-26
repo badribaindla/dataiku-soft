@@ -1,0 +1,87 @@
+<div ng-controller="UploadedFilesController" style="margin-top: 10px;">
+    <div block-api-error />
+    <droparea drop="drop(files)" multiple class="droparea-style-v2">
+        <ul class="files">
+            <li ng-repeat="file in files track by $index">
+                <div class="file">
+                    <i class="icon-file"></i>
+                    <span class="path" title="file.path">{{ file.path }}</span>
+                    <a href class="close" ng-click="deleteFile(file, $event)"><i class="icon-trash"></i></a>
+                    <span class="size">{{ file.length|filesize }}</span>
+                    <progress ng-show="file.progress <= 100" value="{{ file.progress }}" max="100"></progress>
+                </div>
+            </li>
+        </ul>
+        <div class="h100" ng-if="files.length ==0">
+            <div class="preview-cta" >
+                No file yet
+            </div>
+        </div>
+        <div class="upload-hook" ng-class="{'centered-upload-hook':files.length >0}">
+            Drag and drop your files here or
+            <button class="btn btn--contained upload-button">Add a file</button>
+
+            <p ng-show="files.length >= 1" style="font-size: 13px; color: #999; font-weight: 400; margin-top: 5px; margin-bottom: 0">
+                Creates a single dataset: multiple files must have the same schema.
+            </p>
+        </div>
+    </droparea>
+    <form class="dkuform-horizontal mtop20">
+        <div class="row-fluid">
+            <div class="span7 generic-white-box">
+                <fieldset ng-if="isCreationPage">
+                    <div class="control-group">
+                        <label for="" class="control-label">
+                            Store on
+                        </label>
+                        <div class="controls">
+                            <select dku-bs-select data-live-search="{{uploadableConnections.length > 5}}" ng-model="dataset.params.$uploadConnection" ng-options="c as c.name for c in uploadableConnections"></select>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="dataset.params.$uploadConnection && dataset.params.$uploadConnection.fsProviderTypes.length > 1">
+                        <label for="" class="control-label">
+                            With type
+                        </label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="dataset.params.uploadFSProviderType" ng-options="t for t in dataset.params.$uploadConnection.fsProviderTypes"></select>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset ng-if="!isCreationPage && dataset.params.connection">
+                     <div class="control-group">
+                        <label for="" class="control-label">
+                            Stored on
+                        </label>
+                        <div class="controls">
+                            {{dataset.params.connection}}
+                        </div>
+                    </div>
+                </fieldset>
+                <div>
+                    <a ng-click="advanced = !advanced">{{advanced? 'Hide' : 'Show'}} Advanced options</a>
+
+                    <div ng-show="advanced">
+					    <div class="control-group">
+					        <label for="" class="control-label">File for test &amp; preview</label>
+					        <div class="controls">
+					            <input style="width: 300px" type="text" ng-model="dataset.params.previewFile" placeholder="If empty, the first non-empty file is used"/>
+					        </div>
+					    </div>
+                        <div class="control-group">
+                            <label class="control-label">Auto-test</label>
+                            <div class="controls">
+                                <label>
+                                    <input type="checkbox" ng-model="uiState.autoTestOnFileSelection" />
+                                    Test dataset as soon as a file is uploaded or removed
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button style="margin-top: 20px" class="btn btn--primary btn--wide" ng-click="detectOrPreview()"> <i class="icon-refresh" />&nbsp;Test
+        </button>
+    </form>
+</div>

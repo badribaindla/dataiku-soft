@@ -1,0 +1,63 @@
+<li class="processor-field applies-to" xmlns="http://www.w3.org/1999/html" ng-controller="AppliesToProcessorController">
+    <fieldset>
+        <span class="fieldLabel">Column
+            <span class="modes" ng-hide="appliesToDisabled">
+                <a ng-click="step.params.appliesTo = 'SINGLE_COLUMN'; checkAndRefresh()"
+                   ng-class="step.params.appliesTo == 'SINGLE_COLUMN' ? 'selected' : ''">single</a>
+                |
+                <a ng-click="step.params.appliesTo = 'COLUMNS'; checkAndRefresh()"
+                   ng-class="step.params.appliesTo == 'COLUMNS' ? 'selected' : ''">multiple</a>
+                |
+                <a ng-click="step.params.appliesTo = 'PATTERN'; checkAndRefresh()"
+                   ng-class="step.params.appliesTo == 'PATTERN' ? 'selected' : ''">pattern</a>
+                |
+                <a ng-click="step.params.appliesTo = 'ALL'; checkAndRefresh()"
+                   ng-class="step.params.appliesTo == 'ALL' ? 'selected' : ''">all</a>
+            </span>
+        </span>
+
+        <ng-switch on="step.params.appliesTo">
+            <div ng-switch-when="SINGLE_COLUMN">
+                <input
+                        type='text'
+                        bs-typeahead='step.$stepState.change.columnsBeforeStep'
+                        autocomplete='off'
+                        ng-trim="false"
+                        ng-required="true"
+                        data-min-length='1'
+                        ng-model='step.params.columns[0]'
+                        class="submit-on-blur"
+                        next-on-enter
+                        />
+            </div>
+
+
+            <div ng-switch-when="COLUMNS" ng-init="clearEmptyColumns();">
+                <ng2-values-list 
+                    [(items)]="step.params.columns"
+                    [suggestions]="step.$stepState.change.columnsBeforeStep"
+                    add-label="Add a column" 
+                    (on-blur)="checkAndRefresh()"
+                    (on-delete)="checkAndRefresh()"
+                    value-placeholder="E.g. a column of the schema">
+                </ng2-values-list>
+            </div>
+            <div ng-switch-when="PATTERN">
+                <input
+                        type="text"
+                        class="submit-on-blur"
+                        ng-trim="false"
+                        ng-model="step.params.appliesToPattern"
+                        ng-required="true"
+                        next-on-enter />
+            </div>
+
+
+            <div ng-switch-when="ALL" class="all-columns">
+                All {{step.$stepState.change.columnsBeforeStep.length}} columns selected
+            </div>
+
+        </ng-switch>
+    </fieldset>
+
+</li>

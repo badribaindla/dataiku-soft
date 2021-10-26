@@ -1,0 +1,1 @@
+Get or set the DSS schema of a dataset.

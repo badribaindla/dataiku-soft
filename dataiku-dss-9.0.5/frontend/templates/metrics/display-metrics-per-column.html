@@ -1,0 +1,79 @@
+<div class="metrics h100 vertical-flex" ng-if="views.selected === 'Columns'">
+	<div block-api-error class="noflex" />
+	<div class="noflex w80">
+		<div style="margin: 10px  4px;">
+			<div>
+				<div class="pull-left controls">
+					<span>Display</span>
+
+					<div class="list-customfilter-box view-selector" style="display: inline-block">
+						<span class="add-on"><i class="icon-eye-open"></i></span>
+						<select dku-bs-select="{style:'dku-select-button'}"
+								ng-model="views.selected"
+								ng-options="p.id as p.name for p in views.values"></select>
+					</div>
+
+					<span>of</span>
+
+					<div displayed-metrics-selector
+						 choices="allComputedMetrics" selected="displayedMetrics"
+						 refresh-choices="refreshAllComputedMetrics" on-close="saveMetricsNow" type="metrics"></div>
+
+					<span ng-if="metricsCallbacks.isPartitioned()">on</span>
+
+					<div ng-if="metricsCallbacks.isPartitioned()" class="list-customfilter-box" style="display: inline-block">
+						<select dku-bs-select="{liveSearch:true,size:'auto', 'style':'dku-select-button'}"
+								ng-model="metrics.displayedState.partition"
+								ng-options="p as (p === 'ALL' ? 'Whole dataset': p) for p in metricsPartitionsIds"></select>
+						<a ng-click="refreshMetricsPartitions()"><span class="right-add-on">
+							<i ng-class="{'icon-refresh': true, 'icon-spin': refreshing}"></i>
+						</span></a>
+					</div>
+
+					<div ng-if="canCompute" class="list-control-widget">
+						<button class="btn btn--secondary" ng-click="computeNow()">Compute</button>
+					</div>
+
+                    <div ng-include src="'/templates/metrics/last-metrics-run-display.html'" style="display: inline-block;"></div>
+				</div>
+
+                <div ng-include src="'/templates/metrics/add-metrics-dataset-button.html'"></div>
+                
+				<div style="clear: both;"></div>
+			</div>
+
+			<span ng-if="computing"><i class="icon-refresh icon-spin"></i></span>
+		</div>
+
+        <div class="filter-box" ng-if="displayedMetrics.metrics.length " style="margin-left: 4px; margin-bottom: 10px;">
+            <div class="std-list-search-box" style="display: inline-block">
+                <span class="add-on"><i class="icon-dku-search"></i></span>
+                <input type="search" ng-model="uiState.columnQuery" style="width: 210px;" placeholder="Filter columns..." />
+            </div>
+            
+            <div displayed-columns-selector
+                 dataset-schema="datasetSchema" selected="metrics.displayedState.columns"
+                 refresh-choices="refreshAllComputedMetrics" on-close="saveMetricsNow"></div>
+        </div>
+	</div>
+
+    <div class="flex metrics-plots" ng-if="views.selected === 'Columns'">
+        <div class="fh metrics-wrapper" sort-table>
+            <div class="h100" column-table-data split-width column-count="2 + displayedMetricByColumnData.length" dku-ui-state="uiState">
+                <div fat-table class="h100 columns-table" 
+                    headers="displayedTableColumns"
+                    rows="displayedTableRows"
+                    column-widths="uiState.cellsWidth"
+                    cell-template="/templates/metrics/column-table-cell.html"
+                    header-template="/templates/metrics/column-table-header.html"
+                    header-height="45"
+                    row-height="35"
+                    as="cell"
+                    digest-child-only="true"
+                    row-index-as="rowIndex">            
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,46 @@
+<div ng-if="data.maxSeverity == 'ERROR'" class="alert alert-danger" ng-style="{'margin-bottom': data.$reduced ? '0' : ''}">
+	<h4>
+		Errors were encountered
+		<a class="pull-right link-std" ng-if="showReduceAction" ng-click="data.$reduced = !data.$reduced">
+			<i ng-class="{'icon-chevron-down': data.$reduced, 'icon-chevron-up': !data.$reduced}" />
+		</a>
+	</h4>
+</div>
+<div ng-if="data.maxSeverity == 'WARNING'" class="alert alert-warning" ng-style="{'margin-bottom': data.$reduced ? '0' : ''}">
+	<h4>
+		Warnings were encountered
+		<a class="pull-right link-std" ng-if="showReduceAction" ng-click="data.$reduced = !data.$reduced">
+			<i ng-class="{'icon-chevron-down': data.$reduced, 'icon-chevron-up': !data.$reduced}" />
+		</a>
+	</h4>
+</div>
+<div ng-if="data.maxSeverity == 'SUCCESS'" class="alert alert-success" ng-style="{'margin-bottom': data.$reduced ? '0' : ''}">
+	<h4>
+		Success
+		<a class="pull-right link-std" ng-if="showReduceAction" ng-click="data.$reduced = !data.$reduced">
+			<i ng-class="{'icon-chevron-down': data.$reduced, 'icon-chevron-up': !data.$reduced}" />
+		</a>
+	</h4>
+</div>
+<div ng-if="data.maxSeverity == 'INFO'" class="alert alert-info" ng-style="{'margin-bottom': data.$reduced ? '0' : ''}">
+	<h4>
+		Information
+		<a class="pull-right link-std" ng-if="showReduceAction" ng-click="data.$reduced = !data.$reduced">
+			<i ng-class="{'icon-chevron-down': data.$reduced, 'icon-chevron-up': !data.$reduced}" />
+		</a>
+	</h4>
+</div>
+
+<ul class="raw-unstyled-ul" ng-show="!data.$reduced">
+	<li ng-repeat="message in data.messages" class="row-fluid info-message-inline-display {{ 'qa_modal_msg-' + message.severity.toLowerCase() }}">
+		<div class="span2">
+			<span class="{{message|infoMessageAlertClass}} severity">{{message.severity}}</span>
+		</div>
+		<div class="span10">
+			<span class="pull-right mtop10 smallgrey" pull-right ng-show="message.code">{{message.code}}</span>
+			<h5>{{message.title}}</h5>
+			<span ng-show="message.message && !message.details">{{message.message}}</span>
+			<span ng-show="message.details" class="message-details">{{message.details}}</span>
+		</div>
+	</li>
+</ul>

@@ -1,0 +1,64 @@
+<div class="shaker fixedPanes shaker-read-only dataset-table-insight"
+     shaker-facets
+     shaker-explore-base
+     shaker-on-dataset
+     shaker-explore-insight
+     ng-init="baseInit()">
+
+    <div class="mainPane" ng-if="shakerState.activeView == 'table'" style="padding-right: 20px; padding-bottom: 20px;">
+        <!-- Main pane top bar -->
+        <div ng-show="shaker" class="table-view-header">
+
+            <!-- filters bar -->
+            <div include-no-scope="/templates/shaker/filters-column.html"></div>
+        </div>
+
+        <!-- Main pane main zone -->
+        <div class="table-view" style="flex: 1; display: flex; flex-direction: column;">
+
+            <div ng-if="shakerState.runError">
+                <!-- Hide error for managed-buildable-never-built-datasets
+                (because they need building, so we'll display the CTA) -->
+                <div ng-hide="datasetFullInfo.dataset.managed && datasetFullInfo.buildable && datasetFullInfo.lastBuild === undefined" api-error-alert="shakerState.runError" />
+            </div>
+
+            <div future-waiting response="future" dku-if="future && !future.hasResult"></div>
+
+            <!-- when the dataset is empty and 1) appears to not have been build and 2) there is no error -->
+            <div ng-show="shakerState.initialRefreshDone && datasetFullInfo">
+                <div ng-hide="(shakerState.runError && (!datasetFullInfo.dataset.managed || (datasetFullInfo.buildable && datasetFullInfo.lastBuild !== undefined))) || table.initialRows > 0 || !datasetFullInfo.buildable || datasetFullInfo.lastBuild !== undefined" style="margin-top: 2em">
+                    <div ng-hide="datasetFullInfo.currentBuildState.beingBuilt.length || datasetFullInfo.currentBuildState.aboutToBeBuilt.length">
+                        <h4 style="text-align: center; margin-top: 100px; font-weight: normal">
+                            <p>This dataset is empty. You should build it</p>
+                            <a class="btn btn--contained btn--lab btn--large"
+                               href="{{datasetHref()}}">
+                                <span>Go to source Dataset</span>
+                            </a>
+                        </h4>
+                    </div>
+                    <div ng-show="datasetFullInfo.currentBuildState.beingBuilt.length">
+                        <h4 style="text-align: center; margin-top: 100px; font-weight: normal">
+                            <p>This dataset is being built</p>
+                            <a class="btn btn--secondary btn--large" ui-sref="projects.project.jobs.job(datasetFullInfo.currentBuildState.beingBuilt[0])">See job</a>
+                        </h4>
+                    </div>
+                    <div ng-show="datasetFullInfo.currentBuildState.aboutToBeBuilt.length && !datasetFullInfo.currentBuildState.beingBuilt.length">
+                        <h4 style="text-align: center; margin-top: 100px; font-weight: normal">
+                            <p>This dataset is about to be built</p>
+                            <a class="btn btn--secondary btn--large" ui-sref="projects.project.jobs.job(datasetFullInfo.currentBuildState.aboutToBeBuilt[0])">See job</a>
+                        </h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="positionTable shakerTable coloring-{{table.coloringScheme}}" style="width: 100%; max-width: 100%; overflow: hidden;" fattable fattable-data="table" ng-show="!shakerState.runError && (table.initialRows > 0 || !datasetFullInfo.buildable || datasetFullInfo.lastBuild !== undefined)"></div>
+
+            <spinner ng-show="pendingRequests.length && spinnerPosition == 'shaker'"></spinner>
+        </div>
+    </div>
+
+    <!-- the use of ng-if here makes it so that long calls are not triggered whenever the sample is refreshed if the column view is not shown (ex: multiColumnAnalysis ) -->
+    <div class="mainPane h100" analysis-columns ng-if="shakerState.activeView == 'columns'">
+        <div class="h100" include-no-scope="/templates/datasets/columns-view.html" />
+    </div>
+</div>

@@ -1,0 +1,121 @@
+<div class="modal modal3 plugin-preview plugin-details-modal" tab-model="uiState.activeTab">
+
+    <dku-modal-header modal-class="has-border" >
+        <dku-modal-title>
+            {{storePlugin.meta.label || storePlugin.id }}
+        </dku-modal-title>
+
+        <dku-modal-tabs>
+            <li class="tab" tab-active="details"><a tab-set="details">Details</a></li>
+            <li ng-show="computeNbComponents(storePlugin) > 0" class="tab" tab-active="components"><a tab-set="components">Components ({{computeNbComponents(storePlugin)}})</a></li>
+            <li ng-show="installed.desc.params && installed.desc.params.length > 0" class="tab" tab-active="settings"><a tab-set="settings">Settings</a></li>
+        </dku-modal-tabs>
+    </dku-modal-header>
+
+    <form action="" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body" ng-switch="uiState.activeTab">
+            <div class="row-fluid" ng-if="!storePlugin.storeFlags.downloadable">
+                <div class="alert alert-info" style="text-align: center">
+                    Please <a href="mailto:dss@dataiku.com">contact Dataiku</a> to get this plugin.
+                </div>
+            </div>
+
+            <div ng-switch-when="details">
+                <div class="plugin-info">
+                    <div class="plugin-info__header">
+                        <div class="plugin-info__details">
+                            <div class="plugin-details__description" ng-if="storePlugin.meta.description" from-markdown="storePlugin.meta.description"></div>
+                            <a target="_blank" rel="noopener noreferrer" href="{{storePlugin.meta.url}}">Plugin documentation &nbsp; <i class="icon-external-link"></i></a>
+                        </div>
+                        </form>
+                        <div class="plugin-info__icon-container">
+                            <i class="plugin-card__icon {{ storePlugin.meta.icon }}"></i>
+                        </div>
+                    </div>
+
+                    <div class="line">
+                        <span class="line-title">Author</span>
+                        <span class="line-content">
+                            {{storePlugin.meta.author}}
+                        </span>
+                    </div>
+
+                    <div class="line">
+                        <span class="line-title">Version</span>
+                        <span class="line-content">
+                            {{storePlugin.storeVersion}}
+                            <div ng-show="installedVersion">(installed: {{installedVersion}})</div>
+                        </span>
+                    </div>
+
+                    <div class="line">
+                        <span class="line-title">License</span>
+                        <span class="line-content">
+                            {{storePlugin.meta.licenseInfo}}
+                        </span>
+                    </div>
+
+                    <div class="line" ng-if="pluginData.installedDesc.desc.meta.supportLevel">
+                        <span class="line-title">Support tier
+                            <a href="https://doc.dataiku.com/dss/latest/troubleshooting/support-tiers.html" target="blank"class="link-std"><i class="icon-question-sign"></i></a>
+                        </span >
+                        <span class="line-content">
+                            {{pluginData.installedDesc.desc.meta.supportLevel |niceConst}}
+                        </span>
+                    </div>
+
+                    <div class="line tags-and-reload">
+                        <span class="line-title">Tags</span>
+                        <span class="line-content">
+                            <ul class="tags inline">
+                                <li ng-repeat="tag in storePlugin.meta.tags">
+                                    <span class="plugin__tag tag">{{tag}}</span>
+                                </li>
+                            </ul>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-switch-when="components">
+                <div class="plugin-components">
+                    <ul class="plugin-components__group" ng-repeat="contentType in contentTypes">
+                        <li ng-repeat="content in storePlugin.content[contentType] | orderBy: 'meta.displayOrderRank'" class="plugin-component-item plugin-component-item--readonly">
+                            <div class="plugin-component-item__content">
+                                <div class="plugin-component-item__icon-column">
+                                    <i class="plugin-component-item__icon {{ getComponentIcon(contentType, content) }}"></i>
+                                </div>
+                                <div class="plugin-component-item__meta-column">
+                                    <h5 class="plugin-component-item__name">{{ content.meta.label || content.id }} </h5>
+                                    <div ng-if="content.meta.description"
+                                        class="plugin-component-item__description"
+                                        from-markdown="content.meta.description">
+                                    </div>
+                                </div>
+                                <div class="plugin-component-item__right-column">
+                                    <span class="plugin-component-item__type">{{ contentType | humanContentType }}</span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons has-border"
+            ng-if="storePlugin.storeFlags.downloadable == true">
+            <button class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="button" class="btn btn--text btn--primary" ng-click="previewInstallStorePlugin(plugin)"
+                ng-if="appConfig.admin && pluginsList.couldFetch">{{isUpdate ? 'Update' : 'Install'}}</button>
+            <a type="button" class="btn btn--text btn--primary" target="_blank" rel="noopener noreferrer" href="{{plugin.storeDesc.downloadURL}}"
+                ng-if="appConfig.admin && !pluginsList.couldFetch">{{isUpdate ? 'Download Update' : 'Download'}}</button>
+            <button toggle="tooltip" data-placement="top" container="body" title="Only administrators can update or install plugins from the store."
+                class="btn btn--text btn--secondary disabled" ng-if="!appConfig.admin">
+                {{isUpdate ? 'Update' : 'Install'}}
+            </button>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons has-border" ng-if="!storePlugin.storeFlags.downloadable">
+            <button class="btn btn--text btn--secondary" ng-click="dismiss()">Close</button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,41 @@
+<div class="h100 vertical-flex">
+    <div block-api-error />
+    <div class="noflex std-list-header">
+        <div class="std-list-search-box">
+            <span class="add-on"> <i class="icon-dku-search"></i>
+            </span>
+            <input type="search" ng-model="uiState.logsQuery" style="width: 190px;" placeholder="Filter..."/>
+        </div>
+    </div>
+
+    <div class="noflex oa" style="max-height: 200px;">
+        <table sort-table class="table table-striped table-hover" style="width:100%">
+            <thead>
+                <tr>
+                    <th sort-col="name">Name</th>
+                    <th sort-col="totalSize">Size</th>
+                    <th sort-col="lastModified">Last modified</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="log in logs | filter:uiState.logsQuery | orderBy:sortColumn:sortDescending" full-click ng-class="{'active-log' : log.name == currentLogName}">
+                    <td main-click ng-click="fetchLog(log.name)">{{ log.name }}</td>
+                    <td>{{ log.totalSize | filesize }}</td>
+                    <td>{{ log.lastModified | friendlyDate }}</td>
+                    <td>
+                        <a ng-click="streamLog(log.name)" style="text-decoration:none">
+                            <i class="icon-download"></i>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="noflex" ng-if="currentLogName && currentLogName.length > 0">
+        <h4 class="log-name">- {{currentLogName}}<span style="margin-left: 20px; font-weight: 300;" ng-if="currentLog.lines.length < currentLog.totalLines">(last {{currentLog.lines.length}} lines of {{currentLog.totalLines}})</span></h4>
+    </div>
+    <div class="flex oa" ng-if="currentLogName && currentLogName.length > 0">
+        <pre smart-log-tail="currentLog"></pre>
+    </div>
+</div>

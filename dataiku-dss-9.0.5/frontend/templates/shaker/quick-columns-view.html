@@ -1,0 +1,31 @@
+<div ng-if="quickColumnsView" class="quick-columns-view h100 vertical-flex">
+    <h3 class="noflex">
+        <a ng-click="shakerState.quickColumnsView = false" title="Close">&times;</a>
+        Columns quick view
+    </h3>
+    <div class="quick-column-search noflex">
+        <input type="text" ng-model="$parent.quickColumnsFilter" placeholder="Filter columns" autocomplete="off" />
+        <a ng-click="$parent.quickColumnsFilter=''" ng-show="$parent.quickColumnsFilter">&times;</a>
+    </div>
+    <div class="quick-columns flex" fat-repeat="quickColumnsFiltered" as="col" row-height="75"
+            digest-child-only="true" init-scope="initColumnScope" table-model="tableModel">
+        <div class="quick-column"
+                ng-click="defaultAction(col)" ng-class="{'quick-column--action': !!defaultAction}">
+            <div class="quick-column__name" title="Scroll to {{col.name}}"><span ng-bind="col.name" /></div>
+            <em class="quick-column__type" ng-bind="col.selectedType.name | meaningLabel"></em>
+            <span class="quick-column__validity">
+                <progress-bar class="progress-validity" success="{{col.okPercentage}}"
+                    warning="{{col.emptyPercentage}}" error="{{col.nokPercentage}}"></progress-bar>
+            </span>
+            <em class="quick-column__loading" ng-if="!quickColumnsCache[col.name]">Loading data…</em>
+            <mini-histogram class="quick-column__histogram" height="40"
+                ng-if="quickColumnsCache[col.name]" activate-bar="activateColBar"
+                values="quickColumnsCache[col.name].values"></mini-histogram>
+            <div class="quick-column__tooltip" fast-bind="setLabels">
+                <span fast-bound="label" /> &emsp;
+                <span fast-bound="pop" /> &ensp;
+                <em fast-bound="part" />
+            </div>
+        </div>
+    </div>
+</div>

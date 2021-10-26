@@ -1,0 +1,92 @@
+{% extends "core.tmpl" %}
+
+{% block head %}
+## prediction
+## This notebook will reproduce the steps for a {{ prediction_type }} on  {{ dataset }}.
+## The main objective is to predict the variable {{ target }}
+{% endblock %}
+
+
+{% block prebody %}
+{% block target_variable %}
+{% endblock %}
+
+# Remove rows for which the target is unknown.
+ml_dataset = ml_dataset[~ml_dataset['__target__'].isnull()]
+{% block converting_target %}
+{% endblock %}
+
+###### Cross-validation strategy
+
+## The dataset needs to be split into 2 new sets, one that will be used for training the model (train set)
+## and another that will be used to test its generalization capability (test set)
+
+{% if split.respectedSampling %}
+
+## This is a simple cross-validation strategy.
+
+{% else %}
+
+## Important note: your model used a more advanced cross-validation strategy.
+## For the purpose of this notebook, it has been simplified to a random split of
+## a single dataset
+
+{% endif %}
+
+train, test = pdu.split_train_valid(ml_dataset, prop={{split.splitTrainingRatio}})
+print ('Train data has %i rows and %i columns' % (train.shape[0], train.shape[1]))
+print ('Test data has %i rows and %i columns' % (test.shape[0], test.shape[1]))
+{% endblock %}
+
+
+
+{% block modeling %}
+## Before actually creating our model, we need to split the datasets into their features and labels parts:
+X_train = train.drop('__target__', axis=1)
+X_test = test.drop('__target__', axis=1)
+{% if prediction_type == 'classification' %}
+y_train = np.array(train['__target__'].astype(np.uint8))
+y_test = np.array(test['__target__'].astype(np.uint8))
+{% else %}
+y_train = np.array(train['__target__'])
+y_test = np.array(test['__target__'])
+{% endif %}
+## Now we can finally create our model!
+{% block model_definition %}
+{% endblock %}
+
+{% block weighting %}
+{% if weight_method in ["SAMPLE_WEIGHT", "CLASS_AND_SAMPLE_WEIGHT"] %}
+## We retrieve the sample weight column and remove it from X:
+sample_weight_variable = u'{{ weight_column }}'
+
+train_sample_weight = X_train[sample_weight_variable].get_values()
+assert train_sample_weight.min() > 0, 'Sample weights must be positive'
+X_train = X_train.drop(sample_weight_variable, axis=1)
+
+test_sample_weight = X_test[sample_weight_variable].get_values()
+assert test_sample_weight.min() > 0, 'Sample weights must be positive'
+X_test = X_test.drop(sample_weight_variable, axis=1)
+{% endif %}
+{% endblock %}
+
+## ... And train the model
+{% if weight_method in ["SAMPLE_WEIGHT", "CLASS_AND_SAMPLE_WEIGHT"] %}
+try:
+    %time clf.fit(X_train, y_train, sample_weight=train_sample_weight)
+except TypeError:
+    print('The model does not handle sample weight')
+    %time clf.fit(X_train, y_train)
+{% elif weight_method == "CLASS_WEIGHT" and algorithm == "XGBOOST_CLASSIFICATION" %}
+%time clf.fit(X_train, y_train, sample_weight=class_weight_vector)
+{% else %}
+%time clf.fit(X_train, y_train)
+{% endif %}
+
+{% block calibration %}
+{% endblock %}
+{% endblock %}
+
+{% block evaluation %}
+## You can measure the model's accuracy:
+{% endblock %}

@@ -1,0 +1,217 @@
+<div ng-if="appConfig.licensedFeatures.advancedMetricsChecksAllowed || appConfig.licensing.ceEntrepriseTrial" class="h100 metrics-checks-selection" >
+	<div class="settings-block">
+		<h2 class="metrics-section-title">Checks</h2>
+
+		<p class="desc">The checks are verification about a set of conditions on a metric to do something or to create and alert about the status.</p>
+	</div>
+	<div class="settings-block checks-list" ng-repeat="metricsCheck in metricsChecks.checks" check-preview>
+		<div class="horizontal-flex">
+			<h4 class="flex">
+				<input type="text" ng-model="metricsCheck.meta.label" placeholder="Name this check"></input>
+				<small>({{metricsCheck.type}})</small>
+				<small ng-show="!metricsCheck.meta.label">
+					Default name: {{metricsCheck.meta.name}}
+				</small>
+				<a class="noflex" ng-click="removeCheck(metricsCheck);" ><i class="icon-trash"></i></a>
+			</h4>
+			<!-- same margins as h2 block -->
+			<ul ng-if="metricsCallbacks.isPartitioned()" class="noflex btn-group pull-right">
+				<span>Run checks on: </span>
+				<button class="btn btn--secondary" ng-click="metricsCheck.computeOnBuildMode = 'PARTITION'" ng-class="{'active' : metricsCheck.computeOnBuildMode == 'PARTITION'}">
+					<span class="title">partition</span>
+				</button>
+				<button class="btn btn--secondary" ng-click="metricsCheck.computeOnBuildMode = 'BOTH'" ng-class="{'active' : metricsCheck.computeOnBuildMode == 'BOTH'}">
+					<span class="title">both</span>
+				</button>
+				<button class="btn btn--secondary" ng-click="metricsCheck.computeOnBuildMode = 'WHOLE_DATASET'" ng-class="{'active' : metricsCheck.computeOnBuildMode == 'WHOLE_DATASET'}">
+					<span class="title">dataset</span>
+				</button>
+			</ul>
+		</div>
+
+		<div ng-if="metricsCheck.type == 'numericRange'">
+			<div class="control-group">
+				<label class="control-label">Metric to check</label>
+				<div class="controls">
+					<select ng-model="metricsCheck.metricId" ng-options="metric.metric.id as MetricsUtils.getMetricDisplayName(metric) for metric in allMetrics" />
+					<button ng-click="refreshAllComputedMetrics()" class="btn btn--secondary btn--icon" title="Refresh list of available metrics"><i class="icon-refresh"></i></button>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Minimum</label>
+				<div class="controls">
+					<label class="dku-toggle" >
+					    <input type="checkbox" ng-model="metricsCheck.minimumEnabled" />
+					    <span/>
+					</label>
+					<input force-double type="number" ng-model="metricsCheck.minimum" step="any" class="input-mini" ng-disabled="!metricsCheck.minimumEnabled" next-on-enter/>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Soft minimum</label>
+				<div class="controls">
+					<label class="dku-toggle" >
+					    <input type="checkbox" ng-model="metricsCheck.softMinimumEnabled" />
+					    <span/>
+					</label>
+					<input force-double type="number" ng-model="metricsCheck.softMinimum" step="any" class="input-mini" ng-disabled="!metricsCheck.softMinimumEnabled" next-on-enter/>
+					<span class="help-inline">The check warns but doesn't fail if the value is below this soft minimum</span>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Soft maximum</label>
+				<div class="controls">
+					<label class="dku-toggle" >
+					    <input type="checkbox" ng-model="metricsCheck.softMaximumEnabled" />
+					    <span/>
+					</label>
+					<input force-double type="number" ng-model="metricsCheck.softMaximum" step="any" class="input-mini" ng-disabled="!metricsCheck.softMaximumEnabled" next-on-enter/>
+					<span class="help-inline">The check warns but doesn't fail if the value is above this soft maximum</span>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Maximum</label>
+				<div class="controls">
+					<label class="dku-toggle" >
+					    <input type="checkbox" ng-model="metricsCheck.maximumEnabled" />
+					    <span/>
+					</label>
+					<input force-double type="number" ng-model="metricsCheck.maximum" step="any" class="input-mini" ng-disabled="!metricsCheck.maximumEnabled" next-on-enter/>
+				</div>
+			</div>
+		</div>
+		<div ng-if="metricsCheck.type == 'valueSet'">
+			<div class="control-group">
+				<label class="control-label">Metric</label>
+				<div class="controls">
+					<select ng-model="metricsCheck.metricId" ng-options="metric.metric.id as MetricsUtils.getMetricDisplayName(metric) for metric in allMetrics" />
+					<button ng-click="refreshAllComputedMetrics()" class="btn btn--secondary" title="Refresh list of available metrics"><i class="icon-refresh"></i></button>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<label class="control-label">Values</label>
+				<div class="controls">
+					<ng2-values-list [(items)]="metricsCheck.values"></ng2-values-list>
+				</div>
+			</div>
+
+		</div>
+        <div ng-if="metricsCheck.type == 'python'">
+            <div code-env-selection-form="metricsCheck.envSelection" env-lang="'PYTHON'" selection-label="'Code env'"></div>
+            <div class="control-group">
+                <label class="control-label">Code</label>
+                <div class="controls">
+                    <textarea ng-model="metricsCheck.code" ui-codemirror="pythonEditorOptions"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="metricsCheck.type.startsWith('custom_python')">
+            <div plugin-check-config check-type="metricsCheck.type" check-config="metricsCheck">
+                <div custom-params-form desc="loadedDesc.desc" plugin-desc="pluginDesc" component-id="loadedDesc.id" config="checkConfig.config" />
+            </div>
+        </div>
+
+		<div ng-if="canPreview" class="alert check-preview-block" ng-class="{'alert-info' : !checking && !previewRun && !previewRuns, 'alert-danger' : isError, 'alert-success' : isOk, 'alert-warning' : isWarning}">
+			<div class="pull-right" ng-if="!checking && previewRun">
+				<span ng-if="previewRun.error">Check failed</span>
+				<span ng-if="previewRun.notRun">Check didn't run</span>
+				<div ng-if="!previewRun.error && !previewRun.notRun" class="pull-right" contextual-menu cep-position="align-right-bottom" ng-click="toggleContextualMenu($event)" style="cursor:pointer; position:relative; display: inline-block;">
+					<span>Check is working, and returned {{getResultOutcome()}} <i class="icon-arrow-down"></i></span>
+					<div class="contextualMenu last-metrics-run-results oa" ng-show="contextualMenu" style="z-index: 20;">
+						<div>Message: {{previewResult.value.message}}</div>
+					</div>
+				</div>
+			</div>
+			<div class="pull-right" ng-if="!checking && previewRuns">
+				<span ng-if="previewRuns.errors && previewRuns.errors.length > 0">Check failed  (in {{previewRuns.errors.length}} of {{previewRuns.partitionIds.length}} partitions)</span>
+				<span ng-if="previewRuns.notRun">Check didn't run</span>
+				<span ng-if=""></span>
+				<div ng-if="!(previewRuns.errors && previewRuns.errors.length > 0) && !previewRuns.notRun" class="pull-right" contextual-menu cep-position="align-right-bottom" ng-click="toggleContextualMenu($event)" style="cursor:pointer; position:relative; display: inline-block;">
+					<span>Check is working ({{previewRuns.partitionIds.length}} partitions) <i class="icon-arrow-down"></i></span>
+					<div class="contextualMenu last-metrics-run-results oa" ng-show="contextualMenu" style="z-index: 20;">
+						<span>Returned {{countOk}} OKs, {{countWarning}} WARNINGs and {{countError}} ERRORs</span>
+					</div>
+				</div>
+			</div>
+            <p class="pull-right" ng-show="fatalAPIError">
+                <span class="alert-link">Failed</span>
+            </p>
+
+			<p class="pull-right" ng-show="checking">
+				<a ng-click="showProgressModal(checking)" href class="alert-link">See progress</a>
+				<i class="icon-spinner icon-spin" />
+			</p>
+
+			<div class="preview-target-group">
+				<button ng-if="!metricsCallbacks.isPartitioned()" ng-click="checkCheck(metricsCheck)" class="btn btn--secondary">
+					<i class="icon-play" />&nbsp;Check
+				</button>
+
+				<ul ng-if="metricsCallbacks.isPartitioned()" class="btn-group" style="display:inline-block; margin-right: 10px; ">
+					<button class="btn btn--secondary" ng-click="previewSettings.mode='ALL';"
+							ng-class="{'btn--active' : previewSettings.mode === 'ALL'}" ng-disabled="computing">
+						whole dataset
+					</button>
+
+					<button class="btn btn--secondary" ng-click="previewSettings.mode='PARTITIONS';"
+							ng-class="{'btn--active' : previewSettings.mode === 'PARTITIONS'}" ng-disabled="computing">
+						all partitions
+					</button>
+
+					<button class="btn btn--secondary" ng-click="previewSettings.mode='PARTITION';"
+							ng-class="{'btn--active' : previewSettings.mode === 'PARTITION'}" ng-disabled="computing">
+						partition
+					</button>
+				</ul>
+
+				<div ng-if="metricsCallbacks.isPartitioned() && previewSettings.mode === 'PARTITION'" class="list-customfilter-box" style="display: inline-block">
+					<select dku-bs-select="{liveSearch:true,size:'auto', 'style':'dku-select-button'}"
+							ng-model="previewSettings.partition"
+							ng-options="p for p in metricsPartitionsIdsExcludingAll"></select>
+					<a ng-click="refreshMetricsPartitions()"><span class="right-add-on">
+						<i ng-class="{'icon-refresh': true, 'icon-spin': refreshing}"></i>
+					</span></a>
+				</div>
+
+				<button ng-if="metricsCallbacks.isPartitioned()" class="btn btn--secondary" ng-click="checkCheck(metricsCheck)"
+						ng-disabled="checking || (previewSettings.mode === 'PARTITION' && !previewSettings.partition)">
+					<i class="icon-play" />&nbsp;Check
+				</button>
+			</div>
+
+            <div ng-if="fatalAPIError" block-api-error ></div>
+			<div class="preserve-eol" ng-if="previewRun.error" style="margin-top: 10px;">
+				<i class="icon-warning-sign" />&nbsp;{{previewRun.error.clazz}} : <span class="preserve-eol">{{previewRun.error.message}}</span>
+				<div class="stack" ng-click="previewRun.expandError = !previewRun.expandError"><i class="icon-eye"></i>&nbsp;Stacktrace</div>
+			</div>
+			<div class="preserve-eol stack" ng-if="previewRun.error && previewRun.expandError" >{{previewRun.error.stack}}</div>
+			<div ng-if="previewRun.logTail != null && previewRun.logTail.lines.length > 0" ng-click="previewRun.showLog = !previewRun.showLog"><i class="icon-eye"></i> Log</div>
+			<div class="preserve-eol stack"  ng-if="previewRun.showLog" >
+				<div ng-repeat="line in previewRun.logTail.lines track by $index">{{line}}</div>
+			</div>
+		</div>
+	</div>
+	<div class="settings-block">
+		<h4>Add a new check</h4>
+		<button class="btn btn--secondary" ng-click="addCheck('numericRange')">Metric value is in a numeric range</button>
+		<button class="btn btn--secondary" ng-click="addCheck('valueSet')">Metric value is in a set of values</button>
+		<div ng-if="appConfig.customPythonChecks != null && appConfig.customPythonChecks.length > 0" style="display: inline-block" new-custom-check-menu title="From plugin"></div>
+		<button class="btn btn--secondary" ng-click="addCheck('python')">Custom (Python)</button>
+		<h4>General settings</h4>
+		<label class="control-label">Run after build</label>
+		<div class="controls">
+			<label>
+				<input type="checkbox" ng-model="metricsChecks.runOnBuild" />
+				<span class="help-inline" style="width: auto;">
+					Launch computation after each build
+				</span>
+			</label>
+		</div>
+	</div>
+
+</div>
+
+<div feature-locked feature-name="'Automatic status checks'" ng-if="!(appConfig.licensedFeatures.advancedMetricsChecksAllowed || appConfig.licensing.ceEntrepriseTrial)"/>
+

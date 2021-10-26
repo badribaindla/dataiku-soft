@@ -1,0 +1,25 @@
+<div class="dashboard-view" ng-class="{'full-screen': fullScreen}">
+    <div class="vertical-flex fh">
+        <div block-api-error class="noflex no-margin-alert-error"></div>
+        <div class="flex">
+            <div class="fh">
+                <!-- Buttons to navigate through dashboard -->
+                <div class="full-screen-link" ng-show="!uiState.hideForExport" ng-click="fullScreen = !fullScreen"><i class="{{fullScreen ? 'icon-dku-quit_fullscreen' : 'icon-dku-fullscreen' }}" /></div>
+                <div class="next-page-link" ng-show="uiState.currentPageIdx < dashboard.pages.length - 1 && !uiState.hideForExport" ng-click="uiState.currentPageIdx = uiState.currentPageIdx+1">
+                    <i class="icon-angle-right" />
+                </div>
+                <div class="previous-page-link" ng-show="uiState.currentPageIdx > 0 && !uiState.hideForExport" ng-click="uiState.currentPageIdx=uiState.currentPageIdx-1">
+                    <i class="icon-angle-left" />
+                </div>
+                <!-- Dashboard -->
+                <dashboard-zone data="dashboard" editable="false" />
+            </div>
+        </div>
+
+        <div class="noflex dashboard-tab-selector">
+            <div ng-repeat="page in dashboard.pages" ng-show="!uiState.hideForExport" class="dashboard-tab" ng-class="{'dashboard-tab--current': $index == uiState.currentPageIdx}">
+                <div class="dashboard-tab__title" ng-click="uiState.currentPageIdx = $index" text-content="{{page.title || ('Page ' + ($index+1))}}">{{page.title || ('Slide ' + ($index+1))}}</div>
+            </div>
+        </div>
+    </div>
+</div>

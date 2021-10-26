@@ -1,0 +1,162 @@
+<div class="paned-settings-page-pane" ng-if="generalSettings" ng-controller="ContainerSettingsController">
+    <div class="pull-right">
+        <div class="text-center" style="margin: 15px">
+            <button ng-click="pushBaseImages()" class="btn btn--primary ">Push base images</button>
+            <button ng-click="installJupyterSupport()" class="btn btn--default mleft8">(Re)Install Jupyter kernels</button>
+            <button ng-click="removeJupyterSupport()" class="btn btn--default mleft8">Remove Jupyter kernels</button>
+        </div>
+    </div>
+    <h1>Containerized execution</h1>
+
+    <div ng-if="!addLicInfo.containersLicensed" class="alert alert-error section">
+        <i class="icon-dku-error" />&nbsp;Your license does not cover usage of containers
+    </div>
+    
+    <div class="section locked-feature" ng-if="appConfig.communityEdition">
+        <div class="banner">
+            Containers are not available with your
+            <span class="edition">Free Edition</span> license
+        </div>
+        <div include-no-scope="/templates/profile/community-vs-enterprise-try.html"></div>
+    </div>
+
+    <div class="section container-fluid page-top-padding" ng-if="appConfig.licensingMode == 'SAAS'">
+        <div style="margin: 3em auto; width: 500px; text-align: center">
+            <h4 class="ce-unavail">
+                Containers are not available in
+                <br />
+                Dataiku DSS Online Trial
+            </h4>
+        </div>
+    </div>
+
+    <div ng-if="addLicInfo.containersLicensed && generalSettings">
+        <div container-cluster-settings-block settings="generalSettings.containerSettings" impersonation-enabled="generalSettings.impersonation.enabled" cluster-id="generalSettings.defaultK8sClusterId" k8s-clusters="k8sClusters"/>
+
+        <div class="section">
+            <h2 id="default-cluster">Default settings</h2>
+             <form class="dkuform-horizontal">
+                <div class="control-group">
+                    <label class="control-label">Default cluster</label>
+                    <div class="controls">
+                        <select dku-bs-select type="text" ng-model="generalSettings.defaultK8sClusterId" ng-options="c.id as c.name for c in k8sClusters"/>
+                        <span class="help-inline">Default cluster to use in projects without a specified cluster. By default, no cluster is set in projects, so they use the globally-defined settings. Useful if you don't have a "global" cluster. Applies to both container-exec and Spark-on-K8S</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Default exec. config</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.containerSettings.defaultExecutionConfig" />
+                        <span class="help-inline">Default container execution config to use for projects that don't specify one by default. Must be the name of a container execution config. Applies only to container-exec. Leave empty to default to non-containerized execution.</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="section">
+            <h2>Virtual webapps backends</h2>
+            <form class="dkuform-horizontal">
+                <div class="control-group">
+                    <label class="control-label">Behavior</label>
+                    <div class="controls">
+                        <select dku-bs-select type="text" ng-model="generalSettings.virtualWebAppBackendSettings.mode" ng-options="c.id as c.label for c in virtualWebAppBackendSettingsModes"/>
+                    </div>
+                </div>
+                <!-- 
+                <div class="control-group">
+                    <label for="preventOverride" class="control-label">Prevent overrides</label>
+                    <div class="controls">
+                        <label>
+                            <input id="preventOverride" type="checkbox" ng-model="generalSettings.virtualWebAppBackendSettings.preventOverride">
+                            <span class="help-inline">If enabled, the virtual webapps' backends settings at the project level are ignored</span>
+                        </label>
+                    </div>
+                </div>
+                 -->
+                <div web-app-infra="generalSettings.virtualWebAppBackendSettings.infra" ng-if="generalSettings.virtualWebAppBackendSettings.mode == 'EXPLICIT'"></div>
+            </form>
+         </div>
+
+        <div class="section">
+            <div class="pull-right m16">
+                <button ng-click="applyK8SPolicies()" class="btn btn--primary ">Apply policies</button>
+            </div>
+
+            <h2>Kubernetes namespace policies</h2>
+
+            <p>
+                Declare namespace-level policies (ResourceQuota and LimitRange) that will be applied automatically when
+                a namespace is dynamically created, and that can be applied manually
+            </p>
+
+            <div add-remove ng-model="generalSettings.k8sPoliciesSettings.policies">
+                <div ng-repeat="policy in generalSettings.k8sPoliciesSettings.policies" class="repeatable-config-block">      
+                    <button type="button" class="pull-right btn btn--danger" style="margin: 10px" ng-click="remove($index)">
+                        Remove
+                    </button>
+                    <form class="dkuform-horizontal">
+                        <div class="control-group">
+                            <label class="control-label">Namespaces pattern</label>
+                            <div class="controls">
+                                <input type="text" ng-model="policy.namespacePattern"/>
+                                <span class="help-inline">
+                                    Regular expression of namespaces to apply to.
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Dyn. clusters patterns</label>
+                            <div class="controls">
+                                <input type="text" ng-model="policy.dynamicClustersPattern"/>
+                                <span class="help-inline">
+                                    Regular expression of dynamic K8S cluster names to apply to.
+                                </span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Apply to default cluster</label>
+                            <div class="controls">
+                                <input type="checkbox" ng-model="policy.applyToDefaultCluster"/>
+                                <span class="help-inline">
+                                    Whether to apply to the "builtin" cluster (when not using dynamic K8S clusters)
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Policy objects</label>
+                            <div class="controls">
+                                <div add-remove ng-model="policy.items">
+                                    <div ng-repeat="item in policy.items" class="row-fluid">
+                                        <div class="span11">
+                                            <div class="codemirror" style="height: 200px">
+                                                <textarea ng-model="item.yaml" ui-codemirror="codeMirrorSettingService.get('text/yaml')" />
+                                            </div>
+                                        </div>
+                                        <div class="span1">
+                                            <button type="button" class="pull-right btn btn--danger" style="margin: 10px" ng-click="remove($index)">
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn--primary btn--text" ng-click="add({'content': 'apiVersion: v1'})">
+                                        <i plus-icon />  Add a YAML item
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                     </div>
+
+                    <button type="button" class="btn btn--primary btn--text mtop10" ng-click="add({namespacePattern:'^(?!kube-).*', dynamicClustersPattern:'.*', applyToDefaultCluster:false})" style="margin-top: 10px;">
+                        <i plus-icon />  Add a policy
+                    </button>
+                </div>
+            </div>
+
+        </div>
+        
+    </div>
+
+</div>

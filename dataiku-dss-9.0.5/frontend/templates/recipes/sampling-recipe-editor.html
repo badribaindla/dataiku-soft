@@ -1,0 +1,68 @@
+<div ng-controller="SamplingRecipeController">
+    <!-- Load behaviors -->
+    <!-- The read-params-behavior is split from the read-params UI directive because we want the
+    behavior to always execute, not only when we go to advanced tab -->
+    <div ng-if="recipeStatus.selectedEngine.type == 'SPARK'">
+        <div spark-datasets-read-params-behavior read-params="params.engineParams.sparkSQL.readParams" />
+    </div>
+
+    <div class="top-level-tabs objecttype-recipe">
+        <div include-no-scope="/templates/recipes/fragments/simple-recipe-top-tabs.html" />
+    </div>
+
+    <!-- Generic tabs -->
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html"/>
+    <div include-no-scope="/templates/recipes/fragments/recipe-io-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+    <div include-no-scope="/templates/recipes/sampling-recipe-main.html" />
+
+    <!-- Standard SQL advanced tab + Convert to split recipe option -->
+    <div ng-if="topNav.tab == 'advanced'" class="small-lr-padding dss-page oa">
+        <div block-api-error />
+
+        <div class="horizontal-centerer">
+
+            <div include-no-scope="/templates/recipes/visual-recipes-fragments/visual-sql-engines-settings.html" />
+
+            <div class="recipe-settings-section1 w800" ng-if="recipeStatus.selectedEngine.lowercasesColumnNames">
+                <h1 class="recipe-settings-section1-title">Backward compatibility</h1>
+                <form class="dkuform-horizontal recipe-settings-section2">
+                    <div class="control-group">
+                        <label for="" class="control-label">Lower case output schema</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="params.engineParams.lowerCaseSchemaIfEngineRequiresIt" />
+                            <span class="help-inline" style="display: inline">
+                                The selected engine will not preserve column names case.
+                                This option should be checked so that {{wl.productLongName}} is kept consistent with the data store.
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+
+            <div class="recipe-settings-section1 w800" ng-if="computablesMap && filter.enabled">
+                <h1 class="recipe-settings-section1-title">Rejected rows</h1>
+
+                <div class="recipe-settings-section2">
+                    <a ng-click="convertToSplitRecipe()">Convert to split recipe</a> to save rejected rows into another dataset.
+                    <span custom-element-popup>
+                        <a class="mainzone dropdown-toggle link-std" ng-click="togglePopover()">
+                            <i class="icon-info-sign"/>
+                        </a>
+                        <span class="popover custom-element-popup-popover dropdown-menu simple" style="padding: 10px 20px;">
+                            In this filter recipe, rows not matching the condition are discarded.
+                        </span>
+                    </span>
+
+                    <span ng-if="selection.samplingMethod != 'FULL'" class="text-warning">
+                        <br />
+                        <i class="icon-warning-sign" /> Please note that no sampling can be applied to a split recipe.
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

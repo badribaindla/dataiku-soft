@@ -1,0 +1,33 @@
+<div ng-init="element = content" >
+	<div ng-if="element.children != undefined">
+		<div class="content-row horizontal-flex" style="padding-left: {{getMarginFromDepth(content.depth)}}px" full-click>  <!-- 15 is defined as the INDENT_WIDTH in the css -->
+			<!-- float:right; elements come first otherwiser firefow throws a fit -->
+			<i class="icon" ng-class="{'icon-caret-down': content.expanded, 'icon-caret-right': !content.expanded}" ng-if="element.children.length > 0" style="left: {{getCarretLeftPosition(content.depth)}}px;"></i>
+			<a class="flex name-with-icon" ng-click="content.expanded = !content.expanded" main-click ng-right-click="openFolderMenu(element, $event)" title="{{element.name}}">
+				<i class="colored-folder-icon" ng-class="element.fromGit ? 'icon-dku-git-folder' : 'icon icon-folder-close'"></i>
+				<span class="name">{{element.name}}</span>
+				<i class="colored-folder-icon icon-dku-python" ng-if="element.inPythonPath" title="Included in Python path."></i>
+				<i class="colored-folder-icon icon-dku-r" ng-if="element.inRSrcPath" title="Included in R source path."></i>
+				<!-- <i class="colored-folder-icon icon-dku-julia" ng-if="element.inJuliaSrcPath" title="Included in Julia source path."></i> -->
+			</a>
+            <div class="noflex dropdown">
+			    <a class="close tool-button tool-button-color" aria-hidden="true" ng-click="openFolderMenu(element, $event)"><i class="icon icon-ellipsis-vertical"></i></a>
+			</div>
+		</div>
+		<ul ng-if="content.expanded">
+			<li ng-repeat="content in sortFolder(element.children)">
+				<div include-no-scope="/templates/plugins/development/fragments/folder-content.html" />
+			</li>
+		</ul>
+	</div>
+	<div class="content-row horizontal-flex" ng-if="element.children == undefined" ng-class="{'editing' : tabsMap[content.path], 'active': getCurrentContent().path == content.path}" style="padding-left: {{getMarginFromDepth(content.depth)}}px;" full-click scroll-to-me="{{focusedFile && content == focusedFile}}">  <!-- 15 is defined as the INDENT_WIDTH in the css -->
+		<a class="flex name-with-info" ng-click="openFile(content)" main-click ng-right-click="openFileMenu(element, $event)" ng-class="{'compressed' : canBeDecompressed(content)}" title="{{element.name}}">
+			<i ng-class="computeFileIconClass(element)"></i>
+			<span class="name">{{element.name}}</span>
+			<span class="file-size">{{element.size | filesize}}</span>
+		</a>
+		<div class="noflex">
+			<a class="close tool-button tool-button-color" ng-click="openFileMenu(element, $event)"><i class="icon icon-ellipsis-vertical"></i></a>
+		</div>
+	</div>
+</div>

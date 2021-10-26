@@ -1,0 +1,60 @@
+<div ng-controller="ShakerEditColumnDetailsController" class="modal modal3 modal-wide shaker-edit-column-details-modal" auto-size="false">
+    <dku-modal-header-with-totem modal-title="{{column.name}}" modal-totem="icon-beaker"></dku-modal-header-with-totem>
+
+    <form name="columnDetailsForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body tight-body">
+            <div block-api-error />
+
+            <div>
+                <div class="control-group" ng-if="shaker.origin == 'DATASET_EXPLORE' || shaker.origin == 'PREPARE_RECIPE'">
+                    <label for="" class="control-label">Storage type</label>
+                    <div class="controls">
+                        <complex-type-selector model="column"
+                                            show-comment-tab="true">
+                        </complex-type-selector>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Meaning</label>
+                    <div class="controls">
+                        <span ng-click="openMeaningMenu($event, column)" style="cursor:pointer; border: 1px #ddd solid; padding: 3px 10px; border-radius: 5px">
+                            {{ (column.meaning | meaningLabel) || 'Auto-detect'}}
+                            <span class="caret" style="vertical-align: middle" />
+                        </span>
+                    </div>
+                </div>
+
+               <!--<div class="control-group" ng-show="!uiState.showAdvancedParams">
+                    <label class="control-label">
+                        <a ng-click="uiState.showAdvancedParams=true">Description &amp; advanced settings</a>
+                    </label>
+                </div>-->
+
+                <div style="margin-top: 15px">
+                    <complex-type-editor model="column"
+                                        show-comment-tab="true"
+                                        class="type-editor-container in-modal complex-type-editor"
+                                        style="display: block;">
+                    </complex-type-editor>
+                </div>
+
+
+                <div class="control-group" ng-if="shaker.origin == 'ANALYSIS'" style="padding-bottom: 20px">
+                    <label for="" class="control-label">Description</label>
+                    <div class="controls">
+                        <textarea ng-model="column.comment" placeholder="Column comment" style="width: 100%; height: 100px">
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="modal-footer modal-footer-std-buttons has-border">
+            <div class="pull-right">
+                <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+                <button type="submit" class="btn btn--text btn--primary" ng-click="save()"  ng-disabled="columnDetailsForm.$invalid">OK</button>
+            </div>
+        </div>
+    </form>
+</div>

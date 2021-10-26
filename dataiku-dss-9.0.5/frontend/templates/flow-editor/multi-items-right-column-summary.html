@@ -1,0 +1,589 @@
+<div class="object-right-column-summary vertical-flex multi-right-column-summary">
+    <div class="noflex">
+        <div class="item-header horizontal-flex">
+            <div class="noflex object-icon universe-background {{selection.taggableType |typeToColor}}"
+                ng-show="selection.taggableType == 'TAGGABLE_OBJECT'"
+                >
+                <div class="flow-multi-right-column" style="margin-top: 14px">
+                    <i class="db icon icon-dku-nav_dataset" ng-show="selection.countByTaggableType['DATASET']"/>
+                    <i class="db icon icon-cloud" ng-show="selection.countByTaggableType['LAMBDA_SERVICE']"/>
+                    <i class="db icon icon-double-angle-right" ng-show="selection.countByTaggableType['STREAMING_ENDPOINT']"/>
+                    <i class="db icon icon-dku-nav_flow" ng-show="selection.countByTaggableType['RECIPE']"/>
+                    <i class="db icon icon-folder-open" ng-show="selection.countByTaggableType['MANAGED_FOLDER']"/>
+                    <i class="db icon icon-machine_learning_regression" ng-show="selection.countByTaggableType['SAVED_MODEL']"/>
+                </div>
+            </div>
+
+            <div class="noflex object-icon universe-background {{selection.taggableType |typeToColor}} single-type"
+                ng-show="selection.taggableType != 'TAGGABLE_OBJECT'"
+                >
+                <div class="middle">
+                    <i class="db icon icon-dku-nav_dataset" ng-show="selection.countByTaggableType['DATASET']"/>
+                    <i class="db icon icon-cloud" ng-show="selection.countByTaggableType['LAMBDA_SERVICE']"/>
+                    <i class="db icon icon-double-angle-right" ng-show="selection.countByTaggableType['STREAMING_ENDPOINT']"/>
+                    <i class="db icon icon-dku-nav_flow" ng-show="selection.countByTaggableType['RECIPE']"/>
+                    <i class="db icon icon-folder-open" ng-show="selection.countByTaggableType['MANAGED_FOLDER']"/>
+                    <i class="db icon icon-machine_learning_regression" ng-show="selection.countByTaggableType['SAVED_MODEL']"/>
+                    <i class="db icon icon-dku-dashboard" ng-show="selection.countByTaggableType['DASHBOARD']"/>
+                    <i class="db icon icon-dku-nav_analysis" ng-show="selection.countByTaggableType['ANALYSIS']"/>
+                    <i class="db icon icon-code" ng-show="selection.countByTaggableType['WEB_APP']"/>
+                    <i class="db icon icon-DKU_rmd" ng-show="selection.countByTaggableType['REPORT']"/>
+                    <i class="db icon icon-dku-nav_notebook" ng-show="selection.countByTaggableType['NOTEBOOK']"/>
+                    <i class="db icon icon-list" ng-show="selection.countByTaggableType['SCENARIO']"/>
+                    <i class="db icon icon-list" ng-show="selection.countByTaggableType['INSIGHT']"/>
+                    <i class="db icon icon-zone" ng-show="selection.countByTaggableType['FLOW_ZONE']"/>
+
+                </div>
+            </div>
+
+            <h2 class="flex" title="">
+
+                <a class="btn btn--secondary pull-right" ng-click="clearSelection()" ng-if="$state.current.name.includes('flow')">
+                    deselect
+                </a>
+
+                <a class="btn btn--secondary btn--icon pull-right" ng-click="zoomToSelection()" style="margin-right: 5px" ng-if="$state.current.name.includes('flow')">
+                    <i class="icon-dku-search" />
+                </a>
+
+                <div style="line-height: 13px;" ng-if="selection.taggableType == 'TAGGABLE_OBJECT'">
+                    <div ng-show="selection.countByTaggableType['DATASET']">
+                        <a ng-click="filterSelection('DATASET')"
+                            title="Click to keep only datasets"
+                            toggle="tooltip"
+                            >
+                            <strong>{{selection.countByTaggableType['DATASET']}}</strong>
+                            dataset{{selection.countByTaggableType['DATASET'] < 2 ? '' : 's'}}
+                        </a>
+                    </div>
+                    <div ng-show="selection.countByTaggableType['STREAMING_ENDPOINT']">
+                        <a ng-click="filterSelection('STREAMING_ENDPOINT')"
+                            title="Click to keep only streaming endpoints"
+                            toggle="tooltip"
+                            >
+                            <strong>{{selection.countByTaggableType['STREAMING_ENDPOINT']}}</strong>
+                            streaming endpoint{{selection.countByTaggableType['STREAMING_ENDPOINT'] < 2 ? '' : 's'}}
+                        </a>
+                    </div>
+                    <div ng-show="selection.countByTaggableType['RECIPE']">
+                        <a ng-click="filterSelection('RECIPE')"
+                            title="Click to keep only recipes"
+                            toggle="tooltip"
+                            >
+                            <strong>{{selection.countByTaggableType['RECIPE']}}</strong>
+                            recipe{{selection.countByTaggableType['RECIPE'] < 2 ? '' : 's'}}
+                        </a>
+                    </div>
+                    <div ng-show="selection.countByTaggableType['MANAGED_FOLDER']">
+                        <a ng-click="filterSelection('MANAGED_FOLDER')"
+                            title="Click to keep only folders"
+                            toggle="tooltip"
+                            >
+                            <strong>{{selection.countByTaggableType['MANAGED_FOLDER']}}</strong>
+                            folder{{selection.countByTaggableType['MANAGED_FOLDER'] < 2 ? '' : 's'}}
+                        </a>
+                    </div>
+                    <div ng-show="selection.countByTaggableType['SAVED_MODEL']">
+                        <a ng-click="filterSelection('SAVED_MODEL')"
+                            title="Click to keep only models"
+                            toggle="tooltip"
+                            >
+                            <strong>{{selection.countByTaggableType['SAVED_MODEL']}}</strong>
+                            model{{selection.countByTaggableType['SAVED_MODEL'] < 2 ? '' : 's'}}
+                        </a>
+                    </div>
+                </div>
+
+                <span ng-show="selection.taggableType != 'TAGGABLE_OBJECT'">
+                    {{selection.selectedObjects.length}} {{selection.taggableType | niceTaggableType : selection.selectedObjects.length}}
+                </span>
+            </h2>
+        </div>
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;" />
+
+    <div class="flex fh oa">
+        <div class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+
+            <div class="icons-section icons-grey icons-main">
+                <div ng-if="isAllComputables() && isAllLocal()"
+                    simple-right-col-action-click
+                    on-click="buildSelected()"
+                    label="Build"
+                    icon="icon-play"
+                    disabled-if-ro
+                    title="(Re)Compute the data for this dataset"
+                    />
+
+                <div simple-right-col-action-click
+                    ng-if="listItemType == null || listItemType != 'CONTINUOUS_ACTIVITY'"
+                    on-click="startApplyTagging()"
+                    label="Tag"
+                    icon="icon-tags"
+                    disabled-if-ro
+                    title=""
+                    />
+
+                <div simple-right-col-action-click
+                    ng-if="isAllLocal() && isAllComputables()"
+                    on-click="exposeSelected()"
+                    label="Share"
+                    icon="icon-dku-share"
+                    disabled-if-ro
+                    />
+
+                <div simple-right-col-action-click
+                    ng-if="isAllRecipes() && anyMultiEngineRecipe()"
+                    on-click="changeSelectedRecipesEngines()"
+                    label="Change engine"
+                    icon="icon-cogs"
+                    disabled-if-ro
+                    title="Change recipe engines"
+                    />
+
+                <div simple-right-col-action-click
+                     ng-if="canMassMakeListed&&canModerateDashboards() && !isAllListed(selection.selectedObjects)"
+                     on-click="massMakeListed(selection.selectedObjects,true)"
+                     label="Promote"
+                     icon="icon-dku-promote-empty"
+                     disabled-if-ro
+                     title="Promote"
+                     toggle="tooltip"
+                />
+
+                <div simple-right-col-action-click
+                     ng-if="canMassMakeListed&&canModerateDashboards() && isAllListed(selection.selectedObjects)"
+                     on-click="massMakeListed(selection.selectedObjects,false)"
+                     label="Unpromote"
+                     icon="icon-dku-promote"
+                     disabled-if-ro
+                     title="Unpromote"
+                     toggle="tooltip"
+                />
+
+                <div simple-right-col-action-click
+                     ng-show="!isAllWatched() && !isAllZones()"
+                     on-click="watchObjects(true)"
+                     label="{{ actionLabels.WATCH }}"
+                     icon="icon-eye-open"
+                     ng-attr-title="{{ actionTooltips.plural.WATCH }}"
+                     data-toggle="tooltip"
+                     data-container="body"
+                />
+
+                <div simple-right-col-action-click
+                     ng-show="isAllWatched() && !isAllZones()"
+                     on-click="watchObjects(false)"
+                     label="{{ actionLabels.UNWATCH }}"
+                     icon="icon-eye-close"
+                     ng-attr-title="{{ actionTooltips.plural.UNWATCH }}"
+                     data-toggle="tooltip"
+                     data-container="body"
+                />
+
+                <div simple-right-col-action-click
+                     ng-show="!isAllStarred() && !isAllZones()"
+                     on-click="starObjects(true)"
+                     label="{{ actionLabels.STAR }}"
+                     icon="icon-star"
+                     ng-attr-title="{{ actionTooltips.plural.STAR }}"
+                     data-toggle="tooltip"
+                     data-container="body"
+                />
+
+                <div simple-right-col-action-click
+                     ng-show="isAllStarred() && !isAllZones()"
+                     on-click="starObjects(false)"
+                     label="{{ actionLabels.UNSTAR }}"
+                     icon="icon-star-empty"
+                     ng-attr-title="{{ actionTooltips.plural.UNSTAR }}"
+                     data-toggle="tooltip"
+                     data-container="body"
+                />
+
+                <div simple-right-col-action-click
+                    ng-if="isAllDatasets() && isAllLocal() && isAllManaged()"
+                    on-click="clearSelected()"
+                    class="icons-danger"
+                    label="Clear data"
+                    icon="icon-remove"
+                    disabled-if-ro
+                    title="Delete the data of this dataset"
+                    />
+
+                <div simple-right-col-action-click
+                    ng-if="isAllFolders() && isAllLocal()"
+                    on-click="clearSelected()"
+                    class="icons-danger"
+                    label="Clear"
+                    icon="icon-remove"
+                    disabled-if-ro
+                    title="Delete the data of these folders"
+                    />
+
+                <div simple-right-col-action-click
+                     ng-if="massAutoTriggers && allAutoTriggers && !allAutoTriggers(selection.selectedObjects) && !allAutoTriggersDisabled()"
+                     on-click="autoTriggersObjects(true, selection.selectedObjects)"
+                     label="Auto-triggers"
+                     icon="icon-ok-sign"
+                     disabled-if-ro
+                     title="Activate Auto-triggers"
+                     toggle="tooltip"
+                     data-container="body"
+                />
+
+                <div simple-right-col-action-click
+                     ng-if="massAutoTriggers && allAutoTriggers && !allAutoTriggers(selection.selectedObjects) && allAutoTriggersDisabled()"
+                     label="Auto-triggers"
+                     icon="icon-ok-sign"
+                     class="disabled"
+                     title="{{ allAutoTriggersDisabled() }}"
+                     container="body"
+                     toggle="tooltip"
+                />
+
+                <div simple-right-col-action-click
+                     ng-if="massAutoTriggers && allAutoTriggers && allAutoTriggers(selection.selectedObjects) && !allAutoTriggersDisabled()"
+                     on-click="autoTriggersObjects(false, selection.selectedObjects)"
+                     label="Auto-triggers"
+                     icon="icon-remove-sign"
+                     disabled-if-ro
+                     title="Disable Auto-triggers"
+                     toggle="tooltip"
+                />
+
+                <div simple-right-col-action-click
+                     ng-if="massAutoTriggers && allAutoTriggers && allAutoTriggers(selection.selectedObjects) && allAutoTriggersDisabled()"
+                     label="Auto-triggers"
+                     icon="icon-remove-sign"
+                     class="disabled"
+                     title="{{ allAutoTriggersDisabled() }}"
+                     container="body"
+                     toggle="tooltip"
+                />
+
+                <div simple-right-col-action-click
+                    ng-if="canWriteProject() && !isAllForeign()"
+                    on-click="deleteSelected()"
+                    label="Delete"
+                    icon="icon-trash"
+                    ng-class="{'icons-danger': isProjectAnalystRW()}"
+                    disabled-if-ro
+                />
+
+                <div simple-right-col-action-click
+                    ng-if="canWriteProject() && isAllForeign()"
+                    on-click="unshare()"
+                    label="Unshare"
+                    icon="icon-dku-share"
+                    ng-class="{'icons-danger': isProjectAnalystRW()}"
+                    disabled-if-ro
+                />
+                <div simple-right-col-action-click
+                    ng-show="!$stateParams.zoneId && isAllZones() && !isAllZonesCollapsed()"
+                    ng-click="collapseSelectedZones()"
+                    label="Collapse selected"
+                    icon="icon-resize-small"
+                />
+                <div simple-right-col-action-click
+                    ng-show="!$stateParams.zoneId && isAllZones() && !isAllZonesExpanded()"
+                    ng-click="expandSelectedZones()"
+                    label="Expand selected"
+                    icon="icon-resize-full"
+                />
+                <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+            </div>
+
+            <div class="accordion mtop16" dku-foldable dku-foldable-right-panel name="git" open="true" ng-show="allRemoteNotebooks(selection.selectedObjects)">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    <i class="{{foldableChevronClazz}}"></i>
+                    Associated remote Git
+                </h4>
+                <div class="icons-grey icons-section icons-main padtop0" ng-show="foldableOpen" disabled-block-if-ro>
+                    <div simple-right-col-action-click
+                        on-click="pushNotebooksToRemote(selection.selectedObjects)"
+                        label="Commit and push"
+                        wt1-click-id="git_jupyter_push_rightpanel"
+                        icon="icon-upload-alt">
+                    </div>
+                    <div simple-right-col-action-click
+                        on-click="pullNotebooksFromRemote(selection.selectedObjects)"
+                        wt1-click-id="git_jupyter_pull_rightpanel"
+                        label="Pull"
+                        icon="icon-download">
+                    </div>
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+
+            <div dku-foldable dku-foldable-right-panel name="visualRecipes" open="true" class="accordion mtop16" ng-if="isAllDatasets()">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    <i class="{{foldableChevronClazz}}" />
+                    Visual recipes
+                </h4>
+                <div ng-show="foldableOpen" class="icons-section icons-visual" disabled-block-if-ro >
+
+                    <div simple-right-col-action-click
+                        ng-if="selection.selectedObjects.length == 2"
+                        on-click="showCreateJoinModal(getSmartNames(), getCommonZone())"
+                        label="Join"
+                        icon="icon-visual_prep_join_recipe"
+                        title="Merge datasets together, with join keys. Select keys, type of join, and columns to fetch"
+                        />
+                    <div simple-right-col-action-click
+                         ng-if="selection.selectedObjects.length == 2"
+                         on-click="showCreateFuzzyJoinModal(getSmartNames())"
+                         label="Fuzzy join"
+                         icon="icon-visual_prep_fuzzyjoin_recipe"
+                         title="Merge datasets together using inexact matching of join keys. Select keys, type of join, distance thresholds and columns to fetch"
+                    />
+                    <div simple-right-col-action-click
+                        on-click="showCreateVStackModal(getSmartNames(), getCommonZone())"
+                        label="Stack"
+                        icon="icon-visual_prep_vstack_recipe"
+                        title="Concatenate several datasets"
+                        />
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+
+            <div dku-foldable dku-foldable-right-panel name="visualRecipes" open="true" class="accordion mtop16" ng-if="isAllFolders()">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    <i class="{{foldableChevronClazz}}" />
+                    Visual recipes
+                </h4>
+                <div ng-show="foldableOpen" class="icons-section icons-visual" disabled-block-if-ro >
+                    <div simple-right-col-action-click
+                         on-click="showCreateMergeFolderModal(getSmartNames(), getCommonZone())"
+                         label="Merge Folder"
+                         icon="icon-visual_prep_merge_folder_recipe"
+                         title="Merge several folders"
+                    />
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+
+            <div ng-if="isAllComputables()" include-no-scope="/templates/datasets/right-column-summary-code.html" />
+
+            <div dku-foldable dku-foldable-right-panel open="true" class="accordion" ng-show="isAllContinuousRecipes()" name="actions.continuousRecipes">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    <i class="{{foldableChevronClazz}}" />
+                    Continous recipes
+                </h4>
+                <div ng-show="foldableOpen" class="icons-section icons-grey icons-continuous" disabled-block-if-ro >
+                    <div simple-right-col-action-click
+                        label="Start"
+                        icon="icon-play"
+                        on-click="startAllContinuous(selection.selectedObjects)"
+                        ng-class="{disabled: !isProjectAnalystRW()}"
+                        />
+                    <div simple-right-col-action-click
+                        label="Stop"
+                        icon="icon-stop"
+                        on-click="stopAllContinuous(selection.selectedObjects)"
+                        ng-class="{disabled: !isProjectAnalystRW()}"
+                        />
+                    <div simple-right-col-action-click
+                        label="Refresh status"
+                        icon="icon-refresh"
+                        on-click="refreshAllContinuous(selection.selectedObjects)"
+                        ng-class="{disabled: !isProjectAnalystRW()}"
+                        />
+                    <div class="action-icon" ng-repeat="i in ([2] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+
+
+            <div dku-foldable dku-foldable-right-panel open="true" class="accordion" ng-show="selectablePlugins.length != 0" name="actions.pluginRecipes">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    <i class="{{foldableChevronClazz}}" />
+                    Plugin recipes
+                </h4>
+                <div ng-show="foldableOpen" class="icons-section icons-plugins" disabled-block-if-ro >
+                    <div ng-repeat="plugin in selectablePlugins" simple-right-col-action-click on-click="showCreateRecipeFromPlugin(plugin.pluginId, getTaggableTypeMap(), getCommonZone())" label="{{plugin.label}}" icon="{{plugin.icon}}" />
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+            <div dku-foldable dku-foldable-right-panel open="true" class="accordion" name="actions.flowZones" ng-if="$state.current.name.startsWith('projects.project.flow')">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    <i class="{{foldableChevronClazz}}" />
+                    Flow Zones
+                </h4>
+                <div ng-show="foldableOpen" class="icons-section icons-flow-zones" disabled-block-if-ro >
+                    <div simple-right-col-action-click
+                         on-click="moveToFlowZone(getSelectedTaggableObjectRefs(), false, computeMovingImpact())"
+                         label="Move"
+                         icon="icon-move_to_zone"
+                         title="Move to a flow zone"
+                    />
+                    <div simple-right-col-action-click
+                         ng-if="isAllComputables()"
+                         on-click="shareToFlowZone(getSelectedTaggableObjectRefs())"
+                         label="share"
+                         icon="icon-share_to_zone"
+                         title="Share to a flow zone"
+                    />
+                    <div simple-right-col-action-click
+                         ng-if="isAllUnshareable()"
+                         on-click="unshareToFlowZone(getSelectedTaggableObjectRefs(), getSelectedObjectsZones())"
+                         label="Unshare"
+                         icon="icon-unshare_to_zone"
+                         title="Unshare from each flow zone"
+                    />
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+
+            <div dku-foldable dku-foldable-right-panel name="modelToPredict" open="true" class="accordion" ng-if="isDatasetAndModel() && isPredictionModel()">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    <i class="{{foldableChevronClazz}}" />
+                    Apply model on data to predict
+                </h4>
+                <div ng-show="foldableOpen" class="icons-section icons-machine_learning" disabled-block-if-ro >
+                    <div simple-right-col-action-click
+                        on-click="GlobalProjectActions.newPredictionScoringRecipeFromSMID(this, singleSelectedModel.projectKey, singleSelectedModel.name, singleSelectedDataset.name, singleSelectedModelInfos.zone)"
+                        label="Score"
+                        icon="icon-score_recipe"
+                        disabled-if-ro
+                    ></div>
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+
+            <div dku-foldable dku-foldable-right-panel name="modelToCluster" open="true" class="accordion" ng-if="isDatasetAndModel() && isClusteringModel()">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    <i class="{{foldableChevronClazz}}" />
+                    Apply model on data to cluster
+                </h4>
+                <div ng-show="foldableOpen" class="icons-section icons-machine_learning" disabled-block-if-ro >
+                    <div simple-right-col-action-click
+                        on-click="GlobalProjectActions.newClusteringScoringRecipeFromSMID(this, singleSelectedModel.projectKey, singleSelectedModel.name, singleSelectedDataset.name, singleSelectedModelInfos.zone)"
+                        label="Apply"
+                        icon="icon-score_recipe"
+                        disabled-if-ro
+                    ></div>
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+
+            <div dku-foldable dku-foldable-right-panel name="evaluateModel" open="true" class="accordion" ng-if="isDatasetAndModel() && isPredictionModel()">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    <i class="{{foldableChevronClazz}}" ></i>
+                    Evaluate model on already-known data
+                </h4>
+                <div ng-show="foldableOpen" class="icons-section icons-machine_learning" disabled-block-if-ro >
+                    <div simple-right-col-action-click
+                        on-click="GlobalProjectActions.newEvaluationRecipeFromSMID($root, singleSelectedModel.projectKey, singleSelectedModel.name, singleSelectedDataset.name, singleSelectedModelInfos.zone)"
+                        label="Evaluate"
+                        icon="icon-evaluation_recipe"
+                        disabled-if-ro
+                    ></div>
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+
+            <div dku-foldable dku-foldable-right-panel name="otherActions" open="true" class="accordion other-actions" ng-if="($state.current.name.includes('flow') || $state.current.name.includes('projects.project.datasets.list') || $state.current.name.includes('projects.project.recipes.list')) && !isAllZones()">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    <i class="{{foldableChevronClazz}}" />
+                    Other actions
+                </h4>
+
+                <div ng-show="foldableOpen">
+                    <ul class="simple-list" style="margin-bottom: 10px;">
+                        <other-action-list-item icon='icon-play'
+                                                label='Add to a scenario'
+                                                on-click='addSelectedToScenario()'
+                                                show-condition="isProjectAnalystRW() && isAllComputables()"/>
+                        <other-action-list-item icon='icon-dataset'
+                                                label='Change connection'
+                                                on-click='changeSelectedItemsConnections()'
+                                                show-condition="isProjectAnalystRW() && isAllDatasetsAndFolders() && isAllLocal()"/>
+                        <other-action-list-item icon='icon-copy'
+                                                label='Copy'
+                                                on-click='copyAllSelected()'
+                                                show-condition="isProjectAnalystRW() && (!tool || tool.type != 'COPY') && $state.current.name.includes('flow')"/>
+                        <other-action-list-item icon='icon-dku-hive'
+                                                label='Sychronize Hive metastore'
+                                                on-click='resynchronizeMetastore()'
+                                                show-condition="isProjectAnalystRW() && isAllMetastoreAware() && isAllLocal()"/>
+                        <other-action-list-item icon='icon-refresh'
+                                                label='Update status (count of record, file size)'
+                                                on-click='updateStatuses()'
+                                                show-condition="isAllDatasets() && isAllLocal() && $state.current.name.includes('flow')"/>
+                        <other-action-list-item icon='icon-refresh'
+                                                label='Set auto count of records'
+                                                on-click='setAutoCountOfRecords(true)'
+                                                show-condition="isProjectAnalystRW() && isAllDatasets() && isAllLocal() && $state.current.name.includes('flow')"/>
+                        <other-action-list-item icon='icon-forward'
+                                                label='Allow build virtualization (for pipelines)'
+                                                on-click='setVirtualizable(true)'
+                                                show-condition="showAllowVirtualizationAction()"
+                                                enable-condition="anyPipelineTypeEnabled()"
+                                                disabled-tooltip='Pipelines are not enabled on this project'/>
+                        <other-action-list-item icon='icon-forward'
+                                                label='Stop build virtualization (for pipelines)'
+                                                on-click='setVirtualizable(false)'
+                                                show-condition="showStopVirtualizationAction()"
+                                                enable-condition="anyPipelineTypeEnabled()"
+                                                disabled-tooltip='Pipelines are not enabled on this project'/>
+                        <other-action-list-item icon='icon-code_spark_scala_recipe'
+                                                label='Change Spark configuration'
+                                                on-click='changeSelectedSparkConfig()'
+                                                show-condition="isProjectAnalystRW() && appConfig.sparkEnabled && isAllRecipes() && (anyCanSpark() || anyMultiEngineRecipe())"/>
+                        <other-action-list-item icon='icon-code_spark_scala_recipe'
+                                                label='Change Spark engine'
+                                                on-click='changeSelectedSparkEngine()'
+                                                show-condition='isProjectAnalystRW() && appConfig.sparkEnabled && isAllRecipes() && (anyCanSpark() || anyMultiEngineRecipe())'/>
+                        <other-action-list-item icon='icon-forward'
+                                                label='Change Spark pipelineability'
+                                                on-click='changeSelectedSparkPipelineability()'
+                                                show-condition='isAllRecipes()'
+                                                enable-condition='isProjectAnalystRW() && isAllRecipes() && anyCanSparkPipeline()'
+                                                disabled-tooltip='Spark pipelines are not enabled on this project or this recipe is not Spark pipelineable'/>
+                        <other-action-list-item icon='icon-forward'
+                                                label='Change SQL pipelineability'
+                                                on-click='changeSelectedSqlPipelineability()'
+                                                show-condition='isAllRecipes()'
+                                                enable-condition='isProjectAnalystRW() && isAllRecipes() && anyCanSqlPipeline()'
+                                                disabled-tooltip='SQL pipelines are not enabled on this project or this recipe is not SQL pipelineable'/>
+                        <other-action-list-item icon='icon-dku-impala'
+                                                label='Change Impala write mode'
+                                                on-click='changeSelectedImpalaWriteMode()'
+                                                show-condition='isProjectAnalystRW() && appConfig.impalaEnabled && isAllRecipes() && (anyImpala() || anyMultiEngineRecipe())'/>
+                        <other-action-list-item icon='icon-dku-hive'
+                                                label='Change Hive engine'
+                                                on-click='changeSelectedHiveEngine()'
+                                                show-condition='isProjectAnalystRW() && appConfig.hiveEnabled && isAllRecipes() && (anyHive() || anyMultiEngineRecipe())'/>
+                        <other-action-list-item icon='icon-dku-hive'
+                                                label='Convert to Hive recipe'
+                                                on-click='convertSelectedToHive()'
+                                                show-condition='isProjectAnalystRW() && appConfig.hiveEnabled && isAllImpalaRecipes()'/>
+                        <other-action-list-item icon='icon-dku-impala'
+                                                label='Convert to Impala recipe'
+                                                on-click='convertSelectedToImpala()'
+                                                show-condition='isProjectAnalystRW() && appConfig.impalaEnabled && isAllHiveRecipes()'/>
+                        <other-action-list-item icon='icon-code'
+                                                label='Change Python code env'
+                                                on-click='changePythonEnvSelection()'
+                                                show-condition='isProjectAnalystRW() && isAllPythonCodeEnvSelectableRecipes()'/>
+                        <other-action-list-item icon='icon-code'
+                                                label='Change R code env'
+                                                on-click='changeREnvSelection()'
+                                                show-condition='isProjectAnalystRW() && isAllRCodeEnvSelectableRecipes()'/>
+                        <div ng-show="isAllDatasets() && macroRoles['DATASETS'] && macroRoles['DATASETS'].length > 0">
+                            <hr />
+                            <li ng-repeat="runnable in macroRoles['DATASETS']"
+                                ng-show="runnable.applicableToForeign || isAllLocal()">
+                                <a class="link-std" ng-click="showCreateRunnable(runnable.runnable, runnable.roleTarget, getSmartNames())">
+                                    <i class="icon-fixed-width {{runnable.icon}}" /> {{runnable.label}}
+                                </a>
+                            </li>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

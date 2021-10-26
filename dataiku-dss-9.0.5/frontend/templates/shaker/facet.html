@@ -1,0 +1,121 @@
+<div class="facet-content">
+
+    <!-- Actions line -->
+    <div class="additional-ff-header">
+        <button class="btn btn--text btn--primary" toggle="tooltip" title="Reset filter" ng-click="resetThisFilter()" ng-disabled="!filterIsEffective(facet)">
+            RESET
+        </button>
+        <button class="btn btn--outline btn--primary" dku-if="shakerWritable" toggle="tooltip" title="Add as script step" ng-click="addStepsFromFilter(facet)" ng-disabled="!filterCanBecomeStep(facet)">
+            <i class="icon-plus" />&nbsp; ADD AS A STEP
+        </button>
+    </div>
+
+    <div ng-show="isSpinner()" style="padding: 2em; text-align:center">
+        <i class="icon-spin icon-spinner" />
+    </div>
+
+    <div ng-show="!isSpinner()"  class="has-values">
+        <div class="filter-content">
+            <div class="simple-filter">
+                <form class="dkuform-std-vertical">
+                    <ul class="processor-field">
+
+                        <!-- date filter type -->
+                        <li class="processor-field" ng-show="facet.columnType == 'DATE'">
+                            <fieldset>
+                                <div class="fieldLabel">Filter on</div>
+                                <select ng-model="facet.dateFilterType" ng-options="dft[0] as dft[1] for dft in dateFilterTypes" style="height: 26px" />
+                            </fieldset>
+                        </li>
+
+                        <!-- date part filter -->
+                        <li class="processor-field" ng-show="isFilterDatePart(facet)">
+                            <fieldset>
+                                <span class="fieldLabel">Date part</span></br>
+                                <select ng-model="facet.dateFilterPart" ng-options="dft[0] as dft[1] for dft in dateFilterParts" />
+                            </fieldset>
+                        </li>
+
+                        <!-- alphanum filter -->
+                        <li class="processor-field" ng-show="(facet.currentMode == 'ALPHANUM' || (isFilterDiscreteDate(facet) && !isFilterDateRelative(facet))) && !isSpinner()">
+                            <div class="alphanum-facet">
+                                <chart-alphanum-facet on-change="$emit('filterChange')"
+                                                      values="filterTmpData[facet.column].values"
+                                                      unique-row-count="filterTmpData[facet.column].uniqueRowCount"></chart-alphanum-facet>
+                            </div>
+                        </li>
+
+                        <!-- date range filter -->
+                        <li class="processor-field" ng-show="isFilterDateRange(facet)">
+                            <inline-date-range-picker on-change="dateRangeChange()" tz="facetUiState.timezoneDateRangeModel" from="facetUiState.fromDateRangeModel" to="facetUiState.toDateRangeModel" />
+                            <div class="ff-date-range-filter-hint" ng-show="facetUiState.toDateRangeModel < facetUiState.fromDateRangeModel">
+                                <i class="icon-warning-sign"></i> Start date is later than end date. The selection will always be empty.
+                            </div>
+                        </li>
+
+                        <!-- date range filter -->
+                        <li class="processor-field" ng-show="isFilterDateRelative(facet)">
+                            <fieldset>
+                                <div class="fieldLabel">Date part</div>
+                                <select ng-model="facet.dateFilterPart" ng-options="dft[0] as dft[1] for dft in dateRelativeFilterParts" />
+                            </fieldset>
+                            <div class="control-group">
+                                <div class="controls">
+                                    <label>
+                                        <input type="radio" ng-model="facet.dateFilterRelativeOption" value="THIS"/>
+                                        This {{dateRelativeFilterPartsLabel}}
+                                    </label>
+                                    <label>
+                                        <input type="radio" ng-model="facet.dateFilterRelativeOption" value="LAST"/>
+                                        Last <input type="number" min="1" ng-model="facet.dateFilterRelativeLast" style="width: 40px; height: 20px;" />
+                                        {{dateRelativeFilterPartsLabel}}{{facet.dateFilterRelativeLast > 1 ? 's' : ''}}
+                                    </label>
+                                    <label>
+                                        <input type="radio" ng-model="facet.dateFilterRelativeOption" value="NEXT"/>
+                                        Next <input type="number" min="1" ng-model="facet.dateFilterRelativeNext" style="width: 40px; height: 20px;" />
+                                        {{dateRelativeFilterPartsLabel}}{{facet.dateFilterRelativeNext > 1 ? 's' : ''}}
+                                    </label>
+                                    <label>
+                                        <input type="radio" ng-model="facet.dateFilterRelativeOption" value="TO"/>
+                                        {{dateRelativeFilterPartsLabel}} to date
+                                    </label>
+                                    <div class="ff-relative-date-filter-hint">
+                                        <i class="icon-info-sign"></i> This filter is calculated relative to the current date and will update itself over time.
+                                        Currently it keeps rows with values between <b>{{dateRelativeFilterComputedStart}}</b> and <b>{{dateRelativeFilterComputedEnd}}</b>.
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- range filter -->
+                        <li class="processor-field" ng-show="facet.currentMode == 'NUMERICAL'">            <div ng-show="isChart" class="ministogram-container"></div>
+                            <div ng-show="isRangeSlider && filterTmpData[facet.column].response" style="position:relative; left:4px;">
+                                <form class="dkuform-std-vertical">
+                                    <div style="margin-top: 20px;">
+                                        <div ng-if="sliderStep" ng-show="facet.columnType == 'NUMERICAL'">
+                                            <div editable-slider range-slider
+                                                min="filterTmpData[facet.column].response.minValue"
+                                                max="filterTmpData[facet.column].response.maxValue"
+                                                model-min="facetUiState.sliderModelMin"
+                                                model-max="facetUiState.sliderModelMax"
+                                                on-handle-up="slideEnd()"
+                                                step="{{sliderStep}}"
+                                                decimal-places="{{sliderDecimals}}"
+                                                disabled="!filterTmpData[facet.column].response || filterTmpData[facet.column].response.minValue == filterTmpData[facet.column].response.maxValue"
+                                                disable-editable-as-string="filterTmpData[facet.column].response.minValue == filterTmpData[facet.column].response.maxValue"/>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div ng-show="!isChart && !isRangeSlider && !isSpinner()" class="ff-no-chart">
+                                <h4>N-A</h4>
+                            </div>
+                        </li>
+                    </ul>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+

@@ -1,0 +1,41 @@
+plugins {
+    id "java"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = []
+            srcDirs "backup-internal-databases/src"
+            srcDirs "clear-internal-dbs/src"
+            srcDirs "drop-pipeline-views/src"
+        }
+        resources {
+            srcDirs = []
+        }
+    }
+}
+
+java {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+}
+
+compileJava.options.encoding = "iso-8859-1"
+
+jar {
+    archiveBaseName = 'dataiku-dss-builtin-macros'
+    destinationDirectory = file("$rootDir/plugins/builtin-macros/java-lib/")
+}
+
+configurations {
+}
+
+dependencies {
+    implementation project(path: ":dku-core")
+    implementation project(path: ":app-platform")
+    implementation project(path: ":dss-core")
+    implementation project(path: ":dss-main")
+    implementation project(path: ":", configuration: "backend_run_global")
+    implementation project(path: ":", configuration: "common_run_global")
+}

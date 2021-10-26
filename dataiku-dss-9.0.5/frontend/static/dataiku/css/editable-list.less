@@ -1,0 +1,179 @@
+/* Editable lists style shared between Angular component and AngularJS directive */
+
+@import 'color-variables.less';
+@import 'fonts-variables.less';
+
+.editable-list.editable-list.editable-list {
+    display: block;
+}
+
+.editable-list__items {
+    list-style: none;
+    margin: 0;
+}
+
+.editable-list-input-mixin() {
+    transition: border linear .2s, box-shadow linear .2s;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    display: inline-block;
+
+    &:not(:hover):not(:focus) {
+        background: transparent;
+        box-shadow: none;
+        border-color: transparent;
+
+        &.ng-dirty.ng-invalid {
+            border: 1px solid @error-red-base;
+        }
+    }
+}
+
+.editable-list__template:not(.editable-list__template--editing) {
+    .editable-list__input:not(.editable-list__input-error) {
+        .editable-list-input-mixin();
+
+        &--underline:not(:hover):not(:focus):not([type=checkbox]):not([type=radio]) {
+            border-color: transparent;
+            border-bottom-color: @border-color;
+        }
+    }
+}
+
+.editable-list__input-error-message {
+    background-color: @error-background-light;
+    color: @error-text;
+    font-size: 9px;
+    font-weight: @font-weight-normal;
+    line-height: 16px;
+    padding-left: 4px;
+    width: inherit;
+}
+
+.editable-list__input-warning-message {
+    background-color: @warning-background-light;
+    color: @warning-text;
+    font-size: 9px;
+    font-weight: @font-weight-normal;
+    line-height: 16px;
+    padding-left: 4px;
+    width: inherit;
+}
+
+.editable-list__item {
+    align-items: baseline;
+    display: flex;
+    flex-direction: row;
+    width: fit-content;
+    width: -moz-fit-content;
+    margin-bottom: 4px;
+    padding-bottom: 2px;
+
+    &--divider {
+        border-bottom: 1px solid @grey-lighten-7;
+    }
+}
+
+.editable-list__template {
+    align-items: baseline;
+    display: flex;
+    flex-direction: row;
+}
+
+.editable-list--full-width {
+    width: 100%;
+
+    .editable-list__template,
+    .editable-list__items,
+    .editable-list__item,
+    editable-list-input,
+    .editable-list__input-group,
+    .mat-form-field{
+        width: 100%;
+    }
+}
+
+.dkuform-horizontal .control-group .controls .editable-list--full-width .editable-list__input {
+    width: 100%;
+}
+
+.editable-list__arrow-icon {
+    margin: 0 8px;
+    vertical-align: middle;
+}
+
+.editable-list__delete {
+    margin-left: 8px;
+
+    &.btn i {
+        margin: 0;
+    }
+
+    .icon-trash:hover {
+        color: @error-red-lighten-2;
+    }
+}
+
+.editable-list__drag-icon {   
+    color: @text-weak;
+    cursor: move;
+    font-weight: @font-weight-normal;
+    margin : 8px 8px auto 0px;
+}
+
+// Legacy support (copy paste of former css from former component list-form). 
+// Lot of legacy usages rely on this.
+// Scoped on the ng1 directive only.
+.editable-list--ng1 {
+    .editable-list__template {
+        width: 100%;
+        display: -webkit-flex;
+        display: flex;
+        align-items: baseline;
+        > span { // span for fixed
+            display: inline-block;
+            -webkit-flex: 0 0 auto;
+            flex: 0 0 auto;
+            padding: 0 4px;
+        }
+        > div:not(.editable-list__noflex) { // div for flexible-width
+            -webkit-flex: 1 1 auto;
+            flex: 1 1 auto;
+            padding: 0 4px;
+            &:first-child { padding-left: 0 }
+            &:last-child  { padding-right: 0 }
+
+            > div.editable-list-input__input-group > input:not([type=checkbox]):not([type=radio]),
+            > input:not([type=checkbox]):not([type=radio]),
+            > select, > textarea {
+                width: 100% !important;
+                min-width: auto;
+            }
+        }
+        .editable-list__input.editable-list__input-error {
+            border: 1px solid @error-red-base;
+        }
+    }
+    
+    .editable-list__items.dragging .editable-list__item {
+        &.drag-above { padding-top: 1em; }
+        &.drag-below { padding-bottom: 1em; }
+        > * { pointer-events: none; }
+    }
+} 
+
+.editable-list__template:not(.editable-list__template--editing) {
+    input:not([type=checkbox]):not([type=radio]):not(.editable-list__input-error),
+    select, textarea,
+    button.btn.selectpicker {
+        .editable-list-input-mixin();
+    }
+
+    button.btn.selectpicker {
+        box-shadow: none;
+    }
+
+    .editable-list__input--child-underline button.btn.selectpicker:not(:hover):not(:focus) {
+        border-color: transparent;
+        border-bottom-color: @border-color;
+    }
+}

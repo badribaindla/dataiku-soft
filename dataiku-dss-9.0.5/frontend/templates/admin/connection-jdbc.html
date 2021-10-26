@@ -1,0 +1,96 @@
+<div ng-controller="SQLConnectionController" class="h100 vertical-flex">
+    <div class="oa vertical-flex">
+        <div class="w100 small-lr-padding">
+            <div class="generic-white-box">
+                <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                <div block-api-error />
+                <form name="connectionParamsForm" class="dkuform-horizontal">
+                    <div class="row-fluid">
+                        <div class="span7">
+                            <h2 class="settings-section-title">Basic params</h2>
+                            <div class="control-group"
+                                form-template-element model="connection.params"
+                                field="{name:'driver', type:'string', mandatory:true, label:'JDBC driver class'}">
+                            </div>
+                            <div class="control-group"
+                                form-template-element model="connection.params"
+                                field="{name:'jdbcurl', type:'string', mandatory:true, label:'JDBC URL'}">
+                            </div>
+ 							<div class="control-group" form-template-element model="connection.params"
+                                 field="{name:'jarsDirectory',type:'string', mandatory:false, label:'Driver jars directory', tooltip:'Path to a directory containing the driver jars (The path can be absolute or relative to the DSS home directory). If empty, Jars must be copied in [DSS home]/lib/jdbc directory.'}" />
+
+                            <div class="control-group">
+                                <label class="control-label">JDBC properties</label>
+                                <div class="controls">
+                                    <ng2-connection-properties-list [(items)]="connection.params.properties" (on-validity-change)="setAdvancedPropertiesValidity($event)"></ng2-connection-properties-list>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">SQL dialect (experimental):</label>
+
+                                <div class="controls">
+                                    <select dku-bs-select="{liveSearch:true}"
+                                        ng-model="connection.params.dialectName"
+                                        ng-options="c.value as c.label for c in dialects">
+                                    </select>
+                                </div>
+                            </div>
+                            <div ng-if="connection.credentialsMode == 'GLOBAL'">
+                                <div class="control-group">
+                                    <label for="" class="control-label">User</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.user" />
+                                        <span class="help-inline">
+                                            Optional. May also be defined using JDBC properties.
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="control-group">
+                                    <label for="" class="control-label">Password</label>
+                                    <div class="controls">
+                                        <input type="password" ng-model="connection.params.password" autocomplete="new-password" />
+                                        <span class="help-inline">
+                                            Optional. May also be defined using JDBC properties.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div include-no-scope="/templates/admin/fragments/connection-post-connect-statements.html" />
+
+                            <div include-no-scope="/templates/admin/fragments/connection-sql-flags.html" />
+                            <div include-no-scope="/templates/admin/fragments/connection-credentials-mode.html" />
+                            <div class="control-group">
+                                    <label for="" class="control-label">Metastore source</label>
+                                    <div class="controls">
+                                        <input type="checkbox" ng-model="connection.params.useAsMetastoreSource" />
+                                        <span class="help-inline">
+                                            Advanced usage
+                                        </span>
+                                    </div>
+                                </div>
+                        </div>
+
+                        <div class="span5">
+                            <div include-no-scope="/templates/admin/fragments/sql-naming-rule.html" />
+                            <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+            </div>
+        </div>
+    </div>
+
+    <div class="small-lr-padding page-top-padding vertical-flex connection-page__connection-testing-section">
+        <div class="vertical-flex h100">
+            <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html"/>
+            <div class="vertical-flex oh" include-no-scope="/templates/admin/fragments/sql-connection-test.html"/>
+            <div include-no-scope="/templates/admin/fragments/connection-sql-mass-import.html"/>
+        </div>
+    </div>
+
+</div>

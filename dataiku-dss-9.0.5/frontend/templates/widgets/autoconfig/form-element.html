@@ -1,0 +1,454 @@
+<div class="control-group" ng-show="paramDesc.type == 'SEPARATOR' && (uiState.$visibility === undefined || uiState.$visibility)">
+    <h4 class="settings-section-title mtop16" ng-show="paramDesc.label.length">{{paramDesc.label}}</h4>
+    <p ng-if="paramDesc.description.trim().length && paramDesc.label.trim().length" from-markdown="paramDesc.description"></p>
+    <p class="dku-text-sb" ng-if="paramDesc.description.trim().length && !paramDesc.label.trim().length" from-markdown="paramDesc.description"></p>
+</div>
+<div class="control-group" ng-show="paramDesc.type != 'SEPARATOR' && (uiState.$visibility === undefined || uiState.$visibility)" ng-scope="{{errorScope = this}}">
+    <span class="control-label" ng-if="viewMode">{{paramDesc.label || paramDesc.name}}</span>
+    <label class="control-label" ng-if="!viewMode">{{paramDesc.label || paramDesc.name}}</label>
+
+    <div class="controls" ng-if="viewMode">
+        <div>
+            <div class="display-value" ng-bind-html="model[paramDesc.name] | formatParamDescValue:paramDesc"></div>
+        </div>
+    </div>
+
+    <div class="controls" ng-if="!viewMode">
+        <div ng-if="paramDesc.type == 'BOOLEAN'">
+            <span class="input-value"><input ng-model="model[paramDesc.name]" data-qa="{{paramDesc.name}}" type="checkbox" ng-disabled="disabled"/></span>
+            <span class="help-inline">{{ paramDesc.description }}</span>
+        </div>
+        <div ng-if="paramDesc.type != 'BOOLEAN'">
+            <div ng-show="paramDesc.description && ['MAP', 'KEY_VALUE_LIST', 'CREDENTIAL_REQUEST'].includes(paramDesc.type)">
+                <span class="help-inline">
+                    {{ paramDesc.description }}
+                </span>
+            </div>
+
+            <ng-switch on="paramDesc.type" class="input-value">
+                <textarea ng-switch-when="TEXTAREA"
+                    data-qa="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-required="paramDesc.mandatory"
+                    ng-disabled="disabled"
+                    ng-if="!paramDesc.codeMirrorDialect"
+                    class="form-element__textarea"
+                    />
+                <div ng-switch-when="TEXTAREA"
+                     ng-if="paramDesc.codeMirrorDialect"
+                     class="form-element__codemirror"
+                >
+                    <textarea 
+                        ng-model="model[paramDesc.name]"
+                        ng-required="paramDesc.mandatory"
+                        ng-disabled="disabled"
+                        ui-codemirror="codeMirrorSettingService.get(paramDesc.codeMirrorDialect)"
+                        />
+                </div>
+                <input ng-switch-when="INT"
+                    data-qa="{{paramDesc.name}}"
+                    force-integer min="{{paramDesc.minI}}"
+                    max="{{paramDesc.maxI}}"
+                    type="number"
+                    ng-model="model[paramDesc.name]"
+                    step="1"
+                    class="input-mini"
+                    ng-required="paramDesc.mandatory"
+                    next-on-enter
+                    ng-disabled="disabled"
+                    />
+                <input ng-switch-when="DOUBLE"
+                    data-qa="{{paramDesc.name}}"
+                    force-double min="{{paramDesc.minD}}"
+                    max="{{paramDesc.maxD}}"
+                    type="number"
+                    ng-model="model[paramDesc.name]"
+                    step="any"
+                    class="input-mini"
+                    ng-required="paramDesc.mandatory"
+                    next-on-enter
+                    ng-disabled="disabled"
+                    />
+                <input ng-switch-when="STRING"
+                    data-qa="{{paramDesc.name}}"
+                    type="text"
+                    ng-model="model[paramDesc.name]"
+                    ng-required="paramDesc.mandatory"
+                    next-on-enter
+                    ng-disabled="disabled"
+                    />
+                <input ng-switch-when="PASSWORD"
+                    data-qa="{{paramDesc.name}}"
+                    type="password"
+                    ng-model="model[paramDesc.name]"
+                    ng-required="paramDesc.mandatory"
+                    autocomplete="new-password"
+                    next-on-enter
+                    ng-disabled="disabled"
+                    />
+                <select ng-switch-when="SELECT"
+                    data-qa-select="{{paramDesc.name}}"
+                    dku-bs-select ng-model="model[paramDesc.name]"
+                    ng-options="sv.value as sv.label for sv in paramDesc.selectChoices"
+                    ng-disabled="disabled || callPythonDoOngoing"
+                    />
+                <input ng-switch-when="COLUMN"
+                    data-qa="{{paramDesc.name}}"
+                    type="text"
+                    ng-model="model[paramDesc.name]"
+                    ng-required="paramDesc.mandatory"
+                    bs-typeahead="accessibleColumnsList"
+                    autocomplete="off"
+                    ng-trim="false"
+                    data-min-length="0"
+                    next-on-enter
+                    ng-disabled="disabled"
+                    />
+                <ng2-values-list ng-switch-when="COLUMNS"
+                    data-qa="{{paramDesc.name}}"
+                    [(items)]="model[paramDesc.name]"
+                    [suggestions]="accessibleColumnsList"
+                    add-label="Add a column"
+                    ng-init="model[paramDesc.name] = model[paramDesc.name] || []" 
+                    ng-disabled="disabled"
+                    value-placeholder="E.g. a column of the schema">
+                </ng2-values-list>
+                <div ng-switch-when="MAP"
+                    autoconfig-map-to-mapping-editor="model[paramDesc.name]"
+                    ng-init="model[paramDesc.name] = model[paramDesc.name] || {}"
+                    ng-disabled="disabled">
+                    <mapping-editor data-qa="{{paramDesc.name}}" ng-model="tempMap" add-label="Add a mapping"></mapping-editor>
+                    <!-- the js code converts the key-value pairs to a map -->
+                </div>
+                <div ng-switch-when="KEY_VALUE_LIST" ng-disabled="disabled">
+                    <mapping-editor data-qa="{{paramDesc.name}}" ng-model="model[paramDesc.name]" add-label="Add a key/value pair"></mapping-editor>
+                </div>
+                <div ng-switch-when="ARRAY" class="dib w100"
+                    autoconfig-array-to-mapping-editor="model[paramDesc.name]"
+                    ng-init="model[paramDesc.name] = model[paramDesc.name] || []"
+                    ng-disabled="disabled">
+                    <div autoconfig-form-array-element-array data-qa="{{paramDesc.name}}" ng-model="tempArray" add-label="Add an element"></div>
+                </div>
+                <div ng-switch-when="PRESET" class="dib">
+                    <div autoconfig-preset-element
+                        data-qa="{{paramDesc.name}}"
+                        param-desc="paramDesc"
+                        model="model[paramDesc.name]"
+                        plugin-id="pluginId"
+                        component-id="paramDesc.parameterSetId"
+                        disabled="disabled"
+                        accessible-parameter-set-descriptions="accessibleParameterSetDescriptions"
+                        accessible-presets="accessiblePresets"
+                        inline-params="inlineParams"
+                        inline-plugin-params="inlinePluginParams"
+                        error-scope="errorScope"
+                        />
+                </div>
+                <div ng-switch-when="PRESETS">
+                    <div add-remove ng-model="model[paramDesc.name]">
+                        <ul>
+                            <li class="horizontal-flex" ng-repeat="preset in model[paramDesc.name]" style="margin-top: 5px;">
+                                <div class="flex">
+                                    <div autoconfig-preset-element
+                                        data-qa="{{paramDesc.name}}"
+                                        param-desc="paramDesc"
+                                        model="preset"
+                                        plugin-id="pluginId"
+                                        component-id="paramDesc.parameterSetId"
+                                        disabled="disabled"
+                                        accessible-parameter-set-descriptions="accessibleParameterSetDescriptions"
+                                        accessible-presets="accessiblePresets"
+                                        inline-params="inlineParams"
+                                        inline-plugin-params="inlinePluginParams"
+                                        error-scope="errorScope"
+                                        />
+                                </div>
+                                <div class="noflex">
+                                    <button type="button" class="btn btn--text btn--danger btn--icon" tabindex="-1" ng-click="remove($index)">
+                                        <i class="icon-trash"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        </ul>
+                        <button type="button" class="btn btn--primary btn--text" ng-click="addPreset()">
+                            <i class="icon-plus"></i>Add a preset
+                        </button>
+                    </div>
+                </div>
+                <div ng-switch-when="OBJECT_LIST" data-qa="{{paramDesc.name}}" class="db">
+                    <div add-remove ng-model="model[paramDesc.name]">
+                        <ul>
+                            <li class="horizontal-flex" ng-repeat="o in model[paramDesc.name]" style="margin-top: {{$index > 0 ? '10':'0'}}px;">
+                                <div class="flex" style="width: calc(100% - 32px);"> <!-- Leave room to the trash on the right -->
+                                    <div autoconfig-object-list-element
+                                        model="o"
+                                        plugin-id="pluginId"
+                                        disabled="disabled"
+                                        params="paramDesc.subParams"
+                                        error-scope="errorScope">
+                                    </div>
+                                </div>
+                                <div class="noflex">
+                                    <button type="button" class="btn btn--text btn--danger btn--icon" tabindex="-1" ng-click="remove($index)">
+                                        <i class="icon-trash"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        </ul>
+                        <button type="button" class="btn btn--primary btn--text" ng-click="addObject()">
+                            <i class="icon-plus"></i>Add an object
+                        </button>
+                    </div>
+                </div>
+                <select ng-switch-when="PROJECT"
+                    data-qa-select="{{paramDesc.name}}"
+                    dku-bs-select
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.ref as x.displayName for x in accessibleProjects"
+                    ng-disabled="disabled"
+                    />
+
+                <div ng-switch-when="DATASET" ng-class="{'form-element__create-dataset-wrapper':paramDesc.canCreateDataset, 'form-element__pick-dataset-wrapper':!paramDesc.canCreateDataset}">
+                    <div dataset-creator-selector managed-dataset-options="managedDatasetOptions"
+                         data-qa="{{paramDesc.name}}"
+                         new-dataset="newDataset" ng-model="model[paramDesc.name]"
+                         can-create="paramDesc.canCreateDataset"
+                         can-select-foreign="paramDesc.canSelectForeign"
+                         mark-created-as-built="paramDesc.markCreatedAsBuilt"
+                         class="form-element__dataset-selector"
+                    ></div>
+                    <span class="help-inline" ng-if="paramDesc.canCreateDataset">
+                        {{ paramDesc.description }}
+                    </span>
+                </div>
+                <ng2-values-list ng-switch-when="DATASETS"
+                    [(items)]="model[paramDesc.name]"
+                    data-qa="{{paramDesc.name}}"
+                    [suggestions]="accessibleDatasetsList"
+                    add-label="Add a dataset" 
+                    ng-disabled="disabled"
+                    value-placeholder="E.g. a dataset"
+                    ng-init="model[paramDesc.name] = model[paramDesc.name] || []"
+                    ng-disabled="disabled">
+                </ng2-values-list>
+                <select ng-switch-when="CONNECTION"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="connection for connection in accessibleConnectionsList"
+                    ng-disabled="disabled"
+                />
+                <ng2-values-list ng-switch-when="CONNECTIONS"
+                    [(items)]="model[paramDesc.name]"
+                    data-qa="{{paramDesc.name}}"
+                    [suggestions]="accessibleConnectionsList"
+                    add-label="Add a connection" 
+                    ng-disabled="disabled"
+                    value-placeholder="E.g. a connection"
+                    ng-init="model[paramDesc.name] = model[paramDesc.name] || []"
+                    ng-disabled="disabled">
+                </ng2-values-list>
+                <div ng-switch-when="DATASET_COLUMN">
+                    <!-- in a chart -->
+                    <div ng-if="chart" class="chartdef-dropzone chartdef-dropzone-mono in-custom-form" ng-class="{'empty':!(model[paramDesc.name]), 'notempty': (model[paramDesc.name])}">
+                        <div class="empty-placeholder" ng-if="!disabled">
+                            Drop to set axis
+                        </div>
+                        <div class="empty-placeholder" ng-if="disabled">
+                            No axis
+                        </div>
+                        <div class="chartdef-dropzone-main" mono-ua-zone-no-opts list="dimensionList" accept-callback="acceptCallback" ng-disabled="disabled"/>
+                    </div>
+                    <!-- outside a chart -->
+                    <select ng-if="!chart" data-qa-select="{{paramDesc.name}}" dku-bs-select ng-model="model[paramDesc.name]" ng-options="x.ref as x.displayName for x in accessibleDatasetColumns" ng-disabled="disabled"/>
+                </div>
+                <ng2-values-list ng-switch-when="DATASET_COLUMNS"
+                    [(items)]="model[paramDesc.name]"
+                    data-qa="{{paramDesc.name}}"
+                    [suggestions]="accessibleDatasetColumnsList"
+                    add-label="Add a column" 
+                    ng-disabled="disabled"
+                    value-placeholder="E.g. a column of the dataset"
+                    ng-init="model[paramDesc.name] = model[paramDesc.name] || []"
+                    ng-disabled="disabled">
+                </ng2-values-list>
+                <!-- FOLDER is for legacy compatibility (<5.2 plugins) -->
+                <select ng-switch-when="FOLDER"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.ref as x.displayName for x in accessibleFolders"
+                    ng-disabled="disabled"
+                    />
+                <select ng-switch-when="MANAGED_FOLDER"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.ref as x.displayName for x in accessibleFolders"
+                    ng-disabled="disabled"
+                    />
+                <!-- MODEL is for legacy compatibility (<5.2 plugins) -->
+                <select ng-switch-when="MODEL"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.ref as x.displayName for x in accessibleModels"
+                    ng-disabled="disabled"
+                    />
+                <select ng-switch-when="SAVED_MODEL"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.ref as x.displayName for x in accessibleModels"
+                    ng-disabled="disabled"
+                    />
+                <select ng-switch-when="SCENARIO"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.ref as x.displayName for x in accessibleScenarios"
+                    ng-disabled="disabled"
+                    />
+                <select ng-switch-when="API_SERVICE"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.ref as x.displayName for x in accessibleAPIServices"
+                    ng-disabled="disabled"
+                    />
+                <select ng-switch-when="API_SERVICE_VERSION"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.ref as x.displayName for x in accessibleAPIServicePackages"
+                    ng-disabled="disabled"
+                    />
+                <select ng-switch-when="BUNDLE"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.ref as x.displayName for x in accessibleBundles"
+                    ng-disabled="disabled"
+                    />
+                <select ng-switch-when="VISUAL_ANALYSIS"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.ref as x.displayName for x in accessibleVisualAnalyses"
+                    ng-disabled="disabled"
+                    />
+                <select ng-switch-when="CODE_ENV"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.ref as x.displayName for x in accessibleCodeEnvs"
+                    ng-disabled="disabled"
+                    data-live-search="true"
+                    />
+                <select ng-switch-when="PLUGIN"
+                    dku-bs-select
+                    data-qa-select="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-options="x.id as x.label for x in accessiblePlugins"
+                    ng-disabled="disabled"
+                    />
+                <input ng-switch-when="CLUSTER"
+                    type="text"
+                    data-qa="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    ng-required="paramDesc.mandatory"
+                    bs-typeahead="accessibleClusterIds"
+                    next-on-enter ng-disabled="disabled"
+                    />
+                <input ng-switch-when="DATE"
+                    type="date"
+                    data-qa="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    input-date-conversion="date"
+                    ng-disabled="disabled">
+                </input>
+                <div ng-switch-when="MULTISELECT"
+                    data-qa="{{paramDesc.name}}"
+                    ng-model="model[paramDesc.name]"
+                    type="text"
+                    multiselect-field
+                    options="paramDesc.selectChoices"
+                    retrieve-options="retrieveCustomChoices"
+                    ng-disabled="disabled || callPythonDoOngoing">
+                </div>
+                <div ng-switch-when="STRINGS"
+                    ng-model="model[paramDesc.name]"
+                    data-qa="{{paramDesc.name}}"
+                    type="text"
+                    multiselect-field allow-free
+                    allow-dubs="{{paramDesc.allowDuplicates}}"
+                    select-on-blur
+                    placeholder="Type a value and press enter to add it to the list."
+                    ng-disabled="disabled">
+                </div>
+                <div ng-switch-when="DOUBLES"
+                    ng-model="model[paramDesc.name]"
+                    data-qa="{{paramDesc.name}}"
+                    type="number"
+                    multiselect-field allow-free number
+                    allow-dubs="{{paramDesc.allowDuplicates}}"
+                    select-on-blur
+                    placeholder="Type a numerical value and press enter to add it to the list."
+                    ng-disabled="disabled">
+                </div>
+
+                <div ng-switch-when="CREDENTIAL_REQUEST" data-qa="{{paramDesc.name}}">
+                    <div ng-if="paramDesc.credentialRequestSettings.type == 'OAUTH2'">
+                        <div class="control-group">
+                            <label class="control-label">Client ID</label>
+                            <input type="text"
+                                   ng-model="model[paramDesc.name]['clientId']"
+                                   ng-required="paramDesc.mandatory"
+                                   next-on-enter
+                                   ng-disabled="disabled"
+                            />
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Client secret</label>
+                            <input type="password"
+                                   ng-model="model[paramDesc.name]['clientSecret']"
+                                   next-on-enter
+                                   ng-disabled="disabled"
+                            />
+                            <span class="help-inline">Optional</span>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Use PKCE</label>
+                            <input ng-model="model[paramDesc.name]['usePkce']"
+                                   type="checkbox"
+                                   ng-disabled="disabled"
+                            />
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Use global proxy (if set)</label>
+                            <input ng-model="model[paramDesc.name]['useGlobalProxy']"
+                                   type="checkbox"
+                                   ng-disabled="disabled"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="alert info">As these are per-user credentials, each user must manage their own credentials individually</div>
+                </div>
+
+                <div ng-switch-default>
+                    ERROR: UNKNOWN PARAM TYPE
+                </div>
+            </ng-switch>
+            <span class="help-inline" ng-if="paramDesc.allowedColumnTypes.length && invalidColumnType()" style="color: red">
+                Invalid column type, {{paramDesc.allowedColumnTypes.join(', ')}} required.
+            </span>
+            <span class="help-inline" ng-if="paramDesc.description && !['MAP', 'KEY_VALUE_LIST', 'CREDENTIAL_REQUEST'].includes(paramDesc.type) && !(paramDesc.type == 'DATASET' && paramDesc.canCreateDataset)">
+                {{ paramDesc.description }}
+            </span>
+        </div>
+    </div>
+</div>

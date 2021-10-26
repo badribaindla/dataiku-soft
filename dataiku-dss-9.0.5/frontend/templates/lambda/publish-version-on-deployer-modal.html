@@ -1,0 +1,77 @@
+<div class="modal modal3 dku-modal">
+    <div dku-modal-header-with-totem modal-title="Publish version on Deployer" modal-totem="icon-cloud" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <div class="alert alert-info" ng-if="!uploadParams.canChangeVersion">
+                Version <strong>{{ uploadParams.versionId }}</strong> will be published on the Deployer on target service <strong>{{ uploadParams.targetService.serviceBasicInfo.id }}</strong>
+            </div>
+
+            <div ng-if="uploadParams.canChangeVersion">
+                <div class="alert alert-info">
+                    <ul style="margin-bottom: 0">
+                        <li>A new version of the service <strong>{{ $stateParams.serviceId }}</strong> will be created</li>
+                        <li>This new version will be published on the Deployer</li>
+                    </ul>
+                </div>
+                <div class="control-group">
+                    <div>
+                        <label class="control-label" for="versionId">New version id</label>
+                    </div>
+                    <div class="controls">
+                        <input id="versionId" type="text" ng-model="uploadParams.versionId" ng-pattern="/^(?!\.)[\w\.-]+$/" required />
+                        <div class="help-inline">
+                            Version identifier must be unique within the service
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 25px;">
+                <a ng-click="advancedMode = !advancedMode">
+                    Advanced
+                    <i ng-class="{'icon-chevron-down': !advancedMode, 'icon-chevron-up': advancedMode}" />
+                </a>
+                <div class="alert alert-warning" ng-show="advancedMode" style="margin-top: 10px">
+                    <i class="icon-warning-sign" /> Changing the target service is generally not advised
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="advancedMode">
+                <div>
+                    <label class="control-label">Target service</label>
+                </div>
+                <div class="controls">
+                    <div ng-switch="publishedServices">
+                        <select dku-bs-select="{'liveSearch': true, 'noneSelectedText': 'No service selected'}"
+                                ng-switch-default
+                                ng-model="uploadParams.targetService"
+                                ng-options="s as (s.createServiceMessage || s.serviceBasicInfo.name) for s in publishedServices"
+                                options-annotations="publishedServiceIds" required>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="advancedMode" ng-if="uploadParams.targetService.createServiceMessage">
+                <div>
+                    <label class="control-label" for="serviceId">New service id</label>
+                </div>
+                <div class="controls">
+                    <input id="serviceId" type="text" ng-pattern="/^[\w-]+$/" ng-model="uploadParams.targetService.serviceBasicInfo.id" required />
+                    <div class="help-inline">
+                        should be unique
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="theform.$invalid" ng-click="ok()">OK</button>
+        </div>
+    </form>
+</div>

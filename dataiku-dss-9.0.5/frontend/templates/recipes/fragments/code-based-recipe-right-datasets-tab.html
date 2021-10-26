@@ -1,0 +1,273 @@
+<div class="datasets-wrapper"  remaining-height style="height: {{remainingHeight}}px; overflow: auto; overflow-x: hidden">
+<div class="datasets-wrapper2">
+<div class="datasets datasets-explorer" code-recipe-schema-list ng-if="computablesMap">
+    <h4>Inputs</h4>
+    <div ng-if="recipe.inputs['main'].items.length == 0" class="nodatasets">This recipe has no input datasets</div>
+    <ul>
+        <li ng-repeat="input in recipe.inputs['main'].items" foldable="false" ng-init="computable =computablesMap[input.ref]">
+            <div ng-if="computable.type == 'MANAGED_FOLDER'">
+                 <div class="pull-right actions">
+                    <a title="Open" href="/projects/{{computable.projectKey}}/managedfolder/{{computable.name}}/view/">
+                        <i class="icon-shaker" />
+                    </a>
+                    <a></a>
+                </div>
+                <h5 style="cursor:inherit">
+                    <i class="icon-fixed-width" /> {{computable.label}}
+                    <span style="padding-left: 22px; font-weight: normal; color: #999"><br />Folder: {{computable.name}}</span></h5>
+            </div>
+            <div ng-if="computable.type == 'MODEL_EVALUATION_STORE'">
+                 <div class="pull-right actions">
+                    <a title="Open" href="/projects/{{computable.projectKey}}/modelevaluationstores/{{computable.name}}/summary/">
+                        <i class="icon-shaker" />
+                    </a>
+                    <a></a>
+                </div>
+                <h5 style="cursor:inherit">
+                    <i class="icon-fixed-width" /> {{computable.label}}
+                    <span style="padding-left: 22px; font-weight: normal; color: #999"><br />Evaluation store: {{computable.name}}</span></h5>
+            </div>
+            <div ng-if="computable.type == 'STREAMING_ENDPOINT'">
+                 <div class="pull-right actions">
+                    <a class="insert" ng-click="insertStreamingEndpoint('inputs', computable.streamingEndpoint)">insert</a>
+                    <a title="Open" href="/projects/{{computable.projectKey}}/streaming-endpoints/{{computable.name}}/explore/">
+                        <i class="icon-shaker" />
+                    </a>
+                    <a></a>
+                </div>
+                <h5 ng-click="toggleFold()"><i class="icon-fixed-width icon-{{unfolded ? 'caret-down' : 'caret-right'}}" />&nbsp;{{input.ref}}
+                </h5>
+                <div ng-show="unfolded && !computable.streamingEndpoint.schema.columns.length" class="noschema">
+                    This streaming endpoint doesn't have a schema
+                 </div>
+                <ul ng-if="unfolded" class="schema">
+                    <li ng-repeat="col in computable.streamingEndpoint.schema.columns" class="horizontal-flex">
+                        <a main-click ng-click="insertColumn('inputs', computable.streamingEndpoint, col)" class="flex mx-textellipsis">{{col.name}}</a>
+
+                        <span class="type noflex text-right">{{col.type}}</span>
+
+                        <span class="noflex" style="width: 16px;">
+                            <span ng-controller="MeaningPopoverController" class="type" dku-inline-popover popover-class="column-info-popover"  placement="getPlacement" container="body" clickable="true">
+                            <label><i style="cursor: pointer" ng-class="{'icon-question-sign': !col.meaning || !col.meaning.length, 'icon-lock': col.meaning && col.meaning.length}"></i></label>
+                            <content title="{{col.name}}">
+                                <div class="object-right-column-summary column-info">
+                                    <div class="content">
+                                        <div ng-if="col.comment">{{col.comment}} <hr/></div>
+
+                                        <div class="line">
+                                            <h4>Storage type</h4>
+                                            <p>{{col.type}}</p>
+                                        </div>
+
+                                        <hr/>
+
+                                        <div class="line">
+                                            <h4>Meaning</h4>
+                                            <p ng-if="!col.meaning">Auto-detect</p>
+                                            <p ng-if="col.meaning">{{appConfig.meanings.labelsMap[col.meaning]}}</p>
+                                        </div>
+
+                                        <div ng-if="user_defined" include-no-scope="/templates/catalog/meanings-rightcolumn.html"></div>
+                                    </div>
+                                </div>
+                            </content>
+                            </span>
+                        </span>
+
+                    </li>
+                </ul>
+            </div>
+            <div ng-if="computable.type == 'SAVED_MODEL'">
+                <div class="pull-right actions">
+                    <a title="Open" href="{{$root.StateUtils.href.savedModel(computable.name, computable.projectKey)}}">
+                        <i class="icon-shaker" />
+                    </a>
+                    <a></a>
+                </div>
+                <h5 style="cursor:inherit">
+                    <i class="icon-fixed-width" /> {{computable.label}}
+                    <span style="padding-left: 22px; font-weight: normal; color: #999"><br />Saved model: {{computable.name}}</span></h5>
+            </div>
+            <div ng-if="computable.type == 'DATASET'">
+                <div class="pull-right actions">
+                    <a class="insert" ng-click="insertDataset('inputs', computable.dataset)">insert</a>
+                    <a title="Explore" href="/projects/{{computable.projectKey}}/datasets/{{computable.dataset.name}}/explore/">
+                        <i class="icon-shaker" />
+                    </a>
+                    <a title="Edit schema" ng-click="beginEditSchema(input.ref)">
+                        <i class="icon-cog" />
+                    </a>
+                </div>
+                <h5 ng-click="toggleFold()"><i class="icon-fixed-width icon-{{unfolded ? 'caret-down' : 'caret-right'}}" />&nbsp;{{input.ref}}
+                    <span ng-show="computable.dataset.params.table" style="padding-left: 22px; font-weight: normal; color: #999"><br />Table: {{computable.dataset.params.table}}</span>
+                </h5>
+                <div ng-show="unfolded && !computable.dataset.schema.columns.length" class="noschema">
+                    This dataset doesn't have a schema
+                 </div>
+                <ul ng-if="unfolded" class="schema">
+                    <li ng-repeat="col in computable.dataset.schema.columns" class="horizontal-flex">
+                        <a main-click ng-click="insertColumn('inputs', computable.dataset, col)" class="flex mx-textellipsis">{{col.name}}</a>
+
+                        <span class="type noflex text-right">{{col.type}}</span>
+
+                        <span class="noflex" style="width: 16px;">
+                            <span ng-controller="MeaningPopoverController" class="type" dku-inline-popover popover-class="column-info-popover"  placement="getPlacement" container="body" clickable="true">
+                            <label><i style="cursor: pointer" ng-class="{'icon-question-sign': !col.meaning || !col.meaning.length, 'icon-lock': col.meaning && col.meaning.length}"></i></label>
+                            <content title="{{col.name}}">
+                                <div class="object-right-column-summary column-info">
+                                    <div class="content">
+                                        <div ng-if="col.comment">{{col.comment}} <hr/></div>
+
+                                        <div class="line">
+                                            <h4>Storage type</h4>
+                                            <p>{{col.type}}</p>
+                                        </div>
+
+                                        <hr/>
+
+                                        <div class="line">
+                                            <h4>Meaning</h4>
+                                            <p ng-if="!col.meaning">Auto-detect</p>
+                                            <p ng-if="col.meaning">{{appConfig.meanings.labelsMap[col.meaning]}}</p>
+                                        </div>
+
+                                        <div ng-if="user_defined" include-no-scope="/templates/catalog/meanings-rightcolumn.html"></div>
+                                    </div>
+                                </div>
+                            </content>
+                            </span>
+                        </span>
+
+                    </li>
+                </ul>
+            </div>
+        </li>
+    </ul>
+
+    <h4 style="margin-top: 15px">Outputs</h4>
+    <div ng-if="recipe.outputs['main'].items.length == 0" class="nodatasets">This recipe has no outputs</div>
+    <ul style="margin-left: 5px">
+        <li ng-repeat="output in recipe.outputs['main'].items" foldable="false" ng-init="computable =computablesMap[output.ref]">
+            <div ng-if="computable.type == 'MANAGED_FOLDER'">
+                 <div class="pull-right actions">
+                    <a title="Open" href="/projects/{{computable.projectKey}}/managedfolder/{{computable.name}}/view/">
+                        <i class="icon-shaker" />
+                    </a>
+                </div>
+                <h5 style="cursor:inherit">{{computable.label}} <span style="padding-left: 22px; font-weight: normal; color: #999"><br />(Folder: {{computable.name}})</span></h5>
+            </div>
+            <div ng-if="computable.type == 'MODEL_EVALUATION_STORE'">
+                 <div class="pull-right actions">
+                    <a title="Open" href="/projects/{{computable.projectKey}}/modelevaluationstores/{{computable.name}}/view/">
+                        <i class="icon-shaker" />
+                    </a>
+                </div>
+                <h5 style="cursor:inherit">{{computable.label}} <span style="padding-left: 22px; font-weight: normal; color: #999"><br />(Evaluation store: {{computable.name}})</span></h5>
+            </div>
+            <div ng-if="computable.type == 'STREAMING_ENDPOINT'">
+                 <div class="pull-right actions">
+                    <a class="insert" ng-click="insertStreamingEndpoint('outputs', computable.streamingEndpoint)">insert</a>
+                    <a title="Open" href="/projects/{{computable.projectKey}}/streaming-endpoints/{{computable.name}}/explore/">
+                        <i class="icon-shaker" />
+                    </a>
+                </div>
+                 <h5 ng-click="toggleFold()"><i class="icon-fixed-width icon-{{unfolded ? 'caret-down' : 'caret-right'}}" />&nbsp;{{output.ref}}
+                 </h5>
+                 <div ng-show="unfolded && !computable.streamingEndpoint.schema.columns.length" class="noschema">
+                    This streaming endpoint doesn't have a schema
+                 </div>
+                <ul ng-if="unfolded" class="schema">
+                    <li ng-repeat="col in computable.streamingEndpoint.schema.columns" class="horizontal-flex">
+                        <a main-click ng-click="insertColumn('outputs', computable.streamingEndpoint, col)" class="flex mx-textellipsis">{{col.name}}</a>
+
+                        <span class="type noflex text-right">{{col.type}}</span>
+
+                        <span class="noflex" style="width: 16px;">
+                            <span ng-controller="MeaningPopoverController" class="type" dku-inline-popover popover-class="column-info-popover"  placement="getPlacement" container="body" clickable="true">
+                            <label><i style="cursor: pointer" ng-class="{'icon-question-sign': !col.meaning || !col.meaning.length, 'icon-lock': col.meaning && col.meaning.length}"></i></label>
+                            <content title="{{col.name}}">
+                                <div class="object-right-column-summary column-info">
+                                    <div class="content">
+                                        <div ng-if="col.comment">{{col.comment}} <hr/></div>
+
+                                        <div class="line">
+                                            <h4>Storage type</h4>
+                                            <p>{{col.type}}</p>
+                                        </div>
+
+                                        <hr/>
+
+                                        <div class="line">
+                                            <h4>Meaning</h4>
+                                            <p ng-if="!col.meaning">Auto-detect</p>
+                                            <p ng-if="col.meaning">{{appConfig.meanings.labelsMap[col.meaning]}}</p>
+                                        </div>
+
+                                        <div ng-if="user_defined" include-no-scope="/templates/catalog/meanings-rightcolumn.html"></div>
+                                    </div>
+                                </div>
+                            </content>
+                            </span>
+                        </span>
+
+                    </li>
+                </ul>
+            </div>
+            <div ng-if="computable.type == 'DATASET'">
+                <div class="pull-right actions">
+                    <a class="insert" ng-click="insertDataset('outputs', computable.dataset)">insert</a>
+                    <a title="Explore" href="/projects/{{computable.projectKey}}/datasets/{{computable.dataset.name}}/explore/">
+                        <i class="icon-shaker" />
+                    </a>
+                    <a title="Edit schema" ng-click="beginEditSchema(output.ref)">
+                        <i class="icon-cog" />
+                    </a>
+                </div>
+                 <h5 ng-click="toggleFold()"><i class="icon-fixed-width icon-{{unfolded ? 'caret-down' : 'caret-right'}}" />&nbsp;{{output.ref}}
+                     <span ng-show="computable.dataset.params.table" style="padding-left: 22px; font-weight: normal; color: #999"><br />Table: {{computable.dataset.params.table}}</span>
+                 </h5>
+                 <div ng-show="unfolded && !computable.dataset.schema.columns.length" class="noschema">
+                    This dataset doesn't have a schema
+                 </div>
+                <ul ng-if="unfolded" class="schema">
+                    <li ng-repeat="col in computable.dataset.schema.columns" class="horizontal-flex">
+                        <a main-click ng-click="insertColumn('outputs', computable.dataset, col)" class="flex mx-textellipsis">{{col.name}}</a>
+
+                        <span class="type noflex text-right">{{col.type}}</span>
+
+                        <span class="noflex" style="width: 16px;">
+                            <span ng-controller="MeaningPopoverController" class="type" dku-inline-popover popover-class="column-info-popover"  placement="getPlacement" container="body" clickable="true">
+                            <label><i style="cursor: pointer" ng-class="{'icon-question-sign': !col.meaning || !col.meaning.length, 'icon-lock': col.meaning && col.meaning.length}"></i></label>
+                            <content title="{{col.name}}">
+                                <div class="object-right-column-summary column-info">
+                                    <div class="content">
+                                        <div ng-if="col.comment">{{col.comment}} <hr/></div>
+
+                                        <div class="line">
+                                            <h4>Storage type</h4>
+                                            <p>{{col.type}}</p>
+                                        </div>
+
+                                        <hr/>
+
+                                        <div class="line">
+                                            <h4>Meaning</h4>
+                                            <p ng-if="!col.meaning">Auto-detect</p>
+                                            <p ng-if="col.meaning">{{appConfig.meanings.labelsMap[col.meaning]}}</p>
+                                        </div>
+
+                                        <div ng-if="user_defined" include-no-scope="/templates/catalog/meanings-rightcolumn.html"></div>
+                                    </div>
+                                </div>
+                            </content>
+                            </span>
+                        </span>
+
+                    </li>
+                </ul>
+            </div>
+        </li>
+    </ul>
+</div>
+</div>
+</div>

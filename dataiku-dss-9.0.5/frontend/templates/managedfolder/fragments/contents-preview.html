@@ -1,0 +1,42 @@
+<div ng-class="{'oa' : isDefaultItemView() && previewedItem.type != 'PDF'}">
+<div id="error_box" class="alert alert-error" ng-show="jsonParsingFailed"></div>
+<div class="preview-zone" ng-if="isDefaultItemView()">
+    <pre ng-if="previewedItem.type == 'TEXT'" >{{previewedItem.head}}</pre>
+    <div class="fh oa" ng-if="previewedItem.type == 'ARCHIVE'">
+        <pre>No preview available (archive file)</pre>
+        <div ng-if="!readOnly" class="center-children" style="height: 200px;">
+            <button class="btn btn--secondary" ng-click="decompressPreviewedFile($event)">Uncompress to current folder</button>
+        </div>        
+    </div>
+    <pre ng-if="previewedItem.type == 'BINARY'">No preview available (binary file)</pre>
+	<img ng-if="previewedItem.type == 'IMAGE'" ng-src="{{previewedItem.imageURL}}"></img>
+	<pre ng-if="previewedItem.type == 'JSON'" json-formater="previewedItem.jsonValue" ></pre>
+    <div class="fh" ng-if="previewedItem.type == 'PDF'"> <!-- ng-if here to teardown the embed when the item changes -->
+        <embed src="" embed-src="{{previewedItem.imageURL}}" type="application/pdf" style="width:100%; height:100%" class="fh"></embed>
+    </div>
+</div>
+<div class="preview-zone" ng-if="!isDefaultItemView()">
+	<div class="fh fixedPanes" ng-class="{showLeftPane: showLeftPane, showRightPane: showRightPane}" fixed-panes>
+	    <div class="leftPane">
+	        <div class="handle" ng-click="toggleLeftPane()"></div>
+	        <div class="container-fluid page-top-padding h100 oa">
+	            <div class="row-fluid">
+	                <div plugin-settings-alert component-type="folder skin" has-settings="pluginDesc.hasSettings" app-config="$root.appConfig" />
+                    <div ng-switch="loadedDesc.id">
+    	                <form class="form common-styles-only" name="customConfigForm" ng-switch-default>
+    	                     <div custom-params-form 
+    	                        desc="desc"
+    	                        plugin-desc="pluginDesc"
+    	                        component-id="loadedDesc.id"
+    	                        config="webAppConfig" ></div>
+    	                </form>
+                    </div>
+	            </div>
+	        </div>
+	    </div>
+	    <div class="mainPane">
+	        <div class="fh item-skin-holder"></div>
+	    </div>
+	</div>
+</div>
+</div>

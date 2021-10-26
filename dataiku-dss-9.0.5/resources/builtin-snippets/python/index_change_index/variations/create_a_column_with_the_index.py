@@ -1,0 +1,1 @@
+my_df['new_col'] = my_df.index

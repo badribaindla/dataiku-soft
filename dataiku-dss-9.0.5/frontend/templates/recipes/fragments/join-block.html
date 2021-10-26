@@ -1,0 +1,136 @@
+<div class="join-block generic-white-box generic-white-box__transparent">
+    <div class="header" >
+        <join-block-dropdown-join />
+
+        <span ng-show="showConditionRemove" class="pull-right" ng-if="(join.type !== 'CROSS')">
+            <button
+                    class="btn btn--secondary join-block__remove-conditions"
+                    ng-show="isFuzzy || join.conditionsMode == 'AND' || join.conditionsMode == 'OR'"
+                    ng-click="removeAllConditions(this, join)">Clear all
+            </button>
+        </span>
+        <div ng-show="showConditionRemove" class="join-block__condition-type" ng-if="(join.type !== 'CROSS')">
+            <select dku-bs-select ng-model="join.conditionsMode" ng-if="!isFuzzy">
+                <option value="AND">Match when all the following conditions are satisfied</option>
+                <option value="OR">Match when one of the following conditions is satisfied</option>
+                <option value="NATURAL">Auto match (natural join)</option>
+                <option value="CUSTOM">Custom SQL condition</option>
+            </select>
+            <span ng-if="isFuzzy">Match when all the following conditions are satisfied</span>
+        </div>
+
+    </div>
+    <div ng-show="join.type == 'CROSS'" class="placeholder-block clickable" ng-click="onConditionClicked(join)">
+        <i class="icon-warning-sign"/> Complete cartesian product
+    </div>
+
+    <div class="join-block-body"
+         ng-if="join.type != 'CROSS' && (isFuzzy || join.conditionsMode == 'AND' || join.conditionsMode == 'OR')">
+        <div ng-show="join.on.length == 0" ng-click="onConditionClicked(join, null)" class="placeholder-block">
+                No join condition
+        </div>
+        <div class="oh">
+            <div ng-repeat="condition in join.on"
+                 class="join-condition"
+                 ng-class="{'fuzzy-join-condition--selected': current.condition == condition, 'fuzzy-join-condition': isFuzzy}" ng-style="{ 'font-weight': current.condition == condition? 'bold': 'normal'}">
+                <div class="pull-left left-column horizontal-flex"
+                     ng-click="onConditionClicked(join, condition)">
+                    <div class="column-bullet noflex">
+                        <i class="dataset-bullet {{getDatasetColorClass(condition.column1.table)}}"/>
+                        <div ng-if="$index > 0" class="vertical-line {{getDatasetColorClass(condition.column1.table)}}">
+                        </div>
+                    </div>
+                    <div title="{{condition.column1.name}}" class="column-name limited-width noflex">
+                        {{condition.column1.name}}
+                    </div>
+                    <hr class="join-line {{getDatasetColorClass(condition.column1.table)}} flex"/>
+                </div>
+
+                <div title="{{condition.column2.name}}"
+                     ng-click="onConditionClicked(join, condition)" class="pull-right right-column">
+                    <div class="column-bullet">
+                        <i class="dataset-bullet {{getDatasetColorClass(condition.column2.table)}}"/>
+                        <div ng-if="$index > 0" class="vertical-line {{getDatasetColorClass(condition.column2.table)}}">
+                        </div>
+                    </div>
+
+                    <div title="{{condition.column2.name}}" class="column-name limited-width">
+
+                        <button ng-show="showConditionRemove" type="button" class="fuzzy-join-condition__close close"
+                                aria-hidden="true"
+                                ng-click="removeCondition(this, join, condition)">&times;
+                        </button>
+                        <i class="pull-right chevron fuzzy-join-condition__chevron close"
+                           ng-if="isFuzzy"
+                           ng-show="showConditionRemove"
+                           ng-class="{'icon-chevron-up':isConditionExpanded(condition, current), 'icon-chevron-down':!isConditionExpanded(condition, current)}"></i>
+                        <span>{{condition.column2.name}}</span>
+
+                    </div>
+                </div>
+
+                <div class="middle-column"
+                     ng-click="onConditionClicked(join, condition)"
+                     title="{{isFuzzy ?  '' : getConditionString(condition)}}">
+                    <span ng-if="isFuzzy"
+                          dku-html-tooltip
+                          tooltip-class="fuzzy-join-matching-conditions-tooltip"
+                          dku-html-tooltip-show="!isConditionExpanded(condition, current) && hasExtraInfoToShow(condition)"
+                          from-modal="true"
+                          class="horizontal-flex">
+                        <tooltip-trigger>
+                            <div class="matching-type-name left-{{getDatasetColorClass(condition.column1.table)}} right-{{getDatasetColorClass(condition.column2.table)}}">
+                                <div class="matching-type-symbol">{{getMatchingTypeSymbol(condition)}}</div>
+                                <span class="fuzzy-join-condition__distance-type dku-tiny-text"
+                                      ng-if="!isConditionExpanded(condition, current)">{{joinDistanceTypes[condition.fuzzyMatchDesc.distanceType]}}</span>
+                            </div>
+                        </tooltip-trigger>
+                        <tooltip-content>
+                            <table class="join-block__tooltip">
+                                <tr ng-show="isRelativeDistance(condition)">
+                                    <td class="label">Relative to</td>
+                                    <td>{{condition.fuzzyMatchDesc.relativeTo === 0 ? getDatasetName(join.table1) : getDatasetName(join.table2)}}</td>
+                                </tr>
+                                <tr ng-show="hasNormalisationParams(condition.normaliseDesc)">
+                                    <td colspan="2" class="label">
+                                        Normalisation parameters:
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <div ng-repeat="(k,v) in condition.normaliseDesc"
+                                             ng-show="v && normalisationParams[k]"
+                                             class="normalisation-parameter">
+                                            {{normalisationParams[k].label}}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </tooltip-content>
+                    </span>
+                    <div ng-if="!isFuzzy"
+                         class="matching-type-name left-{{getDatasetColorClass(condition.column1.table)}} right-{{getDatasetColorClass(condition.column2.table)}}">
+                        <div class="matching-type-symbol">{{getMatchingTypeSymbol(condition)}}</div>
+                        <span class="fuzzy-join-condition__distance-type dku-tiny-text"
+                              ng-if="!isConditionExpanded(condition, current)">{{joinDistanceTypes[condition.fuzzyMatchDesc.distanceType]}}</span>
+                    </div>
+                    <hr class="join-line {{getDatasetColorClass(condition.column2.table)}}" style="flex: 1"/>
+                </div>
+
+                <fuzzy-join-condition-settings
+                        ng-if="isConditionExpanded(condition, current)"></fuzzy-join-condition-settings>
+            </div>
+        </div>
+
+    </div>
+
+    <div ng-show="join.type != 'CROSS' && join.conditionsMode == 'NATURAL'" class="placeholder-block clickable"
+         ng-click="onConditionClicked(join)">
+        Natural join: all columns present in both datasets at execution time will be used.
+    </div>
+
+    <div ng-show="join.type != 'CROSS' && join.conditionsMode == 'CUSTOM'" class="placeholder-block clickable"
+         ng-click="onConditionClicked(join)" ng-if="!showConditionRemove">
+        <i class="icon-dku-code"/> Custom SQL condition
+    </div>
+</div>

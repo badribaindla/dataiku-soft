@@ -1,0 +1,45 @@
+<div ng-click="disableEditing()">
+    <h3 class="title-box">
+        <span class="column-name">{{model.name}}</span>
+    </h3>
+
+    <div class="buttons">
+        <span ng-click="setEditMode('comment')" class="mini-tab {{editMode=='comment'?'active':''}}" ng-if="showCommentTab">Description</span>
+        <span ng-if="isPrimitiveType(current.type)" ng-click="setEditMode('view')" class="mini-tab {{editMode=='view'?'active':''}}">Details</span>
+        <span ng-if="!hideCustomFields" ng-click="setEditMode('customFields'); ui.cfComponentIdx = $index" ng-repeat="comp in customFieldsMap track by $index" class="mini-tab {{editMode=='customFields' && ui.cfComponentIdx == $index ? 'active': ''}}">{{comp.meta.label}}</span>
+        <span ng-if="!isPrimitiveType(current.type)" ng-click="setEditMode('view')" class="mini-tab {{editMode=='view'?'active':''}}">Complex type</span>
+        <span ng-click="setEditMode('json')" class="mini-tab {{editMode=='json'?'active':''}}">JSON</span>
+    </div>
+    <div class="complex-type-editor-box" ng-if="editMode=='view'" style="min-height: 101px;">
+        <div class="element {{(!isPrimitiveType(current.type))?'clickable':''}} {{current.show?'shown':''}}"
+             ng-click="current.show=!current.show">
+            <div class="pull-right chevron" ng-show="!isPrimitiveType(current.type)">
+                <i class="icon-chevron-right"></i>
+            </div>
+            <i class="{{getIconForType(current.type)}}"></i>
+            <span ng-if="!current.renaming" class="editable-type"
+                 ng-click="toggleRenaming(current,$event)">{{current.name}}</span>
+            <span ng-if="current.renaming">
+                <input type="text" auto-focus="{{current.renaming}}"
+                       ng-model="current.name"
+                       ng-click="$event.stopPropagation()"
+                       ng-keydown="($event.which == 13 || $event.which==27)?disableEditing():null" />
+            </span>
+            :
+            <span ng-include="'/templates/datasets/type-editor/simple.html'"></span>
+        </div>
+        <span ng-if="current.show" ng-include="'/templates/datasets/type-editor/element.html'"></span>
+    </div>
+    <div class="textarea-type-editor" ng-if="editMode=='json'">
+        <div class="alert alert-warning" style="margin-bottom: 5px; padding: 5px;">Edit at your own risk</div>
+        <textarea json-object-pretty-view ng-model="ui.current">
+        </textarea>
+    </div>
+    <div class="textarea-type-editor" ng-show="editMode=='comment'" style="min-height: 101px;">
+        <textarea ng-model="model.comment" placeholder="Column description">
+        </textarea>
+    </div>
+    <div class="textarea-type-editor" ng-if="editMode=='customFields'" style="min-height: 101px;">
+        <div custom-fields-edit-form custom-fields="model.customFields" object-type="'COLUMN'" component-index="ui.cfComponentIdx" ng-init="model.customFields = model.customFields || {}"></div>
+    </div>
+</div>

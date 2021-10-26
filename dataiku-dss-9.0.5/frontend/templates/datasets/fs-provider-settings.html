@@ -1,0 +1,242 @@
+<div ng-switch="providerType">
+   <div ng-switch-when="Filesystem" ng-controller="FilesystemProviderController">
+        <div class="control-group">
+            <label class="control-label">Read from</label>
+            <div class="controls">
+                <select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="config.connection" ng-options="connection for connection in connections" ng-required></select>
+            </div>
+        </div>
+
+        <fieldset ng-disabled="config.connection == null">
+            <div class="control-group">
+                <label for="" class="control-label">Path</label>
+                <div class="controls">
+                    <dataset-path-input browse-fn="browse" path="config.path"  validate-fn="onChange" connection="{{config.connection}}" change-needs-confirm="pathChangeNeedsConfirm"></dataset-path-input>
+                </div>
+            </div>
+        </fieldset>
+   </div>
+
+    <div ng-switch-when="FTP" ng-controller="FTPProviderController">
+        <div class="control-group" ng-if="config.$canUrlMode">
+            <label for="urlMode" class="control-label">Use URL</label>
+            <div class="controls">
+                <input id="urlMode" type="checkbox" ng-model="config.urlMode"></input>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!config.urlMode">
+            <label class="control-label">Read from</label>
+            <div class="controls">
+                <select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="config.connection" ng-options="connection for connection in connections" ng-required></select>
+            </div>
+        </div>
+
+        <fieldset ng-if="!config.urlMode" ng-disabled="config.connection == null">
+            <div class="control-group">
+                <label for="" class="control-label">Path</label>
+                <div class="controls">
+                    <dataset-path-input browse-fn="browse" path="config.path"  validate-fn="onChange" connection="{{config.connection}}" change-needs-confirm="pathChangeNeedsConfirm">
+                    </dataset-path-input>
+                </div>
+            </div>
+        </fieldset>
+        <div class="control-group" ng-if="config.urlMode">
+            <label class="control-label">URL</label>
+            <div class="controls">
+                <input type="text" ng-model="config.path" class="input-xxlarge" placeholder="FTP URL" />
+            </div>
+        </div>
+        <div class="control-group" ng-if="config.urlMode && appConfig.hasGlobalProxy">
+            <label for="urlModeUseGlobalProxy" class="control-label">Use global proxy</label>
+            <div class="controls">
+                <input id="urlModeUseGlobalProxy" type="checkbox" ng-model="config.urlModeUseGlobalProxy"></input>
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="" class="control-label">Timeout (milliseconds)</label>
+            <div class="controls">
+                <input ng-model="config.timeout" type="number" step="1" min="0" />
+            </div>
+        </div>
+    </div>
+
+    <div ng-switch-when="Azure" ng-controller="AzureProviderController">
+        <div class="control-group">
+            <label class="control-label">Azure connection</label>
+            <div class="controls">
+                <select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="config.connection" ng-options="connection for connection in connections" ng-required></select>
+            </div>
+        </div>
+
+        <div fs-provider-bucket-selector provider-type="'Azure'" bucket-property="'container'" bucket-label="'Azure Container'" config="config" project-key="project-key" context-vars="contextVars"></div>
+
+        <div class="control-group">
+            <label class="control-label">Path in container</label>
+            <div class="controls">
+                <dataset-path-input title="{{config.container}}"
+                    browse-fn="browse"
+                    path="config.path"
+                    validate-fn="onChange"
+                    connection="{{config.connection}}" 
+                    change-needs-confirm="pathChangeNeedsConfirm">
+                </dataset-path-input>
+            </div>
+        </div>
+    </div>
+
+    <div ng-switch-when="GCS" ng-controller="GCSProviderController">
+        <div class="control-group">
+            <label class="control-label">GCS connection</label>
+            <div class="controls">
+                <select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="config.connection" ng-options="connection for connection in connections" ng-required></select>
+            </div>
+        </div>
+
+        <div fs-provider-bucket-selector provider-type="'GCS'" bucket-property="'bucket'" bucket-label="'GCS Bucket'" config="config" project-key="project-key" context-vars="contextVars"></div>
+
+        <div class="control-group">
+            <label class="control-label">Path in bucket</label>
+            <div class="controls">
+                <dataset-path-input title="{{config.bucket}}"
+                    browse-fn="browse"
+                    path="config.path"
+                    validate-fn="onChange"
+                    connection="{{config.connection}}" 
+                    change-needs-confirm="pathChangeNeedsConfirm">
+                </dataset-path-input>
+            </div>
+        </div>
+    </div>
+
+    <div ng-switch-when="S3" ng-controller="S3ProviderController">
+        <div class="control-group">
+            <label class="control-label">S3 connection</label>
+            <div class="controls">
+                <select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="config.connection" ng-options="connection for connection in connections" ng-required></select>
+            </div>
+        </div>
+
+        <div fs-provider-bucket-selector provider-type="'S3'" bucket-property="'bucket'" bucket-label="'S3 Bucket'" config="config" project-key="project-key" context-vars="contextVars"></div>
+
+        <div class="control-group">
+            <label class="control-label">Path in bucket</label>
+            <div class="controls">
+                <dataset-path-input title="{{config.bucket}}"
+                    browse-fn="browse"
+                    path="config.path"
+                    validate-fn="onChange"
+                    connection="{{config.connection}}" 
+                    change-needs-confirm="pathChangeNeedsConfirm">
+                </dataset-path-input>
+            </div>
+        </div>
+    </div>
+
+    <div ng-switch-when="SFTP" ng-controller="SFTPProviderController">
+        <div class="control-group">
+            <label class="control-label">Read from</label>
+            <div class="controls">
+                <select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="config.connection" ng-options="connection for connection in connections" ng-required></select>
+            </div>
+        </div>
+
+        <fieldset ng-disabled="config.connection == null">
+            <div class="control-group">
+                <label for="" class="control-label">Path</label>
+                <div class="controls">
+                    <dataset-path-input browse-fn="browse" path="config.path"  validate-fn="onChange" connection="{{config.connection}}" change-needs-confirm="pathChangeNeedsConfirm">
+                    </dataset-path-input>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Timeout (milliseconds)</label>
+                <div class="controls">
+                    <input ng-model="config.timeout" type="number" step="1" min="0" />
+                </div>
+            </div>
+        </fieldset>
+    </div>
+
+    <div ng-switch-when="SCP" ng-controller="SCPProviderController">
+        <div class="control-group">
+            <label class="control-label">Read from</label>
+            <div class="controls">
+                <select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="config.connection" ng-options="connection for connection in connections" ng-required></select>
+            </div>
+        </div>
+
+        <fieldset ng-disabled="config.connection == null">
+            <div class="control-group">
+                <label for="" class="control-label">Path</label>
+                <div class="controls">
+                    <dataset-path-input browse-fn="browse" path="config.path"  validate-fn="onChange" connection="{{config.connection}}" change-needs-confirm="pathChangeNeedsConfirm">
+                    </dataset-path-input>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Timeout (milliseconds)</label>
+                <div class="controls">
+                    <input ng-model="config.timeout" type="number" step="1" min="0" />
+                </div>
+            </div>
+        </fieldset>
+    </div>
+
+    <div ng-switch-when="HDFS" ng-controller="HDFSProviderController">
+        <div class="control-group">
+            <label class="control-label">HDFS connection</label>
+            <div class="controls"  ng-if="connections">
+                <select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="config.connection" ng-options="connection for connection in connections" ng-required></select>
+            </div>
+        </div>
+
+        <fieldset ng-disabled="config.connection == null">
+            <div class="control-group">
+                <label for="" class="control-label">
+                    Path
+                </label>
+                <div class="controls">
+                    <dataset-path-input browse-fn="browse" path="config.path"  validate-fn="onChange" connection="{{config.connection}}" change-needs-confirm="pathChangeNeedsConfirm">
+                    </dataset-path-input>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    <div ng-switch-default>
+        <div ng-if="providerType.startsWith('fsprovider_')">
+            <div ng-controller="PluginFSProviderController">
+                <form name="setupForm" class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label" style="font-weight: bold;">{{desc.meta.label || desc.id}}</label>
+                        <div class="controls">
+                            <div from-markdown="desc.meta.description" />
+
+                            <a href="{{pluginDesc.url}}">Learn more</a>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div plugin-settings-alert plugin-desc="pluginDesc" component-type="filesystem provider" has-settings="pluginDesc.hasSettings" app-config="appConfig" />
+                        <div custom-params-form
+                            desc="desc"
+                            plugin-desc="pluginDesc"
+                            component-id="loadedDesc.id"
+                            config="config.config" />
+                    </div>
+                     <fieldset>
+                        <div class="control-group">
+                            <label for="" class="control-label">
+                                Path
+                            </label>
+                            <div class="controls">
+                                <dataset-path-input browse-fn="browse" path="config.path"  validate-fn="onChange" connection="none" style="display: inline-block;" change-needs-confirm="pathChangeNeedsConfirm">
+                                </dataset-path-input>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+</div>

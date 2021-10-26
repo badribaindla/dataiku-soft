@@ -1,0 +1,139 @@
+<div class="modal modal3 pre-train-status-modal" auto-size="false">
+	<div dku-modal-header-with-totem modal-title="Training models" modal-totem="icon-beaker" />
+	<form class="dkuform-modal-wrapper">
+	<div class="modal-body">
+		<div block-api-error />
+		<div ng-if="!preTrainStatus" class="modal-centered-vh">
+			  <i class="icon-spin icon-spinner" />&nbsp;Please wait
+		</div>
+
+		<div ng-if="preTrainStatus">
+			<div class="modal-accent-font">
+				<strong>{{preTrainStatus.nbModelsPreGS | pluralize : getModelStr() : getModelStr(true)}}</strong> will be trained
+				on <strong>{{preTrainStatus.nbInputFeatures}}</strong> {{'feature' | plurify: preTrainStatus.nbInputFeatures}}
+				<span ng-if="splitStatus.isKFold">
+					using <strong>{{mlTaskDesign.splitParams.nFolds || 'k'}}-fold</strong> cross-validation
+				</span>
+				<span ng-if="preTrainStatus.customGridSearch">
+					using custom cross-validation for hyper parameters otpimization.
+				</span>
+				<br />
+				<span ng-if="(preTrainStatus.estimatedTotalFits && !preTrainStatus.pluginAlgoCustomGridSearch) && !preTrainStatus.timeout">
+					An estimated total of <strong>{{preTrainStatus.estimatedTotalFits}} estimators</strong> will be evaluated.
+				</span>
+				<span ng-if="(preTrainStatus.estimatedTotalFits && !preTrainStatus.pluginAlgoCustomGridSearch) && preTrainStatus.timeout">
+					The hyperparameters search for each eligible model {{preTrainStatus.partitionedModelEnabled ? "partition": ""}} will run for
+					at most <strong>{{preTrainStatus.timeout | pluralize: 'minute' : 'minutes'}}</strong> and up to
+					<strong>{{preTrainStatus.estimatedTotalFits}} estimators</strong> will be evaluated.
+				</span>
+				<span ng-if="!(preTrainStatus.estimatedTotalFits && !preTrainStatus.pluginAlgoCustomGridSearch) && preTrainStatus.timeout">
+					The hyperparameters search for each eligible model {{preTrainStatus.partitionedModelEnabled ? "partition": ""}} will run for
+					<strong>{{preTrainStatus.timeout | pluralize: 'minute' : 'minutes'}}</strong>.
+				</span>
+				<br />
+				<span ng-if="preTrainStatus.maxConcurrentK8sContainers > 1">
+					At most <strong>{{preTrainStatus.maxConcurrentK8sContainers}} kubernetes containers</strong> will run concurrently.
+				</span>
+			</div>
+
+			<div gpu-selector="mlTaskDesign.modeling.keras" selected-env="mlTaskDesign.envSelection.envName" ng-if="isMLBackendType('KERAS')" name="Activate GPU for training" in-container="inContainer(mlTaskDesign.containerSelection)"></div>
+
+			<h2 class="settings-section-title">
+				Session Name &amp; Description
+			</h2>
+			<div class="dkuform-horizontal">
+				<div class="control-group">
+		            <label class="control-label">Name</label>
+		            <div class="controls">
+		                <input type="text" style="width: 100%" ng-model="uiState.userSessionName" placeholder="Optional, appended to model names" />
+		            </div>
+		        </div>
+		        <div class="control-group">
+		            <label class="control-label">Description</label>
+		            <div class="controls">
+		                <textarea style="width: 100%; height: 42px" ng-model="uiState.userSessionDescription" placeholder="Optional, set as model description"></textarea>
+		            </div>
+		        </div>
+	        </div>
+
+			<h2 class="settings-section-title">
+				Train &amp; test
+			</h2>
+			<div ng-if="splitStatus && !splitStatus.splitAvailable">
+				New {{splitStatus.isKFold ? 'extracts' : 'train and test sets'}}
+				will be computed according to your settings
+			</div>
+			<div ng-if="splitStatus.splitAvailable && !splitStatus.allDatasetsAreManaged">
+				Re-using {{splitStatus.isKFold ? 'extracts' : 'sets'}} computed on
+				{{splitStatus.generationDate|date:'yyyy/MM/dd-HH:mm'}}.
+				<div class="train-test-sets">
+					<div class="train-test-set" ng-if="!splitStatus.isKFold">
+						<h4>Train set</h4>
+						{{splitStatus.trainRows}} rows
+					</div>
+					<div class="train-test-set" ng-if="!splitStatus.isKFold">
+						<h4>Test set</h4>
+						{{splitStatus.testRows}} rows
+					</div>
+					<div class="train-test-set" ng-if="splitStatus.isKFold">
+						<h4>Extract</h4>
+						{{splitStatus.fullRows}} rows
+					</div>
+				</div>
+				Note that the inputs may have been modified since.
+				<label>
+					<input type="checkbox" ng-model="uiState.forceRefresh">
+					Drop existing {{splitStatus.isKFold ? 'extracts' : 'sets'}}, recompute new ones
+				</label>
+			</div>
+			<div ng-if="splitStatus.splitAvailable && splitStatus.allDatasetsAreManaged">
+				<span ng-if="!splitStatus.isKFold">Train ({{splitStatus.trainRows}} rows)
+					and test ({{splitStatus.testRows}} rows) sets</span>
+				<span ng-if="splitStatus.isKFold">Extract ({{splitStatus.fullRows}} rows) set</span>
+				computed on {{splitStatus.generationDate|date:'yyyy/MM/dd-HH:mm'}} will be used.
+				<div class="alert alert-warning" ng-if="splitStatus.anyDatasetModifiedSince">
+					Dataset {{splitStatus.modifiedDataset}} was updated since
+					(on {{splitStatus.datasetModificationDate|date:'yyyy/MM/dd-HH:mm'}})
+				</div>
+				<label>
+					<input type="checkbox" ng-model="uiState.forceRefresh">
+					Drop existing {{splitStatus.isKFold ? 'extracts' : 'sets'}}, recompute new ones
+				</label>
+			</div>
+			<div ng-if="!splitStatus">With this ML backend, train & test are always recomputed</div>
+			<div class="alert alert-warning" dku-if="mlTaskDesign.modeling.xgboost.enable_cuda">
+					Please make sure that your code environment has an installation of XGBoost that supports computations on GPUs.
+			</div>
+			<div class="alert alert-warning" ng-if="uiState.displayWeightWarningPreTrain">
+				The following algorithms are not compatible with the sample weights option:
+				<ul>
+						<li ng-repeat="alg in uiState.selectedAlgorithmsWithWeightIncompatibility track by $index">- {{alg}} </li>
+				</ul>
+				The variable <strong>{{mlTaskDesign.weight.sampleWeightVariable}}</strong> will be ignored while training these algorithms,
+				but hyper-parameters optimization and model evaluation will still take the sample weight into account.
+			</div>
+			<div ng-if="preTrainStatus.messages.length">
+				<h2 class="settings-section-title">Messages</h2>
+				<label ng-if="uiState.anyWarning && !uiState.anyError">
+					<input type="checkbox" ng-model="uiState.confirmRun">&nbsp;Ignore warning, run anyway
+				</label>
+				<ul><li ng-repeat="message in preTrainStatus.messages">
+					<div class="alert {{message|infoMessageAlertClass}} pre-warning"><h4>{{message.title}}</h4>{{message.details}}</div>
+				</li></ul>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-footer modal-footer-std-buttons has-border">
+		<div class="pull-right">
+			<button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">
+				<i class="icon-remove" />&nbsp;Cancel
+			</button>
+			<button type="submit" class="btn btn--text btn--primary" ng-click="train()" disabled-if="mlTaskDesign.modeling.keras.useGPU && !mlTaskDesign.modeling.keras.gpuList.length" disabled-message="Please specify a GPU(s) to be used for training."
+					ng-disabled="uiState.anyError || (uiState.anyWarning && !uiState.confirmRun)">
+				<i class="icon-play" />&nbsp;Train
+			</button>
+		</div>
+	</div>
+	</form>
+</div>

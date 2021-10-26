@@ -1,0 +1,31 @@
+<div data-extend-template="/templates/dialogs/paste-modal-template.html">
+    <span data-block="error-message">
+        Invalid values pasted. Please verify that the values were copied correctly.
+    </span>
+    <div data-block="post-paste">
+        <div class="scenario-preview">
+            <div ng-if="pasteSingle">
+                <p>The following features will be displayed:</p>
+                <ul>
+                    <li ng-repeat="feature in uiState.items[0].features" class="paste-modal__list-item">
+                        <span ng-if="feature.type != 'IMAGE'">
+                            <strong>{{ feature.name }}</strong>: {{ feature.value }}
+                        </span>
+                        <span ng-if="feature.type === 'IMAGE'">
+                            <strong>{{ feature.name }}</strong>:<br>
+                            <img ng-if="feature.value" data-ng-src="data:image/png;base64,{{feature.value}}"/>
+                        </span> 
+                        
+                    </li>
+                </ul>
+            </div>
+            <p ng-if="!pasteSingle">
+                <strong>{{ uiState.items.length }}</strong> {{ 'item' | plurify: uiState.items.length }} will be added to the comparator.
+            </p>
+        </div>
+    </div>
+    <div data-block="tips">
+        <img class="paste-model__tips-image" src="/static/dataiku/images/interactive-scoring-copy-tips.png">
+        <div class="paste-modal__tips-text">You can also copy a row from any dataset in the right click menu</div>
+    </div>
+</div>

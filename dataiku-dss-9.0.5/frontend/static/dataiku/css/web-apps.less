@@ -1,0 +1,357 @@
+.report-alert {
+    .alert {
+    margin-bottom: 0;
+    }
+}
+
+.web-app-editor {
+    .left-pane {
+        width: 510px;
+        .CodeMirror {
+            height: 100%;
+        }
+    }
+    .content-resizer {
+        position: absolute;
+        bottom: 0;
+        top: 0;
+        left: 510px;
+        width: 5px;
+        border-left: 1px solid @border-color;
+        border-right: 1px solid @border-color;
+        background-color: @grey-background;
+        cursor: col-resize;
+        .zigouigoui {
+            position: absolute; width: 100%; height: 100%;
+            background : url("/static/dataiku/images/handle-v.png") 1px 50% no-repeat;
+        }
+    }
+
+    .right-pane {
+        left: 518px; // left-pane + separator + borders
+        color: @grey-lighten-1;
+        .resizing-shim { // Invisible element to capture mouseup evt
+            display: none;
+            z-index: 42;
+            opacity: 0;
+        }
+
+        &.warning {
+            .nav .log a {
+                color: @warning-text;
+                &:before {
+                    border-color: @warning-orange-base;
+                }
+            }
+        }
+
+        &.error {
+            .nav .log a {
+                color: @error-text;
+                &:before {
+                    border-color: @error-red-base;
+                }
+            }
+        }
+    }
+
+    &.resizing .right-pane .resizing-shim {
+        display: block;
+    }
+
+    .web-app-editor-pane {
+        .header {
+            ul.nav-tabs {
+                > li {
+                    list-style: none;
+                    display: inline-block;
+                    a {
+                        padding-top: 4px;
+                        padding-bottom: 4px;
+                    }
+                }
+                background-color: @grey-background;
+                padding-left: 10px;
+                padding-top: 4px;
+                margin-bottom: 0
+            }
+            .snippet-selector-switch {
+                border: none;
+                background: none;
+            }
+        }
+        .body {
+            top: 38px;
+            .python,.html,.js,.css,.server,.ui {
+                .CodeMirror {
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+            .smart-log-tail-content {
+                border: 0;
+                padding: 10px;
+            }
+            .output, .log {
+                background: @white-base;
+            }
+        }
+    }
+
+    ul.libraries {
+        list-style-type: none;
+        padding-left: 0px;
+        margin: 0;
+        li {
+            padding-left: 0px;
+        }
+    }
+
+    .python,.html,.js,.css,.server,.ui {
+        .CodeMirror {
+            height: 100%;
+        }
+    }
+}
+
+.web-app-settings-modal {
+    label.perm {
+        display: inline-block;
+        width: 120px;
+        input {
+            margin: 0;
+        }
+    }
+    .wrong-api-key {
+        text-align: center;
+        margin-top: 150px;
+        color: @grey-lighten-5;
+        font-weight: @font-weight-normal;
+        font-size: 20px;
+    }
+    .api-key-selector {
+        span.title {
+            padding-right: 10px;
+        }
+        code {
+            display: inline-block;
+            width: 500px;
+            font-size: 12px;
+            height: 20px;
+            vertical-align: middle;
+        }
+        input {
+            width: 500px;
+        }
+    }
+}
+
+.webapp-container {
+    background: @white-base;
+}
+
+/* Web app list page and creation modal */
+
+.list-page-webapps {
+    &.list-page-4 .summary-row .btn.btn-default:hover {
+        background-color: #e6e6e6; // TODO: remove this once summary-row buttons (that do not have hover background yet) will be consistent as pair buttons specifications. 
+    }
+}
+
+.list-page-webapps__webapp-type {
+    text-transform: lowercase;
+}
+
+.webapp-list__empty-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.webapp-type-boxes {
+    display: flex; 
+    justify-content: space-evenly;
+    flex-direction: row;
+    margin: 0 auto;
+
+    .webapp-type-boxes__box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        width: 160px;
+        padding: 16px;
+        border: 1px solid @border-color;
+        cursor: pointer;
+        margin: 8px;
+
+        &:hover {
+            background-color: @grey-background;
+        }
+    }
+
+    .webapp-type-boxes__box-icon {
+        font-size: 40px;
+        height: 40px;
+        width: 40px;
+        line-height: 40px;
+        margin: 0 auto;
+    }
+
+    .webapp-type-boxes__box-title {
+        color: @text-important;
+        font-weight: @font-weight-bold;
+        margin: 8px 0;
+    }
+
+    .webapp-type-boxes__box-description {
+        color: @text-weak;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.webapp-creation-modal-step:not(.webapp-creation-modal-step--with-header) {
+    display: flex;
+    height: 300px;
+    padding-bottom: 8px;
+}
+
+.webapp-creation-modal-step--with-header {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; // To make content scroll under the sticky header
+    padding: 0 20px;
+}
+
+.visual-webapp-creation-modal {
+
+    .selectable-items-list .selectable-item {
+        height: auto;
+    }
+
+    .webapp-creation-modal-step--with-header {
+        height: 380px;
+
+        &.webapp-creation-modal-step--loaded-webapp {
+            height: 100px;
+
+            .selectable-items-list .selectable-item.selectable.selectable:not(.selected), 
+            .selectable-items-list .selectable-item.selectable.selectable:not(.selected):hover {
+                cursor: initial;
+                border-color: transparent;
+            }
+        }
+    }
+}
+
+.code-webapp-creation-modal {
+    
+    .selectable-items-list .selectable-item {
+        height: auto;
+    }
+
+    .webapp-creation-modal-step--with-header {
+        height: 300px;
+    }
+}
+
+.modal3 .modal-body.webapp-creation-modal__body--with-faded-bottom {
+    border-bottom: 1px solid @border-color;
+    margin-bottom: 12px;
+    padding: 0;
+    overflow: hidden;
+
+    .webapp-creation-modal__step-header {
+        border-bottom: 1px solid @border-color;
+    }
+    
+    .webapp-creation-modal__step-header-title {
+        display: inline-block;
+    }
+}
+
+
+.webapp-creation-modal__search-box {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+
+    .add-on {
+        vertical-align: top;
+        height: 24px;
+        padding: 0;
+        border-radius: 0;
+        display: inline-block;
+        width: 24px;
+        line-height: 24px;
+        text-align: center;
+        background-color: @grey-background;
+        border-left: 1px solid @border-color;
+        border-bottom: 1px solid @border-color;
+        border-top: 1px solid @border-color;
+    }
+
+    input {
+        height: 24px;
+        line-height: 24px;
+        width: 400px;
+        padding: 0 4px;
+        border-radius: 0;
+        border: 1px solid @border-color;
+
+        &:focus {
+            box-shadow: none;
+            border: 1px solid @border-focus-color;
+        }
+    }
+}
+
+.webapp-creation-modal__footer-info {
+    margin-left: 16px;
+    font-size: 12px;
+    font-weight: @font-weight-normal;
+}
+
+.webapp-creation-modal__name label.control-label {
+    width: auto;
+    line-height: 34px;
+}
+
+.webapp-creation-modal__name .controls {
+    margin-left: 8px;
+    float: right;
+    min-width: 400px;
+
+    input {
+        width: 100%;
+    }
+}
+
+.webapp-creation-modal__flags {
+    margin-left: 8px;
+}
+
+.webapp-creation-modal__flags label.control-label {
+    width: auto;
+    line-height: 34px;
+}
+
+.visual-webapp-type {
+    display: flex;
+    align-items: center;
+}
+
+.selectable-items-list .selectable-item .visual-webapp-type__icon {
+    font-size: 16px;
+    padding: 8px;
+    margin-right: 8px;
+    background-color: @flow-color;
+    color: @white-base;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+}

@@ -1,0 +1,46 @@
+<div class="modal modal3 new-project-modal dku-modal" tab-model="modalTabState.active" auto-size="false">
+    <div dku-modal-header-with-totem modal-title="New project" modal-totem="icon-plus" />
+
+    <form class="dkuform-modal-horizontal" name="newProjectForm">
+        <div class="modal-body">
+            <div class="control-group" >
+                <label for="newProjectName" class="control-label">Name</label>
+                <div class="controls">
+                    <input type="text"
+                        id="newProjectName"
+                        placeholder="New project name"
+                        ng-model="newProject.name"
+                        required auto-focus="true"
+                        />
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="newProjectKey" class="control-label">Project Key</label>
+                <div class="controls">
+                    <input type="text"
+                        id="newProjectKey"
+                        ng-model="newProject.projectKey"
+                        name="projectKey"
+                        ng-pattern="/^\w+$/"
+                        placeholder="New project key"
+                        />
+                    <div class="help-inline">
+                        The project key is used to reference datasets between projects.
+                        It cannot be changed once the project is created.
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-error" ng-show="!uniq">
+                <i class="icon-dku-error" /> This project key is already used.
+            </div>
+
+            <div block-api-error />
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="create()" ng-disabled="newProjectForm.$invalid || !uniq">Create</button>
+        </div>
+    </form>
+</div>

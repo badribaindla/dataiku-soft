@@ -1,0 +1,220 @@
+#!/usr/bin/env python2
+# -*- encoding:utf-8 -*-
+
+import argparse
+import atexit
+import errno
+import glob
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+
+def DirectoryOfThisScript():
+  return os.path.dirname(os.path.realpath(__file__))
+
+def Mkdir(path):
+  try:
+    os.makedirs(path)
+  except OSError as e:
+    if e.errno == errno.EEXIST and os.path.isdir(path):
+      pass
+    else:
+      raise
+
+def ExecuteCommandReturningJson(command):
+  process = subprocess.Popen(command,shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  stdout, stderr = process.communicate()
+  data = json.loads(stdout)
+  return data
+
+# Parse command line
+parser = argparse.ArgumentParser(description="Download Conda public packages into a local mirror for later installation.")
+parser.add_argument("--dir",default=None,help="Directory to build the conda mirror into. Defaults to a name based on the install dir.")
+parser.add_argument("--install-dir",default=None, help="Directory of the kit to download packages for. Defaults to current if the script is used from one.")
+parser.add_argument("--dry-run",action="store_true", help="Do not really download the packages. Will succeed if you have them in cache. Ideal for debugging the script.")
+args = parser.parse_args()
+
+# Install conda build if not present
+print("[+] Check conda-build presence")
+try:
+   subprocess.check_call(["conda","install","--yes","--json","--quiet","conda-build"])
+except subprocess.CalledProcessError:
+   print("[-] crit: failed to install conda-build")
+   sys.exit(1)
+except:
+   raise
+
+install_dir = args.install_dir
+if install_dir is None:
+  install_dir = os.path.realpath(DirectoryOfThisScript() + "/" + "../"*2)
+
+dss_version_file = install_dir + "/dss-version.json"
+if not os.path.isfile(dss_version_file):
+  print("[-] Dss version file not found in {}. Please provide a valid install dir.\n".format(install_dir))
+  parser.print_help()
+  sys.exit(1)
+
+print("[+] Using install dir {}".format(install_dir))
+
+repo_dir=args.dir
+if repo_dir is None:
+  repo_dir = "dataiku-dss-{}-conda-python-offline-mirror".format(json.load(open(dss_version_file))['product_version'])
+
+local_channel = "file://{}".format(os.path.realpath(os.path.join(install_dir,"conda.packages")))
+
+# Create the directory
+print("[+] Building mirror into {}".format(repo_dir))
+Mkdir(repo_dir)
+repo_dir = os.path.realpath(repo_dir)
+current_path = os.path.realpath('.')
+
+# Download packages and get dependency list
+temp_conda_env = tempfile.mkdtemp(prefix="conda-env-")
+atexit.register(shutil.rmtree,temp_conda_env,ignore_errors=True)
+print("[+] Using temporary conda env {}".format(temp_conda_env))
+command = [
+  "conda"
+  , "create"
+  , "-c", local_channel
+  , "-p", temp_conda_env
+  , "--file", "{}/conda.packages/dss.spec".format(install_dir)
+  , "--json"
+  , "--yes"
+]
+if args.dry_run:
+  command.append("--dry-run")
+
+#print(" ".join(command))
+
+process_env = os.environ.copy()
+process_env["PYTHONUNBUFFERED"] = "1"
+process = subprocess.Popen(
+    command
+    , shell=False
+    , stdout=subprocess.PIPE
+    , stderr=open(os.devnull,"w")
+    , close_fds=True
+    , env = process_env
+    )
+
+env_data_buffer = ""
+buffer_started = False
+for line in iter(process.stdout.readline,""):
+  # Try to process it as a status line
+  if not buffer_started:
+    try:
+      status_data = json.loads(line[line.find("{"):]) # Conda adds unprintable chars :(
+      pkg_name = status_data["fetch"] # Complete name is truncated by Conda itself
+      max_val = status_data["maxval"]
+      val = status_data["progress"]
+      finished = status_data["finished"]
+      percent = int(100*val/max_val)
+      progress = "█"*int(percent/2) + " "*int((100-percent)/2 + percent % 2) # Format struggles with unicode thingies
+      sys.stdout.write("\r[+] Fetching {:<35} |{}| {:>3}%{}".format(
+        pkg_name
+        , progress
+        , percent
+        , "\n" if finished else ""
+        ))
+    except ValueError:
+      # End of the status lines
+      print("[+] Install packages")
+      buffer_started = True
+      env_data_buffer += line
+  else:
+    env_data_buffer += line
+
+env_data = json.loads(env_data_buffer[env_data_buffer.find("{"):])
+
+# Read conda conf to get package cache
+pkgs_dirs = ExecuteCommandReturningJson(["conda","config","--show","--json"])["pkgs_dirs"]
+pkgs_dirs.reverse()
+
+# Copy packages
+arch_list = ["noarch"]
+Mkdir(os.path.join(repo_dir,"noarch"))
+
+# Support for both dry-run and normal mode
+# Even with packages already downloaded, dry-run does not
+# yield the same result
+
+create_actions = env_data["actions"]
+if isinstance(create_actions, dict):
+  create_actions = [create_actions]
+
+for action in create_actions:
+  for package_info in action["LINK"]:
+    pkg_channel = None
+    pkg_name = None
+    if isinstance(package_info,basestring):
+      pkg_channel, pkg_name = package_info.split("::")
+    else:
+      pkg_channel = package_info["channel"]
+      pkg_name = package_info["dist_name"]
+      
+    if pkg_channel != local_channel:
+      # We need to mirror it
+      # Search package in the cache and get info
+      found_in_cache = False
+      for pkg_dir in pkgs_dirs:
+        pkg_archive = "{}.tar.bz2".format(pkg_name)
+        pkg_archive_path = os.path.join(pkg_dir,pkg_archive)
+        pkg_archive_dir = os.path.join(pkg_dir,pkg_name)
+        if os.path.isdir(pkg_archive_dir):
+          cache_pkg_info = json.load(open("{}/{}/info/index.json".format(pkg_dir, pkg_name)))
+          arch = "{}-64".format(cache_pkg_info["platform"]) # We only support 64 bit
+          if cache_pkg_info["arch"] is None or cache_pkg_info["arch"] == "noarch":
+            arch = "noarch" 
+          if arch not in arch_list:
+            arch_list.append(arch)
+          arch_dir = os.path.join(repo_dir, arch)
+          Mkdir(arch_dir)
+          pkg_archive_mirror_path = os.path.join(arch_dir,pkg_archive)
+          if not os.path.isfile(pkg_archive_mirror_path):
+            if os.path.isfile(pkg_archive_path):
+              shutil.copyfile(pkg_archive_path, pkg_archive_mirror_path)
+              print("[+] Copying {} into mirror directory {}".format(pkg_archive,arch_dir))
+            else:
+              # Need to compress it ourselves
+              print("[+] Compress directly {} into mirror directory {}".format(pkg_name,arch_dir))
+              os.chdir(pkg_archive_dir)
+              files = glob.glob("*") + glob.glob(".*")
+              compression_result = subprocess.check_call(["tar","cjSf", pkg_archive_mirror_path] + files, shell=False)
+              if 0 != compression_result:
+                  print("[-] crit: Failed to compress {} into {}".format(pkg_archive_dir,pkg_archive_mirror_path))
+                  sys.exit(1)
+              os.chdir(current_path)
+          else:
+            #print("[+] {} already present in mirror directory {}".format(pkg_archive, arch_dir))
+            pass
+          found_in_cache = True
+          break
+      if not found_in_cache:
+        print("[-] crit: package {} not found anywhere in conda cache.".format(pkg_archive))
+        sys.exit(1)
+      
+# Index the repo
+print("[+] Update the channel indexes")
+process_env = os.environ.copy()
+process_env["PYTHONUNBUFFERED"] = "1"
+process = subprocess.Popen(
+    ["conda","index"] + [os.path.join(repo_dir,arch) for arch in arch_list]
+    , shell=False
+    , stdout=subprocess.PIPE
+    , stderr=open(os.devnull,"w")
+    , close_fds=True
+    , env = process_env
+    )
+for line in iter(process.stdout.readline,''):
+  if line.startswith("updating: "):
+    print("[+] Index package {}".format(line[10:-1]))
+rc = process.wait()
+if 0 != rc:
+  print("[-] The conda index failed")
+  sys.exit(1)
+
+print("[+] Created custom channel in {}".format(repo_dir))
+

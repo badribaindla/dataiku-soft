@@ -1,0 +1,102 @@
+<div class="metrics h100 vertical-flex" ng-if="views.selected === 'Partitions' || views.selected === 'Table'">
+	<div block-api-error class="noflex" />
+	<div class="noflex w80">
+		<div style="margin: 10px  4px;">
+			<div>
+				<div class="pull-left controls">
+					<span>Display</span>
+
+					<div class="list-customfilter-box view-selector" style="display: inline-block">
+						<span class="add-on"><i class="icon-eye-open"></i></span>
+						<select dku-bs-select="{style:'dku-select-button'}"
+								ng-model="views.selected"
+								ng-options="p.id as p.name for p in views.values"></select>
+					</div>
+
+					<span>of</span>
+
+					<div displayed-metrics-selector
+						 choices="allComputedMetrics" selected="displayedMetrics"
+						 refresh-choices="refreshAllComputedMetrics" on-close="saveMetricsNow" type="metrics"></div>
+
+					<div class="list-control-widget">
+						<button class="btn btn--secondary" ng-click="refreshMetricsPartitions()" ng-disabled="refreshing">
+							Refresh partitions
+						</button>
+						<i class="icon-refresh icon-spin" ng-show="refreshing" style="color: gray"></i>
+					</div>
+
+                    <div ng-include src="'/templates/metrics/last-metrics-run-display.html'" style="display: inline-block;"></div>
+				</div>
+
+                <div ng-include src="'/templates/metrics/add-metrics-dataset-button.html'"></div>
+
+				<div style="clear: both;"></div>
+			</div>
+
+			<div ng-if="displayedPartitionsRange && displayedPartitionsRange.to - displayedPartitionsRange.from" style="margin: 10px 0 20px 0;">
+				<div time-range-brush range="displayedPartitionsRange" selected-range="selectedRange" on-change="brushChanged()"></div>
+			</div>
+
+		</div>
+
+		<div class="filter-box" ng-if="displayedMetrics.metrics.length && !displayedPartitionsRange" style="margin-left: 4px; margin-bottom: 10px;">
+			<div class="std-list-search-box" style="display: inline-block">
+				<span class="add-on"><i class="icon-dku-search"></i></span>
+				<input type="search" ng-model="uiState.partitionQuery" style="width: 210px;" placeholder="Filter partitions..." />
+			</div>
+		</div>
+	</div>
+
+    <div class="flex metrics-plots" ng-if="views.selected != 'Table' && !displayedMetrics.metrics.length">
+        <div class="fh metrics-wrapper">
+            <div class="w80 h100">
+                <div class="centered-info" ng-if="allComputedMetrics.metrics.length">
+                    <p>No metrics displayed</p>
+                    <p class="small"><a ng-click="openDisplayedMetricsModal()">add some</a></p>
+                </div>
+
+                <div class="centered-info" ng-if="!allComputedMetrics.metrics.length">
+                    <p>No metrics available</p>
+                    <p class="small" ng-if="!hasNoMetricsSettings">Enable metrics in <a ui-sref="^.settings">the Edit tab</a></p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="flex metrics-plots" ng-if="views.selected === 'Table'">
+        <div class="fh metrics-wrapper" sort-table>
+            <div class="h100" partition-table-data split-width column-count="2 + displayedMetrics.metrics.length" dku-ui-state="uiState">
+		        <div fat-table class="h100 partitions-table" 
+		            headers="displayedTableColumns"
+		            rows="displayedTableRows"
+                    column-widths="uiState.cellsWidth"
+		            cell-template="/templates/metrics/partition-table-cell.html"
+		            header-template="/templates/metrics/partition-table-header.html"
+		            header-height="45"
+		            row-height="35"
+		            as="cell"
+		            digest-child-only="true"
+		            row-index-as="rowIndex">            
+		        </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex oa metrics-plots" ng-if="views.selected === 'Partitions'">
+        <div class="fh metrics-wrapper">
+            <div class="w80 h100">
+
+                <div>
+                    <div ng-repeat="displayedMetric in displayedMetrics.metrics | onlyMetricsForPartition" style="position: relative;">
+                        <div partition-banner displayed-data="getDisplayedPartitionsData(displayedMetric)" displayed-metric="displayedMetric"
+                             displayed-partitions="filteredMetricsPartitions" displayed-partitions-range="selectedRange" compute-metric-for-all="computeMetricForAll"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>

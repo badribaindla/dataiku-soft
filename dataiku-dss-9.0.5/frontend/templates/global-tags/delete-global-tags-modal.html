@@ -1,0 +1,42 @@
+<div class="modal modal3 modal-fixed-height400">
+    <div dku-modal-header-with-totem modal-title="{{modalTitle}}" modal-totem="icon-trash" />
+    <form name="deleteGlobalTagForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body" style="padding-bottom: 100px">
+            <div block-api-error/>
+            <fieldset child-focus>
+                <div>
+                    <label>
+                        <input type="radio" ng-model="deletionMode" value="remove">
+                        <span style="display: inline-block; vertical-align: top;">
+                            Delete global tag{{items.length > 1 ? 's' : ''}} and remove usages
+                        </span>
+                    </label>
+                    <label disabled-if="!assignableTagsList.length" ng-class="{ 'disabled-block' : !assignableTagsList.length}" disable-message="No global tag available to reassign to">
+                        <input type="radio" ng-model="deletionMode" value="reassign">
+                        <span style="display: inline-block; vertical-align: top;">
+                            Delete global tag{{items.length > 1 ? 's' : ''}} and reassign {{items.length > 1 ? 'them' : 'it'}} to another global tag:
+                            <div style="padding: 8px" ng-class="{ 'disabled-block' : deletionMode != 'reassign'}">
+                                <select dku-bs-select="{'style': 'dku-select-button', noneSelectedText:'Select a global tag'}"
+                                    ng-model="reassignTo"
+                                    ng-options="tag as tag for tag in assignableTagsList"
+                                />
+                            </div>
+                        </span>
+                    </label>
+                    <label>
+                        <input type="radio" ng-model="deletionMode" value="keep">
+                        <span style="display: inline-block; vertical-align: top;">
+                            Delete global tag{{items.length > 1 ? 's' : ''}} and keep usages as regular tags
+                        </span>
+                    </label>
+                </div>
+
+            </fieldset>
+        </div>
+    </form>
+
+    <div class="modal-footer modal-footer-std-buttons">
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+        <button type="submit" class="btn btn--text btn--danger" ng-click="doDeleteGlobalTags()">Delete</button>
+    </div>
+</div>

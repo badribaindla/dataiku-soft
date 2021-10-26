@@ -1,0 +1,25 @@
+<table class="table confusion-matrix">
+    <tr>
+        <th></th>
+        <th>Predicted <code title="{{modelClasses[1]}}">{{modelClasses[1] | gentleTruncate: 8}}</code></th>
+        <th>Predicted <code title="{{modelClasses[0]}}">{{modelClasses[0] | gentleTruncate: 8}}</code></th>
+        <th ng-if="data.actPos[displayMode] && data.actNeg[displayMode]">Total </th>
+    </tr><tr>
+        <th>Actually <code title="{{modelClasses[1]}}">{{modelClasses[1] | gentleTruncate: 8}}</code></th>
+        <td class="success" ng-bind="getMaybeWeighted(data.tp[displayMode])"></td>
+        <td class="error"   ng-bind="getMaybeWeighted(data.fn[displayMode])"></td>
+        <td ng-if="data.actPos[displayMode]" ng-bind="getMaybeWeighted(data.actPos[displayMode])"></td>
+    </tr><tr>
+        <th>Actually <code title="{{modelClasses[0]}}">{{modelClasses[0] | gentleTruncate: 8}}</code></th>
+        <td class="error"   ng-bind="getMaybeWeighted(data.fp[displayMode])"></td>
+        <td class="success" ng-bind="getMaybeWeighted(data.tn[displayMode])"></td>
+        <td ng-if="data.actNeg[displayMode]" ng-bind="getMaybeWeighted(data.actNeg[displayMode])"></td>
+    </tr>
+    <tr ng-if="data.predPos[displayMode] && data.predNeg[displayMode]">
+        <th>Total</th>
+        <td ng-if="data.predPos[displayMode]" ng-bind="getMaybeWeighted(data.predPos[displayMode])"></td>
+        <td ng-if="data.predNeg[displayMode]" ng-bind="getMaybeWeighted(data.predNeg[displayMode])"></td>
+        <td ng-if="data.actPos[displayMode] && data.actNeg[displayMode]"
+            ng-bind="getMaybeWeighted(data.actPos[displayMode] + data.actNeg[displayMode])"></td>
+    </tr>
+</table>

@@ -1,0 +1,178 @@
+<div block-api-error />
+
+<div class="row-fluid">
+    <div class="horizontal-centerer">
+        <div class="recipe-settings-section1 w800">
+            <h1 class="recipe-settings-section1-title">
+                Engine:
+                <div engine-selector-button
+                    recipe-type="recipe.type"
+                    recipe-status="recipeStatus"
+                    recipe-params="recipe.params"
+                    update-status="hooks.updateRecipeStatus"
+                    can-change-engine="canChangeEngine"
+                    style="display: inline-block;"/>
+            </h1>
+
+            <form class="dkuform-horizontal recipe-settings-section2" ng-switch="recipeStatus.selectedEngine.type">
+                <div ng-switch-when="HADOOP_MAPREDUCE">
+                    <small>Hadoop/Yarn configuration keys</small>
+                    <ng2-key-values-list
+                        [(items)]="recipe.params.engineParams.hadoopConfigKeys"
+                        add-label="Add configuration"
+                        key-placeholder="Configuration key"
+                        value-placeholder="Configuration value">
+                    </ng2-key-values-list>
+                </div>
+
+                <div ng-switch-when="SPARK">
+                    <div spark-override-config config="recipe.params.engineParams.spark.sparkConfig"/>
+                    <div class="control-group">
+                        <label class="control-label">Spark engine</label>
+                        <div class="controls" >
+                            <select dku-bs-select ng-model="recipe.params.engineParams.spark.executionEngine" >
+                                <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+                                <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+                                <option value="DATABRICKS">Databricks</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div spark-datasets-read-params read-params="recipe.params.engineParams.spark.readParams" />
+                    <div class="control-group">
+                        <span class="control-label">Hive metastore</span>
+                        <label class="controls">
+                            <input type="checkbox" ng-model="recipe.params.engineParams.spark.useGlobalMetastore"/>
+                            <span class="help-inline">
+                                Use global Hive metastore
+                            </span>
+                        </label>
+                    </div>
+
+	                <recipe-pipeline-config config="recipe.params.engineParams.spark" any-pipeline-type-enabled="anyPipelineTypeEnabled()"></recipe-pipeline-config>
+
+                    <div class="control-group">
+                        <label class="control-label">Use optimized implementation</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="recipe.params.engineParams.spark.useNativeProcessors"/>
+                                <span class="help-inline">
+                                    <strong>Experimental feature</strong>: Enable faster implementation for some processors.
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="DSS">
+                    <div class="control-group">
+                        <label class="control-label">Max threads</label>
+                        <div class="controls">
+                            <input type="number" ng-model="recipe.params.engineParams.maxThreads" />
+                            <span class="help-inline"></span>
+                        </div>
+                    </div>
+                </div>
+
+		        <div ng-switch-when="IMPALA">
+		            <div class="control-group">
+		                <label for="" class="control-label"> Stream mode </label>
+		                <div class="controls">
+		                    <input type="checkbox" ng-model="recipe.params.engineParams.impala.forceStreamMode" id="forceStream"/>
+		                    <label for="forceStream" class="help-inline"> Do not use Impala to write the output </label>
+		                </div>
+		            </div>
+		            <div class="control-group">
+		                <label for="" class="control-label">Pre-execution queries</label>
+		                <div class="controls">
+		                    <div class="codemirror" style="height:210px;overflow-y: scroll;">
+		                        <textarea ng-model="recipe.params.engineParams.impala.preQueries" ui-codemirror="codeMirrorSettingService.get('text/x-sql')" ></textarea>
+		                    </div>
+		                </div>
+		            </div>
+		        </div>
+
+		        <div ng-switch-when="HIVE">
+		            <div class="control-group" >
+		                <label class="control-label">Execution engine</label>
+		                <div class="controls" >
+		                    <select dku-bs-select ng-model="recipe.params.engineParams.hive.executionEngine" >
+		                        <option value="HIVECLI_LOCAL">(Deprecated) Hive CLI (Isolated metastore)</option>
+		                        <option value="HIVECLI_GLOBAL">(Deprecated) Hive CLI (Global metastore)</option>
+		                        <option value="HIVESERVER2">HiveServer2</option>
+		                    </select>
+		                </div>
+		            </div>
+
+		            <div class="control-group">
+		                <label for="" class="control-label">Runtime config.</label>
+		                <div class="controls">
+		                    <select dku-bs-select ng-model="recipe.params.engineParams.hive.inheritConf" ng-options="x for x in appConfig.hiveExecutionConfigs" />
+		                </div>
+		            </div>
+
+		            <div class="control-group">
+		                <label for="" class="control-label">Additional configuration</label>
+		                <div class="controls">
+		                    <small style="margin-bottom: 10px; display: inline-block;">
+		                    Define here additional configuration keys for the Hive job
+		                    </small>
+                            <ng2-key-values-list
+                                [(items)]="recipe.params.engineParams.hive.hiveconf"
+                                add-label="Add configuration"
+                                key-placeholder="Configuration key"
+                                value-placeholder="Configuration value">
+                            </ng2-key-values-list>
+		                </div>
+		            </div>
+
+		            <div class="control-group">
+		                <label for="" class="control-label">Pre-execution queries</label>
+		                <div class="controls">
+		                    <div class="codemirror" style="height:210px;overflow-y: scroll;">
+		                        <textarea ng-model="recipe.params.engineParams.hive.preQueries"
+		                            ui-codemirror="codeMirrorSettingService.get('text/x-sql')" >
+		                        </textarea>
+		                    </div>
+		                </div>
+		            </div>
+		        </div>
+
+	            <div ng-switch-when="SQL">
+		            <recipe-pipeline-config config="recipe.params.engineParams.sqlPipelineParams" any-pipeline-type-enabled="anyPipelineTypeEnabled()"></recipe-pipeline-config>
+	            </div>
+
+                <div ng-switch-default class="placeholder-block" style="margin-top: 35px;">
+                    <i class="icon-ok" />
+                    No settings required
+                </div>
+
+            </form>
+        </div>
+
+        <div class="recipe-settings-section1 w800" ng-if="computablesMap[recipe.outputs.main.items[0].ref].dataset.partitioning.dimensions.length">
+            <h1 class="recipe-settings-section1-title">Partition redispatch</h1>
+            <form class="dkuform-horizontal recipe-settings-section2">
+                <div class="control-group">
+            <label>
+                <input style="margin: 0" type="checkbox" ng-model="recipe.redispatchPartitioning">
+                Redispatch partitioning according to input columns
+            </label>
+            </div>
+            </form>
+        </div>
+
+        <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+
+        <div class="recipe-settings-section1 w800">
+            <h1 class="recipe-settings-section1-title">Overrides</h1>
+            <form class="dkuform-horizontal recipe-settings-section2">
+                <div class="control-group">
+                    <label for="" class="control-label">Override variables</label>
+                    <div class="controls">
+                        <span override-table-link object-to-override="recipe" override-table-parent="recipe" />
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

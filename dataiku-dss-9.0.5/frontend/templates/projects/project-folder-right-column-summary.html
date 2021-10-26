@@ -1,0 +1,63 @@
+<div class="project-folder-right-column-summary right-column-summary object-right-column-summary vertical-flex h100">
+
+    <div item-header
+        class="column-header noflex"
+        href="getItemHeaderHref(rightColumnItem)"
+        color="shared-objects"
+        icon="icon-folder-close"
+        title="{{rightColumnItem.name}}">
+        {{rightColumnItem.name}}
+    </div>
+
+     <div class="project-folder-objects-wrapper flex oa">
+
+        <!-- Children -->
+        <div class="project-folder-children-wrapper column-panel accordion" ng-if="folder.children.length">
+            <span ng-init="show = true"/>
+            <h4 class="accordion-title" ng-click="show=!show">
+                <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+                Project folders ({{folder.children.length}})
+            </h4>
+            <ul ng-show="show">
+                <li ng-repeat="child in folder.children">
+                    <a class="link-std" ui-sref="project-list({ folderId: child.id })">
+                        <i class="icon-folder-close"></i>
+                        {{child.name}}
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Projects -->
+        <div class="project-folder-projects-wrapper column-panel accordion" ng-if="folder.projects.length">
+            <span ng-init="show = true"/>
+            <h4 class="accordion-title" ng-click="show=!show">
+                <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+                Projects ({{folder.projects.length}})
+            </h4>
+            <ul ng-show="show">
+                <li ng-repeat="project in folder.projects" class="horizontal-flex">
+                    <croped-project-picture
+                        project-key="project.projectKey"
+                        object-type="'PROJECT'"
+                        object-id="project.projectKey"
+                        object-img-hash = "projectsMap[project.projectKey].objectImgHash"
+                        size-x="80"
+                        size-y="170">
+                    </croped-project-picture>
+                    <div class="flex">
+                        <a class="link-std" ui-sref="projects.project.home.regular({ projectKey: project.projectKey })">
+                            {{project.name}}
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- empty folder -->
+        <div class="default" ng-if="folder.projects.length == 0 && folder.children.length == 0">
+            <h4>This project folder is empty</h4>
+        </div>
+
+    </div>
+</div>

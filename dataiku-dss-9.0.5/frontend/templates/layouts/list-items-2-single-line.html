@@ -1,0 +1,314 @@
+<!-- layouts/list-items-2.html  -->
+<div class="row-fluid fh vertical-flex" filtered-multi-select-rows ng-model="listItems">
+
+    <div data-extend-template="/templates/layouts/list-items-fattable.html" class="vertical-flex">
+        <div data-block="summary-row" class="summary-row summary-row--single-line noflex horizontal-flex">
+
+            <div class="noflex dropdown mass-action-btn" data-block="mass-actions">
+                <input type="checkbox"
+                       class="select-cb"
+                       ng-model="selection.all"
+                       dku-indeterminate="selection.some"
+                       ng-change="updateMassSelectionCheckbox()"
+                       >
+                <a data-toggle="dropdown"
+                   class="dropdown-toggle unselectable"
+                   ng-class="{disabled: selection.selectedObjects.length == 0, collapsed: selection.none}">
+                    <span ng-hide="selection.none">ACTIONS</span>
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                    <li ng-show="!noTags && projectSummary.canWriteProjectContent">
+                        <a ng-click="startApplyTagging()"><i class="icon-tags"/>Tag</a>
+
+
+                    <li ng-show="!noWatch">
+                        <a ng-if="!allWatching(selection.selectedObjects)"
+                           ng-click="watchObjects('YES')"
+                           ng-attr-title="{{ actionTooltips.WATCH }}"
+                           data-toggle="tooltip"
+                           data-container="body"
+                        >
+                            <i class="icon-eye"/> {{ actionLabels.WATCH }}
+                        </a>
+                        <a ng-if="allWatching(selection.selectedObjects)"
+                           ng-click="watchObjects('ENO')"
+                           ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                           data-toggle="tooltip"
+                           data-container="body"
+                        >
+                            <i class="icon-eye"/> {{ actionLabels.UNWATCH }}
+                        </a>
+                    </li>
+                    <li ng-show="!noStar">
+                        <a ng-if="!allStarred(selection.selectedObjects)"
+                           ng-click="starObjects(true)"
+                           ng-attr-title="{{ actionTooltips.STAR }}"
+                           data-toggle="tooltip"
+                           data-container="body"
+                        >
+                            <i class="icon-star"/> {{ actionLabels.STAR }}
+                        </a>
+                        <a ng-if="allStarred(selection.selectedObjects)"
+                           ng-click="starObjects(false)"
+                           ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                           data-toggle="tooltip"
+                           data-container="body"
+                        >
+                            <i class="icon-star"/> {{ actionLabels.UNSTAR }}
+                        </a>
+                    </li>
+                    <li ng-show="canMassMakeListed&&canModerateDashboards()">
+                        <a ng-if="!isAllListed(selection.selectedObjects)"
+                           ng-click="massMakeListed(selection.selectedObjects,true)">
+                            <i class="icon-dku-promote"/>Make public
+                        </a>
+                        <a ng-if="isAllListed(selection.selectedObjects)"
+                           ng-click="massMakeListed(selection.selectedObjects,false)">
+                            <i class="icon-dku-promote"/>Make private
+                        </a>
+                    </li>
+                <li ng-show="canMassExportDashboard">
+                    <a ng-if="appConfig.graphicsExportsEnabled" ng-click="exportDashboard(selection.selectedObjects, true)">
+                        <i class="icon-dku-download"/>Export
+                    </a>
+                </li>
+
+                    <li class="divider"
+                        ng-show="showClearData && projectSummary.canWriteProjectContent || canIndexConnections || !noDelete || projectSummary.canWriteProjectContent"
+                        style="margin: 1px 1px"/>
+
+                    <li ng-show="showClearData && projectSummary.canWriteProjectContent">
+                        <a ng-click="clearSelected()"><i class="icon-remove"/>Clear Data</a>
+                    </li>
+                    <li ng-show="canIndexConnections">
+                        <a ng-click="indexSelectedConnections()">
+                            <i class="icon-refresh"/>Index {{'connection' | plurify : selection.selectedObjects.length}}
+                        </a>
+                    </li>
+                    <li ng-show="!noDelete || projectSummary.canWriteProjectContent">
+                        <a ng-click="deleteSelected()"><i class="icon-trash"/>Delete</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="flex std-list-search-box with-icon" style="flex-grow: 4; max-width: 300px;">
+                <span class="search-icon"><i class="icon-dku-search"></i></span>
+                <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Search&hellip;" id="qa_generic_search-list-2">
+                <div class="error-drawer" ng-if="selection.filterParams.userQueryErrors">
+                    <div class="error" ng-repeat="(exp, err) in selection.filterParams.userQueryErrors">
+                        <i class="icon icon-warning-sign"/>{{err.message}}
+                    </div>
+                </div>
+            </div>
+
+            <div ng-if="!noTags" custom-element-popup class="noflex tags-widget list-customfilter-box list-control-dropdown"
+                 data-block="filter-tags">
+                <span class="add-on"><i class="icon-tags"/></span>
+
+                <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                    {{selection.filterQuery.tags.length > 0 ? 'Tags' : 'Filter by tags'}}
+                    <span ng-if="selection.filterQuery.tags.length > 0"> |
+                        <span class="nb-selected-elements">{{selection.filterQuery.tags.length}} selected</span>
+                    </span>
+                    <b class="caret"/>
+                </button>
+
+                <div class="popover custom-element-popup-popover tags-list-popover">
+                    <div ng-click="$event.stopPropagation()">
+                        <div style="max-height:300px;">
+                            <div tags-list tags-list-selected="selection.filterQuery.tags"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div data-block="additional-filter-owner" class="noflex"></div>
+            <div data-block="additional-filter-type" class="noflex"></div>
+            <div data-block="additional-filter-public" class="noflex"></div>
+
+            <div class="noflex" ng-if="!noTags">
+                <button class="btn btn--secondary btn--icon" ng-class="{'btn--active': selection.filterQuery.interest.starred}"
+                        ng-click="toggleFilterStarred()">
+                    <i class="icon-star" style="color:#f9c000"/>
+                </button>
+            </div>
+
+            <div class="noflex" ng-if="canCreateConnection">
+                <div class="dropdown pull-right">
+                    <a data-toggle="dropdown" class="btn btn--secondary has-caret">
+                        <i plus-icon/> New connection
+                        <span class="caret"/>
+                    </a>
+                    <div class="dropdown-menu mh400 oa">
+                        <div style="width: 400px; max-height: 500px">
+                            <table class="dropdown-menu__connections-table">
+                                <tr><td colspan="4" class="dropdown-menu__tile-delimiter">SQL databases</td></tr>
+                                <tr>
+                                    <td><div connection-type type="Snowflake" title="Snowflake"/></td>
+                                    <td><div connection-type type="Redshift" title="Amazon Redshift"/></td>
+                                    <td><div connection-type type="Synapse" title="Azure Synapse"/></td>
+                                    <td><div connection-type type="BigQuery" title="Google BigQuery"/></td>
+                                </tr>
+                                <tr>
+                                    <td><div connection-type type="PostgreSQL" title="PostgreSQL"/></td>
+                                    <td><div connection-type type="MySQL" title="MySQL"/></td>
+                                    <td><div connection-type type="SQLServer" title="MS SQL Server"/></td>
+                                    <td><div connection-type type="Oracle" title="Oracle"/></td>
+                                </tr>
+                                <tr>
+                                    <td><div connection-type type="Teradata" title="Teradata"/></td>
+                                    <td><div connection-type type="Greenplum" title="Greenplum"/></td>
+                                    <td><div connection-type type="Vertica" title="Vertica"/></td>
+                                    <td><div connection-type type="Athena" title="Athena"/></td>
+                                </tr>
+                                <tr>
+                                    <td><div connection-type type="SAPHANA" title="SAP HANA"/></td>
+                                    <td><div connection-type type="Netezza" title="IBM Netezza"/></td>
+                                    <td ng-if="$root.featureFlagEnabled('kdbplus')">
+                                        <div connection-type type="KDBPlus" title="KDB+"/>
+                                    </td>
+                                    <td><div connection-type type="JDBC" title="Other SQL databases"/></td>
+                                </tr>
+
+                                <tr><td colspan="4" class="dropdown-menu__tile-delimiter">Cloud Storages &amp; Hadoop</td></tr>
+                                <tr>
+                                    <td><div connection-type type="EC2" title="Amazon S3"/></td>
+                                    <td><div connection-type type="Azure" title="Azure Blob Storage"/></td>
+                                    <td><div connection-type type="GCS" title="Google Cloud Storage"/></td>
+                                    <td><div connection-type type="HDFS" title="Hadoop HDFS"/></td>
+                                </tr>
+
+                                <tr><td colspan="4" class="dropdown-menu__tile-delimiter">Files-based</td></tr>
+                                <tr>
+                                    <td><div ng-show="appConfig.admin" connection-type type="Filesystem" title="Server Filesystem"/></td>
+                                    <td><div connection-type type="FTP" title="FTP"/></td>
+                                    <td><div connection-type type="SSH" title="SCP/SFTP"/></td>
+                                </tr>
+
+                                <tr><td colspan="4" class="dropdown-menu__tile-delimiter">NoSQL</td></tr>
+                                <tr>
+                                    <td><div connection-type type="MongoDB" title="MongoDB"/></td>
+                                    <td><div connection-type type="Cassandra" title="Cassandra"/></td>
+                                    <td><div connection-type type="ElasticSearch" title="ElasticSearch"/></td>
+                                    <td ng-if="featureFlagEnabled('DynamoDB')"><div connection-type type="DynamoDB" title="DynamoDB" /></td>
+                                </tr>
+                                <tr><td colspan="4" class="dropdown-menu__tile-delimiter">Other</td></tr>
+                                <tr>
+                                    <td><div connection-type type="Twitter" title="Twitter"/></td>
+                                    <td><div connection-type type="Kafka" title="Kafka" ng-if="appConfig.streamingEnabled"/></td>
+                                    <td><div connection-type type="SQS" title="SQS" ng-if="appConfig.streamingEnabled"/></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="noflex" ng-if="canIndexAllConnections">
+                <button class="btn btn--danger pull-right" ng-show="isIndexationRunning()" ng-click="abortIndexation()">
+                    Abort indexation
+                </button>
+                <button class="btn btn--secondary pull-right" ng-click="indexAllConnections()" style="margin-right: 5px">
+                    Index all connections
+                </button>
+            </div>
+            <div class="noflex" data-block="additional-buttons"></div>
+
+            <div class="noflex" data-block="newItem"></div>
+
+            <div class="noflex" data-block="additional-buttons-after-new"></div>
+
+            <div class="noflex clear-filters-btn" ng-click="clearFilters()" ng-class="{'visibility-hidden': isEmptyFilter()}">
+                Clear filters
+            </div>
+            <div class="flex force-not-empty"></div>
+            <div class="noflex horizontal-flex" style="align-items: center;">
+                <div class="counters">
+                    <div style="display: inline-block;min-width: 85px">
+                        <span ng-show="selection.selectedObjects.length">
+                            Selected <strong>{{ selection.selectedObjects.length }}</strong> of
+                        </span>
+                        <span ng-show="selection.filtered&&!selection.selectedObjects.length">
+                            Showing <strong>{{ selection.filteredObjects.length }}</strong> of
+                        </span>
+                    </div>
+                    <strong>{{selection.allObjects.length}}</strong>
+                    <span data-block="counter-name"></span>
+                </div>
+
+                <div class="sort-box list-control-widget" style="display: inline-block" ng-if="!noSort">
+                    <sort-order-button class="order" value="selection.orderReversed" remember-choice="sortCookieKey+'_asc'"
+                                       sob-opt="{'buttonClass':'btn'}"></sort-order-button>
+
+                    <select dku-bs-select="{style: 'dku-select-button'}"
+                            remember-choice="sortCookieKey+'k'"
+                            ng-model="selection.orderQuery"
+                            ng-options="obj.value as obj.label for obj in sortBy"
+                            required
+                    />
+                </div>
+            </div>
+        </div>
+
+        <div data-block="item">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click
+                      ng-click="objectClicked(item, $event)"></span>
+                <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected"
+                       ng-click="checkBoxChanged(item, $event)"/>
+            </label>
+            <div class="hit" dataset="item">
+                <div class="illustration">
+                    <i class="{{item.subtype || item.type | typeToIcon}}"></i>
+                </div>
+                <div class="hitContent horizontal-flex">
+                    <h4>
+                        <a href="{{ $state.href('projects.project.datasets.dataset.explore', {projectKey : $stateParams.projectKey, datasetName :item.name}) }}"
+                           title="{{ item.displayName }}">
+                            <i ng-if="item.interest.starred" class="icon-star"/>
+                            {{ item.name }}
+                        </a>
+            </div>
+            <div class="span3 offset0 h100 right-sidebar">
+                <div ng-show="!selection.selectedObject && (selection.selectedObjects && !selection.selectedObjects.length)">
+                    <h4 class="empty-right-column small-lr-padding" ng-show="selection.filteredObjects.length">
+                        Click an item to view details
+                    </h4>
+                    <div>
+                        <span>
+                            <small>{{ item.subtype || item.type |niceType }}</small>
+                        </span>
+                                <span ng-show="item.status.totalSize >= 0 && sortOptions.column == 'status.totalSize'"
+                                    class="size" title="Size">
+                        |
+                            <small>{{ item.status.totalSize | fileSizeOrNA }}</small>
+                        </span>
+                                <span ng-show="item.status.records >= 0 && sortOptions.column == 'status.records'"
+                                    class="nb_records" title="Number of records">
+                        |
+                            <small>{{ item.status.records | number }} records</small>
+                        </span>
+                                <span ng-show="item.lastModifiedOn">
+                            |
+                            <small>Modified {{ item.lastModifiedOn|friendlyTimeDeltaShort }}</small>
+                        </span>
+                    </div>
+
+                    <ul class="tags inline flex" ng-if="!noTags">
+                        <li ng-repeat="tag in item.tags">
+                            <span class="tag"
+                                  color-contrast="{{ projectTagsMap[tag].color.substring(1) || '#FDB423'}}"
+                                  ng-click="selectTag(selection.filterQuery,tag)">
+                                <span ui-global-tag="tag" object-type="objectType"/>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

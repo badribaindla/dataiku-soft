@@ -1,0 +1,135 @@
+<div ng-controller="GCSConnectionController" class="h100 vertical-flex">
+    <div class="flex">
+        <div class="fh oa">
+            <div class="h100 small-lr-padding">
+                <div block-api-error />
+
+                <div class="generic-white-box">
+                    <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+
+                    <div block-api-error />
+
+                    <form name="connectionParamsForm" class="dkuform-horizontal">
+                        <h2 class="settings-section-title">Connection</h2>
+                        <div class="control-group" ng-if="false">
+                            <label class="control-label">Credentials</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="connection.params.credentialsMode"
+                                ng-options="x[0] as x[1] for x in [['KEYPAIR', 'Private key'], ['ENVIRONMENT', 'Environment']]"
+                                options-descriptions="['Private key', 'Use credentials from environment variables']"/>
+                            </div>
+                        </div>
+                        <fieldset ng-if="connection.params.credentialsMode == 'KEYPAIR'">
+                            <div class="control-group"
+                            form-template-element
+                            model="connection.params"
+                            field="{name:'appSecretContent',type:'string',mandatory:true,  label:'Private key', tooltip: 'Mandatory. Must contains either the full path on the DSS server to the key file (.json or .p12) - Recommended, or the key as a JSON formatted string'}"/>
+                            <div class="control-group" form-template-element model="connection.params"
+                                    field="{name:'serviceAccountEmail',type:'string', mandatory:false, label:'Service account e-mail', tooltip:'Mandatory if private key contains the path to a .p12 file. Ignored otherwise'}" />
+                        </fieldset>
+                        <div class="control-group"
+                        form-template-element
+                        model="connection.params"
+                        field="{name:'projectId',type:'string', mandatory:true, label:'Project key'}" />
+
+                        <div class="control-group"
+                             form-template-element
+                             model="connection.params"
+                             field="{name:'snowflakeStorageIntegration',type:'string', mandatory:false, label:'Snowflake storage integration', tooltip: 'Optional. Required for the direct data transfer to/from Snowflake'}" />
+
+                        <h2 class="settings-section-title">Path restrictions</h2>
+
+                        <div class="control-group" form-template-element
+                        model="connection.params"
+                        field="{name:'chbucket', type:'string', label:'Bucket', tooltip:'Optional. Limit accesses on this connection to the contents of this bucket. If empty, users will be able to select bucket (among buckets allowed by this key)'}" />
+                        <div class="control-group" form-template-element
+                        model="connection.params"
+                        field="{name:'chroot', type:'string', label:'Path from', tooltip:'Optional. Limit accesses on this connection to the contents of this folder. If empty, users will be able to use the whole bucket (or buckets)'}" />
+
+                        <fieldset ng-disabled="!connection.allowManagedDatasets && !connection.allowManagedFolders">
+                            <h2 class="settings-section-title">Managed datasets &amp; folders</h2>
+
+                            <div class="control-group" ng-if="!connection.params.chbucket"
+                            form-template-element
+                            model="connection.params"
+                            field="{name:'defaultManagedBucket',type:'string',
+                            label:'Default bucket',
+                            tooltip:'Managed datasets will be created by default in this bucket. May contain variables.'}" />
+                            <div class="control-group" ng-if="!connection.params.chbucket"
+                            form-template-element
+                            model="connection.params"
+                            field="{name:'defaultManagedPath',type:'string',
+                            label:'Default path',
+                            tooltip:'Managed datasets will be created by default in this path. May contain variables.'}" />
+                            <div class="control-group" ng-if="connection.params.chbucket"
+                            form-template-element
+                            model="connection.params"
+                            field="{name:'defaultManagedPath',type:'string',
+                            label:'Managed data subpath',
+                            tooltip:'Managed datasets and folders will be created by default in this subpath of the root path in bucket. May contain variables.'}" />
+                        </fieldset>
+
+                        <div include-no-scope="/templates/admin/fragments/fs-naming-rule.html" />
+
+                        <h2 class="settings-section-title">Advanced</h2>
+                        <div class="control-group">
+
+                            <label class="control-label">HDFS interface</label>
+                            <div class="controls">
+                                <select ng-model="connection.params.hdfsInterface" dku-bs-select>
+                                    <option value="GS">GS</option>
+                                    <option value="NONE">None (go through DSS)</option>
+                                </select>
+                                <span class="help-inline">Protocol to use for direct access to GCS datasets from Spark.</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Metastore synchronization</label>
+                            <div class="controls">
+                                <select ng-model="connection.params.metastoreSynchronizationMode" dku-bs-select>
+                                    <option value="KEEP_IN_SYNC">Keep datasets synced</option>
+                                    <option value="NO_SYNC">No sync</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="" class="control-label">Fallback metastore DB</label>
+                            <div class="controls">
+                                <input type="text" ng-model="connection.params.defaultMetastoreDatabase" name="defaultMetastoreDatabase" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/" />
+                                <div class="help-inline error-text-color" ng-show="connectionParamsForm.defaultMetastoreDatabase.$invalid">
+                                    Metastore database names can only contains letters, numbers and underscores.
+                                </div>
+                                <div class="help-inline">
+                                    This database is used as default for datasets that do not declare one
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                    </form>
+                </div>
+                <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                    <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="noflex small-lr-padding page-top-padding">
+        <!-- style="border-top: 1px #ccc solid"-->
+        <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html" />
+        <div ng-show="testing" class="alert alert-info"> <i class="icon-spin icon-spinner" />&nbsp;Please wait, testing connection
+        </div>
+        <div ng-show="testResult">
+            <div ng-show="!testResult.connectionOK" class="alert alert-error"> <i class="icon-dku-error" />Connection failed: {{testResult.connectionErrorMsg}}
+            </div>
+            <div ng-show="testResult.connectionOK && testResult.connectionWarning" class="alert alert-warning">
+                Connection OK, <strong>but</strong> {{testResult.connectionErrorMsg}}.
+            </div>
+            <div ng-show="testResult.connectionOK && !testResult.connectionWarning" class="alert alert-success">
+                <i class="icon-success" />
+                Connection OK
+            </div>
+        </div>
+    </div>
+</div>

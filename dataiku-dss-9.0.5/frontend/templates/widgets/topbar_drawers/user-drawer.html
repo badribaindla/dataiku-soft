@@ -1,0 +1,44 @@
+<div class="user-drawer top-bar-drawer vertical-flex" ng-if="shown">
+	<div class="drawer-header break-all noflex">
+		<span class="links pull-right">
+			<a href="/profile/" class="link-std" toggle="tooltip" title="Profile and settings"> <i class="icon-cogs" /> </a>
+			<a ng-click="logout()" class="link-std" toggle="tooltip" id="qa_user-drawer_sign-out" title="Sign out"> <i class="icon-signout" /> </a>
+		</span>
+
+		<span user-picture='appConfig.login' size="40" class="avatar avatar40" />
+
+		<div full-click>
+			<strong class="display-name"> {{ appConfig.user.displayName }} </strong>
+			<div> <a href="/profile/" class="login" main-click> @{{ appConfig.user.login }} </a> </div>
+		</div>
+	</div>
+
+	<div class="user-drawer-discussions noflex">
+		<i class="icon-comment" style="color: #4e8ef5; font-size: 1.2em; margin-right: 5px;" />
+		You have <strong>{{(discussionsUnreadStatus.unreadFullIds || []).length}}</strong> unread discussion{{ (discussionsUnreadStatus.unreadFullIds || []).length == 1 ? '' : 's'}}
+		<a ui-sref="inbox" ng-show="!$state.current.name.startsWith('inbox')">go to inbox</a>
+	</div>
+
+	<div class="pnotifications flex">
+		<ul class="timeline" infinite-scroll="scroll()" ng-if="timelineReady">
+		    <div class="placeholder-block" ng-if="orderedItemsWithDays && !orderedItemsWithDays.length">
+		        You have no notification
+		    </div>
+
+		    <li ng-repeat="pn in orderedItemsWithDays">
+		        <div ng-if="pn.isSeparator" class="timeline-divider">
+		            {{ pn.day }}
+		        </div>
+		        <div ng-if="!pn.isSeparator" class="timeline-item" ng-switch="pn.evtType">
+		        	<div discussion-close-item ng-switch-when="discussion-close" ng-scope="{{ item = pn.evt }}" />
+		        	<div discussion-mention-item ng-switch-when="discussion-mention" ng-scope="{{ item = pn.evt }}" />
+					<div discussion-reply-item ng-switch-when="discussion-reply" ng-scope="{{ item = pn.evt }}" />
+					<div commit-mention-item ng-switch-when="commit-mention" ng-scope="{{ item = pn.evt }}" />
+					<div timeline-item ng-switch-when="timeline-item" ng-scope="{{ item = pn.evt.item }}"/>
+					<div timeline-task-item ng-switch-default ng-scope="{{ item = pn.evt }}"/>
+		        </div>
+		    </li>
+		</ul>
+	</div>
+
+</div>

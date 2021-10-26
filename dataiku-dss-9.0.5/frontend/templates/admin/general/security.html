@@ -1,0 +1,657 @@
+<div class="paned-settings-page-pane">
+    <h1>Login &amp; Security</h1>
+
+
+    <div class="section">
+        <h2 id="ldap">LDAP</h2>
+
+        <div class="alert alert-error" ng-if="!appConfig.licensedFeatures.ldapAllowed" >
+            <i class="icon-dku-error" />Your license does not allow you to enable LDAP authentication
+        </div>
+
+        <form class="dkuform-horizontal" ng-if="appConfig.licensedFeatures.ldapAllowed">
+
+            <div class="control-group">
+                <label for="" class="control-label">Enable</label>
+                <div class="controls" >
+                    <input type="checkbox" ng-model="generalSettings.ldapSettings.enabled" />
+                    <span class="help-inline">Import users and groups from an external LDAP server</span>
+                </div>
+            </div>
+
+            <fieldset ng-show="generalSettings.ldapSettings.enabled">
+                <h3 id="ldap-connection">Connection</h3>
+                <div class="control-group">
+                    <label for="" class="control-label">LDAP server URL</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ldapSettings.url"
+                            ng-required="generalSettings.ldapSettings.enabled" class="input-xxlarge" />
+                        <span class="help-inline">ldap[s]://HOST[:PORT]/BASE (mandatory)</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Use TLS</label>
+                    <div class="controls">
+                        <input type="checkbox"
+                        ng-model="generalSettings.ldapSettings.useTls" />
+                        <span class="help-inline">Use Transport Layer Security</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Bind DN</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ldapSettings.bindDN" class="input-xxlarge" />
+                        <span class="help-inline">Authentication DN for LDAP queries (optional)</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Bind password</label>
+                    <div class="controls">
+                        <input type="password" ng-model="generalSettings.ldapSettings.bindPassword" autocomplete="new-password" />
+                        <span class="help-inline">Authentication password for LDAP queries</span>
+                    </div>
+                </div>
+
+                <h3 id="ldap-user-mapping">Users mapping</h3>
+
+                <div class="control-group">
+                    <label for="" class="control-label">User filter</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ldapSettings.userFilter"
+                            ng-required="generalSettings.ldapSettings.enabled" class="input-xxlarge" />
+                        <span class="help-inline">User search filter, with {USERNAME} placeholder (mandatory)</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Display name attribute</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ldapSettings.displayNameAttribute" />
+                        <span class="help-inline">User attribute : display name (optional)</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Email attribute</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ldapSettings.emailAttribute" />
+                        <span class="help-inline">User attribute : email (optional)</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Automatically import users</label>
+                    <div class="controls">
+                        <input type="checkbox"
+                        ng-model="generalSettings.ldapSettings.autoImportUsers" />
+                        <span class="help-inline">Automatically import LDAP users on successful login</span>
+                    </div>
+                </div>
+            
+
+
+                <h3 id="ldap-group-mapping">Groups mapping</h3>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Enable group support</label>
+                    <div class="controls" >
+                        <input type="checkbox" ng-model="generalSettings.ldapSettings.enableGroups"
+                        ng-disabled="appConfig.communityEdition" />
+                        <span class="help-inline">Query groups for LDAP users</span>
+                    </div>
+                </div>
+                <div class="control-group" ng-show="generalSettings.ldapSettings.enableGroups"
+                                ng-required="generalSettings.ldapSettings.enabled && generalSettings.ldapSettings.enableGroups">
+                    <label for="" class="control-label">Group filter</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ldapSettings.groupFilter" class="input-xxlarge" />
+                        <span class="help-inline">
+                            Group search filter, with {USERNAME} or {USERDN} placeholder (mandatory)
+                        </span>
+                    </div>
+                </div>
+                <div class="control-group" ng-show="generalSettings.ldapSettings.enableGroups"
+                                ng-required="generalSettings.ldapSettings.enabled && generalSettings.ldapSettings.enableGroups">
+                    <label for="" class="control-label">Group name attribute</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ldapSettings.groupNameAttribute" />
+                        <span class="help-inline">Group attribute : group name (mandatory)</span>
+                    </div>
+                </div>
+                <div class="control-group" ng-show="generalSettings.ldapSettings.enableGroups">
+                    <label for="" class="control-label">Authorized groups</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ldapSettings.authorizedGroups" />
+                        <span class="help-inline">
+                            Comma-separated list of LDAP group names: members are authorized to login to DSS (optional)
+                        </span>
+                    </div>
+                </div>
+
+                <h3 id="ldap-profiles-mapping" class="settings-section-subtitle"  ng-show="generalSettings.ldapSettings.autoImportUsers">Profiles mapping</h3>
+
+                <div class="control-group" ng-show="generalSettings.ldapSettings.autoImportUsers">
+                    <label for="" class="control-label">Default user profile</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="generalSettings.ldapSettings.defaultUserProfile" ng-options="x as x|niceProfileName for x in appConfig.licensing.userProfiles" required/>
+                        <span class="help-inline">
+                            Assign a default user profile newly imported users
+                        </span>
+                    </div>
+                </div>
+                <div class="control-group" ng-show="generalSettings.ldapSettings.autoImportUsers">
+
+                    <table style="background: none;" class="controls">
+                        <tr ng-repeat="elem in generalSettings.ldapSettings.groupProfiles">
+                            <td >
+                                <input type="text" ng-model="elem.group" required >
+                            </td>
+                            <td>
+                                <select dku-bs-select ng-model="elem.profile" ng-options="x as x|niceProfileName for x in appConfig.licensing.userProfiles" />
+                            </td>
+                            <td full-click>
+                                <a main-click ng-click="deleteGroupProfile($index)"> <i class="icon-trash" /></a>
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="controls" ng-show="generalSettings.ldapSettings.autoImportUsers">
+                        <button class="btn btn--secondary" ng-click="addGroupProfile()" >
+                            + Group defined profile
+                        </button>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div ng-show="generalSettings.ldapSettings.enabled">
+                <h3 id="ldap-testing">Testing</h3>
+                <button style="margin-bottom: 10px" class="btn btn--secondary" ng-click="testLdapSettings()" ng-disabled="miscSettingsForm.$invalid">
+                    Test connection
+                </button>
+                <div ng-show="ldapTesting" class="alert alert-info"> <i class="icon-spin icon-spinner" />Please wait, testing connection
+                </div>
+                <div ng-show="! miscSettingsForm.$invalid && ldapTestResult">
+                    <div ng-show="!ldapTestResult.connectionOK" class="alert alert-error">
+                        <i class="icon-dku-error" />
+                        Connection failed: <span summary-of-error="ldapTestResult.connectionError" />
+                    </div>
+                    <div ng-show="ldapTestResult.connectionOK" class="alert alert-success">
+                        <i class="icon-success" />
+                        Connection OK
+                        <pre ng-show="ldapTestResult.serverInfo.length">{{ldapTestResult.serverInfo}}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-show="generalSettings.ldapSettings.enabled">
+                <div class="control-group">
+                    <label class="control-label">Username to test</label>
+                    <div class="controls">
+                        <input type="text" ng-model="ldapTestUsername" placeholder="john.doe" />
+                    </div>
+                </div>
+                <button style="margin-bottom: 10px" class="btn btn--secondary" ng-click="testLdapGetUserDetails(ldapTestUsername)" ng-disabled="miscSettingsForm.$invalid || ldapTestUsername == null || ldapTestUsername.length == 0">
+                    Test a Username
+                </button>
+                <div ng-show="ldapTesting" class="alert alert-info"> <i class="icon-spin icon-spinner" />Please wait, testing connection</div>
+                <div ng-show="! miscSettingsForm.$invalid && ldapTestUserDetails">
+                    <div ng-show="!ldapTestUserDetails.connectionOK" class="alert alert-error">
+                        <i class="icon-dku-error" />
+                        Connection failed:  <span summary-of-error="ldapTestUserDetails.connectionError" />
+                    </div>
+                    <div ng-show="!ldapTestUserDetails.recordOK && ldapTestUserDetails.connectionOK" class="alert alert-error">
+                        <i class="icon-dku-error" />
+                        User does not exist
+                    </div>
+                    <div class="alert alert-info" ng-show="ldapTestUserDetails.recordOK" >
+                        <table style="background: none; margin-bottom: 0" class="table" >
+
+                            <tr><th>Username</th><td>{{ ldapTestUserDetails.username }}</td></tr>
+                            <tr><th>Display name</th><td>{{ ldapTestUserDetails.displayName }}</td></tr>
+                            <tr><th>Email</th><td>{{ ldapTestUserDetails.email }}</td></tr>
+                            <tr><th>Groups</th><td>{{ ldapTestUserDetails.groups }}</td></tr>
+                            <tr><th>Distinguished name</th><td>{{ ldapTestUserDetails.distinguishedName }}</td></tr>
+                        </table>
+                        
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <div class="section">
+        <h2 id="sso">SSO</h2>
+
+        <div class="alert alert-error" ng-if="!appConfig.licensedFeatures.ssoAllowed" >
+            <i class="icon-warning-sign" />Your license does not allow you to enable SSO
+        </div>
+
+        <form class="dkuform-horizontal"  ng-if="appConfig.licensedFeatures.ssoAllowed">
+
+            <div class="alert alert-warning">A modification of these settings requires a DSS restart</div>
+
+            <div class="control-group">
+                <label for="" class="control-label">Enable</label>
+                <div class="controls" >
+                    <input type="checkbox" ng-model="generalSettings.ssoSettings.enabled" />
+                    <span class="help-inline">Allow login using an external SSO</span>
+                </div>
+            </div>
+
+            <fieldset ng-if="generalSettings.ssoSettings.enabled">
+                <div class="control-group">
+                    <label for="" class="control-label">Protocol</label>
+                    <div class="controls" >
+                        <select dku-bs-select ng-model="generalSettings.ssoSettings.protocol" ng-options="x for x in ['SAML', 'SPNEGO']" />
+                    </div>
+                </div>
+            </fieldset>
+
+            <div ng-if="generalSettings.ssoSettings.enabled && generalSettings.ssoSettings.protocol == 'SAML'">
+                <h3>IdP configuration</h3>
+
+                <div class="control-group">
+                    <label for="" class="control-label">IdP Metadata XML</label>
+                    <div class="controls" >
+                        <div style="width: 100%; border: 1px #ddd solid">
+                            <textarea ui-codemirror="codeMirrorSettingService.get('text/xml')" style="border: 1px #ddd solid; height: 180px" ng-model="generalSettings.ssoSettings.samlIDPMetadata"/>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>SP configuration</h3>
+
+                <div class="control-group">
+                    <label for="" class="control-label">SP entity ID</label>
+                    <div class="controls">
+                        <input type="text" class="input-xxlarge" ng-model="generalSettings.ssoSettings.samlSPParams.entityId"/>
+                        <span class="help-inline">Service provider EntityId (mandatory)</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="" class="control-label">SP ACS URL</label>
+                    <div class="controls">
+                        <input type="text" class="input-xxlarge" ng-model="generalSettings.ssoSettings.samlSPParams.acsURL"/>
+                        <span class="help-inline">Service provider Attribute Consume Service Endpoint (mandatory)</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Sign requests</label>
+                    <div class="controls" >
+                        <input type="checkbox" ng-model="generalSettings.ssoSettings.samlSPParams.signRequests" />
+                        <span class="help-inline">Sign SAML requests</span>
+                    </div>
+                </div>
+
+                <fieldset ng-if="generalSettings.ssoSettings.samlSPParams.signRequests">
+                    <div class="control-group">
+                        <label for="" class="control-label">Keystore file</label>
+                        <div class="controls">
+                            <input type="text" class="input-xxlarge" ng-model="generalSettings.ssoSettings.samlSPParams.keystoreFile" />
+                            <span class="help-inline">PKCS#12 file containing signing key and certificate (mandatory)</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="" class="control-label">Keystore password</label>
+                        <div class="controls">
+                            <input type="text" class="input-xxlarge" ng-model="generalSettings.ssoSettings.samlSPParams.keystorePassword" />
+                            <span class="help-inline">Keystore file password</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="" class="control-label">Key alias in keystore</label>
+                        <div class="controls">
+                            <input type="text" class="input-xxlarge" ng-model="generalSettings.ssoSettings.samlSPParams.keyAlias" />
+                            <span class="help-inline">Signing key alias (required if keystore contains multiple keys)</span>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <h3>Login attribute configuration</h3>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Login attribute</label>
+                    <div class="controls">
+                        <input type="text" class="input-xxlarge" ng-model="generalSettings.ssoSettings.samlLoginAttribute" />
+                        <span class="help-inline">Attribute of the assertion to use as user's login</span>
+                    </div>
+                </div>
+            </div>
+
+
+            <fieldset ng-if="generalSettings.ssoSettings.enabled && generalSettings.ssoSettings.protocol == 'SPNEGO'">
+                <div class="control-group">
+                    <label for="" class="control-label">Setup mode</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="generalSettings.ssoSettings.spnegoMode" ng-options="x[0] as x[1] for x in [['PREAUTH_KEYTAB', 'Service keytab'],['CUSTOM_LOGIN_CONF', 'Custom JAAS login.conf']]"/>
+                    </div>
+                </div>
+
+                <div class="control-group" ng-show="generalSettings.ssoSettings.spnegoMode == 'PREAUTH_KEYTAB'">
+                    <label for="" class="control-label">Keytab location</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ssoSettings.spnegoPreauthKeytab" placeholder="Absolute path" />
+                    </div>
+                </div>
+                <div class="control-group" ng-show="generalSettings.ssoSettings.spnegoMode == 'PREAUTH_KEYTAB'">
+                    <label for="" class="control-label">Principal</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ssoSettings.spnegoPreauthPrincipal" placeholder="Generally: HTTP/host@REALM" />
+                    </div>
+                </div>
+
+                <div class="control-group" ng-show="generalSettings.ssoSettings.spnegoMode == 'CUSTOM_LOGIN_CONF'">
+                    <label for="" class="control-label">login.conf location</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ssoSettings.spnegoLoginConfFile" placeholder="Absolute path" />
+                    </div>
+                </div>
+
+                <div class="control-group" ng-show="generalSettings.ssoSettings.spnegoMode == 'CUSTOM_LOGIN_CONF'">
+                    <label for="" class="control-label">Preauth username</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ssoSettings.spnegoPreauthLogin" placeholder="Can be empty" />
+                    </div>
+                </div>
+                <div class="control-group" ng-show="generalSettings.ssoSettings.spnegoMode == 'CUSTOM_LOGIN_CONF'">
+                    <label for="" class="control-label">Preauth password</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ssoSettings.spnegoPreauthPassword" placeholder="Can be empty" />
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="" class="control-label">krb5.conf file location</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.ssoSettings.spnegoKrb5File" placeholder="Absolute path" />
+                        <span class="help-inline">Optional, defaults to system location</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Strip realm</label>
+                    <div class="controls" >
+                        <input type="checkbox" ng-model="generalSettings.ssoSettings.spnegoStripRealm" />
+                        <span class="help-inline">Strip @REALM from principal to get login name</span>
+                    </div>
+                </div>
+
+            </fieldset>
+
+            <fieldset ng-if="generalSettings.ssoSettings.enabled">
+                <div class="control-group">
+                    <label for="" class="control-label">Login remapping rules</label>
+                    <div class="controls" >
+                        <ng2-key-values-list 
+                            [(items)]="generalSettings.ssoSettings.remappingRules" 
+                            add-label="Add Remapping Rule"
+                            key-placeholder="Regexp"
+                            value-placeholder="Replacement string"
+                            key-identifier="ruleFrom"
+                            value-identifier="ruleTo">
+                        </ng2-key-values-list>
+                        <span class="help-inline">In a regexp, use '()' to capture a substring. In a replacement string, use '$1' to retrieve a captured substring.</span>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+
+    <div class="section">
+        <h2 id="mus">User isolation</h2>
+
+        <div class="alert alert-error" ng-if="!appConfig.licensedFeatures.multiUserSecurityAllowed" >
+            <i class="icon-warning-sign" />Your license does not allow you to enable User Isolation
+        </div>
+
+        <div ng-if="appConfig.licensedFeatures.multiUserSecurityAllowed && !generalSettings.impersonation.enabled">
+            <div class="alert alert-info">User isolation is not enabled. Please see  <doclink page="/user-isolation/index" title="the documentation" /></div>
+        </div>
+
+        <div ng-if="appConfig.licensedFeatures.multiUserSecurityAllowed && generalSettings.impersonation.enabled">
+            <h3>User impersonation rules</h3>
+
+            <form class="dkuform-horizontal" add-remove ng-model="generalSettings.impersonation.userRules">
+                <ul style="list-style: none" ui-sortable="{axis:'y', cursor: 'move', handle: '.handle'}" ng-model="generalSettings.impersonation.userRules">
+                    <li ng-repeat="rule in generalSettings.impersonation.userRules" class="repeatable-config-block">
+
+                        <a class="close pull-right text-danger" ng-click="remove($index)"> <i class="icon-trash" /></a>
+
+                        <div class="horizontal-flex">
+                            <span class="handle noflex center-children" style="font-size: 20px;margin-right: 20px; color: #777; cursor:move;">&vellip;&vellip;</span>
+                            <div class="flex">
+                                <div class="control-group">
+                                    <label class="control-label">Rule type</label>
+                                    <div class="controls">
+                                        <select ng-model="rule.type">
+                                            <option value="IDENTITY">One-to-one mapping</option>
+                                            <option value="SINGLE_MAPPING">Single user mapping</option>
+                                            <option value="REGEXP_RULE">Pattern matching</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="control-group">
+                                    <label class="control-label">Applies to</label>
+                                    <div class="controls">
+                                        <select ng-model="rule.scope">
+                                            <option value="GLOBAL">All projects</option>
+                                            <option value="PROJECT">A single project</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="rule.scope == 'PROJECT'">
+                                    <label class="control-label">Project key</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="rule.projectKey" />
+                                    </div>
+                                </div>
+
+                                <div class="control-group" ng-show="rule.type == 'REGEXP_RULE'">
+                                    <label class="control-label">Matching pattern</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="rule.ruleFrom" />
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="rule.type == 'REGEXP_RULE'">
+                                    <label class="control-label">Replacement (UNIX)</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="rule.targetUnix" />
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="rule.type == 'REGEXP_RULE'">
+                                    <label class="control-label">Replacement (Hadoop)</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="rule.targetHadoop" />
+                                        <span class="help-inline">Leave blank to use same as Unix</span>
+                                    </div>
+                                </div>
+
+                                <div class="control-group" ng-show="rule.type == 'SINGLE_MAPPING'">
+                                    <label class="control-label">DSS user</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="rule.dssUser" />
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="rule.type == 'SINGLE_MAPPING'">
+                                    <label class="control-label">Target user (UNIX)</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="rule.targetUnix" />
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="rule.type == 'SINGLE_MAPPING'">
+                                    <label class="control-label">Target user (Hadoop)</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="rule.targetHadoop" />
+                                        <span class="help-inline">Leave blank to use same as Unix</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                </ul>
+                <button class="btn btn--secondary" ng-click="add({'type': 'SINGLE_MAPPING', 'scope' : 'GLOBAL'})">Add</button>
+            </form>
+
+            <h3>Group impersonation rules</h3>
+
+            <form class="dkuform-horizontal" add-remove ng-model="generalSettings.impersonation.groupRules" >
+                <ul style="list-style: none" ui-sortable="{axis:'y', cursor: 'move', handle: '.handle'}" ng-model="generalSettings.impersonation.groupRules">
+                    <li ng-repeat="rule in generalSettings.impersonation.groupRules" class="repeatable-config-block">
+
+                        <a class="close pull-right text-danger" ng-click="remove($index)"> <i class="icon-trash" /></a>
+
+                        <div class="horizontal-flex">
+                            <span class="handle noflex center-children" style="font-size: 20px;margin-right: 20px; color: #777; cursor:move;">&vellip;&vellip;</span>
+                            <div class="flex">
+
+                            <div class="control-group">
+                                <label class="control-label">Rule type</label>
+                                <div class="controls">
+                                    <select ng-model="rule.type">
+                                        <option value="IDENTITY">One-to-one mapping</option>
+                                        <option value="SINGLE_MAPPING">Single group mapping</option>
+                                        <option value="REGEXP_RULE">Pattern matching</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="control-group" ng-show="rule.type == 'REGEXP_RULE'">
+                                <label class="control-label">Matching pattern</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="rule.ruleFrom" />
+                                </div>
+                            </div>
+                            <div class="control-group" ng-show="rule.type == 'REGEXP_RULE'">
+                                <label class="control-label">Replacement (UNIX)</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="rule.targetUnix" />
+                                </div>
+                            </div>
+                             <div class="control-group" ng-show="rule.type == 'REGEXP_RULE'">
+                                <label class="control-label">Replacement (Hadoop)</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="rule.targetHadoop" />
+                                    <span class="help-inline">Leave blank to use same as Unix</span>
+                                </div>
+                            </div>
+
+                            <div class="control-group" ng-show="rule.type == 'SINGLE_MAPPING'">
+                                <label class="control-label">DSS group</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="rule.dssGroup" />
+                                </div>
+                            </div>
+                            <div class="control-group" ng-show="rule.type == 'SINGLE_MAPPING'">
+                                <label class="control-label">Target group (UNIX)</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="rule.targetUnix" />
+                                </div>
+                            </div>
+                            <div class="control-group" ng-show="rule.type == 'SINGLE_MAPPING'">
+                                <label class="control-label">Target group (Hadoop)</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="rule.targetHadoop" />
+                                    <span class="help-inline">Leave blank to use same as Unix</span>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <button class="btn btn--secondary" ng-click="add({'type': 'SINGLE_MAPPING', 'scope' : 'GLOBAL'})">Add</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2 id="other">Webapps</h2>
+        <form class="dkuform-horizontal">
+            <h3 id="ldap-connection">Authentication cookie</h3>
+            <div class="control-group">
+                <label for="" class="control-label">Hide access token</label>
+                <div class="controls" >
+                    <label>
+                        <input type="checkbox" ng-model="generalSettings.webAppSecuritySettings.disableAccessToken" />
+                        <span class="help-inline">Prevent webapps backend code from receiving the user's access token cookie. This reduces the power of the webapps code, but makes it impossible for webapps to retrieve user secrets in the name of the final user (this can be achieved through webapps impersonation)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="control-group" ng-if="generalSettings.webAppSecuritySettings.disableAccessToken">
+                <label for="" class="control-label">Webapps whitelist</label>
+                <div class="controls" >
+                    <ng2-values-list [(items)]="generalSettings.webAppSecuritySettings.accessTokenWhitelist" add-label="Add" value-placeholder="PROJECTKEY.webAppId"></ng2-values-list>
+                    <span class="help-inline">Webapps identifiers (PROJECTKEY.webappid) for which the access token should be kept. These webapps will be able to perform impersonated API calls in the name of the final user.</span>
+                </div>
+            </div>
+            <h3 id="ldap-connection">Authenticated webapps</h3>
+            <div class="control-group">
+                <label for="" class="control-label">Authentication mode</label>
+                <div class="controls" >
+                    <label>
+                        <select dku-bs-select ng-model="generalSettings.webAppSecuritySettings.requiredAuthenticationMode" ng-options="x[0] as x[1] for x in [['ALL_BUT_ADMIN_WHITELIST', 'Require authentication for all webapps (except whitelisted)'],['LET_USER_DECIDE', 'Allow webapp authors to decide']]" />
+                        <span class="help-inline">Defines whether webapp authors can make their webapps public (without authentication), or whether only admin can allow this. If a webapp  doesn't require authentication, it may not be able to identify final user, nor to perform impersonated API calls on his behalf</span>
+                    </label>
+                </div>
+            </div>
+            <div class="control-group" ng-if="generalSettings.webAppSecuritySettings.requiredAuthenticationMode == 'ALL_BUT_ADMIN_WHITELIST'">
+                <label for="" class="control-label">Public webapps</label>
+                <div class="controls" >
+                    <ng2-values-list [(items)]="generalSettings.webAppSecuritySettings.requiredAuthenticationWhitelist" add-label="Add" value-placeholder="PROJECTKEY.webAppId"></ng2-values-list>
+                    <span class="help-inline">Whitelist of webapps identifiers (PROJECTKEY.webappid) that are allowed to be public (without authentication)</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Redirects mode</label>
+                <div class="controls" >
+                    <label>
+                        <select dku-bs-select ng-model="generalSettings.webAppSecuritySettings.redirectMode" ng-options="x[0] as x[1] for x in [['DEFAULT', 'Default Nginx redirects'],['RELATIVE_URL', 'Use relative redirects'],['USE_STUDIO_URL', 'Use the external DSS URL for absolute redirects']]" options-descriptions="['Recommended when DSS is accessed directly (ie. not via a reverse proxy)', 'Recommended when DSS is accessed via a reverse proxy', 'The DSS URL is defined in Notifications &amp; Integrations']" layout="list"/>
+                        <span class="help-inline">Public webapps may need to redirect to the actual weabpp root URL (changes take effect after restarting the webapps)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Vanity URLs</label>
+                <div class="controls" >
+                    <ng2-key-values-list
+                             [(items)]="generalSettings.webAppSecuritySettings.vanityURLs"
+                             add-label="Add"
+                             key-placeholder="Webapp identifier (PROJECTKEY.webappid)"
+                             value-placeholder="Prefix">
+                    </ng2-key-values-list>
+                    <span class="help-inline">Allows making webapps available on nicer URLs, as a subpath of /public-webapps/</span>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <div class="section">
+        <h2 id="other">Other security settings</h2>
+        <form class="dkuform-horizontal">
+            <div class="control-group" ng-if="generalSettings.impersonation.enabled">
+                <label for="" class="control-label">Use Hadoop delegation tokens</label>
+                <div class="controls" >
+                    <label>
+                        <input type="checkbox" ng-model="generalSettings.impersonation.useHadoopDelegationTokens" />
+                        <span class="help-inline"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Case-sensitive logins</label>
+                <div class="controls" >
+                    <input type="checkbox" ng-model="generalSettings.security.caseSensitiveLogins" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Encrypt secret keys</label>
+                <div class="controls" >
+                    <input type="checkbox" ng-model="generalSettings.security.secureSecretKeys" />
+                    <span class="help-inline">For connections using secret keys, like EC2</span>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

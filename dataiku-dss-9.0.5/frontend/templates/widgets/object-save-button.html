@@ -1,0 +1,41 @@
+<span ng-if="$root.projectSummary.canWriteProjectContent || canWriteOverride">
+    <span ng-if="!isDirty">
+        <button disabled class="btn btn--outline btn--primary" > <i class="icon-save" />&nbsp;Saved!
+        </button>
+    </span>
+    <span ng-if="isDirty && !canSave">
+        <button disabled class="btn btn--outline btn--primary"> <i class="icon-save" />&nbsp;Can't save
+        </button>
+    </span>
+    <span ng-if="isDirty && canSave && $root.projectSummary.commitMode != 'ALL_EXPLICIT' && (objectType != 'RECIPE' || $root.projectSummary.commitMode != 'RECIPES_EXPLICIT')">
+        <span class="btn-group">
+            <button class="btn btn--outline btn--primary qa_generic_save-button" ng-click="save()" >
+                <i class="icon-save"></i>
+                &nbsp;Save
+            </button>
+            <button class="btn btn--outline btn--primary btn--icon" data-toggle="dropdown">
+                <i class="icon-caret-down" />
+            </button>
+            <ul class="dropdown-menu {{ dropdownAlignRight ? 'pull-right text-left' : '' }}">
+                <li>
+                    <a ng-click="saveWithCustomCommitMessage()">
+                        Save with custom commit message
+                    </a>
+                </li>
+            </ul>
+        </span>
+    </span>
+    <span ng-if="$root.projectSummary.commitMode == 'ALL_EXPLICIT' || (objectType == 'RECIPE' && $root.projectSummary.commitMode == 'RECIPES_EXPLICIT')">
+        <span ng-if="isDirty && canSave">
+            <button class="btn btn--outline btn--primary" ng-click="save()" >
+                <i class="icon-save"></i>
+                &nbsp;Save
+            </button>
+        </span>
+        <span>
+            <button class="btn btn--success" ng-click="commit()">
+                Commit
+            </button>
+        </span>
+    </span>
+</span>

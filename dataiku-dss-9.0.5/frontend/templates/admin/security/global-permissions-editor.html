@@ -1,0 +1,227 @@
+<div class="control-group">
+    <label class="control-label" for="adminInput">Administrator</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.admin" id="adminInput" />
+            <span class="help-inline">Grants all permissions on all scopes</span>
+        </label>
+    </div>
+</div>
+
+<h3> Projects creation</h3>
+
+<div class="control-group">
+    <label class="control-label" for="mayCreateProjectsInput">Create projects</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayCreateProjects" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayCreateProjectsInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users create their own projects (blank project, duplication, import)?</span>
+        </label>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="mayCreateProjectsFromMacrosInput">Create projects using macros</label>
+    <div class="controls">
+        <label for="mayCreateProjectsFromMacrosInput">
+            <input type="checkbox" ng-show="permissions.$mayCreateProjectsFromMacrosDisabled" checked disabled />
+            <input type="checkbox" ng-hide="permissions.$mayCreateProjectsFromMacrosDisabled" ng-model="permissions.mayCreateProjectsFromMacros" id="mayCreateProjectsFromMacrosInput" />
+            <span class="help-inline">Can these users create projects using a predefined macro?</span>
+        </label>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="mayCreateProjectsFromTemplatesInput">Create projects using templates</label>
+    <div class="controls">
+        <label for="mayCreateProjectsFromTemplatesInput">
+            <input type="checkbox" ng-show="permissions.$mayCreateProjectsFromTemplatesDisabled" checked disabled />
+            <input type="checkbox" ng-hide="permissions.$mayCreateProjectsFromTemplatesDisabled" ng-model="permissions.mayCreateProjectsFromTemplates" id="mayCreateProjectsFromTemplatesInput" />
+            <span class="help-inline">Can these users create projects using predefined templates, samples, tutorials?</span>
+        </label>
+    </div>
+</div>
+
+<!--
+<div class="control-group">
+    <label class="control-label" for="mayCreateProjectsFromDataikuAppsInput">Instantiate Dataiku Applications</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayCreateProjectsFromDataikuApps" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayCreateProjectsFromDataikuAppsInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users create projects by instantiating a Dataiku Application?</span>
+        </label>
+    </div>
+</div>
+-->
+
+<div class="control-group">
+    <label class="control-label" for="mayWriteInRootProjectFolderInput">Write in root project folder</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayWriteInRootProjectFolder" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayWriteInRootProjectFolderInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users edit root project folder metadata and create projects and subfolders inside it?</span>
+        </label>
+    </div>
+</div>
+
+
+<h3>Code execution</h3>
+
+<div class="control-group" ng-if="$root.appConfig.impersonationEnabled">
+    <label class="control-label" for="mayWriteSafeCodeInput">Write isolated code</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayWriteSafeCode" ng-hide="permissions.admin || permissions.mayWriteUnsafeCode" ng-disabled="permissions.admin" id="mayWriteSafeCodeInput" />
+            <input type="checkbox" ng-show="permissions.admin || permissions.mayWriteUnsafeCode" disabled checked />
+            <span class="help-inline">Can these users run local code (Python, R) which runs with impersonation isolation, through the User Isolation Framework?</span>
+        </label>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="mayWriteUnsafeCodeInput">Write unisolated code</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayWriteUnsafeCode" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayWriteUnsafeCodeInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline" ng-if="$root.appConfig.impersonationEnabled">Can these users run local code (Python, R) which runs <strong>without</strong> impersonation isolation?. Hostile users with this permission may circumvent the permissions system.</span>
+            <span class="help-inline" ng-if="!$root.appConfig.impersonationEnabled">Can these users run local code (Python, R) which runs as DSS service user? Hostile users with this permission may circumvent the permissions system.</span>
+        </label>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="mayCreateActiveWebContentInput">Create active Web content</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayCreateActiveWebContent" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayCreateActiveWebContentInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users author Web content that is able to execute Javascript when viewed by other users? This includes webapps, Jupyter notebooks and RMarkdown reports</span>
+        </label>
+    </div>
+</div>
+
+<h3>Code envs &amp; Dynamic clusters</h3>
+
+<div class="control-group">
+    <label class="control-label" for="mayManageCodeEnvsInput">Manage all code envs</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayManageCodeEnvs" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayManageCodeEnvsInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users manage all code envs?</span>
+        </label>
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" for="mayCreateCodeEnvsInput">Create code envs</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayCreateCodeEnvs" ng-hide="permissions.admin || permissions.mayManageCodeEnvs" ng-disabled="permissions.admin" id="mayCreateCodeEnvsInput" />
+            <input type="checkbox" ng-show="permissions.admin || permissions.mayManageCodeEnvs" disabled checked />
+            <span class="help-inline">Can these users create new code envs?</span>
+        </label>
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" for="mayManageClustersInput">Manage all clusters</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayManageClusters" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayManageClustersInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users manage all clusters?</span>
+        </label>
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" for="mayCreateClustersInput">Create clusters</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayCreateClusters" ng-hide="permissions.admin || permissions.mayManageClusters" ng-disabled="permissions.admin" id="mayCreateClustersInput" />
+            <input type="checkbox" ng-show="permissions.admin || permissions.mayManageClusters" disabled checked />
+            <span class="help-inline">Can these users create new clusters?</span>
+        </label>
+    </div>
+</div>
+
+<h3>Advanced permissions</h3>
+
+<div class="control-group">
+    <label class="control-label" for="mayDevelopPluginsInput">Develop plugins</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayDevelopPlugins" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayDevelopPluginsInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users create and edit development plugins? Hostile users with this permission may circumvent the permissions system.</span>
+        </label>
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" for="mayEditLibFoldersInput">Edit lib folders</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayEditLibFolders" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayEditLibFoldersInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users edit the global Python & R libraries and the static web resources in the DSS instance? Hostile users with this permission may circumvent the permissions system.</span>
+        </label>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="mayCreateAuthenticatedConnectionsInput">Create personal connections</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayCreateAuthenticatedConnections" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayCreateAuthenticatedConnectionsInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users create personal connections? Does not include FS connections</span>
+        </label>
+    </div>
+</div>
+
+
+<div class="control-group">
+    <label class="control-label" for="mayViewIndexedHiveConnections">View indexed Hive connections</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayViewIndexedHiveConnections" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayViewIndexedHiveConnections" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users view indexed Hive connections in the catalog?</span>
+        </label>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="mayManageUDMInput">Manage user-defined meanings</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayManageUDM" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayManageUDMInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users create/delete global UDMs?</span>
+        </label>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="mayCreatePublishedAPIServicesInput">Create published API services</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayCreatePublishedAPIServices" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayCreatePublishedAPIServicesInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users create a published API service?</span>
+        </label>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="mayCreatePublishedProjectsInput">Create published projects</label>
+    <div class="controls">
+        <label>
+            <input type="checkbox" ng-model="permissions.mayCreatePublishedProjects" ng-hide="permissions.admin" ng-disabled="permissions.admin" id="mayCreatePublishedProjectsInput" />
+            <input type="checkbox" ng-show="permissions.admin" disabled checked />
+            <span class="help-inline">Can these users create a published project?</span>
+        </label>
+    </div>
+</div>

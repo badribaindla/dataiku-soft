@@ -1,0 +1,102 @@
+<div data-extend-template="/templates/object-details/item-template.html" ng-controller="StreamingEndpointDetailsController as ctrl">
+
+    <div data-block="item-header"
+        item-header color="dataset"
+        icon="{{data.type |datasetTypeToIcon}}"
+        title="{{data.id}}"
+        href="StateUtils.href.streamingEndpoint(data.id, data.projectKey)"
+        >
+        {{data.id}}
+    </div>
+
+    <div data-block-append="left">
+    </div>
+
+    <div data-block="right">
+        <!-- Recipes -->
+        <div class="accordion" ng-if="data.creatingRecipe || data.creatingContinuousRecipe || data.recipes.length" dku-foldable dku-foldable-right-panel name="details.recipes" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Recipes <em>({{(data.creatingRecipe || data.creatingContinuousRecipe ? 1 : 0) + data.recipes.length}})</em>
+            </h4>
+            <ul ng-show="foldableOpen">
+                <li ng-if="data.creatingRecipe"
+                    class="horizontal-flex"
+                    >
+                    <span class="mx-textellipsis flex">
+                        <i class="object-icon universe-color {{data.creatingRecipe.type |recipeTypeToIcon}} {{data.creatingRecipe.type |recipeTypeToColor}}"></i>
+                        <a href="{{StateUtils.href.recipe(data.creatingRecipe.name, data.creatingRecipe.projectKey)}}">{{data.creatingRecipe.name}}</a>
+                    </span>
+                    <span class="info noflex">
+                        parent recipe
+                    </span>
+                </li>
+                <li ng-if="data.creatingContinuousRecipe"
+                    class="horizontal-flex"
+                    >
+                    <span class="mx-textellipsis flex">
+                        <i class="object-icon universe-color {{data.creatingContinuousRecipe.type |recipeTypeToIcon}} {{data.creatingContinuousRecipe.type |recipeTypeToColor}}"></i>
+                        <a href="{{StateUtils.href.recipe(data.creatingContinuousRecipe.name, data.creatingContinuousRecipe.projectKey)}}">{{data.creatingContinuousRecipe.name}}</a>
+                    </span>
+                    <span class="info noflex">
+                        parent continuous recipe
+                    </span>
+                </li>
+                <li ng-repeat="recipe in data.recipes"
+                    >
+                    <span class="mx-textellipsis">
+                        <i class="object-icon universe-color {{recipe.type |recipeTypeToIcon}} {{recipe.type |recipeTypeToColor}}"></i>
+                        <a href="{{StateUtils.href.recipe(recipe.name, recipe.projectKey)}}">{{recipe.name}}</a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Custom Fields -->
+        <div custom-fields-in-side-panel ng-if="appConfig.customFieldsMap[objectType].length > 0 && object && object.customFields" custom-fields="object.customFields" object-type="objectType" save-fn="saveCustomFields" edit-custom-fields="editCustomFields" editable="canWriteProject()"></div>
+
+
+        <!-- Checklists -->
+        <div class="accordion" ng-if="editable || object.checklists.checklists.length > 0" dku-foldable dku-foldable-right-panel="details.checklists" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Todo Lists <em ng-if="object.checklists.checklists.length > 0">({{ object.checklists.checklists.length }})</em>
+            </h4>
+            <div ng-show="foldableOpen" style="padding:0 15px;">
+                <div ng-repeat="x in object.checklists.checklists">
+                    <div class="checklist">
+                        <div class="pull-right">
+                            <a class="link-danger" ng-click="deleteChecklist($index)"
+                                title="Delete todo list"
+                                style="display:inline-block;margin: 10px;"
+                                ng-if="editable">
+                                <i class="icon-trash" />
+                            </a>
+                        </div>
+                        <h4 class="checklist-title">
+                            <div ng-if="!x.editingTitle">
+                                {{x.title}}
+                                <a class="link-std edit-button" ng-click="startEditChecklistTitle(x)" ng-if="editable">
+                                    <i class="icon-pencil" />
+                                </a>
+                            </div>
+                            <div ng-if="x.editingTitle" class="common-styles-only">
+                                <input type="text" ng-model="state.checklistTitle.newVal" placeHolder="New name" required />
+                                <div style="margin-top: 3px">
+                                    <button class="btn btn--success" ng-click="validateChecklistTitleEdit()">Save</button>
+                                    <button class="btn btn--secondary" ng-click="cancelChecklistTitleEdit()">Cancel</button>
+                                </div>
+                            </div>
+                        </h4>
+                        <p> <span ng-bind-html="x|singleChecklistState" /></p>
+                        <div object-checklist checklist="x" items-only="true" read-only="!editable" />
+                    </div>
+                </div>
+                <div ng-if="editable" class="new-checklist"
+                    style="margin-top: 15px; margin-bottom: 15px">
+                    <a class="std-greylink" ng-click="addChecklist()">
+                        Add a todo list
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

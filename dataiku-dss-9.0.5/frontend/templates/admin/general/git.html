@@ -1,0 +1,101 @@
+<div class="paned-settings-page-pane">
+    <h1>Git</h1>
+
+    <div class="section">
+        <h2>Security configuration</h2>
+
+        <h3>Group rules</h3>
+
+        <div class="dkuform-horizontal" add-remove ng-model="generalSettings.git.enforcedConfigurationRules">
+            <ul style="list-style: none" ui-sortable="{axis:'y', cursor: 'move', handle: '.handle'}" ng-model="generalSettings.git.enforcedConfigurationRules">
+                <li ng-repeat="rule in generalSettings.git.enforcedConfigurationRules" class="repeatable-config-block">
+
+                    <a class="close pull-right text-danger" ng-click="remove($index)"> <i class="icon-trash" /></a>
+
+                    <div class="horizontal-flex">
+                        <span class="handle noflex center-children" style="font-size: 20px;margin-right: 20px; color: #777; cursor:move;">&vellip;&vellip;</span>
+                        <div class="flex">
+                            <div class="control-group">
+                                <label class="control-label">Group</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="rule.groupName" />
+                                    <span class="help-inline">
+                                        Group to which this configuration rule applies. Leave empty for a "catch-all" group. Such a catch-all rule should always be present as the last rule
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">Allow git</label>
+                                <div class="controls">
+                                    <label>
+                                        <input type="checkbox" ng-model="rule.allowGit" />
+                                        <span class="help-inline">
+                                            Enable this to allow Git usage for this group
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">URLs whitelist</label>
+                                <div class="controls">
+                                    <span class="help-inline">
+                                        List of Git remote URLs that may be cloned and fetched. Do not add
+                                        a "global" whitelist like <code>.*</code>. You can use something like
+                                        <code>^(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)?(\/?|\#[-\d\w._]+?)$</code>
+                                        to authorize "really remote" URLs. See documentation for more details.
+                                    </span>
+                                    <ng2-values-list 
+                                        [(items)]="rule.remoteWhitelist" 
+                                        [full-width-list]="true"
+                                        add-label="Add a regular expression" 
+                                        value-placeholder="A regular expression">
+                                    </ng2-values-list>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">Configuration options</label>
+                                <div class="controls" ng-init="rule.gitConfigurationOptions = rule.gitConfigurationOptions || []">
+                                    <editable-list ng-model="rule.gitConfigurationOptions" add-label="Add Git Configuration" template="{key: '', value: ''}">
+                                        <editable-list-input type="text" ng-model="it.key" placeholder="Configuration key" required="true" disable-form-validation="true"/>
+                                        <i class="editable-list__arrow-icon icon-long-arrow-right"></i>
+                                        <input type="text" class="editable-list__input" ng-model="it.value" placeholder="Configuration value"/>
+                                    </editable-list>
+                                    <span class="help-inline">
+                                        List of Git configuration keys and values that will apply for this group
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">Let DSS control SSH command</label>
+                                <div class="controls">
+                                     <label>
+                                        <input type="checkbox" ng-model="rule.dssControlsSSHCommand" />
+                                        <span class="help-inline">
+                                            If enabled, DSS will add some options to the SSH command line.
+                                            Disable this if you intend to override core.sshCommand in the Git configurations. 
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">Alternate home dir</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="rule.alternateHomeDir" />
+                                    <span class="help-inline">
+                                        Location of a folder containing a .gitconfig to override completely the Git configuration
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <button type="button" class="btn btn--primary btn--text" ng-click="add({'type': 'SINGLE_MAPPING', 'scope' : 'GLOBAL'})"><i plus-icon /> Add Group</button>
+        </div>
+    </div>
+</div>

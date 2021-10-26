@@ -1,0 +1,61 @@
+<div class="design-tab-title">Outliers Detection</div>
+<div class="doctor-settings-page h100">
+    <div class="doctor-explanation" style="margin-bottom: 10px">
+        <p>
+            When performing clustering, it is generally recommended to <strong>detect outliers</strong>. Not doing so could generate very skewed clusters, or many small clusters and one cluster containing almost the whole dataset.
+        </p>
+
+        <p>
+            DSS detects outliers by performing a pre-clustering with a large number of clusters and considering the smallest "mini-clusters" as outliers, if:
+        </p>
+        <ul>
+            <li>
+                their cluster size is less than a specified threshold (ex: 10)
+            </li>
+            <li>
+                their cumulative percentage is less than a specified threshold (ex: 1%)
+            </li>
+        </ul>
+        <p>
+            Once outliers are detected, you can either:
+            <ul>
+                <li>Drop: outliers are dropped.</li>
+                <li>Cluster: create a "cluster" from all detected outliers.</li>
+            </ul>
+            Note that this may increase training time significantly.
+        </p>
+    </div>
+
+    <form class="dkuform-horizontal">
+        <div class="control-group">
+            <label class="control-label">Outliers handling method</label>
+            <div class="controls">
+                <select dku-bs-select
+                    ng-model="mlTaskDesign.preprocessing.outliers.method"
+                    ng-options="item[0] as item[1] for item in outliersMethods"></select>
+            </div>
+        </div>
+
+        <fieldset ng-hide="mlTaskDesign.preprocessing.outliers.method == 'NONE'">
+            <div class="alert alert-warning" ng-show="mlTaskDesign.backendType == 'MLLIB'">
+                <strong>Warning: </strong> this may slow down training significantly on an MLLib backend.
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Mini-cluster size threshold</label>
+                <div class="controls">
+                    <input
+                        type="text"
+                        ng-model="mlTaskDesign.preprocessing.outliers.min_n" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Mini-clusters cum. % threshold</label>
+                <div class="controls">
+                    <input type="number" convert-percentage min="0" max="100" step="1" ng-model="mlTaskDesign.preprocessing.outliers.min_cum_ratio" />
+                    <div class="help-inline">Should usually not be higher than 10%</div>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</div>

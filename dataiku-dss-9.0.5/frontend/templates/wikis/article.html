@@ -1,0 +1,117 @@
+<div class="vertical-flex h100">
+    <div block-api-error />
+
+    <div class="h100 empty-list-cta" ng-if="!article && articleNotFound" style="overflow: hidden;">
+        <p>
+            Article <strong>{{ articleNotFound }}</strong> does not exist yet.
+        </p>
+        <div>
+            <a disabled-if-ro="" class="btn btn--contained btn--large btn--wiki" ng-click="newArticle(articleNotFound)">
+                <span plus-icon />
+                &nbsp;Create the article
+            </a>
+        </div>
+    </div>
+
+    <div class="h100" ng-if="article" class="wiki-article-page">
+        <div class="wiki-article-nav" ng-if="!isFullScreen()">
+            <div class="row-fluid object-nav">
+                <div class="pull-right" style="margin-top: 6px; margin-right: 10px;">
+                    <a class="tab"
+                        dku-fw500-width ng-class="{'enabled': $state.current.name == 'projects.project.wiki.article.view'}"
+                        href="{{StateUtils.href.article($stateParams.articleId, $stateParams.projectKey, { articleName: $stateParams.articleName })}}"
+                        text-content="{{ isDirty() ? 'Preview' : 'View' }}">
+                        {{ isDirty() ? 'Preview' : 'View' }}
+                    </a>
+                    <a class="tab"
+                        dku-fw500-width ng-class="{'enabled':$state.current.name == 'projects.project.wiki.article.edit'}"
+                        href="{{StateUtils.href.article($stateParams.articleId, $stateParams.projectKey, {tab: 'edit', articleName: $stateParams.articleName})}}"
+                        text-content="Edit"
+                        ng-if="isProjectAnalystRW()">
+                        Edit
+                    </a>
+                    <a class="tab"
+                        dku-fw500-width ng-class="{'enabled': $state.current.name == 'projects.project.wiki.article.history'}"
+                        href="{{StateUtils.href.article($stateParams.articleId, $stateParams.projectKey, {tab: 'history', articleName: $stateParams.articleName})}}"
+                        text-content="History">
+                        History
+                    </a>
+                    <div class="otherLinks">
+                        <div discussions-button />
+                        <div class="dropdown dib" ng-if="isProjectAnalystRW() || (appConfig.graphicsExportsEnabled && isProjectAnalystRO())">
+                            <button class="btn btn--secondary dropdown-toggle" id="qa_wiki_action-button" data-toggle="dropdown" href="#">
+                                Actions <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu pull-right text-left">
+                                <li>
+                                    <a href="#" ng-click="saveArticleLayout('WIKI_ARTICLE')" ng-if="article.layout != 'WIKI_ARTICLE' && isProjectAnalystRW()">
+                                        <i class="icon-align-left icon-fixed-width" /> Switch to article layout
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="saveArticleLayout('FOLDER')" ng-if="article.layout == 'WIKI_ARTICLE' && isProjectAnalystRW()">
+                                        <i class="icon-list icon-fixed-width" /> Switch to folder layout
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="startChangeArticleParent($stateParams.articleId)" ng-if="isProjectAnalystRW()">
+                                        <i class="icon-level-up icon-fixed-width icon-flip-horizontal" /> Change parent article
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="setHomeArticle($stateParams.articleId)" ng-if="isProjectAnalystRW()">
+                                        <i class="icon-home icon-fixed-width" /> Set home article
+                                    </a>
+                                </li>
+                                <li ng-if="appConfig.customFieldsPluginComponentRefs.length && isProjectAnalystRW()">
+                                    <a href="#" ng-click="editCustomFields()">
+                                        <i class="icon-dku-fields icon-fixed-width" /> Edit metadata
+                                    </a>
+                                </li>
+                                <li ng-if="appConfig.graphicsExportsEnabled">
+                                    <a href="#" ng-click="startExportArticle($stateParams.articleId)">
+                                        <i class="icon-dku-download icon-fixed-width" /> Export to PDF
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="startCopyArticle($stateParams.articleId)" ng-if="isProjectAnalystRW()">
+                                        <i class="icon-copy icon-fixed-width" /> Copy
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="startRenameArticle($stateParams.articleId)" ng-if="isProjectAnalystRW()">
+                                        <i class="icon-pencil icon-fixed-width" /> Rename
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="deleteArticles([article])" ng-if="isProjectAnalystRW()">
+                                        <span class="text-error">
+                                            <i class="icon-trash icon-fixed-width" /> Delete
+                                        </span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="wiki-article-nav-header horizontal-flex" title="{{article.name || articleNotFound}}" class="dib">
+                    <span class="wiki-article-nav-header-title flex">{{article.name || articleNotFound}}</span>
+                    <span class="wiki-article-nav-header-actions noflex">
+                        <watch-interest status="interest.watching"
+                                        on-toggle="watchObject(nextStatus)"
+                        ></watch-interest>
+                        <star-interest status="interest.starred"
+                                       on-toggle="starObject(nextStatus)"
+                        ></star-interest>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="flex wiki-article-body">
+            <div class="h100" include-no-scope="/templates/wikis/article-history.html" ng-if="$state.current.name == 'projects.project.wiki.article.history'"></div>
+            <div class="h100" include-no-scope="/templates/wikis/article-view.html" ng-if="$state.current.name == 'projects.project.wiki.article.view'"></div>
+            <div class="h100" include-no-scope="/templates/wikis/article-edit.html" ng-show="$state.current.name == 'projects.project.wiki.article.edit'"></div>
+        </div>
+    </div>
+    <span id="wiki-export-toolbox-anchor"></span>
+</div>

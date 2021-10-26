@@ -1,0 +1,159 @@
+<div class="list-page-4 flex dss-home-page dashboards-home-page list-page--flat-design">
+    <div data-extend-template="/templates/layouts/list-items-2.html" class="vertical-flex h100 main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            {{ 'Insight' | plurify : selection.allObjects.length}}
+        </span>
+
+        <!--  NEW   -->
+        <div ng-if="canWriteDashboards()" data-block="newItem" class="noflex">
+            <a class="btn btn--secondary" ng-click="newInsight()">
+                <span plus-icon />&nbsp;New insight</a>
+        </div>
+
+        <div data-block="empty">
+            <h1>
+                No insight in this project
+            </h1>
+            <p>
+                Insights are the pieces of information that you can add on a dashboard.
+                <br />
+                (a chart, a dataset, a machine learning model's report, a notebook, ...)
+            </p>
+            <p class="small">
+                Create insights from any <a ui-sref="projects.project.dashboards.list">dashboard</a>.
+                <br />
+                <span doclink-wrapper page="dashboards/index">Read the documentation</span> to learn more.
+            </p>
+        </div>
+
+        <!-- CUSTOM FILTERS -->
+        <div data-block="additional-filter-owner" class="noflex list-page__filter">
+            <!-- Filtering on owners -->
+            <div custom-element-popup class="sort-box list-control-widget list-control-dropdown">
+                <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()" ng-disabled="owners.length == 0" >
+                    <span>
+                        <b ng-if="selection.inclusiveFilter.owner.length > 0">{{ selection.inclusiveFilter.owner.length }} </b>
+                        {{ 'Owner' | plurify: selection.inclusiveFilter.owner.length }}
+                    </span>
+                    <span class="caret"></span>
+                </button>
+                <div class="popover sort-box-menu checkable-items sort-box-menu--users">
+                    <ul class="sort-box-menu__users-list">
+                        <li ng-class="{'selected' : selection.inclusiveFilter.owner.length == 0}" ng-click="setOwnerFilter('');">
+                            <i class="sort-box-menu__icon icon-group"></i><span>All users</span>
+                        </li>
+                        <li ng-repeat="owner in owners" ng-class="{'selected' : selection.inclusiveFilter.owner.includes(owner.login) }" ng-click="setOwnerFilter(owner.login);">
+                            <span user-picture="owner.login"></span><span>{{owner.displayName}}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div data-block="additional-filter-type" class="noflex list-page__filter">
+            <!-- Filtering on types -->
+            <div custom-element-popup class="sort-box list-control-widget list-control-dropdown">
+                <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()" ng-disabled="types.length == 0" >
+                    <span>
+                        <b ng-if="selection.filterQuery.type.length > 0">{{ selection.filterQuery.type.length }} </b>
+                        {{ 'Type' | plurify: selection.filterQuery.type.length}}
+                    </span>
+                    <span class="caret"></span>
+                </button>
+                <div class="popover sort-box-menu checkable-items insight-type-list-popover">
+                    <ul>
+                        <li ng-repeat="type in types" ng-class="{'selected' : selection.filterQuery.type.includes(type) }" ng-click="setTypeFilter(type);">
+                            <i class="{{type | insightTypeToIcon}} {{type | insightTypeToColor}}"></i><span>{{type}}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div data-block="additional-filter-public" class="noflex sort-box">
+            <button class="btn btn--outline btn--no-background filter-promote" ng-class="{active: selection.filterQuery.listed}"
+                    ng-click="selection.filterQuery.listed = (selection.filterQuery.listed=='' ? true : '')" style="text-transform: none">
+                <i class="icon-dku-promote" /> Public
+            </button>
+        </div>
+
+        <!-- ITEM LAYOUT -->
+        <div data-block="item" class="insight-item h100">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)" ng-disabled="!canEditInsight(item)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" ng-disabled="!canEditInsight(item)"/>
+            </label>
+            <div class="hit h100" dataset="item">
+                <div class="illustration">
+                    <i class="insight-icon universe-background {{item.type | insightTypeToIcon}} {{item.type |insightTypeToColor}}" style="color: white"></i>
+                </div>
+                <div class="hitContent horizontal-flex h100">
+                    <div class="hit-content-main">
+                        <h4 class="hit-content-main__title">
+                            <a ui-sref="projects.project.dashboards.insights.insight.view({projectKey : $stateParams.projectKey, insightId :item.id, insightName: (item.name | slugify)})"
+                               show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.name | boldify:selection.filterParams.userQueryResult">
+                            </a>
+                            <span class="hit-content-main__interests">
+                                <star-interest status="item.interest.starred"
+                                               on-toggle="starObject(nextStatus, item)"
+                                ></star-interest>
+                                <watch-interest status="item.interest.watching"
+                                                on-toggle="watchObject(nextStatus, item)"
+                                ></watch-interest>
+                            </span>
+                        </h4>
+                        <div class="hit-content-main__subtitle">
+                            {{(item.type | insightTypeToDisplayableName) || (item.type | niceConst)}}
+                            <span ng-show="item.lastModifiedOn">
+                                | Modified {{ item.lastModifiedOn|friendlyTimeDeltaShort }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="hit-content__tags flex">
+                        <responsive-tags-list items="item.tags" tags-map="projectTagsMap" object-type="'INSIGHT'"></responsive-tags-list>
+                    </div>
+
+                    <div class="list-btn-wrapper noflex">
+                        <i class="icon-warning-sign"
+                           style="cursor: pointer;"
+                           ng-if="item.accessState != 'READER'"
+                           toggle="tooltip"
+                           container="body"
+                           title="{{item.accessState == 'ANALYST' ? 'Dashboard-only users can\'t see this' : ''}}"
+                           ng-click="openInsightAccessModal(item)"
+                        />
+                        <a ng-click="canModerateDashboards() && toggleInsightListed(item, list)"
+                           ng-class="{'disabled' : !canModerateDashboards(), 'listed' : item.listed}" class="list-btn"
+                           toggle="tooltip-bottom"
+                           title="{{item.listed ? (canModerateDashboards() ? 'Make this insight private' : 'This insight is visible to all users') : (canModerateDashboards() ? 'Make this insight visible to all users' : 'This insight is only yours to see')}}"
+                           container="body"
+                        >
+
+                            <span class="listed-status-label" ng-if="item.listed">
+                                <span ng-class="{'default' : canModerateDashboards()}">Public</span>
+                            </span>
+                            <span class="listed-status-label" ng-if="!item.listed">
+                                <span ng-class="{'default' : canModerateDashboards()}">Private</span>
+                            </span>
+                            <i ng-class="item.listed ? 'icon-dku-promote' : 'icon-dku-promote-empty'"></i>
+                        </a>
+
+
+                        <span class="list-btn"
+                              ng-class="{'pinned' : item.dashboardsIdsPinnedOn.length > 0, 'linked' : item.dashboardsIdsLinkedFrom.length > 0}"
+                              toggle="tooltip-bottom"
+                              title="{{item.dashboardsIdsPinnedOn.length + item.dashboardsIdsLinkedFrom.length > 0 ? (item.dashboardsIdsPinnedOn.length > 0 ? 'This insight is present on dashoard(s)' : 'This insight is linked from dashoard(s)' ) : 'This insight is used on no dashboard'}}"
+                              container="body">
+                            <i class="icon-dku-dashboard"></i>
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <standardized-side-panel page="objects_list" object-type="{{ (selection.selectedObjects.length <= 1) ? ((selection.selectedObject) ? 'INSIGHT' : '') : 'MULTI' }}" single-type="INSIGHT">
+    </standardized-side-panel>
+
+</div>

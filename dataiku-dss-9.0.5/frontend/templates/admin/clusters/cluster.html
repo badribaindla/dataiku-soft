@@ -1,0 +1,292 @@
+<div class="dss-page small-lr-padding page-top-padding cluster"  global-keydown="{'ctrl-s meta-s':'saveCluster()'}">
+    <div class="h100 row-fluid">
+        <div class="span2 offset0 nav-list-sidebar sidebar-admin" style="padding-top: 0;">
+            <div class="horizontal-flex" style="height: auto;">
+                <div class="flex mx-textellipsis">
+                    <h4 class="mx-textellipsis" title="{{cluster.name}}">{{cluster.name}}</h4>
+                </div>
+                <div class="noflex center-children" style="font-size: 14px; opacity: 0.8;" >
+                    <div custom-element-popup cep-position="align-right-bottom" close-on-click="true">
+                        <i class="icon-cog mainzone cursor-pointer" ng-click="togglePopover()"></i>
+                        <ul class="popover custom-element-popup-popover dropdown-menu">
+                            <li>
+                                <a ng-click="deleteCluster()"><i class="icon-trash"></i>&nbsp;Delete</a>
+                            </li>
+                            <li>
+                                <a ng-click="downloadClusterDiagnostic()"><i class="icon-download"></i>&nbsp;Download diagnostic</a>
+                            </li>
+                            <li ng-if="cluster.state == 'RUNNING'">
+                                <a ng-click="markStoppedCluster()">Mark as stopped</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <ul>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'info'}" full-click>
+                    <a ng-click="uiState.active = 'info'" main-click>General</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'usages'}" full-click ng-if="cluster.canUpdateCluster"> <!-- otherwise access to status is not available -->
+                    <a ng-click="uiState.active = 'usages'" main-click>Usages</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'permissions'}" full-click  ng-if="cluster.canManageUsersCluster">
+                    <a ng-click="uiState.active = 'permissions'" main-click>Permissions</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'hadoop'}" full-click ng-if="cluster.architecture == 'HADOOP'">
+                    <a ng-click="uiState.active = 'hadoop'" main-click>Hadoop</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'hive'}" full-click ng-if="cluster.architecture == 'HADOOP'">
+                    <a ng-click="uiState.active = 'hive'" main-click>Hive</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'impala'}" full-click ng-if="cluster.architecture == 'HADOOP'">
+                    <a ng-click="uiState.active = 'impala'" main-click>Impala</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'spark'}" full-click>
+                    <a ng-click="uiState.active = 'spark'" main-click>Spark</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'container'}" full-click ng-if="cluster.architecture == 'KUBERNETES'">
+                    <a ng-click="uiState.active = 'container'" main-click>Containerized execution</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'actions'}" full-click ng-if="cluster.canUpdateCluster"> <!-- otherwise access to status is not available -->
+                    <a ng-click="uiState.active = 'actions'" main-click>Actions</a>
+                </li>
+                <li ng-class="{'l1': true, 'active': uiState.active == 'log'}" full-click ng-if="cluster.type != 'manual'">
+                    <a ng-click="uiState.active = 'log'" main-click>Logs</a>
+                </li>
+            </ul>
+            <div class="horizontal-flex" style="margin-top: 20px; height: auto;"> <!-- no h100 as horizontal-flex does -->
+                <div ng-if="clusterIsDirty()" class="btn-group save-button flex" style="flex-basis: 50px;">
+                    <button class="btn btn--outline btn--primary btn--full" ng-click="saveCluster()">
+                        <i class="icon-save"></i>
+                        &nbsp;Save
+                    </button>
+                </div>
+                <div ng-if="!clusterIsDirty()" class="btn-group save-button flex" style="flex-basis: 50px;">
+                    <button class="btn btn--outline btn--primary btn--full" ng-disabled="true">
+                        <i class="icon-save"></i>
+                        &nbsp;Saved!
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="span10 h100 offset0 boxed-next-to-sidebar no-padding" ng-switch="uiState.active">
+            <div ng-switch-when="info" class="paned-settings-page-pane h100 oa" style="position: relative;">
+                <h1>General cluster info</h1>
+
+                <div class="section">
+                    <div block-api-error />
+                    <form class="dkuform-horizontal">
+                        <div class="control-group">
+                            <label for="" class="control-label">Owner</label>
+                            <div class="controls">
+                                <div>{{cluster.owner}}</div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="" class="control-label">Architecture</label>
+                            <div class="controls">
+                                <div>{{cluster.architecture}}</div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="" class="control-label">Created by</label>
+                            <div class="controls">
+                                <div ng-if="cluster.origin == null">N/A</div>
+                                <div ng-if="cluster.origin != null && cluster.origin.type == 'MANUAL'">
+                                    User {{cluster.origin.identifier}}
+                                </div>
+                                <div ng-if="cluster.origin != null && cluster.origin.type == 'SCENARIO'">
+                                    Scenario <a ui-sref="projects.project.scenarios.scenario.runs.list({projectKey: cluster.origin.scenarioProjectKey, scenarioId: cluster.origin.scenarioId})">{{cluster.origin.scenarioId}}</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="cluster.type != 'manual'">
+                            <label for="" class="control-label">State</label>
+                            <div class="controls">
+                                <strong class="{{getStateDisplayClass(cluster.state)}}">{{getStateDisplayString(cluster.state)}}</strong>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div ng-if="cluster.type != 'manual'" class="section">
+                    <h2>Configuration</h2>
+                    <div ng-if="cluster.type != 'manual'" class="params-form">
+                        <div cluster-params-form cluster-type="cluster.type" params="cluster.params"/>
+                    </div>
+                    <div ng-if="cluster.type != 'manual'" class="text-center">
+                        <button ng-if="cluster.state == 'NONE'" type="button" class="btn btn--primary btn--large" ng-disabled="isLongClusterOperationRunning" ng-click="startCluster()">Start/Attach</button>
+                        <button ng-if="cluster.state == 'RUNNING'" type="button" class="btn btn--danger btn--large" ng-disabled="isLongClusterOperationRunning" ng-click="stopCluster()">Stop/Detach</button>
+                    </div>
+
+                    <div ng-if="cluster.type != 'manual' && cluster.state == 'RUNNING'">
+                        <h3>Cluster data</h3>
+
+                        <pre class="debug">{{cluster.data | json}}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-switch-when="usages" class="paned-settings-page-pane h100 vertical-flex" style="position: relative;" ng-if="cluster.canUpdateCluster">
+                <h1>Cluster usage</h1>
+                <div block-api-error />
+                <div class="flex oa section" ng-if="clusterStatus && clusterStatus.usages.length">
+                    <div>
+                        <button type="button" class="btn btn--secondary pull-right" ng-click="refreshStatus()">Refresh</button>
+                    </div>
+                    <ul>
+                        <li ng-repeat="usage in clusterStatus.usages">
+                            <div ng-if="usage.scenarioId">
+                                Scenario <a ui-sref="projects.project.scenarios.scenario.runs.list({projectKey: usage.scenarioProjectKey, scenarioId: usage.scenarioId})">{{usage.scenarioId}}</a>
+                            </div>
+                            <div ng-if="!usage.scenarioId">
+                                Project <a ui-sref="projects.project.home.regular({projectKey:usage.projectKey})">{{usage.projectKey}}</a>
+                            </div>
+                        </li>
+                    </ul>
+                    <div>
+                        <span ng-if="clusterStatus.otherProjectUsagesCount > 0 || clusterStatus.otherScenarioUsagesCount > 0"> + <strong>{{clusterStatus.otherProjectUsagesCount}}</strong> projects and <strong>{{clusterStatus.otherScenarioUsagesCount}}</strong> scenarios</span>
+                    </div>
+                </div>
+                <div class="flex empty-list-cta section" ng-if="!clusterStatus || clusterStatus.usages.length == 0">
+                     <div ng-if="clusterStatus.error" api-error-alert="clusterStatus.error" />
+                     <h1>
+                        No project or scenario is using this cluster
+                    </h1>
+                    <p>Projects can attach themselves to a cluster in their settings</p>
+                    <div>
+                        <a class="btn btn--secondary btn--large" ng-click="refreshStatus()">
+                            <i class="icon-refresh" ></i>&nbsp;Refresh
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+             <div ng-switch-when="actions" class="h100 oa paned-settings-page-pane" style="position: relative;" ng-if="cluster.canUpdateCluster">
+                 <div class="actions-form">
+                    <div cluster-actions-form cluster-id="cluster.id" cluster-type="cluster.type" params="cluster.params"/>
+                </div>
+             </div>
+
+            <div ng-switch-when="permissions" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Permissions</h1>
+                <div class="section">
+                    <div block-api-error />
+                    <div cluster-security-permissions cluster="cluster" />
+                </div>
+            </div>
+
+            <div ng-switch-when="hadoop" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Hadoop</h1>
+                <div ng-show="cluster.type != 'manual'" class="alert alert-warning">
+                     This is a managed cluster, you should generally not modify these settings. Changing these settings may make this cluster unusable. Modification may also be forbidden.
+                </div>
+                <div block-api-error />
+                <div ng-if="cluster.overrideHadoopSettings" hadoop-cluster-settings-block settings="cluster.hadoopSettings" mask="cluster.overrideHadoopSettings" impersonation-enabled="appConfig.impersonationEnabled"/>
+            </div>
+
+            <div ng-switch-when="hive" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Hive</h1>
+                <div ng-show="cluster.type != 'manual'" class="alert alert-warning">
+                     This is a managed cluster, you should generally not modify these settings. Changing these settings may make this cluster unusable. Modification may also be forbidden.
+                </div>
+                <div block-api-error />
+                <div ng-if="cluster.overrideHiveSettings" hive-cluster-settings-block settings="cluster.hiveSettings" mask="cluster.overrideHiveSettings" impersonation-enabled="appConfig.impersonationEnabled" hadoop-settings="cluster.hadoopSettings"/>
+            </div>
+
+            <div ng-switch-when="impala" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Impala</h1>
+                <div ng-show="cluster.type != 'manual'" class="alert alert-warning">
+                     This is a managed cluster, you should generally not modify these settings. Changing these settings may make this cluster unusable. Modification may also be forbidden.
+                </div>
+                <div block-api-error />
+                <div ng-if="cluster.overrideImpalaSettings" impala-cluster-settings-block settings="cluster.impalaSettings" mask="cluster.overrideImpalaSettings" impersonation-enabled="appConfig.impersonationEnabled"/>
+            </div>
+
+            <div ng-switch-when="container" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Containerized execution</h1>
+                <div ng-show="cluster.type != 'manual'" class="alert alert-warning">
+                    This is a managed cluster, you should generally not modify these settings. Changing these settings may make this cluster unusable. Modification may also be forbidden.<br />
+                    To setup containerized execution using this cluster, setup container execution configs in global settings and enable this cluster at the project level.
+                </div>
+                <div block-api-error />
+                <div ng-if="!addLicInfo.containersLicensed" class="alert alert-error">
+                    <i class="icon-dku-error" />&nbsp;Your license does not cover usage of containers
+                </div>
+
+                <div ng-if="addLicInfo.containersLicensed">
+                    <div ng-if="cluster.overrideContainerSettings" container-cluster-settings-block settings="cluster.containerSettings" cluster-id="cluster.id" mask="cluster.overrideContainerSettings" impersonation-enabled="appConfig.impersonationEnabled"/>
+                </div>
+            </div>
+
+            <div ng-switch-when="spark" class="h100 oa paned-settings-page-pane" style="position: relative;">
+                <h1>Spark</h1>
+                <div ng-show="cluster.type != 'manual'" class="alert alert-warning">
+                     This is a managed cluster, you should generally not modify these settings. Changing these settings may make this cluster unusable. Modification may also be forbidden.
+                     <span ng-show="cluster.architecture == 'KUBERNETES'"><br />
+                        To setup Spark-on-Kubernetes execution using this cluster, setup Spark configurations in global settings, enable "Managed Spark on Kubernetes" and enable this cluster at the project level.
+                     </span>
+                </div>
+                <div block-api-error />
+                <div ng-if="!addLicInfo.sparkLicensed" class="alert alert-error">
+                    <i class="icon-dku-error" />&nbsp;Your license does not cover usage of Spark
+                </div>
+
+                <div ng-if="addLicInfo.sparkLicensed">
+                    <div ng-if="cluster.overrideSparkSettings" spark-cluster-settings-block settings="cluster.sparkSettings" cluster-id="cluster.id" mask="cluster.overrideSparkSettings" impersonation-enabled="appConfig.impersonationEnabled" hadoop-settings="cluster.hadoopSettings"/>
+                </div>
+
+            </div>
+
+            <div ng-switch-when="log" class="h100 vertical-flex paned-settings-page-pane">
+                <h1>Cluster logs</h1>
+                <div class="flex">
+                <div class="fh">
+                <div class="h100 section vertical-flex">
+                <div block-api-error />
+                <div class="noflex std-list-header">
+                    <div class="std-list-search-box" style="display: inline-block;">
+                        <span class="add-on"> <i class="icon-dku-search"></i>
+                        </span>
+                        <input type="search" ng-model="uiState.logsQuery" style="width: 190px;" placeholder="Filter..."/>
+                    </div>
+                    <button type="button" class="btn btn--secondary pull-right" ng-click="listLogs()">Refresh</button>
+                </div>
+
+                <div class="noflex oa" style="max-height: 200px;">
+                    <table sort-table class="table table-striped table-hover" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th sort-col="name">Name</th>
+                                <th sort-col="totalSize">Size</th>
+                                <th sort-col="lastModified">Last modified</th>
+                                <th>&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="log in logs | filter:uiState.logsQuery | orderBy:sortColumn:sortDescending" full-click ng-class="{'active-log' : log.name == currentLogName}">
+                                <td main-click ng-click="fetchLog(log.name)">{{ log.name }}</td>
+                                <td>{{ log.totalSize | filesize }}</td>
+                                <td>{{ log.lastModified | friendlyDate }}</td>
+                                <td>
+                                    <a ng-click="streamLog(log.name)" style="text-decoration:none">
+                                        <i class="icon-download"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="noflex" ng-if="currentLogName && currentLogName.length > 0">
+                    <h4 class="log-name">- {{currentLogName}}<span style="margin-left: 20px; font-weight: 300;" ng-if="currentLog.lines.length < currentLog.totalLines">(last {{currentLog.lines.length}} lines of {{currentLog.totalLines}})</span></h4>
+                </div>
+                <div class="flex oa" ng-if="currentLogName && currentLogName.length > 0">
+                    <pre smart-log-tail="currentLog"></pre>
+                </div>
+                </div>
+                </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

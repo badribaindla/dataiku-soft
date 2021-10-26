@@ -1,0 +1,39 @@
+<div class="tile-content h100" ng-class="{
+    'loaded': loaded,
+    'loading': loading,
+    'one-row': tile.box.height == 1,
+    'one-col': tile.box.width == 1,
+    'two-rows' : tile.box.height == 2}">
+    <div ng-if="!loaded && !loading && !unconfigured" class="fh h100">
+        <div class="insight-placeholder h100">
+            <div>
+                <i class="insight-icon universe-background {{insight.type | insightTypeToIcon}} {{insight.type |insightTypeToColor}}" style="color: white" />
+            </div>
+            <div class="insight-name">
+                {{ insight.name }}
+            </div>
+            <div class="insight-load" ng-class="{'display-on-hover' : tile.autoLoad}">
+                <button class="btn btn--secondary" ng-click="load()" dashboard-no-select stop-propagation>LOAD</button>
+            </div>
+            <div class="alert alert-error" ng-if="error">
+                Loading Failed : {{error.detailedMessage}}
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="loaded || (loading && ngShowLoaded)" class="fh loaded {{tile.insightType}} dku-fade-in
+        {{tile.insightType != 'saved-model_report' ? 'oa' : ''}}" style="visibility: {{loaded ? 'visible' : 'hidden' }};" dku-fade-in>
+        <div class="fh no-click-overlay" ng-show="hook.editable && tile.$showOverlay">
+            <div class="centered-info">Can't interact with tile in edit mode</div>
+        </div>
+        <div class="h100 {{tile.insightType}}" data-block="content"></div>
+    </div>
+
+    <div ng-if="unconfigured" class="fh  {{tile.insightType}} dku-fade-in insight-unconfigured" dku-fade-in>
+        <div class="h100 {{tile.insightType}}" data-block="unconfigured"></div>
+    </div>
+
+    <div ng-if="loading && !appConfig.unattendedMode" class="loading">
+        <spinner speed="2"/>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+<div visual-recipe ng-controller="SplitRecipeController">
+    <div class="top-level-tabs objecttype-recipe">
+        <div class="horizontal-flex row-fluid object-nav">
+            <div class="flex oh" std-object-breadcrumb />
+            <div class="noflex">
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'summary'}" ng-click="topNav.tab='summary'" fw500-width>
+                    Summary
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'settings'}" ng-click="topNav.tab='settings'" fw500-width>
+                    Settings
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'io'}" ng-click="topNav.tab='io'" fw500-width>
+                    Input / Output
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'advanced'}" ng-click="topNav.tab='advanced'" fw500-width>
+                    Advanced
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'gitlog'}" ng-click="topNav.tab='gitlog'" fw500-width>
+                    History
+                </a>
+                <div class="otherLinks">
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-save-button.html" />
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-tabs-other-links.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-io-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+
+    <div ng-if="topNav.tab == 'advanced'" class="small-lr-padding dss-page oa">
+        <div class="horizontal-centerer">
+            <div include-no-scope="/templates/recipes/visual-recipes-fragments/visual-sql-engines-settings.html" />
+
+            <div class="recipe-settings-section1 w800">
+                <form class="dkuform-horizontal recipe-settings-section2">
+                    <div class="control-group">
+                        <label for="writeComputedColumnsInOutput" class="control-label">Retrieve computed columns</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="params.writeComputedColumnsInOutput" id="writeComputedColumnsInOutput"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Salt for Random Columns mode</div>
+                        <div class="controls">
+                            <input ng-model="params.randomColumnsSalt" type="text"/>
+                            <span class="help-inline">Setting a salt allows to modify the outputs distribution</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+        </div>
+    </div>
+
+    <div include-no-scope="/templates/recipes/split-recipe-main.html"/>
+</div>

@@ -1,0 +1,39 @@
+<div class="export-modal modal modal3 wide-modal modal-max-height400" auto-size="false">
+
+    <dku-modal-header-with-totem modal-totem="icon-database">
+        <dku-modal-title>
+            {{exportModal.title}}
+        </dku-modal-title>
+        <dku-modal-tabs>
+            <li class="tab"  ng-class="{'active': exportParams.destinationType == 'DOWNLOAD'}"><a ng-click="exportModal.$destinationType = 'DOWNLOAD'">Download</a></li>
+            <li class="tab"  ng-class="{'active': exportParams.destinationType == 'DATASET'}" ng-if="$root.projectSummary.canWriteProjectContent"><a ng-click="exportModal.$destinationType = 'DATASET'">Export to dataset</a></li>
+            <li class="tab"  ng-class="{'active': exportParams.destinationType == 'CUSTOM_MANAGED'}"><a ng-click="exportModal.$destinationType = 'CUSTOM_MANAGED'">Other (plugins)</a></li>
+        </dku-modal-tabs>
+    </dku-modal-header-with-totem>
+
+    <div class="modal-body">
+        <div class="row-fluid">
+            <form class="dkuform-horizontal" name="exportModal.exportModalForm">
+                <div include-no-scope="/templates/exports/export-settings-main.html" />
+                <div include-no-scope="/templates/exports/export-settings-advanced.html" />
+            </form>
+        </div>
+
+    </div>
+
+    <div class="modal-footer modal-footer-std-buttons">
+
+        <div class="pull-right">
+            <button type="button" ng-click="exportModal.cancel();dismiss();" class="btn btn--text btn--secondary">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="!exportModal.checkFormIsValid()" ng-click="exportModal.accept();dismiss();">
+                {{ exportModal.getExportButtonText() }}
+            </button>
+        </div>
+
+        <div style="text-align:left; margin-left: 20px;"> <!-- so that it's aligned with the rest of the modal's content -->
+    	    <label>
+    	        <input type="checkbox" ng-model="exportModal.advancedMode"/>&nbsp;Advanced parameters
+    	    </label>
+        </div>
+    </div>
+</div>

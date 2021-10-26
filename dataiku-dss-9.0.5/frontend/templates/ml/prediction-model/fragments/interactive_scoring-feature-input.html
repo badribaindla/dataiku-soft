@@ -1,0 +1,71 @@
+<h5 class="interactive-scoring__feature-name">
+    {{ feature.name }}
+</h5>
+<div ng-switch="feature.type">
+    <div ng-switch-when="PART_DIM" class="interactive-scoring__control-container">
+        <div class="interactive-scoring__control">
+            <div class="interactive-scoring__dropdrown">
+                <select ng-change="onFeatureChange()" dku-bs-select="{ liveSearch: true, width: '100%' }" ng-model="feature.value">
+                    <option ng-repeat="value in feature.possibleValues">{{value}}</option>
+                </select>
+            </div>    
+        </div>
+    </div>
+    <div ng-switch-when="NUMERIC" class="interactive-scoring__control-container">
+        <div class="interactive-scoring__control">
+            <div ng-if="feature.editMode === 'DOMAIN'" class="interactive-scoring__slider" on-change="onFeatureChange()" dku-slider="" min="feature.min" max="feature.max" value="feature.value" nb-decimal-places="feature.nDecimals"></div>
+            <input ng-if="feature.editMode != 'DOMAIN'" class="interactive-scoring__input" ng-change="onFeatureChange()" type="text" ng-model="feature.value" ng-disabled="feature.editMode === 'UNSET'"/>
+        </div>
+        <div class="btn-group interactive-scoring__edit-modes-btn">
+            <button type="button" class="btn btn--secondary btn--icon edit-modes__numeric" ng-class="{'btn--active': feature.editMode === 'DOMAIN'}" ng-click="changeEditMode(feature, 'DOMAIN')"><i class="icon-number"></i></button>
+            <button type="button" class="btn btn--secondary btn--icon" ng-class="{'btn--active': feature.editMode === 'RAW'}" ng-click="changeEditMode(feature, 'RAW')"><i class="icon-edit interactive-scoring__edit-icon"></i></button>
+            <button type="button" class="btn btn--secondary btn--icon" ng-class="{'btn--active': feature.editMode === 'UNSET'}" ng-click="changeEditMode(feature, 'UNSET')" toggle="tooltip" data-container="body" title="{{ feature.editMode !== 'UNSET' ? ignoreFeatureTooltip : '' }}"><i class="icon-empty"></i></button>
+        </div>
+    </div>
+    <div ng-switch-when="DATE" class="interactive-scoring__control-container">
+        <div class="interactive-scoring__control">
+            <div ng-if="feature.editMode === 'DOMAIN'" daterangepicker opens-direction="auto" class="interactive-scoring__input interactive-scoring__datepicker" single-date-picker="true" start-date="feature.value" end-date="feature.value" on-change="onFeatureChange" format="{{pickerFormat}}" time-picker-increment="5" presets-to-end-of-day="true"></div>
+            <input ng-if="feature.editMode === 'UNSET'" type="text" disabled class="interactive-scoring__input"></input>
+        </div>
+        <div class="btn-group interactive-scoring__edit-modes-btn">
+            <button type="button" class="btn btn--secondary btn--icon" ng-class="{'btn--active': feature.editMode === 'DOMAIN'}" ng-click="changeEditMode(feature, 'DOMAIN')"><i class="icon-calendar"></i></button>
+            <button type="button" class="btn btn--secondary btn--icon" ng-class="{'btn--active': feature.editMode === 'UNSET'}" ng-click="changeEditMode(feature, 'UNSET')" toggle="tooltip" data-container="body" title="{{ feature.editMode !== 'UNSET' ? ignoreFeatureTooltip : '' }}"><i class="icon-empty"></i></button>
+        </div>
+    </div>
+    <div ng-switch-when="CATEGORY" class="interactive-scoring__control-container">
+        <div class="interactive-scoring__control">
+            <div class="interactive-scoring__dropdrown" ng-if="feature.editMode === 'DOMAIN'">
+                <select ng-change="onFeatureChange()" ng-disabled="feature.editMode === 'UNSET'" dku-bs-select="{ liveSearch: true, width: '100%' }" ng-model="feature.value">
+                    <option ng-repeat="value in feature.possibleValues">{{value}}</option>
+                    <option style="font-style: italic;" value="__DKU_OTHERS__">Others</option>
+                </select>
+            </div>
+            <input ng-if="feature.editMode != 'DOMAIN'" class="interactive-scoring__input" ng-change="onFeatureChange()" type="text" ng-model="feature.value" ng-disabled="feature.editMode === 'UNSET'" />
+        </div>
+        <div class="btn-group interactive-scoring__edit-modes-btn">
+            <button type="button" class="btn btn--secondary btn--icon" ng-class="{'btn--active': feature.editMode === 'DOMAIN'}" ng-click="changeEditMode(feature, 'DOMAIN')"><i class="icon-font"></i></button>
+            <button type="button" class="btn btn--secondary btn--icon" ng-class="{'btn--active': feature.editMode === 'RAW'}" ng-click="changeEditMode(feature, 'RAW')"><i class="icon-edit  interactive-scoring__edit-icon"></i></button>
+            <button type="button" class="btn btn--secondary btn--icon" ng-class="{'btn--active': feature.editMode === 'UNSET'}" ng-click="changeEditMode(feature, 'UNSET')" toggle="tooltip" data-container="body" title="{{ feature.editMode !== 'UNSET' ? ignoreFeatureTooltip : '' }}"><i class="icon-empty"></i></button>
+        </div>
+    </div>
+    <div ng-switch-when="TEXT|VECTOR" ng-switch-when-separator="|" class="interactive-scoring__control-container">
+        <div class="interactive-scoring__control">
+            <input class="interactive-scoring__input interactive-scoring__input--no-edit" ng-change="onFeatureChange()" type="text" ng-model="feature.value" ng-disabled="feature.editMode === 'UNSET'" />
+        </div>
+        <div class="btn-group interactive-scoring__edit-modes-btn">
+            <button type="button" class="btn btn--secondary btn--icon" ng-class="{'btn--active': feature.editMode === 'RAW'}" ng-click="changeEditMode(feature, 'RAW')"><i class="icon-edit  interactive-scoring__edit-icon"></i></button>
+            <button type="button" class="btn btn--secondary btn--icon" ng-class="{'btn--active': feature.editMode === 'UNSET'}" ng-click="changeEditMode(feature, 'UNSET')" toggle="tooltip" data-container="body" title="{{ feature.editMode !== 'UNSET' ? ignoreFeatureTooltip : '' }}"><i class="icon-empty"></i></button>
+        </div>
+    </div>
+    <div ng-switch-when="IMAGE">
+        <div class="control-group" >
+            <div class="controls">
+                <input id="image-uploader" hidden type="file" onchange="angular.element(this).scope().fileUploaded(event, angular.element(this).scope().feature)" accept="image/*" />
+                <label class="btn btn--secondary" for="image-uploader">
+                        Choose image
+                </label>
+            </div>
+        </div>
+        <img ng-if="feature.value" data-ng-src="data:image/png;base64,{{feature.value}}"/>
+    </div>
+</div>

@@ -1,0 +1,50 @@
+<div class="design-tab-title">Target</div>
+<div class="doctor-settings-page">
+    <form class="dkuform-horizontal">
+        <div class="control-group">
+            <label class="control-label">Prediction type</label>
+            <div class="controls" >
+                <select dku-bs-select ng-model="uiState.predictionType" ng-change="onChangePredictionType()" ng-options="type[0] as type[1] for type in predictionTypes" />
+                <button ng-disabled="!appConfig.userProfile.mayVisualML" ng-click="reguessAll()" class="btn btn--secondary">
+                    <i class="icon-magic" /> &nbsp; Re-detect settings
+                </button>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Target</label>
+            <div class="controls" >
+                <select dku-bs-select="{'liveSearch':true}" ng-model="uiState.targetVariable" ng-change="onChangeTargetFeature()" ng-options="feature as feature for (feature, desc) in mlTaskDesign.preprocessing.per_feature" />
+            </div>
+        </div>
+        <div ng-if="isMLBackendType('PY_MEMORY')">
+            <h2 class="settings-section-title">Partitioned models</h2>
+            <div partitioned-model-form
+                 backend-type="mlTaskDesign.backendType"
+                 dataset-smart-name="analysisCoreParams.inputDatasetSmartName"
+                 split-policy="uiSplitParams.policy"
+                 partitioned-model="mlTaskDesign.partitionedModel"/>
+        </div>
+        <div ng-if="!isRegression()" ng-controller="PMLTargetRemappingController">
+            <h2 class="settings-section-title">Target classes</h2>
+            <p>Proportions of classes in the guess sample</p>
+            <div style="height: 200px;">
+                <svg style="width: 500px; height: 100%;" discrete-bar-chart class="targetClassesDiscreteBarChart chart-std-font" data="graphData" horizontal="true" colors="colors" format="%"></svg>
+            </div>
+            <div class="alert alert-warning dib" ng-if="hasManyCategories()">
+                <strong>Warning : </strong> your class mapping has over 50 classes. This may result in poorer performance when computing model scoring metrics. You may want to merge some classes together.
+            </div>
+            <p>If some classes are missing here (because they were not in the guess sample), you can
+                <a ng-click="startEditMapping()">manually edit the mapping</a> (advanced)
+            </p>
+            <div ng-if="editMapping.active">
+                <textarea style="width: 500px; height: 150px; font-size: 11px; line-height: 14px" json-object-pretty-view ng-model="editMapping.value">
+                </textarea>
+                <div>
+                    <button ng-click="cancelEditMapping()" class="btn btn--secondary">Cancel</button>
+                    <button ng-disabled="editMapping.error" ng-click="okEditMapping()" class="btn btn--success">OK</button>
+                    <span class="text-error" ng-show="editMapping.error">JSON error</span>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

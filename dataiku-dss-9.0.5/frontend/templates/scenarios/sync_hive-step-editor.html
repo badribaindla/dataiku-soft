@@ -1,0 +1,29 @@
+<div ng-controller="SynchronizeHiveStepController">
+    <div ng-include ="'/templates/scenarios/fragments/step-header.html'" style="display: inline-block;"></div>
+    <div class="alert alert-info">
+        This step forces the synchronization of the definition of a dataset to its Hive table in the Hive metastore.<br />
+        This synchronization is generally automatically executed after build: this step is mostly useful for datasets that are not built by DSS.
+    </div>
+    <form name="setupForm" class="dkuform-horizontal" >
+        <div class="control-group">
+            <label class="control-label">Override cluster</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="step.params.overrideCluster"></input>
+                <span class="help-inline">Don't use the cluster defined by the project for the the synchronization (useful for exposed datasets from another project)</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="step.params.overrideCluster">
+            <label class="control-label">Cluster</label>
+            <div class="controls">
+                <input type="text" ng-model="step.params.clusterId" bs-typeahead="clusterIds"/>
+                <span class="help-inline">Can be a variable</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <step-items-table items="step.params.syncs" can-dataset="true" can-managed-folder="false" can-saved-model="false" no-partition-selection="true" datasets="datasets" savedmodels="savedmodels" managedfolders="managedfolders"></step-items-table>
+        </div>
+    </form>
+	<hr />
+	<div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+
+</div>

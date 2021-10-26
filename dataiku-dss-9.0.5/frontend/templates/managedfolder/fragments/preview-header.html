@@ -1,0 +1,41 @@
+<div class="preview-header">
+    <span class="name mx-textellipsis">{{previewedItem.name}}</span>
+    <span class="meta-info" ng-if="!previewedItem.directory">{{previewedItem.size | fileSizeOrNA}}</span>
+    <span ng-if="skinState.itemSkins && skinState.itemSkins.length > 1">
+		<span>As&nbsp;</span>
+		<select id="qa_virt-webapp_folder-item-view-select" dku-bs-select="{liveSearch:true, width:150}" ng-model="skinState.itemSkin" ng-options="s as (s.desc.meta.label || s.id) for s in skinState.itemSkins"></select>
+		<div ng-if="appConfig.globalPermissions.mayDevelopPlugins" style="width: 25px; height: 1em; display: inline-block;">
+			<div custom-element-popup cep-position="align-right-bottom" close-on-click="true" ng-if="skinState.itemSkin.webappType">
+			    <i class="icon-cog mainzone cursor-pointer" ng-click="togglePopover()"></i>
+				<ul class="popover custom-element-popup-popover dropdown-menu">
+                    <li>
+                        <a ng-click="skinState.skinWebApp.refreshWebAppView()">
+                            Refresh view
+                        </a>
+                    </li>
+                    <li ng-if="skinState.skinWebApp.hasBackend">
+                        <a href="{{$state.href('projects.project.webapps.webapp.logs', {webAppId: skinState.skinWebApp.webAppId})}}" target="_blank">
+                            Backend logs
+                        </a>
+                    </li>
+                    <li ng-if="skinState.skinWebApp.hasBackend">
+                        <a ng-click="skinState.skinWebApp.restartBackend()">
+                            Restart backend
+                        </a>
+                    </li>
+                    <li ng-if="skinState.skinWebApp.hasBackend">
+                        <a ng-click="skinState.skinWebApp.regenerateWebAppView()">
+                            Refresh view and backend
+                        </a>
+                    </li>
+				</ul>
+			</div>
+		</div>
+    </span>
+    <span class="action-btn" ng-if="!previewedItem.directory">
+        <a ng-if="!readOnly" href ng-click="createInsightForItem(previewedItem.itemPath)"> <i class="icon-dku-publish"></i> </a>
+        <a ng-if="canDownload" href ng-click="downloadPreviewedFile()"> <i class="icon-download"></i> </a>
+        <a ng-if="!readOnly && previewedItem.type == 'ARCHIVE'" href ng-click="decompressPreviewedFile($event)"> <i class="icon-resize-full"></i> </a>
+        <a id="qa_folder-item-delete-button" ng-if="!readOnly" href ng-click="deletePreviewedItem($event)"> <i class="icon-trash"></i> </a>
+    </span>
+</div>

@@ -1,0 +1,95 @@
+<div>
+    <div ng-if="insight.$savedModel.miniTask.taskType == 'PREDICTION'" class="mbot8">
+        <select ng-model="tileParams.displayMode" dku-bs-select class="view-select">
+            <option value="summary" >Summary</option>
+            <option value="skins" ng-if="!isPartitionedModel() && (tileParams.displayMode === 'skins' || modelSkins && modelSkins.length > 0)">Views</option>
+
+            <optgroup label="Interpretation" ng-if="!isPartitionedModel()">
+                <option ng-if="isTreeModel()" value="tree_summary" >Decision Tree</option>
+                <option ng-if="isEnsembleModel()" value="ensemble_summary" >Decision Tree</option>
+
+                <option ng-if="!isTreeModel() && !isEnsembleModel() && !hasVariableImportance() && (!hasRawCoefficients() || isMulticlass())" value="variables_interpretation" >Variables</option>
+
+                <option ng-if="hasVariableImportance()" value="variables_importance" >Variables importance</option>
+                <option ng-if="hasRawCoefficients() && !isMulticlass()" value="coefficients" >Regression coefficients</option>
+
+                <option ng-if="modelData.backendType == 'PY_MEMORY' || modelData.backendType == 'KERAS'" value="pdp_plot" >Partial dependence</option>
+                <option ng-if="(modelData.backendType == 'PY_MEMORY' || modelData.backendType == 'KERAS') && !isMulticlass()" value="subpopulation">Subpopulation analysis</option>
+                <option ng-if="modelData.backendType == 'PY_MEMORY'" value="individual_explanations">Individual explanations</option>
+                <option ng-if="modelData.backendType == 'PY_MEMORY'" value="interactive_scoring">Interactive Scoring</option>
+
+            </optgroup>
+
+            <optgroup label="Performance">
+                <option ng-if="isMulticlass()"  value="mc_confusion" >Confusion matrix</option>
+                <option ng-if="isBinaryClassification()"  value="bc_confusion" >Confusion matrix</option>
+                <option ng-if="isBinaryClassification() && modelData.hasProbas && !isPartitionedModel()"  value="bc_decision_chart">Decision chart</option>
+                <option ng-if="isBinaryClassification() && modelData.hasProbas && !isPartitionedModel()"  value="bc_lift">Lift charts</option>
+                <option ng-if="isBinaryClassification() && modelData.hasProbas && !isPartitionedModel()"   value="c_calibration">Probability calibration</option>
+
+                <option ng-if="hasROCCurve() && !isPartitionedModel()"  value="c_roc">ROC curve</option>
+                <option ng-if="hasDensityData() && !isPartitionedModel()"  value="c_density_chart">Density chart</option>
+
+                <option ng-if="isRegression() && !isPartitionedModel()"   value="r_scatter">Scatter plot</option>
+                <option ng-if="isRegression() && !isPartitionedModel()"   value="r_error">Error distribution</option>
+
+                <option value="performance-metrics"> Metrics and assertions </option>
+            </optgroup>
+
+            <optgroup label="Model information">
+                <option  value="preparation" >Data preparation</option>
+                <option value="features" >Features</option>
+                <option value="algorithm" >Algorithm</option>
+                <option value="train" >Training information</option>
+            </optgroup>
+        </select>
+
+        <div ng-if="tileParams.displayMode == 'interactive_scoring'">
+            <label class="control-label">Advanced options <i toggle="tooltip-right" container="body" title="Use interactiveScoring.featuresOrder to order the features. Omitted features will be collapsed at the end." class="icon-question-sign"></i></label>
+            <div class="controls">
+                <textarea json-object-pretty-view ng-model="tileParams.advancedOptions.interactiveScoring" class="tile-params__json-input"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="insight.$savedModel.miniTask.taskType == 'CLUSTERING'" class="mbot8">
+        <select ng-model="tileParams.displayMode" dku-bs-select class="view-select">
+            <option value="summary">Summary</option>
+            <option value="skins" ng-if="!isPartitionedModel() && (tileParams.displayMode === 'skins' || modelSkins && modelSkins.length > 0)">Views</option>
+
+            <optgroup ng-if="modelData.perf.variables_importance" label="Variables">
+                <option value="variables_importance" ng-if="modelData.perf.variables_importance">Variables importance</option>
+            </optgroup>
+
+            <optgroup label="Clusters">
+                <option value="hierarchy" ng-if="hasHierarchy()">Cluster hierarchy</option>
+                <option value="heatmap">Heatmap</option>
+                <option value="cluster-profiling" ng-if="modelData.clustersProfiling">Cluster profiles</option>
+                <option value="anomalies" ng-if="hasAnomalies()">Anomalies</option>
+                <option value="scatterplot-page">Scatter plot</option>
+                <option value="detailed_metrics">Detailed metrics</option>
+            </optgroup>
+
+            <optgroup label="Model information">
+                <option value="preparation">Data preparation</option>
+                <option value="features">Features</option>
+                <option value="algorithm">Algorithm</option>
+                <option value="train">Training information</option>
+            </optgroup>
+        </select>
+    </div>
+
+    <select ng-if="tileParams.displayMode == 'skins'" dku-bs-select="{liveSearch:true}"
+        ng-model="tileParams.advancedOptions.customViews.viewId"
+        ng-options="s.id as (s.desc.meta.label || s.id) for s in modelSkins"></select>
+    
+    <div ng-if="tileParams.displayMode == 'skins'">
+        <label class="control-label">Advanced options <i toggle="tooltip-right" container="body"
+                title="Custom parameters passed to the webapp config" class="icon-question-sign"></i></label>
+        <div class="controls">
+            <textarea json-object-pretty-view ng-model="tileParams.advancedOptions.customViews.viewParams"
+                class="tile-params__json-input"></textarea>
+        </div>
+    </div>
+
+</div>

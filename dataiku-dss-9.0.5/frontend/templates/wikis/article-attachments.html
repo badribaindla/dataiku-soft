@@ -1,0 +1,83 @@
+<section>
+    <h2 class="wiki-article-details-section-title">
+        Attachments
+    </h2>
+    <div class="wiki-article-details-section-content mh60 flex vertical-flex">
+        <div class="oa">
+            <ul class="wiki-article-attachments-list" ng-if="article.attachments.length || (fileUploadProperties || []).length">
+                <!-- DSS Objects -->
+                <li ng-repeat="item in article.attachments track by $index"
+                    class="horizontal-flex wiki-article-attachment"
+                    ng-if="item.attachmentType == 'DSS_OBJECT'"><!-- use directive -->
+                    <a href="{{StateUtils.href.dssObject(item.taggableType, item.smartId, wiki.projectKey, {moveToTargetProject: true})}}"
+                        class="wiki-article-attachment__link link-std flex"
+                        title="{{item.details.objectDisplayName || item.smartId}}"
+                        target="{{getAttachmentViewTarget()}}"
+                        toggle="tooltip">
+                        <i class="icon {{ getAttachmentIcon(item) }}"
+                            style="font-size: 12px;"
+                            />
+                        <span class="item-name">
+                            {{item.details.objectDisplayName || item.smartId}}
+                        </span>
+                    </a>
+                    <a class="wiki-article-attachment__link wiki-article-attachment__link--action link-std noflex"
+                    ng-show="getArticleDisplayMode() == 'edit'"
+                    ng-click="editorActions.insertReference(item, false, 'end')">
+                        Insert
+                    </a>
+                    <a class="wiki-article-attachment__link wiki-article-attachment__link--action link-std noflex" ng-click="deleteAttachment($index)">
+                        <i class="icon-trash" />
+                    </a>
+                </li>
+                <!-- Custom attachments -->
+                <li ng-repeat="item in article.attachments track by $index"
+                    class="horizontal-flex wiki-article-attachment"
+                    ng-if="item.attachmentType == 'FILE'"><!-- use directive -->
+                    <a href="{{getUploadHref(item)}}"
+                        class="wiki-article-attachment__link link-std flex"
+                        title="Click to view {{ (item.details.objectDisplayName || item.smartId) | gentleTruncate:20 }}"
+                        toggle="tooltip"
+                        target="_blank">
+                        <i class="icon {{getAttachmentIcon(item)}}"
+                            style="font-size: 12px;"
+                            />
+                        <span>
+                            {{item.details.objectDisplayName || item.smartId}}
+                        </span>
+                    </a>
+                    <a class="wiki-article-attachment__link wiki-article-attachment__link--action link-std noflex"
+                            ng-show="getArticleDisplayMode() == 'edit'"
+                            ng-click="item.details.mimeType.startsWith('image') ? insertImage(item) : insertFileLink(item)">
+                        Insert
+                    </a>
+                    <a class="wiki-article-attachment__link wiki-article-attachment__link--action link-std noflex" ng-click="deleteAttachment($index)">
+                        <i class="icon-trash" />
+                    </a>
+                </li>
+                <!-- Ongoing uploads -->
+                <li ng-repeat="item in fileUploadProperties track by $index"
+                    class="horizontal-flex wiki-article-attachment"
+                    title="Uploading..."
+                    toggle="tooltip"
+                    ng-show="!item.uploaded">
+                    <a class="wiki-article-attachment__link link-std flex disabled disabled-nopointer">
+                        <i class="icon icon-file" style="font-size: 12px;"/>
+                        <span> {{ item.path }} </span>
+                    </a>
+                    <span class="upload-progress-wrapper" ng-show="item.progress < 100">
+                        <progress class="upload-progress" value="{{ item.progress }}" max="100"></progress>
+                    </span>
+                    <span ng-show="item.progress == 100">
+                        <i class="icon-spin icon-spinner"></i>
+                    </span>
+                </li>
+            </ul>
+        </div>
+        <div class="wiki-article-attachments-addbtn noflex">
+            <a class="btn btn--secondary" ng-click="startAddAttachments()" disabled-if-ro="">
+                + add attachment
+            </a>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,289 @@
+<div data-extend-template="/templates/object-details/item-template.html" ng-controller="DatasetDetailsController as ctrl">
+
+    <div data-block="item-header"
+        item-header color="dataset"
+        icon="{{data.dataset.type |datasetTypeToIcon}}"
+        title="{{data.dataset.name}}"
+        href="StateUtils.href.dataset(data.dataset.smartName || data.dataset.name, data.dataset.projectKey)"
+        >
+        <div class="pull-right ">
+            <i class="icon-reorder" ng-show="isPartitioned()" toggle="tooltip" title="Partitioned dataset" />&nbsp;
+            <i class="icon-check" ng-show="data.dataset.managed" toggle="tooltip" title="Managed dataset" />&nbsp;
+            <i class="icon-info-sign" ng-click="hoverIntentCallback.showObject(data.dataset, 'DATASET_CONTENT')"/>&nbsp;
+        </div>
+        {{data.dataset.name}}
+    </div>
+
+    <div data-block-append="left">
+        <!-- Status -->
+        <div class="accordion" dku-foldable dku-foldable-right-panel name="details.status" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Status
+            </h4>
+            <div ng-show="foldableOpen">
+                <div ng-if="inQuickView()" ng-repeat="checklist in object.checklists.checklists" class="accordion checklist"
+                    dku-foldable open="true">
+                    <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}" />
+                        {{checklist.title}} <span ng-bind-html="checklist | singleChecklistState"></span>
+                    </h4>
+                    <div object-checklist checklist="checklist" items-only="true" read-only="true" ng-show="foldableOpen"></div>
+                </div>
+
+                <!-- Build info -->
+                <div class="line" ng-if="data.lastBuild && !data.currentBuildState">
+                    <h4>Last build</h4>
+                    <p>
+                        <a href="/projects/{{data.lastBuild.jobProjectKey}}/jobs/{{data.lastBuild.jobId}}/">
+                            {{data.lastBuild.buildEndTime|friendlyTimeDeltaShort}}
+                        </a>
+                        (<span ng-if="data.lastBuild.buildSuccess" class="text-success">Success</span>
+                        <span ng-if="!data.lastBuild.buildSuccess" class="text-error">Failed</span>)
+                    </p>
+                </div>
+                
+                <div class="padded">
+                    <table ng-if="data.currentBuildState">
+                        <tr ng-if="data.currentBuildState">
+                            <th>Build</th>
+                            <td>
+                                <span ng-repeat="build in data.currentBuildState.beingBuilt">
+                                    <a href="/projects/{{build.projectKey}}/jobs/{{build.jobId}}/">currently running</a>
+                                    <br />
+                                </span>
+                                <span ng-repeat="build in data.currentBuildState.aboutToBeBuilt">
+                                    <a href="/projects/{{build.projectKey}}/jobs/{{build.jobId}}/">about to run</a>
+                                    <br />
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div dku-if="!inNavigator() && !data.status && isLocalDataset()" class="line">
+                    <h4>Status</h4>
+                    <p style="overflow: visible;">
+                        <button ng-click="refreshAndGetStatus(data, false, false)" class="btn btn--secondary"
+                            style="position: relative; top: -3px;">
+                            <i class="icon-refresh" />
+                            Compute
+                        </button>
+                    </p>
+                </div>
+                
+                <!-- Status -->
+                <div ng-if="!inNavigator()" class="padded">
+                    <div block-api-error />
+                
+                    <div dku-if="data.status">
+                
+                        <table style="margin-bottom: 2px;">
+                            <tr ng-if="data.status && ctrl.DatasetUtils.hasSizeStatus(data.dataset)">
+                                <th>
+                                    Total size
+                                </th>
+                                <td style="width: 25%" ng-if="data.status.size.totalValue >= 0 && data.status.size.lastComputed > 0">
+                                    {{data.status.size.totalValue|fileSizeOrNA}}
+                                </td>
+                                <td style="width: 25%" class="smallgrey" dku-if="data.status.size.lastComputed == 0">
+                                    <span>Not computed</span>
+                                </td>
+                                <td dku-if="data.status.size.totalValue < 0">
+                                    <a class="btn btn--secondary btn--icon" ng-show="isLocalDataset()"
+                                        ng-click="refreshAndGetStatus(data, false, false)" toggle="tooltip" title="Compute">
+                                        <i class="icon-refresh" />
+                                    </a>
+                                </td>
+                                <td style="width:50%; text-align: right" ng-if="data.status.size.totalValue >= 0">
+                                    <span class="smallgrey" ng-if="data.status.size.lastComputed > 0"
+                                        style="margin-right: 10px;">{{data.status.size.lastComputed |date}}</span>
+                                    <button ng-show="isLocalDataset() && isPartitioned()"
+                                        ng-click="refreshAndGetStatus(data, false, true)" class="btn btn--secondary btn--icon"
+                                        toggle="tooltip" title="Force refresh of all partitions, even if DSS thinks it's not needed">
+                                        <i class="icon-exclamation" />
+                                    </button>
+                                    <button ng-show="isLocalDataset()" ng-click="refreshAndGetStatus(data, false, false)"
+                                        class="btn btn--secondary btn--icon" title="Refresh size">
+                                        <i class="icon-refresh" />
+                                    </button>
+                                </td>
+                            </tr>
+                
+                            <tr>
+                                <th>
+                                    Records
+                                </th>
+                                <td style="width: 25%"
+                                    dku-if="data.status.records.totalValue >= 0 && data.status.records.lastComputed > 0">
+                                    {{data.status.records.totalValue |number}}
+                                </td>
+                                <td style="width: 25%" class="smallgrey" dku-if="data.status.records.lastComputed == 0">
+                                    <span>Not computed</span>
+                                </td>
+                                <td dku-if="data.status.records.totalValue < 0">
+                                    <a class="btn btn--secondary btn--icon" ng-show="isLocalDataset()"
+                                        ng-click="refreshAndGetStatus(data, true, false)" toggle="tooltip"
+                                        title="Compute count of records">
+                                        <i class="icon-refresh" />
+                                    </a>
+                                </td>
+                                <td style="width:50%; text-align: right" ng-if="data.status.records.totalValue >= 0">
+                                    <span class="smallgrey" ng-if="data.status.records.lastComputed > 0" style="margin-right: 10px;">
+                                        {{data.status.records.lastComputed |date}}
+                                    </span>
+                                    <button class="btn btn--secondary btn--icon" ng-show="isLocalDataset() && isPartitioned()"
+                                        ng-click="refreshAndGetStatus(data, true, true)"
+                                        title="Force refresh of all partitions, even if DSS thinks it's not needed">
+                                        <i class="icon-exclamation" />
+                                    </button>
+                                    <button class="btn btn--secondary btn--icon" ng-show="isLocalDataset()"
+                                        ng-click="refreshAndGetStatus(data, true, false)" toggle="tooltip"
+                                        title="Refresh count of records">
+                                        <i class="icon-refresh" />
+                                    </button>
+                                </td>
+                            </tr>
+                
+                            <tr dku-if="isPartitioned()">
+                                <th>
+                                    Partitions
+                                </th>
+                                <td ng-if="data.status.partitionsLastCompute > 0">
+                                    {{data.status.partitions}}
+                                </td>
+                                <td style="width: 25%" class="smallgrey" dku-if="data.status.partitionsLastCompute == 0">
+                                    <span>Not computed</span>
+                                </td>
+                                <td style="width:50%; text-align: right">
+                                    <span class="smallgrey" ng-if="data.status.partitionsLastCompute > 0">
+                                        {{data.status.partitionsLastCompute |date}}
+                                    </span>
+                                    <button ng-show="isLocalDataset()" ng-click="refreshAndGetStatus(data, false, false)"
+                                        class="btn btn--secondary btn--icon" toggle="tooltip" title="Refresh">
+                                        <i class="icon-refresh" />
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div data-block="right">
+        <!-- Recipes -->
+        <div class="accordion" ng-if="data.creatingRecipe || data.creatingContinuousRecipe || data.recipes.length" dku-foldable dku-foldable-right-panel name="details.recipes" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Recipes <em>({{(data.creatingRecipe || data.creatingContinuousRecipe ? 1 : 0) + data.recipes.length}})</em>
+            </h4>
+            <ul ng-show="foldableOpen">
+                <li ng-if="data.creatingRecipe"
+                    class="horizontal-flex"
+                    >
+                    <span class="mx-textellipsis flex">
+                        <i class="object-icon universe-color {{data.creatingRecipe.type |recipeTypeToIcon}} {{data.creatingRecipe.type |recipeTypeToColor}}"></i>
+                        <a href="{{StateUtils.href.recipe(data.creatingRecipe.name, data.creatingRecipe.projectKey)}}">{{data.creatingRecipe.name}}</a>
+                    </span>
+                    <span class="info noflex">
+                        parent recipe
+                    </span>
+                </li><li ng-if="data.creatingContinuousRecipe"
+                    class="horizontal-flex"
+                    >
+                    <span class="mx-textellipsis flex">
+                        <i class="object-icon universe-color {{data.creatingContinuousRecipe.type |recipeTypeToIcon}} {{data.creatingContinuousRecipe.type |recipeTypeToColor}}"></i>
+                        <a href="{{StateUtils.href.recipe(data.creatingContinuousRecipe.name, data.creatingContinuousRecipe.projectKey)}}">{{data.creatingContinuousRecipe.name}}</a>
+                    </span>
+                    <span class="info noflex">
+                        parent continuous recipe
+                    </span>
+                </li>
+                <li ng-repeat="recipe in data.recipes"
+                    >
+                    <span class="mx-textellipsis">
+                        <i class="object-icon universe-color {{recipe.type |recipeTypeToIcon}} {{recipe.type |recipeTypeToColor}}"></i>
+                        <a href="{{StateUtils.href.recipe(recipe.name, recipe.projectKey)}}">{{recipe.name}}</a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Charts -->
+        <div class="accordion" ng-if="data.charts.length" dku-foldable dku-foldable-right-panel name="details.charts" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Charts <em>({{data.charts.length}})</em>
+            </h4>
+            <ul ng-show="foldableOpen">
+                <li ng-repeat="chart in data.charts">
+                    <span class="mx-textellipsis">
+                        <i class="object-icon universe-color chart icon-dku-nav_dashboard"></i>
+                        <a href="{{StateUtils.href.datasetChart($index, data.dataset.name, data.dataset.projectKey)}}">{{chart.def.name}}</a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- EDA (Statistical Worksheets) -->
+        <div class="accordion" ng-if="data.worksheets.length" dku-foldable dku-foldable-right-panel name="details.worksheets" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Statistics Worksheets <em>({{data.worksheets.length}})</em>
+            </h4>
+            <ul ng-show="foldableOpen">
+                <li ng-repeat="worksheet in data.worksheets">
+                    <span class="mx-textellipsis">
+                        <i class="object-icon icon-dku-statistics"></i>
+                        <a href="{{StateUtils.href.statisticsWorksheet(worksheet.id, worksheet.projectKey)}}">{{worksheet.name}}</a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Custom Fields -->
+        <div custom-fields-in-side-panel ng-if="appConfig.customFieldsMap[objectType].length > 0 && object && object.customFields" custom-fields="object.customFields" object-type="objectType" save-fn="saveCustomFields" edit-custom-fields="editCustomFields" editable="canWriteProject()"></div>
+
+
+        <!-- Checklists -->
+        <div class="accordion" ng-if="editable || object.checklists.checklists.length > 0" dku-foldable dku-foldable-right-panel="details.checklists" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Todo Lists <em ng-if="object.checklists.checklists.length > 0">({{ object.checklists.checklists.length }})</em>
+            </h4>
+            <div ng-show="foldableOpen" style="padding:0 15px;">
+                <div ng-repeat="x in object.checklists.checklists">
+                    <div class="checklist">
+                        <div class="pull-right">
+                            <a class="link-danger" ng-click="deleteChecklist($index)"
+                                title="Delete todo list"
+                                style="display:inline-block;margin: 10px;"
+                                ng-if="editable">
+                                <i class="icon-trash" />
+                            </a>
+                        </div>
+                        <h4 class="checklist-title">
+                            <div ng-if="!x.editingTitle">
+                                {{x.title}}
+                                <a class="link-std edit-button" ng-click="startEditChecklistTitle(x)" ng-if="editable">
+                                    <i class="icon-pencil" />
+                                </a>
+                            </div>
+                            <div ng-if="x.editingTitle" class="common-styles-only">
+                                <input type="text" ng-model="state.checklistTitle.newVal" placeHolder="New name" required />
+                                <div style="margin-top: 3px">
+                                    <button class="btn btn--success" ng-click="validateChecklistTitleEdit()">Save</button>
+                                    <button class="btn btn--secondary" ng-click="cancelChecklistTitleEdit()">Cancel</button>
+                                </div>
+                            </div>
+                        </h4>
+                        <p> <span ng-bind-html="x|singleChecklistState" /></p>
+                        <div object-checklist checklist="x" items-only="true" read-only="!editable" />
+                    </div>
+                </div>
+                <div ng-if="editable" class="new-checklist"
+                    style="margin-top: 15px; margin-bottom: 15px">
+                    <a class="std-greylink" ng-click="addChecklist()">
+                        Add a todo list
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

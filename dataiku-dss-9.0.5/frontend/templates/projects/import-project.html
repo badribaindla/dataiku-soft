@@ -1,0 +1,163 @@
+<div class="modal modal3 import-project-modal" tab-model="modalTabState.active" auto-size="false">
+    <div dku-modal-header-with-totem modal-title="Import project" modal-totem="icon-plus" />
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="importProjectForm">
+        <div class="modal-body">
+
+
+            <div ng-if="phase == 'READY_TO_UPLOAD'">
+
+                <div class="control-group" >
+                    <label for="newProjectFile" class="control-label">Source file</label>
+                    <div class="controls">
+                        <input id="newProjectFile" type="file" style="line-height: 10px; width: 250px;" required valid-file ng-model="importData.file" accept="application/zip" />
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="advancedOptions" class="control-label">Display advanced options after upload</label>
+                    <div class="controls">
+                        <input id="advancedOptions" type="checkbox" ng-model="prepare.enabled" />
+                    </div>
+                </div>
+            </div>
+
+            <div ng-if="phase == 'UPLOADING'">
+                <progress-bar neutral="{{uploadProgress}}" allow-empty="true" class="progress-striped" active="true"></progress-bar>
+                <p>Uploading ...</p>
+            </div>
+
+            <div ng-if="phase == 'IMPORTING'">
+                <progress-bar neutral="{{percentage}}" allow-empty="true" class="progress-striped" active="true"  ng-if="futureResponse != null"></progress-bar>
+                <progress-bar error="{{percentage}}"   allow-empty="true" class="progress"         active="false" ng-if="futureResponse == null"></progress-bar>
+                <div class="future-progress-bar">
+                    <div style="width: {{percentage}}%"></div>
+                </div>
+                <p ng-bind-html="stateLabels"></p>
+            </div>
+
+            <div ng-if="phase == 'READY_TO_IMPORT'">
+                <h5>Override project key</h5>
+                <p style="color: gray">
+                    The project key is used to reference datasets between projects.
+                    It cannot be changed once the project is created.
+                </p>
+                <div>
+                    <input type="text" id="newProjectKey" ng-model="importSettings.targetProjectKey" name="projectKey" ng-pattern="/^\w+$/" autocomplete="off"
+                           placeholder="{{prepareResponse.originalProjectKey}}" style="vertical-align: top" class="ng-dirty" />
+
+                    <span ng-if="importProjectForm.projectKey.$error.unique && !importProjectForm.projectKey.$error.pattern" style="margin-left: 20px;">
+                        This project key is already used
+                    </span>
+
+                    <span ng-if="importProjectForm.projectKey.$error.pattern" style="margin-left: 20px;">
+                        This project key is invalid
+                    </span>
+                </div>
+
+                <h5>Connection remapping</h5>
+                <p style="color: gray">
+                    Use this if you get connection-related errors, to remap connection names declared in the import archive to connections existing in your DSS instance.
+                </p>
+
+                <div style="display: inline-block; width: 100%;" add-remove ng-model="importSettings.remapping.connections">
+                    <ul class="raw-unstyled-ul" >
+                        <li ng-repeat="conn in importSettings.remapping.connections">
+                            <div class="remapping" style="margin: 5px 0" import-project-remapping-form>
+                                <input type="text" ng-model="conn.source" bs-typeahead="usedConnections" ng-focus="inputFocus($event)" data-min-length="0" />
+
+                                <i class="icon-long-arrow-right" style="font-size: 17px; margin: 0 10px; color: grey;"></i>
+
+                                <select ng-model="target"
+                                        dku-bs-select="{liveSearch:true,size:'auto'}"
+                                        ng-options="c as c.name group by c.type for c in prepareResponse.availableConnections | orderBy:connComparator(conn.source) track by c.name"
+                                        ng-change="conn.target = target.name"
+                                        ng-init="target = findConnection(prepareResponse.availableConnections, conn.target)">
+                                </select>
+
+                                <span ng-if="conn.source && conn.target && findConnection(prepareResponse.usedConnections, conn.source).type && findConnection(prepareResponse.usedConnections, conn.source).type != target.type">
+                                    <i class="icon-warning-sign" toggle="tooltip" title="Type mismatch, expecting {{findConnection(prepareResponse.usedConnections, conn.source).type}}" placement="right" container="body"></i>
+                                </span>
+
+                                <a ng-click="remove($index)" class="pull-right" style="color: grey"><i class="icon-trash "/></a>
+                            </div>
+
+                        </li>
+                    </ul>
+
+                    <div  class="add-value">
+                        <span class="pull-right" ng-click="refreshConnections()" toggle="tooltip" title="Refresh connection list" placement="left" container="body" style="text-align: right">
+                            <i class="icon-refresh" />
+                        </span>
+                        <span ng-click="add({})">
+                            <i class="icon-plus-sign" /> ADD REMAPPING
+                        </span>
+                    </div>
+
+                </div>
+
+                <h5>Code env remapping</h5>
+                <p style="color: gray">
+                    Use this if you get code environment-related errors, to remap code environments declared in the import archive to code environments existing in your DSS instance.
+                </p>
+
+                <div style="display: inline-block; width: 100%;" add-remove ng-model="importSettings.remapping.codeEnvs">
+                    <ul class="raw-unstyled-ul" >
+                        <li ng-repeat="codeEnv in importSettings.remapping.codeEnvs">
+                            <div class="remapping" style="margin: 5px 0" import-project-remapping-form>
+                                <input type="text" ng-model="codeEnv.source" bs-typeahead="usedCodeEnvs" ng-focus="inputFocus($event)" data-min-length="0" />
+
+                                <i class="icon-long-arrow-right" style="font-size: 17px; margin: 0 10px; color: grey;"></i>
+
+                                <select ng-model="target"
+                                        dku-bs-select="{liveSearch:true,size:'auto'}"
+                                        ng-options="c as c.envName group by c.envLang for c in availableCodeEnvs | orderBy:codeEnvComparator(codeEnv.source) track by c.envName"
+                                        ng-change="codeEnv.target = target.builtin ? '' : target.envName"
+                                        ng-init="target = findCodeEnv(availableCodeEnvs, codeEnv.target)">
+                                </select>
+
+                                <span ng-if="codeEnv.source && codeEnv.target && findCodeEnv(prepareResponse.usedConnections, codeEnv.source).envLang && findCodeEnv(prepareResponse.usedConnections, codeEnv.source).envLang != target.envLang">
+                                    <i class="icon-warning-sign" toggle="tooltip" title="Type mismatch, expecting {{findCodeEnv(prepareResponse.usedConnections, codeEnv.source).envLang}}" placement="right" container="body"></i>
+                                </span>
+
+                                <a ng-click="remove($index)" class="pull-right" style="color: grey"><i class="icon-trash "/></a>
+                            </div>
+
+                        </li>
+                    </ul>
+
+                    <div  class="add-value">
+                        <span class="pull-right" ng-click="refreshCodeEnvs()" toggle="tooltip" title="Refresh connection list" placement="left" container="body" style="text-align: right">
+                            <i class="icon-refresh" />
+                        </span>
+                        <span ng-click="add({})">
+                            <i class="icon-plus-sign" /> ADD REMAPPING
+                        </span>
+                    </div>
+
+                </div>
+
+                <ul class="raw-unstyled-ul alert alert-error" ng-show="importResponse.messages.length >0" style="margin-top: 20px;">
+                    <h4>Issues were encountered</h4>
+                    <li ng-repeat="message in importResponse.messages" class="row-fluid">
+                        <div class="span2" style="padding-top: 14px;">
+                            <span class="{{DKUConstants.design.alertClasses[message.severity]}} severity">{{message.severity}}</span>
+                        </div>
+                        <div class="span10">
+                            <h5>{{message.title}}</h5>
+                            {{message.message}}
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div block-api-error />
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+
+            <button ng-show="phase == 'READY_TO_IMPORT'" type="submit" class="btn btn--text btn--primary" ng-click="attemptImport()" ng-disabled="importProjectForm.projectKey.$invalid" >Import</button>
+
+            <button ng-show="phase == 'READY_TO_UPLOAD'" type="submit" class="btn btn--text btn--primary" ng-click="startImport()" ng-disabled='!importData.file'>Import</button>
+        </div>
+    </form>
+</div>

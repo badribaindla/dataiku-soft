@@ -1,0 +1,98 @@
+<div>
+    <h2 class="settings-section-title">Usage params</h2>
+    <fieldset>
+        <div class="control-group">
+            <label for="allowWrite" class="control-label">Allow write</label>
+            <div class="controls">
+                <label>
+                    <input id="allowWrite" type="checkbox" ng-model="connection.allowWrite">
+                    <span class="help-inline">Can DSS write to the datasets from this connection?</span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="allowManagedDatasets" class="control-label">Allow managed datasets</label>
+            <div class="controls">
+                <label>
+                    <input id="allowManagedDatasets" type="checkbox" ng-model="connection.allowManagedDatasets" ng-disabled="!connection.allowWrite" class="exclude-from-smart-change"/>
+                    <span class="help-inline">Can new managed datasets be created on this connection?</span>
+            </label>
+            </div>
+        </div>
+        <div class="control-group" ng-if="isFsProviderizable(connection.type)">
+            <label for="allowManagedDatasets" class="control-label">Allow managed folders</label>
+            <div class="controls">
+                <label>
+                    <input id="allowManagedFolders" type="checkbox" ng-model="connection.allowManagedFolders" ng-disabled="!connection.allowWrite" class="exclude-from-smart-change"/>
+                    <span class="help-inline">Can new managed folders be created on this connection?</span>
+            </label>
+            </div>
+        </div>
+    </fieldset>
+    <div class="control-group" ng-show="connection.type != 'FTP'">
+        <label for="maxActivities" class="control-label">Max nb. of activities</label>
+        <div class="controls">
+            <input id="maxActivities" type="number" ng-model="connection.maxActivities" class="exclude-from-smart-change"/>
+            <span class="help-inline">Limit the number of concurrent activities involving this connection.</span>
+        </div>
+    </div>
+    
+    <div include-no-scope="/templates/admin/fragments/connection-proxy.html" />
+
+    <h2 class="settings-section-title">Security settings</h2>
+    <p>
+        <small class="help-inline" style="padding: 0">
+            See <doclink page="/security/connections" title="the documentation" /> for more information.
+        </small>
+    </p>
+    <div class="control-group">
+        <label class="control-label">Freely usable by</label>
+        <div class="controls">
+            <label>
+                <input type="radio" ng-model="connection.usableBy" value="ALL" name="usableBy" class="exclude-from-smart-change"/>
+                Every analyst
+            </label>
+            <label>
+                <input type="radio" ng-model="connection.usableBy" value="ALLOWED" name="usableBy" class="exclude-from-smart-change"/>
+                Selected groups
+            </label>
+            <span class="help-inline">
+                Who can create new datasets in this connection, and more generally "browse" this connection.
+            </span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="connection.usableBy=='ALLOWED'">
+        <label class="control-label">&#8627; usable by groups</label>
+        <div class="controls">
+             <select dku-bs-select multiple="multiple" ng-model="connection.allowedGroups" ng-options="g for g in allGroups" class="exclude-from-smart-change"></select>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label">Details readable by</label>
+        <div class="controls">
+            <label>
+                <input type="radio" ng-model="connection.detailsReadability.readableBy" value="NONE" name="readableBy" class="exclude-from-smart-change"/>
+                Nobody
+            </label>
+            <label>
+                <input type="radio" ng-model="connection.detailsReadability.readableBy" value="ALL" name="readableBy" class="exclude-from-smart-change"/>
+                Every analyst
+            </label>
+            <label>
+                <input type="radio" ng-model="connection.detailsReadability.readableBy" value="ALLOWED" name="readableBy" class="exclude-from-smart-change"/>
+                Selected groups
+            </label>
+            <span class="help-inline">
+                Who can access the details of the connection (including credentials, if connection has some).
+                <span ng-show="connection.type == 'HDFS' || connection.type == 'EC2'">Note that this is required for fast access from Spark</span>
+            </span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="connection.detailsReadability.readableBy=='ALLOWED'">
+        <label class="control-label">&#8627; readable by groups</label>
+        <div class="controls">
+             <select dku-bs-select multiple="multiple" ng-model="connection.detailsReadability.allowedGroups" ng-options="g for g in allGroups" class="exclude-from-smart-change"></select>
+        </div>
+    </div>
+</div>

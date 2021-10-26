@@ -1,0 +1,73 @@
+<div class="container-fluid">
+	<h2 class="settings-section-title">Order</h2>
+	<form class="dkuform-horizontal">
+		<div class="control-group">
+			<label class="control-label">Preserve ordering</label>
+			<div class="controls">
+				<label>
+					<input type="checkbox" ng-model="dataset.readWriteOptions.preserveOrder" />
+					<span class="help-inline">
+						When the dataset is read by DSS, preserve its "native" ordering (order of the rows in the files,
+						files in enumeration order). This disables read parallelism.<br />
+						When the dataset is written by DSS, preserve the "native" ordering of the stream of data.
+						This disables write parallelism and only a single file will be written.<br />
+						This only applies when DSS itself writes the dataset. For example, it does not apply for Spark.
+					</span>
+				</label>
+			</div>
+		</div>
+	</form>
+
+	<h2 class="settings-section-title">Parallelism</h2>
+	<form class="dkuform-horizontal dkuform-disableable">
+		<fieldset ng-disabled="dataset.readWriteOptions.preserveOrder">
+			<div class="control-group">
+				<label class="control-label">Force single output file</label>
+				<div class="controls">
+					<label>
+						<input type="checkbox" ng-model="dataset.readWriteOptions.forceSingleOutputFile" />
+						<span class="help-inline">
+							When the dataset is written by DSS, force a single output file (regardless of the kind
+							of input). Automatically implied if when preserving ordering.
+						</span>
+					</label>
+				</div>
+			</div>
+		</fieldset>
+		<fieldset ng-disabled="dataset.readWriteOptions.preserveOrder || dataset.readWriteOptions.forceSingleOutputFile">
+			<div class="control-group">
+				<label class="control-label">Write bucketing</label>
+				<div class="controls">
+					<label>
+						<input type="number" force-integer ng-model="dataset.readWriteOptions.writeBuckets" />
+						<span class="help-inline">
+							When the dataset is written by DSS from a "single-stream" source (like a SQL database),
+							DSS can automatically "redispatch" the rows accross several files to give an opportunity
+							to downstream recipes to better parallelize. Entering more than 1 here will enable this feature
+							and create multiple output files. Multiple output files may still be created
+							when running a recipe with input datasets that contain multiple files (see above)<br />
+							Incompatible with preserving ordering or forcing single output file.
+						</span>
+					</label>
+				</div>
+			</div>
+		</fieldset>
+	</form>
+		
+	<h2 class="settings-section-title">Output file name</h2>
+	<form class="dkuform-horizontal dkuform-disableable">
+		<fieldset ng-disabled="!dataset.readWriteOptions.forceSingleOutputFile">
+			<div class="control-group">
+				<label class="control-label">Output file base name</label>
+				<div class="controls">
+					<label>
+						<input type="text" ng-model="dataset.readWriteOptions.singleOutputFileBaseName" />
+						<span class="help-inline">
+							Base name (without extension) of the output file, for single-output-file cases
+						</span>
+					</label>
+				</div>
+			</div>
+		</fieldset>
+	</form>
+</div>

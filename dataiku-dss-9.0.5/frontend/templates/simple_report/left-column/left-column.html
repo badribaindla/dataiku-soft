@@ -1,0 +1,30 @@
+<div ng-if="legends.length && chart.def.legendPlacement == 'SIDEBAR'" class="mbot20" ng-init="legendsShown = true">
+    <h2 class="foldable-title" id="qa_charts_legends-submenu-header" ng-click="legendsShown = !legendsShown">
+        <i class="icon-caret-right"  ng-show="!legendsShown"/><i class="icon-caret-down"  ng-show="legendsShown"/>
+        Legend
+    </h2>
+    <div class="legend-wrapper" ng-if="legendsShown">
+        <ng-include src="'/templates/simple_report/legend/legend-zone.html'"></ng-include>
+    </div>
+</div>
+
+<div class="chart-filters mbot20" ng-if="canFilter && (!readOnly || chart.def.filters.length > 0)" dku-foldable open="true" open-on-drag-enter>
+    <div>
+        <h2 class="foldable-title" id="qa_charts_filter-submenu-header" ng-click="foldableToggle()">
+            <div class="pull-right nb-records" ng-if="response.result.pivotResponse">
+                <div id="qa_charts_filter-count-of-records" ng-if="chart.def.filters.length && response.result.pivotResponse.beforeFilterRecords > 0">
+                    {{response.result.pivotResponse.afterFilterRecords}}/{{response.result.pivotResponse.beforeFilterRecords}} records
+                </div>
+            </div>
+
+            <i class="{{foldableOpen ? 'icon-caret-down' : 'icon-caret-right'}}" />
+            Filters
+        </h2>
+        <p ng-show="readOnly" class="alert alert-info" style="margin: 10px 0;"><i class="icon-info-sign" />&nbsp; Filters won't be saved.</p>
+        <ul class="filtersZone zdroppable" add-remove id="qa_charts_filters-dropzone" ng-model="chart.def.filters" chart-drag-drop-list="chart.def.filters" placeholder-pos="begin" accept-drop="acceptFilter(data)" ng-show="foldableOpen" ng-class="{'empty': chart.def.filters.length == 0}">
+            <li ng-repeat="filter in chart.def.filters" contextual-menu ng-init="frontData = filterTmpData[$index]">
+                <ng-include src="'/templates/simple_report/filter-row.html'"></ng-include>
+            </li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,110 @@
+<div class="modal modal3 edit-palette-modal dku-modal modal-fixed-height400" ng-controller="EditCustomPaletteModalController" auto-size="false">
+    <div class="noflex has-border" dku-modal-header modal-title="{{uiState.exporting ? 'Create custom palette plugin' : 'Edit custom palette'}}" />
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper">
+
+        <!-- Edit palette -->
+        <div class="modal-body no-h-padding vertical-flex" ng-hide="uiState.exporting || uiState.creatingPlugin">
+
+            <div ng-show="paletteType == 'CONTINUOUS'" class="noflex modal-h-padding">
+                <label><input type="checkbox" ng-model="palette.fixedValues" /> Specify values</label>
+            </div>
+
+            <div class="flex-no-grow oa modal-h-padding">
+                <div class="sorting-container">
+                    <div class="editable-list editable-list--full-width editable-list--ng1">
+                        <ul ng-model="palette.colors" ui-sortable="sortableOptions" class="color-list raw-unstyled-ul pull-left editable-list__items" style="width: 170px">
+                            <li ng-repeat="color in palette.colors track by $index" class="editable-list__item">
+                                <i class="sort-handle editable-list__drag-icon icon-reorder" />
+                                <span class="color-preview" style="background-color: {{color}};" colorpicker colorpicker-position="center" colorpicker-with-input="true" ng-model="palette.colors[$index]"></span>
+                                <input class="editable-list__input color" type="text" ng-model="palette.colors[$index]" />
+                            </li>
+                        </ul>
+                    </div>
+
+                    <ul ng-model="palette.colors" class="color-list raw-unstyled-ul editable-list__items">
+                        <li ng-repeat="color in palette.colors track by $index" class="editable-list__item">
+                            <input class="editable-list__input" ng-show="palette.fixedValues && paletteType != 'DIVERGING'" type="number" step="any" ng-model="palette.values[$index]" placeholder="auto" />
+                            <button class="btn btn--text btn--danger btn-icon editable-list__delete" ng-click="removeColor($index)"><i class="icon-trash"></i></button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="noflex modal-h-padding">
+                <button class="btn btn--text btn--primary" ng-click="palette.colors.push('#000000');"><i plus-icon></i>Add color</span>
+            </div>
+        </div>
+
+        <!-- Export to plugin -->
+        <div class="modal-body" ng-if="uiState.exporting">
+            <div block-api-error />
+
+
+            This palette can be exported to a plugin and made available on all charts, using the following JS snippet:
+            <br/>
+
+
+            <div class="control-group">
+                <label class="control-label" for="paletteNameInput">Palette name</label>
+                <div class="controls">
+                    <input type="text" ng-model="exportOptions.paletteName" id="paletteNameInput" ng-change="updateSnippet()" required />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="paletteIdInput">Palette ID</label>
+                <div class="controls">
+                    <input type="text" ng-model="exportOptions.paletteId" id="paletteIdInput" ng-change="updateSnippet()" required />
+                </div>
+            </div>
+
+
+            <div class="code-wrapper">
+                <textarea style="width: 100%;" ui-codemirror="codeMirrorOptions" ng-if="jsSnippet" ng-model="jsSnippet"></textarea>
+            </div>
+
+            <p>Copy this code to an existing Dataiku plugin (or <a ng-click="uiState.exporting = false; uiState.creatingPlugin = true;">create a new one with this snippet</a>).</p>
+        </div>
+
+        <div class="modal-body" ng-if="uiState.creatingPlugin">
+            <div class="control-group">
+                <label class="control-label" for="pluginId">Plugin name</label>
+                <div class="controls">
+                    <input type="text" ng-model="exportOptions.pluginId" id="pluginId" />
+                    <span class="help-inline">
+                            Choose well: changing this id afterwards is difficult.
+                        </span>
+                </div>
+            </div>
+
+            <p>The plugin will be initialized with the following snippet:</p>
+
+            <div class="code-wrapper">
+                <textarea style="width: 100%;" ui-codemirror="codeMirrorOptions" ng-if="jsSnippet" ng-model="jsSnippet"></textarea>
+            </div>
+        </div>
+
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <div ng-if="!uiState.exporting && !uiState.creatingPlugin">
+                <div class="pull-left" style="width: 150px; text-align: left; padding-left: 20px; font-size: 12px;">
+                    <a ng-click="prepareExport()">Export to plugin</a>
+                </div>
+
+                <div class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</div>
+                <div class="btn btn--text btn--primary" ng-click="save()">Save</div>
+            </div>
+
+
+            <div ng-if="uiState.creatingPlugin">
+                <div class="btn btn--text btn--secondary" ng-click="uiState.creatingPlugin = false;">Cancel</div>
+                <div class="btn btn--text btn--primary" ng-click="export()">Create plugin</div>
+            </div>
+
+            <div ng-if="uiState.exporting">
+                <div class="btn btn--text btn--secondary" ng-click="uiState.exporting = false">Back</div>
+            </div>
+        </div>
+
+    </form>
+</div>

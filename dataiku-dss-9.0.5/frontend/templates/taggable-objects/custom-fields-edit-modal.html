@@ -1,0 +1,21 @@
+<div class="modal modal3 modal-wide edit-customfields-modal" id="qa_custom-fields-edition_modal" ng-controller="CustomFieldsEditModalController">
+    <dku-modal-header-with-totem modal-totem="icon-pencil">
+        <dku-modal-title>
+            Edit metadata for {{objectName}}
+        </dku-modal-title>
+        <dku-modal-tabs ng-if="customFieldsMap.length > 0">
+            <li class="tab" ng-repeat="comp in customFieldsMap track by $index" ng-class="{'active': uiState.cfComponentIdx == $index}"><a ng-click="uiState.cfComponentIdx = $index">{{comp.meta.label}}</a></li>
+        </dku-modal-tabs>
+    </dku-modal-header-with-totem>
+
+    <div class="modal-body tight-body modal-no-sizing flex vertical-flex" style="min-height: 101px;">
+        <div ng-if="customFieldsMap.length <= 0" class="alert alert-warning">There are no fields to edit for this object</div>
+        <div ng-if="customFieldsMap.length > 0" custom-fields-edit-form custom-fields="uiState.customFields" object-type="objectType" component-index="uiState.cfComponentIdx"></div>
+    </div>
+
+    <div class="modal-footer modal-footer-std-buttons has-border noflex">
+        <button type="button" class="btn btn--text btn--secondary" auto-focus="true" ng-click="dismiss()">Cancel</button>
+        <button type="submit" class="btn btn--text btn--primary" id="qa_custom-fields-edition_save" ng-click="save()" ng-if="customFieldsMap.length > 0">Save</button>
+    </div>
+
+</div>

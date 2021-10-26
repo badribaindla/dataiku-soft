@@ -1,0 +1,55 @@
+<div class="modal modal3 dku-modal upload-content-modal" auto-size="false">
+    <div dku-modal-header modal-class="has-border" modal-title="Upload files" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theUploadform" style="height: 350px;">
+        <div class="modal-body h100 vertical-flex" filtered-multi-select-rows ng-model="toUpload" style="padding-bottom: 0;">
+            <div block-api-error />
+
+            <droparea class="noflex droparea-style-v2" drop="uploadFiles(files)" multiple style="height: 150px; min-height: initial;" ng-if="startedCount() == 0">
+                <div class="upload-hook" style="margin-bottom: 10px;">
+                    Drag and drop your files here or
+                    <button class="btn btn--contained upload-button">Add a file</button>
+                </div>
+            </droparea>
+            <div class="flex center-children" ng-if="toUpload.length == 0">
+                <div class="preview-cta" >Nothing to upload.</div>
+            </div>
+            <div class="noflex" ng-if="toUpload.length != 0">
+                <div class="files-header horizontal-flex">
+                    <div class="info noflex">
+                        <input type="checkbox" ng-model="selection.all" dku-indeterminate="selection.some" ng-change="updateMassSelectionCheckbox()" />
+                    </div>
+                    <span class="path flex mx-textellipsis">File name</span>
+                </div>
+            </div>
+            <div class="flex oa" ng-if="toUpload.length != 0">
+                <ul class="files" >
+                    <li ng-repeat="item in selection.filteredObjects track by $index" ng-click="stopEvent($event)">
+                        <div class="file horizontal-flex">
+                            <div class="info noflex">
+                                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+                            </div>
+                            <span class="path flex mx-textellipsis" title="{{item.name}}"> 
+                                <i class="icon-file" ng-if="!item.started"></i>
+                                <i class="icon-spinner icon-spin" ng-if="item.started && !item.done"></i>
+                                <i class="icon-check-sign success" ng-if="item.done && item.succeeded != null"></i>
+                                <i class="icon-remove-sign failed" ng-if="item.done && item.failed != null"></i>
+                                &nbsp;{{ item.name }}
+                            </span>
+                            <span class="noflex" ng-if="!item.feasability.canUpload">
+                                <i class="icon-warning-sign" title="{{item.feasability.reason}}"></i>
+                            </span>
+                        </div>
+                        <div ng-if="item.failed" api-error-alert="item.failed"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="upload()" ng-if="startedCount() == 0" ng-disabled="theUploadform.$invalid">Upload</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="goToFirstUploaded()" ng-if="startedCount() > 0" ng-disabled="doneCount() < selectedCount()">Done</button>
+        </div>
+    </form>
+</div>

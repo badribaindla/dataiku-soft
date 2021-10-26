@@ -1,0 +1,114 @@
+<div class="fh oa">
+    <form class="plugin-installation-page" ng-cloak>
+        <div class="plugin-installation-steps" ng-if="state == 'FAILED'">
+            <section class="alert alert-error plugin-installation-step">
+                <h4><i class="icon-dku-error mright8"></i> Failed to {{isUpdate ? 'update' : 'install'}} the plugin.</h4>
+                <p>{{failure.message}}</p>
+                <button class="btn btn--secondary" ui-sref="plugins.installed">Go to plugins list</button>
+                <button ng-if="failure.isAlreadyInstalled" class="btn btn--primary mright8 qa_plugin_go-to-plugin-page" ng-click="goToPluginPage()">Go to plugin page</button>
+            </section>
+        </div>
+
+        <div class="plugin-installation-steps">
+            <section class="plugin-installation-step" ng-if="state === 'RUNNING'" >
+                <button type="button" class="btn btn--danger pull-right" ng-click="abort()" ng-if="!isUpload">
+                    Abort
+                </button>
+                <h4 class="plugin-installation-step__header">
+                    <span class="plugin-installation-step__icon">1</span>
+                    {{isUpdate ? 'Updating' : 'Installing'}}, please wait...</h4>
+                <progress ng-show="clonePercentage" value="{{clonePercentage}}" max="100" class="dku-linear-loader w100 mtop24"></progress>
+                <progress ng-show="!clonePercentage" class="dku-linear-loader w100 mtop24"></progress>
+                <div ng-show="installingFuture.progress.states[0].unit === 'SIZE'">
+                    <span>{{installingFuture.progress.states[0].cur}} bytes downloaded.</span>
+                </div>
+            </section>
+        </div>
+
+        <div class="plugin-installation-steps" ng-if="state === 'DONE' && isCodeEnvDefined && (environmentState === 'NOT_STARTED' || environmentState === 'WAITING_CONFIRMATION')">
+            <section class="plugin-installation-step">
+                <h4 class="plugin-installation-step__header">
+                    <i class="plugin-installation-step__icon plugin-installation-step__icon--done"></i>
+                    Basic {{isUpdate ? 'update' : 'installation'}} done.
+                </h4>
+            </section>
+            <hr class="m0">
+            <section class="plugin-installation-step">
+                <h4 class="plugin-installation-step__header" ng-if="pluginDesc.frontendRequirements.codeEnvLanguage">
+                    <span class="plugin-installation-step__icon">2</span>
+                    Creating code environment
+                </h4>
+                <h4 class="plugin-installation-step__header" ng-if="pluginDesc.frontendRequirements.hasDependencies">
+                    <span class="plugin-installation-step__icon">2</span>
+                    Installing dependencies
+                </h4>
+                <div class="plugin-installation-step__content">
+                    <div plugin-requirements
+                        plugin-desc="pluginDesc"
+                        settings="pluginSettings"
+                        on-valid="approveEnvironmentCreation"
+                        on-invalid="disapproveEnvironmentCreation">
+                    </div>
+                    <button type="button" class="btn btn--primary pull-right mleft8 mtop16" ng-click="confirmEnvironmentCreation()" ng-if="environmentState === 'WAITING_CONFIRMATION'">
+                        Next
+                    </button>
+                    <button type="button" class="btn btn--secondary pull-right mtop16" ng-click="skipEnvironmentCreation()" ng-if="environmentState !== 'WAITING_CONFIRMATION'">
+                        Skip step for now
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <div class="plugin-installation-steps" ng-if="state === 'DONE' && (!isCodeEnvDefined || (isCodeEnvDefined && (environmentState === 'DONE' || environmentState === 'SKIPPED')))">
+
+            <section class="plugin-installation-step">
+                <h4 class="plugin-installation-step__header"><i class="plugin-installation-step__icon plugin-installation-step__icon--done"></i>Basic {{isUpdate ? 'update' : 'installation'}} done.</h4>
+            </section>
+
+            <hr class="m0">
+
+            <section class="plugin-installation-step" ng-if="environmentState === 'SKIPPED' && pluginDesc.frontendRequirements.codeEnvLanguage">
+                <h4 class="plugin-installation-step__header"><i class="plugin-installation-step__icon plugin-installation-step__icon--done"></i>Code environment creation postponed.</h4>
+            </section>
+
+            <section class="plugin-installation-step" ng-if="environmentState === 'SKIPPED' && pluginDesc.frontendRequirements.hasDependencies">
+                <h4 class="plugin-installation-step__header"><i class="plugin-installation-step__icon plugin-installation-step__icon--done"></i>Dependencies installation postponed.</h4>
+            </section>
+
+            <section class="plugin-installation-step" ng-if="environmentState !== 'SKIPPED'">
+                <h4 class="plugin-installation-step__header"><i class="plugin-installation-step__icon plugin-installation-step__icon--done"></i>Code environment up-to-date.</h4>
+            </section>
+
+            <hr class="m0">
+
+            <section class="plugin-installation-step">
+                <h4 class="plugin-installation-step__header" ng-if="needsRestart"><span class="plugin-installation-step__icon">3</span>{{isUpdate ? 'Update' : 'Installation'}} successful. Dataiku DSS needs to restart.</h4>
+                <h4 class="plugin-installation-step__header" ng-if="!needsRestart"><i class="plugin-installation-step__icon plugin-installation-step__icon--done"></i>{{isUpdate ? 'Update' : 'Installation'}} successful.</h4>
+
+                <div class="plugin-installation-step__content" ng-if="!needsRestart">
+                    <p ng-if="!isUpdate">
+                        Congratulations! <br> Your instance of Dataiku DSS has been enhanced with the plugin <strong>{{ pluginDesc.desc.meta.label || pluginDesc.desc.id }}</strong>.
+                    </p>
+                    <p ng-if="isUpdate">
+                        Congratulations! <br> Your instance of Dataiku DSS has been enhanced with a new version of the plugin <strong>{{ pluginDesc.desc.meta.label || pluginDesc.desc.id }}</strong>.
+                    </p>
+                    <button class="btn btn--primary pull-right qa_plugin_go-to-plugin_page" ng-click="goToPluginPage()">Go to plugin page</button>
+                </div>
+
+                <div class="plugin-installation-step__content" ng-if="needsRestart">
+                    <p>
+                        <span ng-if="!isUpdate">Congratulations! <br> Your instance of Dataiku DSS has been enhanced with the plugin <strong>{{ pluginDesc.desc.meta.label || pluginDesc.desc.id }}</strong>.</span>
+                        <span ng-if="isUpdate">Congratulations! <br> Your instance of Dataiku DSS has been enhanced with a new version of the plugin <strong>{{ pluginDesc.desc.meta.label || pluginDesc.desc.id }}</strong>.</span>
+                        <br>To complete the {{isUpdate ? 'update' : 'installation'}}, Dataiku DSS needs to restart.
+                    </p>
+                    <p ng-if="!appConfig.admin">You are not allowed to restart DSS. You should ask an administrator to do it for you.</p>
+                    <p ng-if="appConfig.admin" class="text-warning warning-background--light pad8">
+                        <i class="icon-warning-sign mbot8"></i> Please warn other users that their work will be interrupted during restart.
+                    </p>
+                    <button ng-if="appConfig.admin" class="btn btn--danger pull-right" ng-click="triggerRestart()">Restart DSS</button>
+                    <button class="btn btn--secondary pull-right mright8 qa_plugin_go-to-plugin_page" ng-click="goToPluginPage()">Go to plugin page</button>
+                </div>
+            </section>
+        </div>
+    </form>
+</div>

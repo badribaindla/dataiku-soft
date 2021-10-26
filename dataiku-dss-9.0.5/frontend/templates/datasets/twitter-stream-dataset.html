@@ -1,0 +1,121 @@
+
+<div ng-show="dataset" class="twitter-stream-dataset h100">
+	<debug data="detectResult" />
+	<debug data="fetchResult" />
+	<div style="position: absolute; right: 10px; top: 6px;"> <!-- like in fragments/settings-save.html -->
+<span ng-show="dataset.name" style="margin: 6px 70px;">
+    <button ng-disabled="!isReady() || datasetIsDirty()" ng-show="!isRunning" class="btn btn--primary" ng-click="toggleStreaming(true)">
+        <i class="icon-refresh" /> Start streaming
+    </button>
+    <button ng-show="isRunning" class="btn btn--primary" ng-click="toggleStreaming(false)">
+        <i class="icon-refresh" /> Stop streaming
+    </button>
+</span>
+	</div>
+	<div include-no-scope="/templates/datasets/fragments/settings-save.html" />
+	<tabs class="tabs-with-margin vertical-flex">
+		<pane title="Connections">
+		<fieldset ng-disabled="isRunning" class="container-fluid page-top-padding h100 oa">
+			<form class="dkuform-horizontal">
+				<p ng-show="connectionTwitter">
+                    You will stream through the active Twitter connection
+                    <a href="{{ $state.href('admin.connections.edit', {connectionName:connectionTwitter}) }}" main-click>{{connectionTwitter}}</a>.
+                </p>
+
+				<div class="alert alert-error" ng-show="!connectionTwitter">
+					<i class="icon-dku-error icon-large"></i>
+					<span ng-show="!hasConnectionsTwitter"><a href="{{$state.href('admin.connections.new', {type:'Twitter'})}}">Create</a> a Twitter connection.</span>
+					<span ng-show="hasConnectionsTwitter">Define the active Twitter <a href="{{ $state.href('admin.connections') }}" main-click>connection</a>.</span>
+				</div>
+				<div class="control-group" >
+					<label class="control-label">Store into</label>
+					<div class="controls">
+						<select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="dataset.params.connection" ng-options="connection for connection in connections" ng-required></select>
+					</div>
+                </div>
+				<div class="control-group" >
+                    <label class="control-label">Path</label>
+                    <div class="controls">
+                            <input ng-model="dataset.params.path" type="text" />
+                            <span class="help-inline" ng-show="!dataset.params.path || dataset.params.path=='/'">
+                                <i class="icon-warning-sign"></i> Please specify a storage directory
+                            </span>
+                    </div>
+                </div>
+			</form>
+		</fieldset>
+		</pane>
+		<pane title="Schema">
+		<fieldset ng-disabled="isRunning" class="container-fluid page-top-padding h100 oa">
+			<p ng-show="hasData || isRunning">Data has already been captured from the stream. You can't change the schema anymore.</p>
+			<p ng-show="!hasData && !isRunning">Select fields that you want to capture. Once streaming has begun, you won't be able to change this anymore.</p>
+			<form class="dkuform-horizontal">
+			<div class="control-group">
+                <div class="controls"><ul class="unstyled">
+					<li><input type="checkbox" ng-checked="containsColumn('keywords')" ng-click="toggleField('keywords')" /> Store matched keywords in a JSON array</li>
+                </ul></div>
+
+				<label for="" class="control-label">Tweet</label>
+				<div class="controls"><ul class="unstyled">
+					<li><input type="checkbox" ng-checked="containsColumn('id_str')" disabled="disabled" /> ID</li>
+					<li><input type="checkbox" ng-checked="containsColumn('text')" disabled="disabled" /> Text</li>
+					<li><input type="checkbox" ng-checked="containsColumn('created_at')" disabled="disabled" /> Date & time</li>
+					<li><input type="checkbox" ng-checked="containsColumn('entities.hashtags')" ng-click="toggleField('entities.hashtags')" ng-disabled="hasData" /> Hashtags</li>
+					<li><input type="checkbox" ng-checked="containsColumn('lang')" ng-click="toggleField('lang')" ng-disabled="hasData" /> Language</li>
+					<li><input type="checkbox" ng-checked="containsColumn('coordinates.coordinates')" ng-click="toggleField('coordinates.coordinates')" ng-disabled="hasData" /> Geographical coordinates</li>
+					<li><input type="checkbox" ng-checked="containsColumn('retweet_count')" ng-click="toggleField('retweet_count')" ng-disabled="hasData" /> Number of retweets</li>
+				</ul></div>
+
+				<label for="" class="control-label">User</label>
+				<div class="controls"><ul class="unstyled">
+					<li><input type="checkbox" ng-checked="containsColumn('user.id_str')" ng-click="toggleField('user.id_str')" ng-disabled="hasData" /> ID</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.name')" ng-click="toggleField('user.name')" ng-disabled="hasData" /> Name</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.screen_name')" ng-click="toggleField('user.screen_name')" ng-disabled="hasData" /> Screen name</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.created_at')" ng-click="toggleField('user.created_at')" ng-disabled="hasData" /> Date of creation</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.lang')" ng-click="toggleField('user.lang')" ng-disabled="hasData" /> Language</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.location')" ng-click="toggleField('user.location')" ng-disabled="hasData" /> Location</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.time_zone')" ng-click="toggleField('user.time_zone')" ng-disabled="hasData" /> Time zone</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.followers_count')" ng-click="toggleField('user.followers_count')" ng-disabled="hasData" /> Number of followers</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.statuses_count')" ng-click="toggleField('user.statuses_count')" ng-disabled="hasData" /> Number of statuses issued (including retweets) by user</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.friends_count')" ng-click="toggleField('user.friends_count')" ng-disabled="hasData" /> Number of users followed by user</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.favourites_count')" ng-click="toggleField('user.favourites_count')" ng-disabled="hasData" /> Number of tweets favourited by user</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.listed_count')" ng-click="toggleField('user.listed_count')" ng-disabled="hasData" /> Number of public lists that this user is a member of</li>
+					<li><input type="checkbox" ng-checked="containsColumn('user.verified')" ng-click="toggleField('user.verified')" ng-disabled="hasData" /> Verified account ?</li>
+				</ul></div>
+
+                <label for="" class="control-label">If the tweet is a reply</label>
+                <div class="controls"><ul class="unstyled">
+					<li><input type="checkbox" ng-checked="containsColumn('in_reply_to_user_id_str')" ng-click="toggleField('in_reply_to_user_id_str')" ng-disabled="hasData" /> In reply to user ID</li>
+					<li><input type="checkbox" ng-checked="containsColumn('in_reply_to_screen_name')" ng-click="toggleField('in_reply_to_screen_name')" ng-disabled="hasData" /> In reply to screen name</li>
+					<li><input type="checkbox" ng-checked="containsColumn('in_reply_to_status_id_str')" ng-click="toggleField('in_reply_to_status_id_str')" ng-disabled="hasData" /> In reply to status ID</li>
+				</ul></div>
+
+                <label for="" class="control-label">If the tweet is a retweet</label>
+                <div class="controls"><ul class="unstyled">
+					<li><input type="checkbox" ng-checked="containsColumn('retweeted_status.id_str')" ng-click="toggleField('retweeted_status.id_str')" ng-disabled="hasData" /> Original tweet ID</li>
+					<li><input type="checkbox" ng-checked="containsColumn('retweeted_status')" ng-click="toggleField('retweeted_status')" ng-disabled="hasData" /> Full original JSON formatted tweet</li>
+				</ul></div>
+			</div>
+			</form>
+		</fieldset>
+		</pane>
+		<pane title="Keywords">
+		<fieldset ng-disabled="isRunning" class="container-fluid page-top-padding h100 oa">
+			<p>The dataset will only contain tweets where the following keywords appear :</p>
+			<form class="dkuform-horizontal">
+                <div class="control-group">
+                    <div class="controls" style="margin-left: 0px; width: 300px;" ng-disabled="isRunning">
+						<ng2-values-list
+							[(items)]="keywordItems"
+							value-identifier="keyword"
+							value-placeholder="Keyword"
+							add-label="Add keyword"
+							(on-change)="keywordsChanged($event)">
+						</ng2-values-list>
+                    </div>
+                </div>
+            </form>
+		</fieldset>
+		</pane>
+    </tabs>
+</div>

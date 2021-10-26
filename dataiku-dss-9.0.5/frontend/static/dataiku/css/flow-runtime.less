@@ -1,0 +1,302 @@
+@keyframes opacity-pulse-high {
+ 	from {
+		opacity: 0.4;
+	}
+	50% {
+		opacity: 1.0;
+	}
+	to {
+		opacity: 0.4;
+	}
+}
+@-webkit-keyframes opacity-pulse-high {
+ 	from {
+		opacity: 0.4;
+	}
+	50% {
+		opacity: 1.0;
+	}
+	to {
+		opacity: 0.4;
+	}
+}
+@keyframes job-running-pulse {
+ 	from {
+		opacity: 0.3;
+		background-color:@success-background-light;
+	}
+	50% {
+		opacity: 1.0;
+		color: @success-green-base;
+		background-color:@success-background-light;
+	}
+	to {
+		opacity: 0.3;
+		background-color:@success-background-light;
+	}
+}
+@-webkit-keyframes job-running-pulse {
+	from {
+		opacity: 0.3;
+		background-color:@success-background-light;
+	}
+	50% {
+		opacity: 1.0;
+		color: @success-green-base;
+		background-color:@success-background-light;
+	}
+	to {
+		opacity: 0.3;
+		background-color:@success-background-light;
+	}
+}
+@keyframes job-running-pulse-selected {
+ 	from {
+		opacity: 0.3;
+		background-color: @success-green-base; color: @white-base;
+	}
+	50% {
+		opacity: 1.0;
+		background-color: @success-green-base; color: @white-base;
+	}
+	to {
+		opacity: 0.3;
+		background-color: @success-green-base; color: @white-base;
+	}
+}
+@-webkit-keyframes job-running-pulse-selected {
+	from {
+		opacity: 0.3;
+		background-color: @success-green-base; color: @white-base;
+	}
+	50% {
+		opacity: 1.0;
+		background-color: @success-green-base; color: @white-base;
+	}
+	to {
+		opacity: 0.3;
+		background-color: @success-green-base; color: @white-base;
+	}
+}
+
+.mx-running-pulse {
+ 	background-color:@success-background-light;
+	animation-name:job-running-pulse;
+	animation-duration: 1.8s;
+	animation-iteration-count: infinite;
+	-webkit-animation-name:job-running-pulse;
+	-webkit-animation-duration: 1.8s;
+	-webkit-animation-iteration-count: infinite;
+}
+
+.continuous-activity-status {
+    pre {
+        font-size: 10px;
+        line-height: 1.2;
+        padding: 0 16px;
+    }
+    
+    #logTailPre {
+        background: none;
+        border: none;
+    }
+    
+}
+ 
+.job-status {
+	.screen-center {
+		margin-top: 100px; text-align: center
+	}
+	.nav-tabs > li > a {
+		padding: 4px 10px 4px 10px;
+	}
+	.nav-tabs {
+		margin-bottom: 10px;
+	}
+    .tab-content {
+		margin: 0;
+    }
+    .warnings {
+    	li.warning {
+			list-style: none;
+			display: block;
+			margin: 10px;
+			padding: 10px;
+			background: @white-base;
+			border: 1px solid @border-color;
+    	}
+    }
+    table {
+        table-layout: fixed;
+        width: 100%;
+        td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+    pre {
+        font-size: 10px;
+		line-height: 1.2;
+		padding: 0 16px;
+    }
+
+    .job-status-regular {
+    	.activities-table {
+    		.item {
+    			cursor: pointer;
+    			border-bottom: 1px solid @border-color;
+				div {
+    				text-overflow: ellipsis;
+	    			white-space: nowrap;
+    				overflow: hidden;
+    			}
+    		}
+			.FAILED {
+				background-color: @error-background-light;
+				&.selected { background-color: @error-red-base; color: @white-base; }
+			}
+			.ABORTED {
+				background-color: @error-background-light;
+				&.selected { background-color: @error-red-base; color: @white-base; }
+			}
+			.SKIPPED {
+				&.selected { background-color: @grey-lighten-3; color: @white-base; };
+				background-color: @grey-lighten-7;
+				opacity: 0.5;
+			}
+			.RUNNING {
+				.mx-running-pulse;
+				&.selected { animation-name: job-running-pulse-selected; -webkit-animation-name: job-running-pulse-selected; }
+			}
+            .WAITING {
+                background-color: @grey-background;
+                &.selected { background-color: @grey-lighten-3; color: @white-base; };
+            }
+			.NOT_STARTED {
+				&.selected { background-color: @grey-lighten-3; color: @white-base; };
+				background-color: @grey-lighten-7;
+			}
+			.DONE {
+				&.selected { background-color: @success-green-base; color: @white-base; }
+
+				background-color: @success-background-light;
+				&.warnings {
+					background-color: @success-background-light;
+					&.selected {
+						background-color: darken(spin(@success-background-light, -20), 20%);
+						color: @grey-lighten-1;
+					}
+				}
+			}
+		}
+		.job-status-graph {
+			.filter-faded {
+				opacity: 0.4;
+			}
+			[data-state=FAILED] {
+				.fill {
+					fill: @error-red-base;
+				}
+			}
+			[data-state=NOT_STARTED] {
+				.fill {
+					fill: @grey-lighten-7;
+				}
+			}
+			[data-state=DONE] {
+				.fill {
+					fill:  @success-green-base;
+				}
+			}
+			[data-state=RUNNING] {
+				.fill {
+					.mx-running-pulse;
+				}
+			}
+			.mainPane {
+	        	padding: 0;
+	        	height: 100%;
+	        	width: 75%;
+	        	float: left;
+	    	}
+		    .rightPane {
+	    	    float: left;
+		        width: 25%;
+	    	    height: 100%;
+	        	.content {
+	            	padding-left: 5px;
+	            	padding-right: 10px;
+	            }
+	        }
+		}
+    }
+
+	.job-preview {
+		.activity-list {
+			.header {
+				border-bottom: 1px solid @border-color;
+				padding: 3px;
+				div {
+					cursor: pointer;
+					&.sort-descending:after {
+ 						font-family: FontAwesome;
+ 						content: ' \f0d8 ';
+					}
+					&.sort-ascending:after {
+ 						font-family: FontAwesome;
+ 						content: ' \f0d7 ';
+					}
+				}
+
+			}
+			.item {
+				cursor: pointer;
+				border-bottom: 1px solid @border-color;
+				height: 35px;
+				line-height: 35px;
+				padding-left: 3px;
+				&.selected {
+					background-color: @grey-lighten-7;
+				}
+				&.disabled {
+					opacity: 0.4;
+				}
+				div {
+    				text-overflow: ellipsis;
+	    			white-space: nowrap;
+    				overflow: hidden;
+    			}
+			}
+		}
+		.preview-graph {
+			.filter-faded {
+				opacity: 0.4;
+			}
+			[data-state=recipe-disabled] {
+				.fill {
+					opacity: 0.5;
+				}
+			}
+			[data-state=recipe-partial] {
+				.fill {
+					opacity: 0.7;
+				}
+			}
+			.mainPane {
+	        	padding: 0;
+	        	height: 100%;
+	        	width: 75%;
+	        	float: left;
+	    	}
+		    .rightPane {
+	    	    float: left;
+		        width: 25%;
+	    	    height: 100%;
+	        	.content {
+	            	padding-left: 10px;
+	            	padding-right: 10px;
+	            }
+	        }
+		}
+	}
+}

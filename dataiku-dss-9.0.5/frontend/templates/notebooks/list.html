@@ -1,0 +1,235 @@
+<div class="list-page-4 flex dss-home-page list-page--flat-design">
+    <div data-extend-template="/templates/layouts/list-items-2.html" class="vertical-flex h100 main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            Notebooks
+        </span>
+
+        <!-- NEW -->
+        <div class="dropdown" data-block="newItem">
+            <a disabled-if-ro class="btn btn--secondary dropdown-toggle" data-toggle="dropdown">
+                <span plus-icon></span>&nbsp;New notebook&nbsp;<i class="caret"></i>
+            </a>
+            <ul class="dropdown-menu detailed-dropdown-menu detailed-dropdown-menu--with-icon" data-extend-template="/templates/notebooks/new-notebook-dropdown.html"></ul>
+        </div>
+
+        <div class="noflex dropdown mass-action-btn" data-block="mass-actions">
+            <input type="checkbox"
+                   class="select-cb"
+                   ng-model="selection.all"
+                   dku-indeterminate="selection.some"
+                   ng-change="updateMassSelectionCheckbox()"
+                   >
+            <a data-toggle="dropdown"
+               class="dropdown-toggle unselectable"
+               ng-class="{disabled: selection.selectedObjects.length == 0, collapsed: selection.none}">
+                <span ng-hide="selection.none">ACTIONS</span>
+                <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
+                <li ng-show="!noTags && projectSummary.canWriteProjectContent">
+                    <a ng-click="startApplyTagging()"><i class="icon-tags"/>Tag</a>
+
+
+                <li ng-show="!noWatch">
+                    <a ng-if="!allWatching(selection.selectedObjects)"
+                       ng-click="watchObjects('YES')"
+                       ng-attr-title="{{ actionTooltips.WATCH }}"
+                       data-toggle="tooltip"
+                       data-container="body"
+                    >
+                        <i class="icon-eye"/> {{ actionLabels.WATCH }}
+                    </a>
+                    <a ng-if="allWatching(selection.selectedObjects)"
+                       ng-click="watchObjects('ENO')"
+                       ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                       data-toggle="tooltip"
+                       data-container="body"
+                    >
+                        <i class="icon-eye"/> {{ actionLabels.UNWATCH }}
+                    </a>
+                </li>
+                <li ng-show="!noStar">
+                    <a ng-if="!allStarred(selection.selectedObjects)"
+                       ng-click="starObjects(true)"
+                       ng-attr-title="{{ actionTooltips.STAR }}"
+                       data-toggle="tooltip"
+                       data-container="body"
+                    >
+                        <i class="icon-star"/> {{ actionLabels.STAR }}
+                    </a>
+                    <a ng-if="allStarred(selection.selectedObjects)"
+                       ng-click="starObjects(false)"
+                       ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                       data-toggle="tooltip"
+                       data-container="body"
+                    >
+                        <i class="icon-star"/> {{ actionLabels.UNSTAR }}
+                    </a>
+                </li>
+                <li class="divider" ng-show="!noDelete && projectSummary.canWriteProjectContent" style="margin: 1px 1px"/>
+                <li ng-show="!noDelete && projectSummary.canWriteProjectContent">
+                    <a ng-click="deleteSelected()"><i class="icon-trash"/>Delete</a>
+                </li>
+                <li class="divider" style="margin: 1px 1px" ng-if="allRemoteNotebooks(selection.selectedObjects)"/>
+                <li ng-if="allRemoteNotebooks(selection.selectedObjects)" data-toggle="tooltip" data-container="body"
+                    ng-attr-title="{{!canWriteProject() ? 'You don\'t have  write permissions for this project' : (!mayWriteSafeCode() ? 'You don\'t have the permission to write unisolated code' : '')}}">
+                    <a ng-click="pushNotebooksToRemote(selection.selectedObjects)"
+                       ng-class="{disabled: !canWriteProject() || !mayWriteSafeCode()}"
+                       wt1-click-id="git_jupyter_push_actions">
+                        <i class="icon-upload-alt"/>Commit and push to remote
+                    </a>
+                </li>
+                <li ng-if="allRemoteNotebooks(selection.selectedObjects)" data-toggle="tooltip" data-container="body"
+                    ng-attr-title="{{!canWriteProject() ? 'You don\'t have  write permissions for this project' : (!mayWriteSafeCode() ? 'You don\'t have the permission to write unisolated code' : '')}}">
+                    <a ng-click="pullNotebooksFromRemote(selection.selectedObjects)"
+                       ng-class="{disabled: !canWriteProject() || !mayWriteSafeCode()}"
+                       wt1-click-id="git_jupyter_pull_actions">
+                        <i class="icon-download"/>Pull from remote
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div data-block="empty" class="notebook-list-empty-section">
+            <h1>
+                No Notebook in this project
+            </h1>
+            <p>
+                Notebooks are interactive coding environments for<br /> exploration
+                and manipulation of your data.
+            </p>
+            <p class="small">
+                <span doclink-wrapper page="notebooks/index">Read the documentation</span> to learn more
+            </p>
+            <div data-block="newItem" class="dropdown">
+                <a disabled-if-ro="" class="btn btn--contained btn--large btn--notebook dropdown-toggle" data-toggle="dropdown">
+                    <span plus-icon />&nbsp;Create your first notebook&nbsp;<i class="caret"></i>
+                </a>
+                <ul class="dropdown-menu detailed-dropdown-menu detailed-dropdown-menu--with-icon" data-extend-template="/templates/notebooks/new-notebook-dropdown.html"></ul>
+            </div>
+        </div>
+
+        <div data-block="additional-filter-public" class="noflex list-page__filter sort-box" >
+            <button ng-if="hasRemoteNotebooks(selection.allObjects)" class="btn btn--outline btn--no-background filter-promote" ng-class="{'active': selection.filterQuery.gitReference}"
+                ng-click="selection.filterQuery.gitReference = (selection.filterQuery.gitReference ? '' : 'remote' )" style="text-transform: none">
+                <i class="icon-dku-git" /> Git
+            </button>
+        </div>
+
+        <!-- ITEM LAYOUT -->
+        <div data-block="item" class="h100">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit h100">
+                <div class="illustration">
+                    <span ng-show="item.type == 'JUPYTER' && (item.language=='python2' || item.language=='python3' || item.language=='Python')">
+                        <i class="icon-code_python_recipe universe-color notebook" />
+                    </span>
+                    <span ng-show="item.type == 'JUPYTER' && (item.language=='ir' || item.language=='R')">
+                        <i class="icon-code_r_recipe universe-color notebook" />
+                    </span>
+                    <span ng-show="item.type == 'JUPYTER' && item.language.toLowerCase().startsWith('julia')">
+                        <i class="icon-code_julia_recipe universe-color notebook" />
+                    </span>
+                    <span ng-show="item.type == 'JUPYTER' && (item.language=='toree' || item.language.toLowerCase()=='scala')">
+                        <i class="icon-code_spark_scala_recipe universe-color notebook" />
+                    </span>
+                    <span ng-show="item.type == 'SQL'">
+                        <i class="icon-code_sql_recipe universe-color notebook" />
+                    </span>
+                    <span ng-show="item.type == 'HIVE'">
+                        <i class="icon-code_hive_recipe universe-color notebook" />
+                    </span>
+                    <span ng-show="item.type == 'SPARKSQL'">
+                        <i class="icon-code_sparksql_recipe universe-color notebook" />
+                    </span>
+                    <span ng-show="item.type == 'IMPALA'">
+                        <i class="icon-code_impala_recipe universe-color notebook" />
+                    </span>
+                </div>
+                <div class="hitContent horizontal-flex h100">
+                    <div class="hit-content-main noflex">
+                        <h4 class="hit-content-main__title">
+                            <a dku-if="item.type == 'JUPYTER'"
+                                href="{{ $state.href('projects.project.notebooks.jupyter_notebook', {notebookId:item.name}) }}"
+                                show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.name | boldify:selection.filterParams.userQueryResult">
+                            </a>
+                            <a dku-if="item.type == 'SQL' || item.type == 'HIVE' || item.type == 'IMPALA' || item.type == 'SPARKSQL'"
+                                href="{{ $state.href('projects.project.notebooks.sql_notebook', {notebookId:item.id}) }}"
+                                show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.name | boldify:selection.filterParams.userQueryResult">
+                            </a>
+                            <span class="hit-content-main__interests">
+                                <star-interest status="item.interest.starred"
+                                               on-toggle="starObject(nextStatus, item)"
+                                ></star-interest>
+                                <watch-interest status="item.interest.watching"
+                                                on-toggle="watchObject(nextStatus, item)"
+                                ></watch-interest>
+                            </span>
+                        </h4>
+
+                        <div class="hit-content-main__subtitle">
+                            <span ng-show="item.gitReference"><i class="icon-dku-git"></i></span>
+                            <span ng-show="item.type == 'JUPYTER'">Jupyter ({{item.language}}{{getCodeEnvHint(item)}}{{getContainerHint(item)}})</span>
+                            <span ng-show="item.type == 'SQL'">SQL | {{item.niceConnection}}</span>
+                            <span ng-show="item.type == 'HIVE'">HIVE | {{item.niceConnection}}</span>
+                            <span ng-show="item.type == 'IMPALA'">IMPALA | {{item.niceConnection}}</span>
+                            <span ng-show="item.type == 'SPARKSQL'">SPARKSQL | {{item.niceConnection}}</span>
+                            <span ng-show="item.lastModifiedOn"> 
+                                | Modified {{ item.lastModifiedOn|friendlyTimeDeltaShort }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="hit-content__tags flex">
+                        <responsive-tags-list items="item.tags" tags-map="projectTagsMap" object-type="item.type !== 'JUPYTER' ? 'SQL_NOTEBOOK' : 'JUPYTER_NOTEBOOK'"></responsive-tags-list>
+                    </div>
+
+
+                    <div class="extra-actions flex">
+                        <!-- Always show that, even when not on hover -->
+                        <div class="fh">
+                            <div class="actions" style="opacity: 1; width: 100%">
+                                <div ng-show="item.activeSessions.length">
+                                    <div ng-repeat="session in item.activeSessions">
+                                        <span class="mx-textellipsis" style="width:calc(100% - 30px);display: inline-block;">Session {{session.sessionId}} - Kernel {{session.kernelId}}</span>
+                                        <a style="color: #c09853"
+                                            class="action-button"
+                                            ng-click="unloadJupyterNotebook(session.sessionId)"
+                                            toggle="tooltip"
+                                            placement="left"
+                                            title="Unload">
+                                            <i times-icon />
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="loaded text-warning">
+                                <span ng-show="item.type == 'JUPYTER' && item.kernel_id">
+                                    In memory
+                                </span>
+                                <span ng-show="item.type == 'SQL' && item.isRunning"  style="margin-right:20px;">
+                                   <i class="icon-spin icon-spinner"></i> Executing a query
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PREVIEW -->
+        <!--<div data-block="preview" right-column-tab="details">
+            <div ng-if="selection.selectedObject && selection.selectedObject.type">
+                <div ng-if="selection.selectedObject.type !== 'JUPYTER'" sql-notebook-right-column-summary />
+                <div ng-if="selection.selectedObject.type === 'JUPYTER'" jupyter-notebook-right-column-summary/>
+            </div>
+        </div> -->
+    </div>
+
+    <standardized-side-panel page="objects_list" object-type="{{ (selection.selectedObjects.length <= 1) ? ((selection.selectedObject) ? ((selection.selectedObject.type !== 'JUPYTER') ? 'SQL_NOTEBOOK' : 'JUPYTER_NOTEBOOK') : '') : 'MULTI'}}" single-type="NOTEBOOK">
+    </standardized-side-panel>
+</div>

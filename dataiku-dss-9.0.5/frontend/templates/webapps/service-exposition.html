@@ -1,0 +1,22 @@
+<div ng-scope="{{errorScope = this}}">
+	<div ng-if="$containerInfo && $containerInfo.expositions && ($containerInfo.expositions.length > 1 || ($containerInfo.expositions.length > 0 && $containerInfo.expositions[0].params.length > 0))">
+        <div class="control-group">
+            <label for="" class="control-label">Exposition mode</label>
+            <div class="controls">
+              <select dku-bs-select ng-model="exposition.type" ng-options="e.type as e.meta.label for e in $containerInfo.expositions"></select>
+            </div>
+        </div>
+        <div class="control-group" ng-if="$exposition.longDescription">
+            <div class="controls">
+                <div style="padding: 0;" class="larger-grey-text"><span from-markdown="$exposition.longDescription"/></div>
+            </div>
+        </div>
+
+		<autoconfig-form params="$exposition.params"
+		                 model="exposition.params"
+		                 plugin-id="$exposition.loadedDesc.ownerPluginId"
+		                 component-id="$exposition.loadedDesc.id"
+		                 error-scope="errorScope">
+		</autoconfig-form>
+	</div>
+</div>

@@ -1,0 +1,99 @@
+<div class="modal modal3" auto-size="false">
+    <div ng-if="error.code">
+        <div dku-modal-header modal-title="{{error.title}}" />
+        <form class="dkuform-modal-wrapper">
+            <div class="modal-body" style="padding-top: 0; padding-bottom: 0;">
+                <h5 style="word-break: break-word; font-weight:400; margin-bottom: 20px" class="summary-of-error text-error">
+                    <span ng-show="error.detailedMessageHTML" ng-bind-html="error.detailedMessageHTML" />
+                    <span ng-show="!error.detailedMessageHTML">{{error|detailedMessageOrMessage}}</span>
+                </h5>
+
+                <div error-fixability error="error" />
+
+                <p><a target="_blank" rel="noopener noreferrer"
+                      href="{{$root.versionDocRoot}}troubleshooting/errors/{{error.code}}.html"
+                      style="font-weight: 500">More information on this error in {{wl.productShortName}} documentation</a></p>
+
+                <div style="font-size:11px; color: #666;">
+                    <p style="margin-bottom: 0"><strong>Additional technical details</strong></p>
+                    <ul style="margin-bottom: 0">
+                        <li ng-show="error.httpCode > 0">HTTP code: {{error.httpCode}}</li>
+                        <li>Error code: {{error.code}}</li>
+                        <li>Error type: {{error.errorType}}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-std-buttons">
+                <div class="pull-right">
+                    <button type="submit" class="btn btn--text btn--primary" ng-click="dismiss();">OK</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div ng-if="!error.code" ng-switch on="error.errorType">
+        <div ng-switch-when="com.dataiku.dip.exceptions.DSSIllegalArgumentException">
+            <div dku-modal-header modal-title="An internal error occurred" />
+            <form class="dkuform-modal-wrapper">
+                <div class="modal-body" style="padding-top: 0; padding-bottom: 0;">
+                    <h5 ng-if="$root.appConfig.admin">Please report this issue to {{wl.productLongName}} Support</h5>
+                    <h5 ng-if="!$root.appConfig.admin">Please ask your {{wl.productShortName}} administrator to report this issue to {{wl.productLongName}} Support</h5>
+                    <div style="font-size:0.9em; color: #666;">
+                    <p style="margin-bottom: 0">Technical details follow:</p>
+                    <ul style="margin-bottom: 0">
+                        <li>{{error|detailedMessageOrMessage}}</li>
+                        <li ng-show="error.httpCode > 0">HTTP code: {{error.httpCode}}</li>
+                        <li>Error type:{{error.errorType}}</li>
+                    </ul>
+                </div>
+                </div>
+                <div class="modal-footer modal-footer-std-buttons">
+                    <button type="submit" class="btn btn--text btn--primary pull-right" ng-click="dismiss();">OK</button>
+                </div>
+            </form>
+        </div>
+        <div ng-switch-when="com.dataiku.dip.exceptions.DSSInternalErrorException">
+            <div dku-modal-header modal-title="An internal error occurred" />
+            <form class="dkuform-modal-wrapper">
+                <div class="modal-body" style="padding-top: 0; padding-bottom: 0;">
+                    <h5 ng-if="$root.appConfig.admin">Please report this issue to {{wl.productLongName}} Support</h5>
+                    <h5 ng-if="!$root.appConfig.admin">Please ask your {{wl.productShortName}} administrator to report this issue to {{wl.productLongName}} Support</h5>
+                    <div style="font-size:0.9em; color: #666;">
+                    <p style="margin-bottom: 0">Technical details follow:</p>
+                    <ul style="margin-bottom: 0">
+                        <li>{{error|detailedMessageOrMessage}}</li>
+                        <li ng-show="error.httpCode > 0">HTTP code: {{error.httpCode}}</li>
+                        <li>Error type:{{error.errorType}}</li>
+                    </ul>
+                </div>
+                </div>
+                <div class="modal-footer modal-footer-std-buttons">
+                    <button type="submit" class="btn btn--text btn--primary pull-right" ng-click="dismiss();">OK</button>
+                </div>
+            </form>
+        </div>
+
+        <div ng-switch-default>
+            <div dku-modal-header modal-title="An error occurred" />
+            <div class="modal-body" style="padding-top: 0; padding-bottom: 0;">
+               <h5 style="word-break: break-word; font-weight:400; margin-bottom: 20px" class="summary-of-error  text-error">
+                    <span ng-show="error.detailedMessageHTML" ng-bind-html="error.detailedMessageHTML" />
+                    <span ng-show="!error.detailedMessageHTML">{{error|detailedMessageOrMessage}}</span>
+                </h5>
+                <p ng-if="$root.appConfig.admin">Logs may contain additional information</p>
+                <p ng-if="!$root.appConfig.admin">You may need to ask your {{wl.productShortName}} administrator to check logs for additional information</p>
+                <div style="font-size:0.9em; color: #666;">
+                    <p style="margin-bottom: 0"><strong>Additional technical details</strong></p>
+                    <ul>
+                        <li ng-show="error.httpCode > 0">HTTP code: {{error.httpCode}}</li>
+                        <li>Error type:{{error.errorType}}</li>
+                        <pre ng-if="error.logTail" smart-log-tail="error.logTail" style="max-height: 100px;"/>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-std-buttons">
+                <button type="submit" class="btn btn--text btn--primary pull-right" ng-click="dismiss();">OK</button>
+            </div>
+        </div>
+
+    </div>
+</div>

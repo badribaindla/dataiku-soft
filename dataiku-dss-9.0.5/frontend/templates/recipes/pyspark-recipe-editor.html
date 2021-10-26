@@ -1,0 +1,76 @@
+<div ng-controller="PySparkRecipeController" data-extend-template="/templates/layouts/code-based-recipe-editor-layout.html">
+    <div class="mainPane code-based-recipe-main-zone vertical-flex h100" data-block="recipeEditor">
+        <div block-api-error />
+
+        <div code-snippet-editor
+            code="script.data"
+            sample-type="'python'"
+            categories="['py-spark-dkuapi', 'py-spark-3rd', 'user-py-spark']"
+            save-category="'user-py-spark'"
+            editor-options="editorOptions"
+            resolve-code-for-preview-func="resolveCodeForPreviewFunc"
+            resolve-code-for-insertion-func = "resolveCodeForInsertionFunc"
+            />
+
+        <div class="noflex" include-no-scope="/templates/recipes/fragments/recipe-editor-statusbar.html" />
+
+        <div class="bottom-bar noflex">
+            <div class="horizontal-flex">
+                <button class="btn btn--secondary noflex mright10" ng-disabled="isJobRunning()" ng-click="startedJob.job = null; validateRecipe()">
+                    <i class="icon-check" />
+                    Validate
+                </button>
+                <span include-no-scope="/templates/recipes/fragments/code-recipe-run-bottom-bar.html" />
+            </div>
+        </div>
+
+        <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"  class="noflex recipe-job-result" />
+    </div>
+
+
+    <div data-block="additionalTabsContent">
+        <div ng-if="topNav.tab == 'advanced'" class="dss-page oa">
+            <div block-api-error/>
+
+            <div class="horizontal-centerer">
+                <div class="recipe-settings-section1 w800">
+                    <h1 class="recipe-settings-section1-title">Spark configuration</h1>
+                    <div spark-override-config config="recipe.params.sparkConfig" class="recipe-settings-section2"/>
+                    <form class="dkuform-horizontal recipe-settings-section2">
+                        <div class="control-group">
+                            <label class="control-label">Spark engine</label>
+                            <div class="controls" >
+                                <select dku-bs-select ng-model="recipe.params.executionEngine" >
+                                    <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+                                    <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+                                    <option value="DATABRICKS">Databricks</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="recipe-settings-section1 w800">
+                    <h1 class="recipe-settings-section1-title">Python environment</h1>
+                    <div class="recipe-settings-section2">
+                        <div code-env-selection-form="recipe.params.envSelection" env-lang="'PYTHON'"></div>
+                    </div>
+                </div>
+                
+                <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+                
+                <div class="recipe-settings-section1 w800">
+                    <h1 class="recipe-settings-section1-title">Overrides</h1>
+                    <form class="dkuform-horizontal recipe-settings-section2">
+                        <div class="control-group">
+                            <label for="" class="control-label">Override variables</label>
+                            <div class="controls">
+                                <span override-table-link object-to-override="recipe" override-table-parent="recipe"/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

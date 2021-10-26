@@ -1,0 +1,28 @@
+<div class="modal modal3 paste-modal" auto-size="false" ng-class="{'paste-modal--has-tips': showTips}">
+    <dku-modal-header modal-class="has-border" >
+        <dku-modal-title>
+            <span>Paste</span>
+        </dku-modal-title>
+    </dku-modal-header>
+    <div class="modal-body" ng-class="{ 'paste-modal__body-edit': uiState.editMode }">
+        <div ng-if="uiState.editMode" class="paste-modal__paste-area">
+            <div class="alert alert-error paste-modal__alert" ng-if="uiState.hasError"> <i class="icon-warning-sign"></i>
+                <span data-block="error-message"></span>
+            </div>
+            <div class="paste-modal__description">Press <strong>{{ os === 'macos' ? '&#8984;' : 'Ctrl' }} + v</strong> to continue.</div>
+            <textarea class="paste-modal__input" ng-paste="onPasteText($event)" ng-keydown="onKeydown($event);" auto-focus="true"></textarea>
+            <div ng-if="showTips">
+                <div data-block="tips"></div>
+            </div>
+        </div>
+        <div ng-if="!uiState.editMode">
+            <div data-block="post-paste"></div>
+        </div>
+    </div>
+    <div class="modal-footer modal-footer-std-buttons has-border">
+        <div class="pull-right">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" id="qa_paste_modal-confirm-btn" class="btn btn--text btn--primary" ng-disabled="!uiState.items.length" ng-click="confirm();">Paste</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,308 @@
+<div class="processor step-processor"
+    ng-class="{'active': isStepActive(),
+        'selected': step.selected,
+        'matched' : step.match,
+        'disabled': step.disabled,
+        'softdisabled': step.$stepState.softDisabled,
+        'has-backend-error': step.$stepState.backendError,
+        'has-front-error': step.$stepState.frontError,
+        'new': step.$stepState.isNew,
+        'colored': step.mainColor,
+        'has-backend-warning': isStepInWarning(step)}"
+    ng-style="step.mainColor && {'border-left' : '4px ' + step.mainColor + ' solid'}" 
+    ng-right-click="!step.$stepState.softDisabled && openShakerMenu($event, step)" ng-right-click-prevent-default="false">
+    <div class="main" ng-click="toggleStep(step)">
+        <div class="processor-dragger" ng-click="toggleStepSelection(step, $event);$event.stopPropagation();">
+            <a class="processor-handle" ui-tree-handle>
+                <i class="icon-dku-handle"></i>
+            </a>
+            <span class="processor-selector">
+                <i class="icon-check-empty" ng-show="!step.selected"></i>
+                <i class="icon-check-sign" ng-show="step.selected"></i>
+            </span>
+        </div>
+        <div class="processor-infos">
+            <div class="processor-header">
+                <span class="processor-description" ng-bind-html="description"/>
+                <i class="icon-info" style="margin-left: 5px;" ng-if="step.comment && step.comment.length>0 && !step.alwaysShowComment" toggle="tooltip-bottom" title="{{step.comment}}"></i>
+
+                <div ng-show="step.$stepState.frontError" class="front-error">
+                    {{step.$stepState.frontError.message}}
+                </div>
+                 <div ng-show="step.$stepState.backendError" class="backend-error">
+                    {{step.$stepState.backendError.detailedMessage}}
+                </div>
+
+                 <div ng-show="invalidScriptError.type && invalidScriptError.index == $index" class="hard-error">
+                    {{invalidScriptError.message}}
+                </div>
+            </div>
+        	<div class="actions" ng-class="{'preview':step.preview}">
+                <!-- changes resulting -->
+                <span class="changes" ng-show="step.$stepState.change">
+                    <span class="change created" title="Created" ng-show="step.$stepState.change.createdRows">
+                        <i class="icon-plus"></i> {{step.$stepState.change.createdRows}}
+                    </span>
+                    <span class="change modified" title="Modified" ng-show="step.$stepState.change.modifiedRows">
+                        <i class="icon-pencil"></i> {{step.$stepState.change.modifiedRows}}
+                    </span>
+                    <span class="change deleted" title="Deleted" ng-show="step.$stepState.change.deletedRows">
+                        <i class="icon-minus"></i> {{step.$stepState.change.deletedRows}}
+                    </span>
+                </span>
+                <div class="translatabilities">
+                    <span class="translatability sql" ng-if="step.$translatability.sqlReason" toggle="tooltip" title="{{step.$translatability.sqlReason}}" ng-show="step.$translatability.checkedSql" ng-class="{'ok':step.$translatability.canSql, 'nok':!step.$translatability.canSql}">
+                        <i class="icon-code_sql_recipe"></i>
+                    </span>
+                    <span class="translatability sql" ng-if="!step.$translatability.sqlReason" ng-show="step.$translatability.checkedSql" ng-class="{'ok':step.$translatability.canSql, 'nok':!step.$translatability.canSql}">
+                        <i class="icon-code_sql_recipe"></i>
+                    </span>
+                    <span class="translatability native-spark" ng-if="step.$translatability.nativeSparkReason" toggle="tooltip" title="{{step.$translatability.nativeSparkReason}}" ng-show="step.$translatability.checkedNativeSpark" ng-class="{'ok':step.$translatability.canNativeSpark, 'warn':!step.$translatability.canNativeSpark}">
+                        <i class="icon-code_spark_scala_recipe"></i>
+                    </span>
+                    <span class="translatability native-spark" ng-if="!step.$translatability.nativeSparkReason" ng-show="step.$translatability.checkedNativeSpark" ng-class="{'ok':step.$translatability.canNativeSpark, 'warn':!step.$translatability.canNativeSpark}">
+                        <i class="icon-code_spark_scala_recipe"></i>
+                    </span>
+                </div>
+                <div class="actions-btn-wrapper">
+                    <!-- warning -->
+                    <span class="backend-warning" dku-html-tooltip ng-if="isStepInWarning(step)">
+                        <tooltip-trigger><i class="icon-warning-sign"></i></tooltip-trigger>
+                        <tooltip-content ng-bind-html="getWarningMessage(step)"></tooltip-content>
+                    </span>
+                    <!-- preview -->
+                    <a class="previewbutton" ng-click="togglePreview(step); $event.stopPropagation();"
+                        title="{{ previewTitle(step) }}" ng-if="!step.disabled" ng-class="{'previewActive': step.preview}">
+                        <i alt="Preview" class="icon-eye-open"  />
+                    </a>
+                    <!-- disable -->
+                    <a class="disablebutton" ng-click="toggleDisable(step); $event.stopPropagation();"
+                        title="{{ disableTitle(step) }}">
+                        <i alt="Disable" class="icon-off" />
+                    </a>
+                    <!-- delete -->
+                    <a ng-click="remove({step:step}); $event.stopPropagation();" title="Delete step">
+                        <i class="icon-trash"></i>
+                    </a>
+                    <!-- more options -->
+                    <a ng-click="!step.$stepState.softDisabled && openStepMenu($event, step, false); $event.stopPropagation();"  class="shaker-step__menu-more" title="More options">
+                        <i class="icon-dku-more"/>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content">
+
+        <hr/>
+
+        <div ng-if="processor && processor.type.indexOf('jython-') == 0">
+            <ng-include src="'/templates/shaker/processors/processor-custom-jython.html'"></ng-include>
+        </div>
+
+        <div dku-if="processor && processor.type.indexOf('jython-') == -1 && !processor.canUseGenericForm">
+            <ng-include src="'/templates/shaker/processors/processor-' + step.type.toLowerCase() + '.html'"></ng-include>
+        </div>
+
+        <div dku-if="processor.canUseGenericForm">
+            <form class="dkuform-std-vertical" on-any-blur="checkAndRefresh()" name="processorForm" publish-in-parent="processorForm">
+                <ul class='processor-field'>
+
+                    <ng-include ng-if="processor.hasOwnProperty('filterAndFlagMode')" src="'/templates/shaker/processors/processor-filter-and-flag.html'"></ng-include>
+                    <ng-include ng-if="processor.defaultParams.hasOwnProperty('appliesTo')" src="'/templates/shaker/processors/processor-applies-to.html'"></ng-include>
+
+                    <li class='processor-field'  ng-repeat="param in processor.params">
+                        <ng-switch on="param.type">
+                            <!-- TODO get rid of that switch case using
+                                a directive ?-->
+                            <fieldset ng-switch-when="column" child-focus>
+                                <span class="fieldLabel">{{ param.label }}</span>
+                                <input
+                                    type='text'
+                                    bs-typeahead='step.$stepState.change.columnsBeforeStep'
+                                    autocomplete='off'
+                                    ng-trim="false"
+                                    ng-required="param.mandatory"
+                                    data-min-length='0'
+                                    ng-model='step.params[param.name]'
+                                    class="submit-on-blur"
+                                    next-on-enter
+                                    />
+                            </fieldset>
+
+                            <fieldset ng-switch-when="int"  child-focus>
+                                <span class="fieldLabel">{{ param.label }}</span>
+                                <input type="number"
+                                    force-integer
+                                    ng-model="step.params[param.name]"
+                                    ng-required="param.mandatory"
+                                    step.html
+                                    class="submit-on-blur"
+                                    next-on-enter
+                                />
+                            </fieldset>
+
+                            <fieldset ng-switch-when="double"  child-focus>
+                                <span class="fieldLabel">{{ param.label }}</span>
+                                <input type="number"
+                                    force-double
+                                    step="any"
+                                    ng-model="step.params[param.name]"
+                                    ng-required="param.mandatory"
+                                    class="submit-on-blur"
+                                    next-on-enter
+                                />
+                            </fieldset>
+
+                            <fieldset ng-switch-when="boolean" child-focus>
+                                <div ng-if="param.choices">
+                                    <label class="control-label" ng-if="param.label">{{ param.label }}</label>
+                                    <label>
+                                        <input type="radio" ng-model="step.params[param.name]" ng-value="false" ng-change="checkAndRefresh()" style="margin-bottom: 2px">
+                                        {{ param.choices[0]}}
+                                    </label>
+                                    <label>
+                                        <input type="radio" ng-model="step.params[param.name]" ng-value="true" ng-change="checkAndRefresh()" style="margin-bottom: 2px">
+                                        {{ param.choices[1]}}
+                                    </label>
+                                    <div class="help-inline" ng-show="param.tooltip">
+                                        {{ param.tooltip }}
+                                    </div>
+                                </div>
+                                <label ng-if="!param.choices">
+                                    <input ng-model="step.params[param.name]" type="checkbox" ng-change="checkAndRefresh()"/>
+                                    {{ param.label || param.name }}
+                                    <div class="help-inline" ng-show="param.tooltip">
+                                        {{ param.tooltip }}
+                                    </div>
+                                </label>
+                            </fieldset>
+
+                            <fieldset ng-switch-when="type">
+                                <span class="fieldLabel" style="display: block;">{{ param.label }}</span>
+                                <div meaning-select
+                                    ng-model="step.params[param.name]"
+                                    app-config="appConfig"
+                                    class="submit-on-blur">
+                                </div>
+                            </fieldset>
+
+                            <fieldset ng-switch-when="simple_select"  child-focus>
+                                <span class="fieldLabel" style="display: block;">{{ param.label }}</span>
+                                <select
+                                    dku-bs-select
+                                    ng-model="step.params[param.name]"
+                                    ng-options="choice for choice in param.choices"
+                                    class="submit-on-blur"
+                                    next-on-enter>
+                                </select>
+                            </fieldset>
+
+                            <fieldset ng-switch-when="advanced_select"  child-focus>
+                                <span class="fieldLabel" style="display: block;">{{ param.label }}</span>
+                                <select dku-bs-select
+                                    ng-model="step.params[param.name]"
+                                    ng-options="sv.value as sv.label for sv in param.advancedChoices"
+                                    class="submit-on-blur"
+                                    next-on-enter>
+                                </select>
+                            </fieldset>
+
+                            <fieldset ng-switch-when="columns" child-focus >
+                               <span class="fieldLabel">{{ param.label }}</span>
+                                <div dku-list-typeahead-v2 on-change="checkAndRefresh()" type-ahead="step.$stepState.change.columnsBeforeStep" ng-model="step.params[param.name]" add-label="Add another" />
+                            </fieldset>
+
+                            <fieldset ng-switch-when="list" child-focus >
+                                <span class="fieldLabel">{{ param.label }}</span>
+                                <ng2-values-list [(items)]="step.params[param.name]" (on-blur)="checkAndRefresh($event)"></ng2-values-list>
+                            </fieldset>
+
+                            <fieldset ng-switch-when="map" child-focus >
+                               <span class="fieldLabel">{{ param.label }}</span>
+                               <mapping-editor
+                                    ng-model="step.params[param.name]"
+                                    add-label="Add key/value"
+                                    on-change="checkAndRefresh()">
+                                </mapping-editor>
+                            </fieldset>
+
+                            <fieldset ng-switch-when="textarea" child-focus >
+                                <span class="fieldLabel">{{ param.label }}</span>
+                                <textarea
+                                    class="submit-on-blur"
+                                    ng-trim="false"
+                                    ng-model="step.params[param.name]"
+                                    ng-required="param.mandatory && ! param.canBeEmpty"
+                                    placeholder="{{param.placeholder}}"></textarea>
+                            </fieldset>
+
+                            <fieldset ng-switch-default="generic"  child-focus>
+                                <span class="fieldLabel">{{ param.label }}</span>
+                                <input
+                                    type="text"
+                                    class="submit-on-blur"
+                                    ng-trim="false"
+                                    ng-model="step.params[param.name]"
+                                    ng-required="param.mandatory && ! param.canBeEmpty"
+                                    placeholder="{{param.placeholder}}"
+                                    next-on-enter />
+                            </fieldset>
+                        </ng-switch>
+                    </li>
+                </ul>
+            </form>
+        </div>
+    </div>
+    <div class="processor-footer" processor-footer ng-show="showFooter(isStepActive())">
+        <!-- comment -->
+        <div class="comment" ng-if="showComment(isStepActive()) || showCommentEditor(isStepActive())" ng-class="{'editing-comment': editingComment}">
+            <div class="text">
+                <p ng-if="showComment(isStepActive())">{{step.comment}}</p>
+                <fieldset child-focus ng-show="showCommentEditor(isStepActive())">
+                    <textarea
+                        type='text'
+                        ng-model='step.comment'
+                        auto-focus="true"
+                        placeholder='Write your comment here...'
+                        ng-blur="saveComment()"
+                        />
+                </fieldset>
+                <label ng-show="isStepActive()">
+                    <input type="checkbox" ng-model='step.alwaysShowComment' ng-change="isRecipe || saveOnly()"/>&nbsp; Always show comment
+                </label>
+            </div>
+            <ul class="comment-edition-toolbar" ng-if="isStepActive()">
+                <li ng-click="saveComment()" ng-show="editingComment">
+                    <i class="icon-save"></i>
+                </li>
+                <li ng-click="toggleEditingComment($event)" ng-show="!editingComment">
+                    <i class="icon-pencil"></i>
+                </li>
+                <li ng-click="deleteComment()">
+                    <i class="icon-trash"></i>
+                </li>
+            </ul>
+        </div>
+        <!-- processor-subaction -->
+        <div class="processor-subaction" ng-show="step == currentStep || step == currentGroup">
+            <div class="pull-left step-actions">
+                <span override-table-link object-to-override="step" override-table-parent="step" />
+            </div>
+            <div class="text-right step-actions">
+                <a title="comment" ng-click="toggleEditingComment($event)">
+                    <i class="icon-info-sign" />
+                </a>
+                <a title="color" ng-click="openColorPicker(step, $event)">
+                    <i class="icon-dku-color_picker_2" />
+                </a>
+                <a title="Duplicate step" ng-click="duplicateStep(step)">
+                    <i class="icon-dku-clone" />
+                </a>
+                <a dku-md-popover="{{processor.help}}" target-blank="true" dku-md-title="{{processor.enDescription}}" class="processor-help-popover" popover-clazz="processor-help-popover" title="Help">
+                    <i class="icon-question-sign"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

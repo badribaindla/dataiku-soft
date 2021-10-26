@@ -1,0 +1,73 @@
+<!-- layouts/list-items-fattable.html  -->
+<div class="row-fluid fh vertical-flex no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-padding" filtered-multi-select-rows ng-model="listItems" update-active-project-key="{{updateActiveProjectKey}}" >
+
+    <div class="summary-row noflex horizontal-flex" data-block="summary-row">
+        <!-- header controls -->
+    </div>
+
+    <div class="flex h100 override-min-height">
+        <div class="h100 row-fluid offset0">
+            <div class="h100" ng-class="{'span9 offset0': ActivateOldRightPanel.isActivated()}">
+                <div block-api-error></div>
+                <div class="vertical-flex h100">
+                    <div class="main-list-zone h100 vertical-flex">
+
+                        <div class="flex">
+                            <div class="scroll-zone fh">
+                                <div class="info-zone" ng-show="selection.filteredObjects == undefined">
+                                    <div class="alert alert-info" data-block="not_yet_loaded"></div>
+                                </div>
+
+                                <div class="empty-list-cta"
+                                    ng-show="selection.loaded && selection.allObjects.length === 0">
+                                    <div class="alert alert-info" data-block="empty">
+                                        <h4>No item</h4>
+                                        <p>You can create a new one</p>
+                                        <!-- Are there more ? -->
+                                        <p ng-show="selection.filteredObjects.length!==selection.allObjects.length">
+                                            Or you could remove your filters to see all the items
+                                            <a class="btn btn--secondary" ng-click="clearFilters()">See all items</a>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="all-filtered-out"
+                                    ng-show="selection.allObjects.length && !selection.filteredObjects.length">
+                                    <div class="alert alert-info" data-block="all-filtered-out">
+                                        <h4>No item match your filter</h4>
+                                        <div style="margin: 10px 0">
+                                            <a class="btn btn--secondary" ng-click="clearFilters()">Clear filters</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <ul class="list-items fh" ng-if="selection.filteredObjects.length"
+                                    fat-repeat="selection.filteredObjects" as="item" row-height="64" tabindex="0" list-padding="fatListPadding"
+                                    style="outline:none" ng-keydown="multiSelectKeydown($event, true)">
+                                    <li class="list-item"
+                                        ng-class="{selected: item.$selected, filler: !item}"
+                                        full-click ignore-element=".responsive-tags-list__tag-button">
+                                        <div data-block="item">
+                                            <!-- placeholder for data item -->
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="span3 offset0 h100 right-sidebar" ng-if="ActivateOldRightPanel.isActivated()">
+                <div ng-show="!selection.selectedObject">
+                    <h4 class="empty-right-column small-lr-padding" ng-show="selection.filteredObjects.length">
+                        Click an item to view details
+                    </h4>
+                </div>
+                <div data-block="preview">PREVIEW</div>
+            </div>
+        </div>
+    </div>
+</div>
+

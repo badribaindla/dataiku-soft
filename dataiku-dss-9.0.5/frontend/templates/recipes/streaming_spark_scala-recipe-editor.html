@@ -1,0 +1,138 @@
+<div ng-controller="StreamingSparkScalaRecipeController" data-extend-template="/templates/layouts/code-based-recipe-editor-layout.html">
+
+    <div class="mainPane code-based-recipe-main-zone vertical-flex h100" data-block="recipeEditor">
+        <div block-api-error />
+
+        <code-snippet-editor code="script.data"
+            sample-type="'scala'"
+            categories="['spark-scala-dkuapi', 'spark-scala-3rd', 'user-spark-scala']"
+            save-category="'user-spark-scala'"
+            editor-options="editorOptions"
+            resolve-code-for-preview-func="resolveCodeForPreviewFunc"
+            resolve-code-for-insertion-func = "resolveCodeForInsertionFunc"
+            >
+        </code-snippet-editor>
+
+        <div include-no-scope="/templates/recipes/fragments/recipe-editor-statusbar.html" class="noflex"/>
+
+        <div class="bottom-bar noflex">
+            <div class="horizontal-flex">
+                <span class="noflex">
+                    <div class="btn-group dropup" style="margin-right: 5px;">
+                        <button class="btn btn-default"
+                            ng-disabled="isJobRunning()"
+                            title="Only checks query syntax and schema consistency. Does not run the query."
+                            ng-click="startedJob.job = null; validateRecipe()">
+
+                            <i class="dib"
+                                style="width: 15px; position: relative; top: 1px;"
+                                ng-class="{'icon-check': !recipe.params.skipPrerunValidate, 'icon-check-empty': recipe.params.skipPrerunValidate}" />
+                            Validate
+                        </button>
+
+                        <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="padding-right: 12px;">
+                            <span class="caret"></span>
+                        </button>
+
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a ng-disabled="isJobRunning()" ng-click="recipe.params.skipPrerunValidate = !recipe.params.skipPrerunValidate">
+                                    <i class="icon-check" />&nbsp;
+                                    {{recipe.params.skipPrerunValidate ? 'Enable validation before running' : 'Disable validation before running'}}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </span>
+
+                <span class="flex">
+                    <div include-no-scope="/templates/recipes/fragments/continuous-recipe-controls.html" />
+                </span>
+            </div>
+        </div>
+        <div include-no-scope="/templates/recipes/fragments/continuous-activity-result.html" class="noflex recipe-job-result" />
+    </div>
+
+
+    <div data-block="additionalTabsContent">
+         <div ng-if="topNav.tab == 'advanced'" class="dss-page oa">
+            <div block-api-error />
+
+            <div class="horizontal-centerer">
+                <div class="recipe-settings-section1 w800">
+                    <h1 class="recipe-settings-section1-title">Spark configuration</h1>
+                    <div spark-override-config config="recipe.params.sparkConfig" class="recipe-settings-section2" />
+                    
+                    <form class="dkuform-horizontal recipe-settings-section2" ng-switch="recipe.params.codeMode">
+                        <div class="control-group">
+                            <label class="control-label">Spark engine</label>
+                            <div class="controls" >
+                                <select dku-bs-select ng-model="recipe.params.executionEngine" >
+                                    <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+                                    <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+                                    <option value="DATABRICKS">Databricks</option>
+                                </select>
+                            </div>
+                        </div>
+                        <h5>Spark pipelining &amp; Metastore</h5>
+                        <div class="control-group" ng-switch-when="FUNCTION">
+                            <label class="control-label">Spark pipelines</label>
+                            <div class="controls">
+                                <label>
+                                    <input type="checkbox" ng-model="recipe.params.pipelineAllowMerge" ng-disabled="recipe.params.codeMode != 'FUNCTION'" />
+                                    <span class="help-inline">
+                                        Can this recipe be merged in an existing Spark recipes pipeline?
+                                    </span>
+                                </label>
+                                <label>
+                                    <input type="checkbox" ng-model="recipe.params.pipelineAllowStart" ng-disabled="recipe.params.codeMode != 'FUNCTION'" />
+                                    <span class="help-inline">
+                                        Can this recipe be the target of a Spark recipes pipeline?
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-switch-when="FUNCTION">
+                            <label class="control-label">Hive metastore</label>
+                            <div class="controls">
+                                <label>
+                                    <input type="checkbox" ng-model="recipe.params.useGlobalMetastore" ng-disabled="recipe.params.codeMode != 'FUNCTION'" />
+                                    <span class="help-inline">
+                                        Use global Hive metastore
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-switch-default>
+                            <div class="control">
+                                These options are only compatible with the Function code mode.<br>
+                                <button class="btn btn-default" ng-click="selectCodeMode()">Select code mode</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+
+                <div class="recipe-settings-section1 w800">
+                    <h1 class="recipe-settings-section1-title">Overrides</h1>
+                    <form class="dkuform-horizontal recipe-settings-section2">
+                        <div class="control-group">
+                            <label for="" class="control-label">Override variables</label>
+                            <div class="controls">
+                                <span override-table-link object-to-override="recipe" override-table-parent="recipe" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="recipe-settings-section1 w800" ng-if="isPluginDeveloper() && appConfig.pluginDevEnabled">
+                    <h1 class="recipe-settings-section1-title">Plugins</h1>
+                    <div class="recipe-settings-section2">
+                        <a class="btn btn-default" ng-click="transformToDevPlugin()"> Convert to plugin recipe </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

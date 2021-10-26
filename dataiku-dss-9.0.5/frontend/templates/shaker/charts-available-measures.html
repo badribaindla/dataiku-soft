@@ -1,0 +1,24 @@
+<div class="darkBackground availableMeasures" id="qa_charts_input-columns-list-wrapper" remaining-height style="height: {{remainingHeight}}px; font-size: 0.85em">
+    <div class="std-list-search-box with-icon" style="display: inline-block">
+        <span class="search-icon">
+            <i class="icon-dku-search" ng-show="!chartFilter || chartFilter.length == 0"></i>
+            <i class="icon-remove cursor-pointer" ng-show="chartFilter.length > 0" ng-click="chartFilter = ''"></i>
+        </span>
+        <input type="search" ng-model="chartFilter" id="qa_charts_input-columns-search-bar" placeholder="Search…" />
+    </div>
+
+    <ul>
+        <li ng-repeat="d in usableColumns | filter:{cacheable:true} | filter:chartFilter">
+            <span class="measure ellipsed" chart-drag-copy-source="d" ng-if="d.cacheable" title="{{d.label}}">
+                <i ng-class="{NUMERICAL: 'icon-number', ALPHANUM: 'icon-font', DATE: 'icon-calendar', GEOPOINT : 'icon-globe', GEOMETRY : 'icon-globe'}[d.type]"></i>
+                {{ d.label }}
+            </span>
+        </li>
+        <li ng-repeat="d in usableColumns | filter:{cacheable:false}| filter:chartFilter">
+            <span toggle="tooltip" title="Not usable in chart (too many values)" class="measure measure--unusable ellipsed">
+                <i ng-class="{NUMERICAL: 'icon-number', ALPHANUM: 'icon-font', DATE: 'icon-calendar', GEOPOINT : 'icon-globe', GEOMETRY : 'icon-globe'}[d.type]"></i>
+                {{ d.label }}
+            </span>
+        </li>
+    </ul>
+</div>

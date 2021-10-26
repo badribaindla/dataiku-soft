@@ -1,0 +1,67 @@
+<div ng-controller="ReporterController" scenario-messaging-editor messaging="reporter.messaging" messaging-variables-behavior>
+	<div include-no-scope ="/templates/scenarios/fragments/reporter-header.html"></div>
+	<form name="descriptionForm" class="dkuform-horizontal reporter-form" ng-if="reporter.$expanded"> <!-- ng-show is not sufficient, the codeMirror doesn't get refreshed -->
+
+    <div ng-if="reporter.messaging.type">
+        <div class="control-group" >
+            <label class="control-label">Send on scenario</label>
+            <div class="controls">
+                <select ng-model="reporter.phase" dku-bs-select>
+                    <option value="START">Start</option>
+                    <option value="END">End</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group" ng-scope>
+            <label class="control-label" >Run condition</label>
+            <div class="controls message-condition">
+                <label class="dku-toggle" style="margin-left: 0px;"> <!-- for alignment in the form -->
+                    <input type="checkbox" ng-model="reporter.runConditionEnabled"/>
+                    <span/>
+                </label>
+                <div ng-if="reporter.runConditionEnabled">
+                    <textarea ng-model="reporter.runCondition" ui-codemirror="conditionEditorOptions"></textarea>
+                    <div class="help-inline" >Condition required for the reporter to be run when the scenario finishes (if empty, the reporter is always run)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Then the integration hook configuration itself -->
+        <div scenario-integration-params messaging="reporter.messaging" reporter="reporter" available-variables="availableVariables" datasets="datasets" managedfolders="managedfolders" dataset-smart-names="datasetSmartNames" form="descriptionForm"/>
+
+        <div class="available-variables">
+            <div class="control-group">
+                <label for="" class="control-label">Available variables</label>
+                <div class="controls">
+                    <div class="noflex std-list-search-box">
+                        <input class="noflex" type="search" placeholder="Search" ng-model="variableQuery" />
+                    </div>
+                    <div style="height: 200px; overflow: auto">
+                        <table class="table table-small table-hover" style="width: 400px">
+                            <tr>
+                                <th>Description</th><th>Variable</th>
+                            </tr>
+
+                            <tr ng-repeat="unit in availableVariables | filter:variableQuery" >
+                                <td>
+                                    {{unit.title}}
+                                </td>
+                                <td>
+                                    ${<span ng-bind="unit.name" />}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+			<div class="control-group" >
+				<div class="controls">
+			        <button type="button" class="noflex btn btn--secondary" ng-click="editCustomVariablesCode()">Create custom variables</button>
+				</div>
+			</div>
+        </div>
+    </div>
+	</form>
+</div>

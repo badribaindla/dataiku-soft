@@ -1,0 +1,70 @@
+<div ng-controller="SMTPChannelController">
+	<form name="descriptionForm" class="dkuform-horizontal">
+		<div class="control-group">
+			<label for="" class="control-label">Id</label>
+			<div class="controls" ng-if="channel.$creation">
+				<input type="text" ng-model="channel.id" />
+				<span class="help-inline">Must be unique.</span>
+			</div>
+			<div class="controls" ng-if="!channel.$creation">
+				{{channel.id}}
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Host</label>
+			<div class="controls">
+				<input type="text" ng-model="channel.configuration.host"></input>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Port</label>
+			<div class="controls">
+				<input type="number" min="1" max="65535" ng-model="channel.configuration.port"></input>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Use SSL</label>
+			<div class="controls">
+				<input type="checkbox" ng-model="channel.configuration.useSSL"></input>
+			</div>
+		</div>
+		<div class="control-group" ng-if="!channel.configuration.useSSL">
+			<label class="control-label">Use TLS</label>
+			<div class="controls">
+				<input type="checkbox" ng-model="channel.configuration.useTLS"></input>
+			</div>
+		</div>
+        <div class="control-group">
+            <label class="control-label">Extra properties</label>
+            <div class="controls">
+				<ng2-key-values-list 
+					[(items)]="channel.configuration.sessionProperties" 
+					key-placeholder="Property key"
+					value-placeholder="Property value"
+					add-label="Add Property">
+				</ng2-key-values-list>
+                <span class="help-inline">Additional properties for the mail session</span>
+            </div>
+        </div>
+		<div class="control-group">
+			<label class="control-label">Login</label>
+			<div class="controls">
+				<input type="text" ng-model="channel.configuration.login"></input>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Password</label>
+			<div class="controls">
+				<input type="password" ng-model="channel.configuration.password" autocomplete="new-password"></input>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Sender email address</label>
+			<div class="controls">
+				<input type="text" ng-model="channel.configuration.sender"></input>
+				<span class="help-inline">"From" address for mails sent with this channel. When set, this address is used for all mails sent with this channel and cannot be overridden.</span>
+			</div>
+		</div>
+
+	</form>
+</div>

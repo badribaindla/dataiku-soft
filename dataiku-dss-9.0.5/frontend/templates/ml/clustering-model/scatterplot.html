@@ -1,0 +1,42 @@
+<div ng-if="scatterData" class="vertical-flex h100">
+    <div class="noflex">
+        <form class="form-horizontal" style="padding: 10px 0 0 10px"><i class="icon-arrow-up"></i>
+            &nbsp;Vertical axis:&nbsp;
+            <select dku-bs-select="{liveSearch:true}" ng-model="params.scatterVar1" ng-options="v for v in scatterVars"/>
+            &nbsp; <i class="icon-arrow-right"></i>
+            &nbsp;Horizontal axis:&nbsp;
+            <select dku-bs-select="{liveSearch:true}" ng-model="params.scatterVar2" ng-options="v for v in scatterVars"/>
+
+        </form>
+        <div ng-show="result.preprocessing.outliers.method == 'CLUSTER' && result.perf.train_nb_outliers >
+        0">
+            <label class="checkbox inline">
+                <input type="checkbox" ng-model="scatterShowOutliers"/>
+                Display outliers
+            </label>
+        </div>
+    </div>
+
+    <div class="flex">
+        <div
+                scatter-cluster-plot
+                id="scatterChartContainer"
+                data="scatterData"
+                axis-x="params.scatterVar2"
+                axis-y="params.scatterVar1"
+                get-cluster-meta="getClusterMeta"
+                show-outliers="scatterShowOutliers"
+                class="fh h100"/>
+    </div>
+
+    <div ng-show="fatalAPIError" class="alert alert-error noflex">
+        <i class="icon-dku-error"></i>
+        Scatterplot is unavailable for this model, scatter data was corrupted in version upgrade.
+        <br>
+        Retrain the model to view the scatterplot.
+    </div>
+</div>
+
+<div ng-if="!scatterData && !waiting" class="placeholder-block">
+    Scatterplot is not available with this model.
+</div>

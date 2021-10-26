@@ -1,0 +1,126 @@
+<div class="offset0 h100 oa session-detail" ng-class="{'span9' : !sessionTask.tensorboardStatus.fullScreen, 'span12' : sessionTask.tensorboardStatus.fullScreen}">
+    <div class="vertical-flex h100">
+        <div block-api-error />
+        <!-- graph view  -->
+        <div class="session-detail-header keras-layout noflex">
+            <span class="session-name">Session {{sessionTask.sessionId | onlyNumbers}}</span>
+            <span class="session-date" ng-if="getSessionStartDate(sessionTask.sessionId) != null">
+                Started {{getSessionStartDate(sessionTask.sessionId) | friendlyDateTime}}
+                <span ng-if="!isSessionRunning(sessionTask.sessionId) && getSessionEndDate(sessionTask.sessionId) != null">, ended {{getSessionEndDate(sessionTask.sessionId) | friendlyDateTime}}</span>
+            </span>
+
+            <span class="session-models">
+                1 model <span ng-if="isSessionRunning(sessionTask.sessionId)">training</span>
+            </span>
+            <span class="session-features" custom-element-popup cep-position="smart" cep-offset-left="-26" close-on-click="false" full-click>
+                <a class="mainzone dropdown-toggle" main-click ng-click="togglePopover()">
+                    {{mlTaskFeatures(sessionTask.preprocessing.per_feature, ['INPUT','TARGET']).length}} /
+                    {{mlTaskFeatures(sessionTask.preprocessing.per_feature, ['INPUT','TARGET','PROFILING','REJECT']).length}} Features
+                    <span class="caret">
+                </a>
+                <ul class="session-features-popup popover custom-element-popup-popover dropdown-menu column-header-menu">
+                    <ul class="nav dropdown" dku-filtered="sessionTask.preprocessing.per_feature">
+                         <div class="std-list-search-box with-icon">
+                            <span class="search-icon">
+                                <i class="icon-dku-search" ng-show="!objects.filterQuery.userQuery || objects.filterQuery.userQuery.length == 0"></i>
+                                <i class="icon-remove cursor-pointer" ng-show="objects.filterQuery.userQuery.length > 0" ng-click="objects.filterQuery.userQuery = ''"></i>
+                            </span>
+                            <input type="text" ng-model="objects.filterQuery.userQuery" auto-focus="true">
+                        </div>
+
+                        <div fat-repeat="objects.filtered" as="feature" row-height="20" style="height: {{objects.filtered.length * 20 + 1}}px ; max-height: 400px">
+                            <li ng-if="feature.role==='REJECT'" class="reject">
+                                <a href="" class="mx-textellipsis">
+                                    <i class="icon-remove" />
+                                    <span>{{feature._name}}</span>
+                                </a>
+                            </li>
+                            <li ng-if="feature.role==='TARGET'">
+                                <a href="" class="mx-textellipsis">
+                                    <i class="icon-bullseye" />
+                                    <span>{{feature._name}}</span>
+                                </a>
+                            </li>
+                            <li ng-if="feature.role!='REJECT'&&feature.role!='TARGET'" class="dropdown-submenu" feature-description feature="feature">
+                            </li>
+                        </div>
+                    </ul>
+                </ul>
+            </span>
+            <button class="btn btn-deeplearning btn-tensorboard--to-epoch" ng-show="canShowTensorboard() && sessionTask.tensorboardStatus.isFrontendReady" style="float: right; margin-left: 10px" ng-click="sessionTask.tensorboardStatus.fullScreen = !sessionTask.tensorboardStatus.fullScreen"><i ng-class="{'icon-resize-full' : !sessionTask.tensorboardStatus.fullScreen, 'icon-resize-small' : sessionTask.tensorboardStatus.fullScreen }"/></button>
+            <button class="btn btn-deeplearning btn-tensorboard--to-tb" ng-show="canShowTensorboard()" ng-click="showHideTensorboard()" style="float: right">Switch to {{sessionTask.tensorboardStatus.isShown && sessionTask.tensorboardStatus.isBackendReady && sessionTask.tensorboardStatus.isFrontendReady ? 'Epoch graph' : 'Tensorboard'}} <i class="icon-spin icon-spinner" ng-show="sessionTask.tensorboardStatus.isShown && !(sessionTask.tensorboardStatus.isBackendReady && sessionTask.tensorboardStatus.isFrontendReady)"></i></button>
+        </div>
+        <div ng-show="sessionTask.tensorboardStatus.isShown && sessionTask.tensorboardStatus.isBackendReady && sessionTask.tensorboardStatus.showIfFrontIsNotReady && !sessionTask.tensorboardStatus.isFrontendReady" style="margin-right: 10px;">
+            <div class="session-detail__tb_loading">Loading TensorBoard...</div>
+            <div class="session-detail__tb_shadow"></div>
+        </div>
+        <div style="margin-right: 10px; flex: 1;" class="oh" ng-if="sessionTask.tensorboardStatus.isShown && sessionTask.tensorboardStatus.isBackendReady" ng-show="sessionTask.tensorboardStatus.isFrontendReady" tensorboard-destroy-handler>
+            <iframe
+                    class="webapp-container"
+                    iframe-onload="sessionTask.tensorboardStatus.isFrontendReady = true"
+                    style="height: 100%"
+                    ng-src="{{getTensorboardUrl(sessionTask.sessionId)}}"
+                    frameborder="0"
+                    width="100%"
+                    height="100%">
+            </iframe>
+        </div>
+        <div class="models-session models-session--keras noflex" ng-if="!sessionTask.tensorboardStatus.isShown || !(sessionTask.tensorboardStatus.isBackendReady && (sessionTask.tensorboardStatus.isFrontendReady || sessionTask.tensorboardStatus.showIfFrontIsNotReady))">
+            <div class="session-detail-body keras-layout" style="padding: 10px; height: 185px" ng-if="sessionTask.sessionId" class="noflex">
+                <div style="margin-left: 40px; color: #DFDFDF; height: 20px;">
+                    <div ng-if="anyModelHasOneEpochFinished()">
+                        <span class="model-color-bullet" style="border-color: #00bcd4"></span><span> Train set</span>
+                        <span class="model-color-bullet" style="border-color: #4caf50"></span><span> Test set</span>
+                    </div>
+                </div>
+                <div class="offset0"
+                     ng-class="(anyModelHasAllEpochsFinished() || anyModelHasFailedOrAborted()) ? 'span12' : 'span10'"
+                     ng-if="anyModelHasOneEpochFinished()"
+                     svg-tooltip>
+                    <svg style="width: 100%; height: 165px"
+                         keras-epoch-curve
+                         lower-is-better="libMetric"
+                         custom-evaluation-metric-gib="sessionTask.modeling.metrics.customEvaluationMetricGIB"
+                         class="keras-epoch-curve"
+                         all-models="selection.allObjects"
+                         session-id="sessionTask.sessionId"
+                         current-metric="uiState.currentMetric"
+                    ></svg>
+                </div>
+                <div ng-if="anySessionModelHasOptimizationResults() && !anyModelHasAllEpochsFinished() && !anyModelHasFailedOrAborted()"
+                     class="keras-epoch-progress__container span2 offset0"
+                     ng-class="anyModelHasOneEpochFinished() ? 'right' : 'center'">
+                    <svg keras-epoch-progress
+                         all-models="selection.allObjects"
+                         session-id="sessionTask.sessionId"
+                    ></svg>
+                </div>
+
+                <div class="offset0 span12" ng-if="!anySessionModelHasOptimizationResults() && !anyModelHasFailedOrAborted()">
+                    <div class="fh keras-wait-for-results-or-failed__container">
+                        <span>Optimization results will appear as soon as they are available.</span>
+                        <div class="keras-currently-training"></div>
+                    </div>
+                </div>
+
+                <div class="offset0 span12" ng-if="anyModelHasFailedOrAborted() && !anyModelHasOneEpochFinished()">
+                    <div class="fh keras-wait-for-results-or-failed__container">
+                        Training {{anyModelHasFailed() ? 'failed' : "aborted"}}.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="models-detailed-list flex oa" style="margin-right: -10px; padding-right: 20px" ng-if="!sessionTask.tensorboardStatus.isShown || !(sessionTask.tensorboardStatus.isBackendReady && (sessionTask.tensorboardStatus.isFrontendReady || sessionTask.tensorboardStatus.showIfFrontIsNotReady))">
+            <!-- Detailed models list -->
+            <div class="models-detailed-item model-detailed-item--keras" ng-class="{failed: isModelFailed(model), aborted: isModelAborted(model), focused: selection.selectedObject === model, selected: model.$selected}"
+                ng-repeat="model in selection.sessionModels| orderBy:'algorithmOrder'"
+                ng-mouseenter="selection.selectedObject = model" style="border-bottom: 4px solid {{model.color}};">
+                <!-- full-click -->
+                <div class="model-snippet" id="{{model.fullModelId}}" model-snippet current-metric="uiState.currentMetric" task-type="mlTasksContext.activeMLTask.taskType" snippet-source="ANALYSIS" snippet-data="model" hide-selectors="true" />
+            </div>
+            <div gpu-online-stats class="training-screen" selectable="false" ng-if="mlTaskStatus.training && mlTaskDesign.modeling.keras.useGPU && !inContainer(sessionTask.containerSelection)" metrics="['GPU','Memory']" selected="mlTaskDesign.modeling.keras.gpuList"></div>
+        </div>
+
+    </div>
+</div>

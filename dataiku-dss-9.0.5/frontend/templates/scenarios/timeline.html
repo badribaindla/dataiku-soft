@@ -1,0 +1,68 @@
+<div ng-controller="TimelineController" class="scenario-reports h100">
+	<div class="h100 vertical-flex" hierarchical-hover>
+        <div block-api-error></div>
+		<div class="noflex">
+			<div class="above-gantt horizontal-flex">
+				<div class="range noflex">
+					<span>Range</span>
+					<div class="list-daterange-box-yyyymmddhhmm" style="display: inline-block; line-height: 0;">
+						<div daterangepicker class="picker" opens-direction="down" start-date="ganttRange.from" end-date="ganttRange.to" format="YYYY-MM-DD HH:mm" time-picker-increment="5" presets-to-end-of-day="true"></div>
+						<a ng-click="refreshScenarioGantt()"><span class="right-add-on">
+							<i ng-class="{'icon-refresh': true, 'icon-spin': refreshing}"></i>
+						</span></a>
+					</div>
+					<div class="shrink-range" ng-if="reportRange.from > report.key.from || reportRange.to < report.key.to">
+					   <a ng-click="shrinkRange(reportRange.from, reportRange.to)">Set range to current selection</a>
+					</div>
+				</div>
+		        <div class="flex" style="position: relative; margin: 0 2px 0 10px;" >
+		            <!-- don't forget the position:relative otherwise the brush doesn't pick the right width -->
+		            <div range-brush range="report.key" selected-range="reportRange" on-change="brushChanged()" on-drill-down="brushDrillDown" snap-ranges="topActions"></div>
+		        </div>
+			</div>
+		</div>
+		<div class="noflex">
+            <div class="above-gantt horizontal-flex">
+                <div class="noflex">
+                    <span>Expand to :</span>
+                    <a ng-click="uiState.viewDetails = 'SCENARIO'; expandToScenario();" style="vertical-align: middle;" class="mx-link-nodecoration">scenario</a>
+                    <span>|</span>
+                    <a ng-click="uiState.viewDetails = 'STEP'; expandToStep();" style="vertical-align: middle;" class="mx-link-nodecoration">step</a>
+                </div>
+                <div class="scenario-selector noflex" ng-if="uiState.viewMode == 'TABULAR' && scenarioId == null" style="margin-left: 20px;">
+                    <span>Scenario</span>
+                    <select dku-bs-select ng-model="uiState.scenario" ng-options="topItem as (topItem.info.name || topItem.target.scenarioId) for topItem in topItems" ></select>
+                </div>
+                <div class="flex">
+                </div>
+                <!-- 'tabular' (formerly 'runs') view is not available on project or instance, because a single scenario is needed -->
+                <div class="noflex" ng-if="scenarioId != null">
+                    <ul class="btn-group" style="margin-left: 10px;">
+                        <button class="btn btn--secondary" ng-click="uiState.viewMode = 'TIMELINE'" ng-class="{'btn--active' : uiState.viewMode == 'TIMELINE'}">
+                            <span class="title">Timeline</span>
+                        </button>
+                        <button class="btn btn--secondary" ng-click="uiState.viewMode = 'TABULAR'" ng-class="{'btn--active' : uiState.viewMode == 'TABULAR'}">
+                            <span class="title">Tabular</span>
+                        </button>
+                    </ul>
+                </div>
+            </div>
+		</div>
+        <div class="flex oa" ng-if="report == null">
+            <div class="fh center-children">
+                <button class="btn btn--secondary btn--large" ng-click="refreshScenarioGantt()">Load scenario runs</button>
+            </div>
+        </div>      
+        <div class="flex oa" ng-if="report && (report.items == null || report.items.length == 0)">
+            <div class="fh center-children">
+                <span class="range-is-empty">No scenario runs in the selected range</span>
+            </div>
+        </div>      
+		<div class="flex oa graph-zone" ng-if="report && report.items.length > 0 && uiState.viewMode == 'TIMELINE'">
+		    <ng-include src="'/templates/scenarios/fragments/gantt.html'" />
+		</div>		
+		<div class="flex oa graph-zone" ng-if="report && report.items.length > 0 && uiState.viewMode == 'TABULAR'">
+            <ng-include src="'/templates/scenarios/fragments/tabular.html'" />
+		</div>		
+	</div>
+</div>

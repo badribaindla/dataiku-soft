@@ -1,0 +1,184 @@
+<div>
+    <div class="task-item-status">
+        <span ng-if="item.jobId" class="status">
+            <i class="icon-play"/>
+            <span class="status-bullet" ng-class="{success: item.state == 'DONE', error: item.state == 'FAILED' || item.state == 'ABORTED', warning: item.warningsCount}">&nbsp;</span>
+        </span>
+        <span ng-if="item.type == 'MLTASK'" class="status">
+            <i class="icon-cogs text-success" />
+        </span>
+        <span ng-if="item.type == 'EXPORT'" class="status">
+            <i class="icon-download text-success" />
+        </span>
+    </div>
+    <div class="timeline-item-content">
+        <date>{{ pn.timestamp |date:'HH:mm' }}</date>
+
+        <div class="timeline-item-message" >
+
+            <div class="header">
+                <div ng-if="item.name == 'job-state-change'">
+                    <i ng-if="item.triggeredFrom == 'SCHEDULER'"
+                        class="icon-calendar"
+                        title="scheduled"
+                        style="font-size: 0.9em;margin-right:4px;"
+                    />
+                    <strong>
+                        <a class="link-std" href="{{ StateUtils.href.job(item.projectKey, item.jobId) }}" >
+                           Job {{item.state.toLowerCase()}}
+                        </a>
+                    </strong>
+                </div>
+
+                <div ng-if="item.type == 'EXPORT'">
+                    <strong>Export done</strong>
+                </div>
+
+
+                <div ng-if="item.type == 'MLTASK'">
+                    <strong class="db">
+                        <span style="text-transform: capitalize">{{item.taskType.toLowerCase()}}</span> model training
+                        <!-- <i class="{{item.details.backendType}}" /> -->
+                    </strong>
+                </div>
+            </div>
+
+
+            <div class="details">
+                <div ng-if="item.name == 'job-state-change' && item.state == 'DONE'">
+                    <div ng-if="pn.evt.outputs.length == 1" ng-init="out = pn.evt.outputs[0];">
+                        Build
+                        <span class="{{item.objectType.toLowerCase()}} dss-object">
+                            <a ng-if="!out.details.itemNotFound" href="{{StateUtils.href.dssObject(out.type || 'DATASET', out.targetDataset, out.targetDatasetProjectKey)}}">
+                                <i class="{{out.details.datasetType || out.type | typeToIcon }} {{out.type | typeToColor}}" />
+                                {{out.details.objectDisplayName || out.targetDataset}}
+                            </a>
+                            <span ng-if="out.details.itemNotFound" class="delete-item" title="deleted" toggle="tooltip">
+                                <i class="{{out.details.datasetType || out.details.webappType || out.type | typeToIcon }} {{out.type | typeToColor}}" />
+                                <span>{{out.details.objectDisplayName || out.targetDataset}}</span>
+                            </span>
+                        </span>
+                    </div>
+                    <div ng-if="pn.evt.outputs.length > 1">
+                        Build {{pn.evt.outputs.length}} items:
+                        <ul>
+                            <li ng-repeat="out in pn.evt.outputs">
+                                <span class="{{item.objectType.toLowerCase()}} dss-object">
+                                    <a ng-if="!out.details.itemNotFound" href="{{StateUtils.href.dssObject(out.type || 'DATASET', out.targetDataset, out.targetDatasetProjectKey)}}">
+                                        <i class="{{out.details.datasetType || out.type | typeToIcon }} {{out.type | typeToColor}}" />
+                                        {{out.details.objectDisplayName || out.targetDataset}}
+                                    </a>
+                                    <span ng-if="out.details.itemNotFound" class="delete-item" title="deleted" toggle="tooltip">
+                                        <i class="{{out.details.datasetType || out.type | typeToIcon }} {{out.type | typeToColor}}" />
+                                        <span>{{out.details.objectDisplayName || out.targetDataset}}</span>
+                                    </span>
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <span ng-if="item.warningsCount" class="icon-warning-sign">
+                        Completed with {{item.warningsCount | pluralize :'warning' :'warnings'}}.
+                    </span>
+                    <span ng-if="!item.warningsCount">
+                        Completed in {{item.time - item.initiationTimestamp | friendlyDurationShort }}.
+                    </span>
+                </div>
+
+                <!-- No links if job not done -->
+                <div ng-if="item.name == 'job-state-change' && item.state != 'DONE'">
+                    <div ng-if="pn.evt.outputs.length == 1" ng-init="out = pn.evt.outputs[0];">
+                        Build {{out.details.objectDisplayName || out.targetDataset}}
+                    </div>
+                    <div ng-if="pn.evt.outputs.length > 1">
+                        Build {{pn.evt.outputs.length}} items:
+                        <ul>
+                            <li ng-repeat="out in pn.evt.outputs">
+                                {{out.details.objectDisplayName || out.targetDataset}}
+                            </li>
+                        </ul>
+                    </div>
+                    <span>
+                        <span style="text-transform: capitalize" >{{item.state.toLowerCase()}}</span>
+                        after {{item.time - item.initiationTimestamp | friendlyDurationShort }}.
+                    </span>
+                </div>
+
+
+                <div ng-if="item.type == 'EXPORT'">
+                    Exported {{item.status.inputDescription.name}}
+                    <div ng-switch on="item.status.exportMethod" style="margin-top: 5px">
+                        <div ng-switch-when="CUSTOM_TO_FILE">
+                            <a ng-click="downloadExport(item.status.exportId)">
+                                <i class="icon-download"></i> Download {{item.status.writtenBytes | filesize}}
+                            </a>
+                        </div>
+                        <div ng-switch-when="FORMATTER_TO_FILE">
+                            <a ng-click="downloadExport(item.status.exportId)">
+                                <i class="icon-download"></i> Download {{item.status.writtenBytes | filesize}}
+                            </a>
+                        </div>
+                        <div ng-switch-when="DATASET">
+                            to dataset
+                            <a href="{{StateUtils.href.dataset(item.status.params.destinationDatasetName, item.status.params.destinationDatasetProjectKey)}}">
+                                {{item.status.params.destinationDatasetProjectKey}}.{{item.status.params.destinationDatasetName}}
+                            </a>
+                        </div>
+                        <div ng-switch-when="FORMATTER_STREAM" style="text-style: italic; color: #666">
+                            (already retrieved)
+                        </div>
+                        <div ng-switch-when="CUSTOM_MANAGED" style="text-style: italic; color: #666">
+                            (custom output)
+                        </div>
+                    </div>
+
+                    <div ng-if="item.state == 'FAILED' && item.status.errorMessage" style="margin-left: -100px; margin-top: 5px;" class="alert-danger">
+                        <a ng-if="item.status.logTail" ng-click="item.$expanded = !item.$expanded;"><i ng-class="{'icon-chevron-down' : item.$expanded, 'icon-chevron-right' : !item.$expanded}"></i></a>
+                        <span>{{item.status.errorMessage}}</span>
+                        <pre ng-if="item.$expanded" smart-log-tail="item.status.logTail" />
+                    </div>
+                </div>
+
+
+                <div ng-if="item.type == 'MLTASK'">
+                    <div>
+                        <a ng-if="item.taskType == 'PREDICTION'"
+                            href="{{$state.href('projects.project.analyses.analysis.ml.predmltask.list.results', {
+                                projectKey:item.projectKey,
+                                analysisId: item.analysisId,
+                                mlTaskId: item.taskId
+                            })}}">
+                            {{item.name}}
+                        </a>
+                        <a ng-if="item.taskType == 'CLUSTERING'"
+                            href="{{$state.href('projects.project.analyses.analysis.ml.clustmltask.list.results', {
+                                projectKey:item.projectKey,
+                                analysisId: item.analysisId,
+                                mlTaskId: item.taskId
+                            })}}">
+                            {{item.name}}
+                        </a>
+                        (
+                        <span ng-if="item.details.predictionType" style="text-transform:lowercase">
+                            {{item.details.predictionType}}
+                        </span>
+                        on dataset
+                        <strong>
+                             <a href="{{StateUtils.href.dataset(item.dataset, item.projectKey)}}" class="link-std">{{item.dataset}}
+                             </a>
+                         </strong>
+                        )
+                    </div>
+                    <div ng-if="item.results.done" class="text-success">
+                        {{item.results.done}} model sucessfully trained
+                    </div>
+                    <div ng-if="item.results.aborted" class="text-warning">
+                        {{item.results.aborted}} model training aborted
+                    </div>
+                    <div ng-if="item.results.failed" class="text-error">
+                        {{item.results.failed}} model training failed
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

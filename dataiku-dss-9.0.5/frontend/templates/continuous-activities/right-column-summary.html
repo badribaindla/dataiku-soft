@@ -1,0 +1,75 @@
+<div class="vertical-flex h100 object-right-column-summary scenario">
+    <div item-header class="noflex" ng-if="selection.selectedObjects == null || selection.selectedObjects.length <= 1"
+            href="$state.href('projects.project.continuous-activities.continuous-activity.runs', {continuousActivityId:selection.selectedObject.recipeId})"
+            color="recipe-continuous" icon="icon-list"
+            title="{{selection.selectedObject.recipeId}}">
+        {{selection.selectedObject.recipeId}}
+    </div>
+    <div item-header class="noflex" ng-if="selection.selectedObjects != null && selection.selectedObjects.length > 1"
+            color="recipe-continuous" icon="icon-list">
+        {{selection.selectedObjects.length}} activities
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex oa">
+        <div class="h100" ng-switch="uiState.activeTab">
+            <div ng-switch-when="details" class="object-summary-tab-content details-tab h100 oa">
+                <object-details
+                    object-type="CONTINUOUS_ACTIVITY"
+                    object-data="continuousActivity"
+                    context="right-column"
+                    hover-intent-callback="QuickView"
+                    editable="canWriteProject()">
+                </object-details>
+            </div>
+
+            <div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden; padding-top: 16px;">
+                <div class="icons-section icons-grey icons-continuous" ng-if="selection.selectedObjects == null || selection.selectedObjects.length <= 1">
+                    <div simple-right-col-action-href
+                        ng-if="!$state.current.name.startsWith('projects.project.continuous-activities.continuous-activity')"
+                        href="{{$state.href('projects.project.continuous-activities.continuous-activity.runs', {continuousActivityId:selection.selectedObject.recipeId})}}"
+                        label="Open"
+                        icon="icon-dku-explore"
+                        />
+                    <div simple-right-col-action-href
+                        href="{{$state.href('projects.project.recipes.recipe', {recipeName:selection.selectedObject.recipeId})}}"
+                        label="Go to recipe"
+                        icon="icon-edit"
+                        />
+                    <div simple-right-col-action-click
+                        label="Start"
+                        icon="icon-play"
+                        on-click="startContinuousActivity(selection.selectedObject)"
+                        ng-class="{disabled: !isProjectAnalystRW()}"
+                        ng-if="selection.selectedObject.desiredState == 'STOPPED'"
+                        />
+                    <div simple-right-col-action-click
+                        label="Stop"
+                        icon="icon-stop"
+                        on-click="stopContinuousActivity(selection.selectedObject)"
+                        ng-class="{disabled: !isProjectAnalystRW()}"
+                        ng-if="selection.selectedObject.desiredState == 'STARTED'"
+                        />
+                    <div class="action-icon" ng-repeat="i in ([1] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+                <div class="icons-section icons-grey icons-continuous" ng-if="selection.selectedObjects != null && selection.selectedObjects.length > 1">
+                    <div simple-right-col-action-click
+                        label="Start"
+                        icon="icon-play"
+                        on-click="startAllContinuousActivities(selection.selectedObjects)"
+                        ng-class="{disabled: !isProjectAnalystRW()}"
+                        />
+                    <div simple-right-col-action-click
+                        label="Stop"
+                        icon="icon-stop"
+                        on-click="stopAllContinuousActivities(selection.selectedObjects)"
+                        ng-class="{disabled: !isProjectAnalystRW()}"
+                        />
+                    <div class="action-icon" ng-repeat="i in ([1] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

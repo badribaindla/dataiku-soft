@@ -1,0 +1,160 @@
+<div filtered-multi-select-rows ng-model="tableData">
+    <div class="model-perfdrift__headers noflex" ng-if="!labels">
+        <div class="horizontal-flex">
+            <a ng-if="ctrl.refreshStatus" class="noflex refresh-button link-std" ng-click="ctrl.refreshStatus()"> <i class="icon-refresh" /></a>
+
+            <div class="noflex list-customfilter-box list-control-widget model-perfdrift__metrics">
+                <select dku-bs-select="{'style': 'dku-select-button', titlePrefix:'Metric'}"
+                    multiple="multiple"
+                    ng-model="ctrl.displayParams.displayedMetrics"
+                    ng-options="m[0] as m[1] disable when m[0] == null for m in ctrl.possibleMetrics">
+                </select>
+            </div>
+
+            <div ng-if="!labels" class="noflex list-customfilter-box list-control-widget model-perfdrift__sort">
+                <select dku-bs-select="{'style': 'dku-select-button', titlePrefix:'X'}"
+                    ng-model="ctrl.displayParams.xLabel"
+                    ng-options="l for l in possibleXLabels">
+                </select>
+            </div>
+
+            <div ng-if="!labels && uiState.graphStyle === 'LINE'" class="noflex list-customfilter-box list-control-widget model-perfdrift__sort">
+                <select dku-bs-select="{'style': 'dku-select-button', titlePrefix:'Color'}"
+                    multiple="multiple"
+                    ng-model="ctrl.displayParams.yLabels"
+                    ng-options="l for l in possibleYLabels">
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="noflex" ng-if="tableData">
+        <div class="noflex alert alert-error" ng-if="mergedObjects">
+            Error: at least two evaluations have the same values for X and Y labels. No graph can be displayed.
+        </div>
+        <div class="model-perfdrift-graph-legend">
+            <div ng-repeat="(key,value) in uiState.colormap">
+                <span class="model-perfdrift-color-span" ng-style="{ 'background-color': value }"></span>
+                &nbsp;{{key}}
+            </div>
+        </div>
+        <div ng-if="chartsOptions.length && !mergedObjects">
+            {{uiState.focusLabel}}
+            <div class="model-perfdrift-graph-container">
+                <div class="model-perfdrift-graph zoomed"
+                    ng-repeat="chartOptions in chartsOptions" ng-if="showBigGraph(chartOptions.metric[0])">
+                    <span class="title">{{chartOptions.metric[1]}}</span>
+                    <span class="resize"><a ng-click="removeFocusedGraphLabel(chartOptions.metric[0])">
+                        <i class="icon-fixed-width icon-resize-small" />
+                    </a></span>
+                    <ng2-lazy-echart [options]="chartOptions"></ng2-lazy-echart>
+                </div>
+                <div class="noflex model-perfdrift-graph"
+                    ng-repeat="chartOptions in chartsOptions" ng-if="!showBigGraph(chartOptions.metric[0])">
+                    <span class="title">{{chartOptions.metric[1]}}</span>
+                    <span class="resize"><a ng-click="addFocusedGraphLabel(chartOptions.metric[0])">
+                            <i class="icon-fixed-width icon-resize-full" />
+                        </a></span>
+                        <ng2-lazy-echart [options]="chartOptions"></ng2-lazy-echart>
+                </div>
+            </div>
+        </div>
+        <div class="noflex std-list-header model-perfdrift-search" ng-if="!labels">
+            <div class="horizontal-flex">
+                <div class="list-customfilter-box list-control-widget model-perfdrift__sort">
+                    <select dku-bs-select="{'style': 'dku-select-button', titlePrefix:'Display also'}"
+                        multiple="multiple"
+                        ng-model="ctrl.displayParams.alsoDisplayedLabels"
+                        ng-options="l as labelSuffix(l) group by labelPrefix(l) for l in possibleOtherLabels">
+                    </select>
+                </div>
+                <div class="std-list-search-box list-control-widget">
+                    <span class="add-on"> <i class="icon-dku-search"></i>
+                    </span>
+                    <input type="search" ng-model="selection.filterQuery.userQuery" style="width: 190px;" placeholder="Filter..."/>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <br>
+        <table sort-table-dyn class="table table-hover model-perfdrift-table"
+            sort-column="ctrl.displayParams.sortColumn" sort-descending="ctrl.displayParams.sortDescending" sort-callback="sortCallback(sortColumn,sortDescending)" ng-if="!labels">
+            <thead>
+                <tr>
+                    <th ng-if="!labels" rowspan="2"><input type="checkbox"
+                        ng-model="selection.all"
+                        dku-indeterminate="selection.some"
+                        ng-change="updateMassSelectionCheckbox()" /></th>
+                    <th class="model-perfdrift-color-cell" rowspan="2">&nbsp;</th>
+                    <th ng-if="labels" rowspan="2"></th>
+                    <th ng-if="!labels && !ctrl.hideStore" sort-col-dyn="ref.id" rowspan="2">Store</th>
+                    <th ng-if="!labels" sort-col-dyn="runId" class="nostretch" rowspan="2">Model Evaluation Run Id</th>
+                    <th ng-repeat="tl in uiState.titleLabels" colspan="{{tl.span}}" class="domain-border" ng-if="tl.domain">{{tl.domain}}</th>
+                    <th sort-col-dyn="metrics.{{cur.key}}" ng-repeat="cur in uiState.currentFormattedNames" rowspan="2" ng-class="{'domain-border': firstMetricOfDomain(cur.label)}" ng-if="showBigGraph(cur.label)">{{cur.label}}</th>
+                    <th sort-col-dyn="metrics.{{cur.key}}" ng-repeat="cur in uiState.currentFormattedNames" rowspan="2" ng-class="{'domain-border': firstMetricOfDomain(cur.label)}" ng-if="!showBigGraph(cur.label)">{{cur.label}}</th>
+                    <th rowspan="2"></th>
+                </tr>
+                <tr>
+                    <th ng-repeat="tl in uiState.titleLabels" ng-class="{'domain-border': tl.domain}" sort-col-dyn="labels.{{tl.fullLabel}}">{{tl.subLabel}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="item in selection.filteredObjects | orderBy:sortValue(sortColumn):sortDescending"
+                    ng-class="{'model-perfdrift-table-highlighted-row': uiState.hoverId == item.id}">
+                    <td ng-if="!labels" class="nostretch"><input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)"/></td>
+                    <td class="nostretch"><span ng-if="item.$selected" class="model-perfdrift-color-span" ng-style="styleKeyColor(item)"></span></td>
+                    <td class="nostretch" ng-if="labels">{{labels[$index]}}</td>
+                    <td class="nostretch" ng-if="!labels && !ctrl.hideStore">
+                        <a ng-if="item.ref.id" main-click href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.evaluations', {projectKey : $stateParams.projectKey, mesId: item.ref.id})}}">{{getStoreName(item.ref.id)}}</a>
+                        <span ng-if="!item.ref.id">Saved models</span>
+                    </td>
+                    <td class="nostretch" ng-if="!labels">
+                        <a main-click href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.evaluation.report', {projectKey : $stateParams.projectKey, mesId: item.ref.id, runId: item.runId})}}">{{item.runId.replace('_', '_&shy;')}}</a>
+                    </td>
+                    <td class="nostretch" ng-if="!labels" ng-repeat="tl in uiState.titleLabels" ng-class="{'domain-border': tl.domain}">{{item.labels.get(tl.fullLabel) || '-'}}</td>
+                    <td class="nostretch" ng-repeat="cur in uiState.currentFormattedNames" ng-class="{'domain-border': firstMetricOfDomain(cur.label)}" ng-if="showBigGraph(cur.label)" style="font-weight: bold;">
+                        <div class="text-center" ng-bind-html="item.formattedMetrics[cur.key]"></div>
+                    </td>
+                    <td class="nostretch" ng-repeat="cur in uiState.currentFormattedNames" ng-class="{'domain-border': firstMetricOfDomain(cur.label)}" ng-if="!showBigGraph(cur.label)">
+                        <div class="text-center" ng-bind-html="item.formattedMetrics[cur.key]"></div>
+                    </td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="span11" ng-if="labels">
+        <table class="table table-small drift-current-reference-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th class="current">Current Model</th>
+                    <th class="reference">Model Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="cur in uiState.currentFormattedNames">
+                    <td class="title first">{{cur.label}}</td>
+                    <td class="data" ng-repeat="item in selection.filteredObjects | orderBy:sortColumn:sortDescending">
+                        <div class="text-center" ng-bind-html="item.formattedMetrics[cur.key]">
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div ng-if="!tableData && !labels" class="flex empty-list-cta section" >
+        <h1>
+            No model evaluation in this evaluation store
+        </h1>
+        <p>Build the evaluation store or add evaluations via the public API</p>
+        <div>
+            <a class="btn btn--secondary btn--large" ng-click="refreshStatus()">
+                <i class="icon-refresh" ></i>&nbsp;Refresh
+            </a>
+        </div>
+    </div>
+</div>

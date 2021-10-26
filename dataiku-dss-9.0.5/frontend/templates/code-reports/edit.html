@@ -1,0 +1,146 @@
+<div class="h100" ng-if="report">
+    <div report-editor
+        class="web-app-editor"
+        global-keydown="{'ctrl-s meta-s':'saveReport()', 'ctrl-enter meta-enter' : 'saveReport()'}">
+
+        <div class="left-pane fh oa vertical-flex">
+
+            <div class="noflex" style="padding: 5px 10px; border-bottom: 1px solid #ddd;">
+                <div code-snippet-editor-switch code-samples-selector-visible="uiState.codeSamplesSelectorVisible" class="pull-right" />
+
+                <span ng-show="report.params.buildOnSave">
+                    <small style="margin: 0 10px; line-height: 26px;" toggle="tooltip" title="Report is auto-built at each save. Go to settings to switch to manual mode.">
+                        Build: auto
+                    </small>
+                    <button class="btn btn--secondary" ng-click="hooks.saveAndBuild()" ng-show="report.params.buildOnSave">
+                        <i class="icon-play" />&nbsp; Force build
+                    </button>
+                </span>
+
+                <span ng-show="!report.params.buildOnSave">
+                    <small  style="margin: 0 10px; line-height: 26px;" toggle="tooltip" title="Report is not built on save. Go to settings to switch to auto mode.">
+                        Build: manual
+                    </small>
+                    <button class="btn btn--primary" ng-click="hooks.saveAndBuild()" ng-show="!report.params.buildOnSave">
+                        <i class="icon-play" />&nbsp; Build
+                    </button>
+                </span>
+            </div>
+
+            <div class="flex fh">
+                <code-snippet-sample-selector
+                    insert-code-func="insertCodeSnippet"
+                    code-samples-selector-visible="uiState.codeSamplesSelectorVisible"
+                    sample-type="'rmarkdown'"
+                    categories="[]"
+                    save-category="'na'"
+                    class="fh">
+                </code-snippet-sample-selector>
+
+                <div class="fh">
+                    <textarea ng-model="hooks.script" ui-codemirror="codeMirrorSettingService.get('text/rmarkdown')">
+                    </textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-pane fh oa"
+            ng-class="{error: errorsInLogs}">
+            <!-- Invisible big div to make sure that we capture the
+                mouseup event instead of letting the iframe get it -->
+            <div class="resizing-shim fh" />
+
+            <div class="vertical-flex h100">
+                <div class="noflex">
+                    <ul class="nav nav-tabs">
+                        <li class="output" ng-class="{active: state.activeTab == 'OUTPUT'}">
+                            <a ng-click="state.activeTab = 'OUTPUT'">Preview</a>
+                        </li>
+                        <li class="log" ng-class="{active: state.activeTab == 'LOG'}">
+                            <a ng-click="state.activeTab = 'LOG'">Log</a>
+                        </li>
+                        <li class="settings" ng-class="{active : state.activeTab == 'SETTINGS'}">
+                            <a ng-click="state.activeTab = 'SETTINGS'">Settings</a>
+                        </li>
+                    </ul>
+                </div>
+                <div block-api-error class="noflex report-alert" ng-if="state.activeTab != 'SETTINGS'"/>
+
+                <iframe
+                    ng-show="state.activeTab == 'OUTPUT'"
+                    scrolling="yes"
+                    sandbox="allow-forms allow-pointer-lock allow-popups allow-scripts" 
+                    class="webapp-container flex"
+                    id="report-container"
+                    ng-src="{{getViewURL()}}"
+                    frameborder="0"
+                    style="width: 100%">
+                </iframe>
+
+                <div class="log flex" ng-if="state.activeTab == 'LOG'">
+                    <div class="fh">
+                        <div class="h100 vertical-flex">
+                            <div class="noflex" ng-if="!logTail" style="text-align: center; padding-top: 60px;">
+                                No log to show, build to see the logs. <br />
+                            </div>
+
+                            <pre class="flex oa" ng-if="logTail" smart-log-tail="logTail"></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings" ng-if="state.activeTab == 'SETTINGS'">
+                    <form style="margin: 20px" class="dkuform-horizontal">
+                        <div class="control-group">
+                            <label for="" class="control-label">Build on save</label>
+                            <div class="controls">
+                                <label>
+                                    <input type="checkbox" ng-model="report.params.buildOnSave" />
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="format">View format</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="report.params.viewFormat" ng-options="format.name as format.desc for format in viewFormats" id="viewFormat" />
+                            </div>
+                        </div>
+
+
+                        <div class="control-group">
+                            <label class="control-label" for="format">Snapshot formats</label>
+                            <div class="controls">
+                                <div ng-repeat="format in snapshotFormats">
+                                    <label>
+                                        <input type="checkbox" ng-model="report.params.snapshotFormats[format.name]" />
+                                        {{format.desc}}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div code-env-selection-form="report.params.envSelection" env-lang="'R'" selection-label="'Code env'"></div>
+
+                        <div class="control-group" ng-if="appConfig.impersonationEnabled">
+                            <label for="" class="control-label">Run build as</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="report.params.runAs" ng-options="user.login as user.login for user in allUsers">
+                                    <option value="">Last modifier</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div resizer="vertical"
+             resizer-width="8"
+             resizer-left=".left-pane"
+             resizer-right=".right-pane">
+            <div class="zigouigoui" />
+        </div>
+    </div>
+</div>

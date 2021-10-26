@@ -1,0 +1,79 @@
+<div class="paned-settings-page-pane" global-keydown="{'ctrl-s meta-s': 'prepareSaveGroup()'}">
+    <div class="paned-settings-page-pane__sticky">
+        <div class="pull-right pad16">
+            <button type="button" 
+                class="btn btn--primary" 
+                ng-show="groupIsDirty()"
+                ng-click="prepareSaveGroup()"
+                ng-disabled="groupDescriptionForm.$invalid">
+                <i class="icon-save" />&nbsp; Save
+            </button>
+
+            <button disabled type="button" class="btn btn--primary" ng-show="!groupIsDirty()">
+                <i class="icon-save" /> Saved!
+            </button>
+        </div>
+        <h1 ng-show="creation">New group</h1>
+        <h1 ng-show="!creation">Edit group "{{group.name}}"</h1>
+    </div>
+
+    <div block-api-error />
+
+    <form name="groupDescriptionForm" class="dkuform-horizontal">
+        <div class="section">
+        <div class="control-group" ng-show="creation">
+            <label class="control-label" for="nameInput">Group name</label>
+            <div class="controls">
+                <input type="text" required ng-model="group.name" id="nameInput" />
+            </div>
+        </div>
+
+        <div class="control-group" >
+            <label class="control-label" for="descriptionInput">Description</label>
+            <div class="controls">
+            <input type="text" ng-model="group.description" id="descriptionInput" />
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="generalSettings">
+            <label class="control-label" dku-for="#sourceTypeInput button">Type</label>
+            <div class="controls">
+                <div id="sourceTypeInput">
+                    <select dku-bs-select ng-model="group.sourceType">
+                        <option value="LOCAL">LOCAL</option>
+                        <option value="LDAP" ng-disabled="!  generalSettings.ldapSettings.enabled">LDAP</option>
+                    </select>
+                </div>
+			</div>
+        </div>
+
+
+        <div class="control-group" ng-show="group.sourceType == 'LDAP'" >
+            <label class="control-label" for="ldapGroupsInput">LDAP groups</label>
+            <div class="controls">
+                <input type="text" ng-required="group.sourceType == 'LDAP'" ng-model="group.ldapGroupNames" id="ldapGroupsInput" />
+            </div>
+        </div>
+        </div>
+
+        <div class="section">
+            <h2 id="ldap">Global permissions</h2>
+            <div global-permissions-editor permissions="group" />
+        </div>
+        
+        <div class="section">
+            <h2 id="ldap">Impersonation in webapps</h2>
+            <p>When a webapps runs as a given user U1, and a user U2 connects to it, the webapp can perform API calls to the DSS API on behalf of U2. This requires U1 to belong to a group which has the permission to "impersonate in webapp" a group to which U2 belongs. By default, only administrators can impersonate.</p>
+            <div class="control-group" >
+                <label class="control-label" for="descriptionInput">Allowed groups</label>
+                <div class="controls">
+                    <input type="text" ng-model="group.canObtainAPITicketFromCookiesForGroupsRegex" id="descriptionInput" />
+                    <span class="help-inline">Regular expression of group names that this group can impersonate in webapps</span>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<div block-api-error />

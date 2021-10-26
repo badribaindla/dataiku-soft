@@ -1,0 +1,34 @@
+<div class="modal modal3">
+    <div dku-modal-header modal-title="{{isEditMode ? 'Edit' : 'Add'}} Notebook reference" modal-class="has-border"></div>
+    <form name="notebookEditReference" class="dkuform dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body">
+            <div block-api-error></div>
+            <h5 class="mbot16 mtop0" ng-if="!isEditMode">Add a remote repository to synchronize this Notebook with a dedicated repository.</h5>
+            <h5 class="mbot16 mtop0" ng-if="isEditMode">You can change the remote repository with which you want to synchronize this Notebook.</h5>
+            <div class="control-group">
+                <label for="notebookGitRemote" class="control-label">Remote URL</label>
+                <div class="controls">
+                    <input id="notebookGitRemote" name="notebookGitRemote" type="text" placeholder="git@github.com:user/repo.git" required ng-model="gitRef.remote"/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="notebookBranch" class="control-label">Branch</label>
+                <div class="controls" id="notebookBranch" git-checkout-select repository="gitRef.remote" ng-model="gitRef.checkout" />
+            </div>
+            <div class="control-group">
+                <label for="notebookPath" class="control-label">
+                    Path
+                    <i class="icon-info-sign text-prompt mleft8" toggle="tooltip" container="body" title="The path can contain subfolders (e.g. subfolder/{{notebook.name}}.ipynb)"></i>
+                </label>
+                <div class="controls">
+                    <input id="notebookPath" name="notebookPath" type="text" required placeholder="path/notebook name.ipynb" pattern=".+\.ipynb$" title="Please specify a path and a name ending with .ipynb" ng-model="gitRef.remotePath"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="notebookEditReference.$invalid" ng-click="save()">Save</button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,96 @@
+<div class="modal modal3 modal-fixed-height400 modal-w800 web-app-settings-modal" auto-size="false" ng-controller="WebAppEditSettingsModalController">
+    <div dku-modal-header modal-title="Webapp security settings" />
+
+    <form ng-show="modalTabState.active == 'libraries'" class="dkuform-modal-wrapper">
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--secondary" ng-click="dismiss()">Close</button>
+        </div>
+    </form>
+
+    <form class="dkuform-modal-wrapper">
+
+        <div class="modal-body">
+
+            <div block-api-error />
+
+            <div class="vertical-flex h100">
+                <div class="noflex">
+                    <p class="api-key-selector">
+                        <span class="title">
+                            API key for this webapp:
+                        </span>
+                        <span ng-show="modalTabState.editingApiKey=='show'">
+                            <code>{{webAppApiKey.key}}</code>
+                            <i class="icon-edit" ng-click="modalTabState.editingApiKey='write'"></i>
+                            <i class="icon-list" ng-click="modalTabState.editingApiKey='list'"></i>
+                        </span>
+                        <span ng-show="modalTabState.editingApiKey=='list'">
+                            <select dku-bs-select="{width:500}" data-live-search="true" ng-model="webAppApiKey" ng-options="apiKey.label for apiKey in availableApiKeys" />
+                            <button class="btn btn--secondary" ng-click="modalTabState.editingApiKey='show'">DONE</button>
+                        </span>
+                        <span ng-show="modalTabState.editingApiKey=='write'">
+                            <input style="font-size: 12px" ng-model="editedApiKey.key"/>
+                            <button class="btn btn--secondary" ng-click="modalTabState.editingApiKey='show'">DONE</button>
+                        </span>
+                    </p>
+                </div>
+                <div class="wrong-api-key" ng-hide="validApiKey">
+                    Api Key is not valid
+                </div>
+                <div class="wrong-api-key" ng-show="validApiKey&&!isProjectApiKey">
+                    Api Key is not project-based
+                </div>
+                <div class="noflex std-list-header" ng-show="isProjectApiKey">
+                    <div class="std-list-search-box">
+                            <span class="add-on"> <i class="icon-dku-search"></i>
+                            </span>
+                        <input type="search" ng-model="query" style="width: 190px;" placeholder="Filter..."/>
+                    </div>
+                </div>
+                <div class="flex" ng-show="isProjectApiKey">
+                    <div class="fh">
+                        <div class="h100 oa">
+                            <table class="table table-striped table-hover" sort-table="datasetName">
+                                <thead>
+                                <th sort-col="datasetName">Dataset</th>
+                                <th>Authorizations</th>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="perm in privileges.datasets|filter:query|orderBy:sortColumn:sortDescending">
+                                    <td>
+                                        <div>{{perm.datasetName}}</div>
+                                        <div>
+                                            <a ng-click="addDatasetSnippet(perm.datasetName)" ng-if="getBaseType(app.type) == app.type">
+                                                Add snippet to read dataset (and authorize it)
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <label class="perm">
+                                                <input type="checkbox" ng-model="perm.readData">&nbsp;Read data</label>
+                                            <label class="perm">
+                                                <input type="checkbox" ng-model="perm.readMetadata">&nbsp;Read meta</label>
+                                        </div>
+                                        <div>
+                                            <label class="perm">
+                                                <input type="checkbox" ng-model="perm.readSchema">&nbsp;Read schema</label>
+                                            <label class="perm">
+                                                <input type="checkbox" ng-model="perm.writeMetadata">&nbsp;Write meta</label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button class="btn btn--text btn--primary" ng-click="save()" ng-disabled="!validApiKey">Save</button>
+        </div>
+    </form>
+</div>

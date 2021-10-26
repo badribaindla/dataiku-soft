@@ -1,0 +1,37 @@
+<div>
+    <div ng-show="testing" class="alert alert-info"> <i class="icon-spinner icon-spin icon-large"></i>
+        Please wait, testing connection...
+    </div>
+
+    <div ng-show="testResult && !testResult.connectionOK" class="alert alert-error">
+        <span>Failed to connect: <span summary-of-error="testResult.connectionErrorMsg"/>
+        <button class="btn btn--secondary" ng-click="test(true)">Retry</button>
+    </div>
+    
+    <div ng-show="testResult && testResult.connectionOK && testResult.testedConnectionOnly">
+        <div class="alert alert-info">
+            Connection OK (ES v{{testResult.version}}).
+            <button class="btn btn--primary" ng-click="test(false)">Test index</button>
+        </div>
+    </div>
+
+    <div ng-show="testResult && testResult.connectionOK && !testResult.testedConnectionOnly">
+        <div ng-show="testResult.empty" class="alert alert-warning">
+            Connection OK (ES v{{testResult.version}}).
+            But the index/type/pattern count returned empty.
+            <span summary-of-error="testResult.indexErrorMsg"/>
+            <button class="btn btn--primary" ng-click="test(false)">Test again</button>
+        </div>
+        <div ng-show="!testResult.empty && testResult.preview" class="alert alert-success">
+            Connection OK (ES v{{testResult.version}}).
+            Index/type exist and are not empty.
+            <button class="btn btn--primary" ng-click="test(false)">Test again</button>
+        </div>
+        <div ng-show="!testResult.empty && !testResult.preview" class="alert alert-error">
+            Connection OK (ES v{{testResult.version}}).
+            Index/type exist and are not empty but preview failed
+            <span summary-of-error="testResult.indexErrorMsg"/>
+            <button class="btn btn--primary" ng-click="test(false)">Test again</button>
+        </div>       
+    </div>    
+</div>

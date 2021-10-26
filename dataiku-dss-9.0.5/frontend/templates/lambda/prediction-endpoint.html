@@ -1,0 +1,227 @@
+<div class="fh" ng-controller="PredictionEndpointController">
+
+    <div class="span2 offset0 h100 nav-list-sidebar sidebar-admin modal-footer-std-buttons">
+        <ul tab-model="uiState.settingsPane">
+            <li sidebar-tab-l1-link tab-name="model" label="Model" ng-if="endpoint.type == 'STD_PREDICTION'" />
+            <li sidebar-tab-l1-link tab-name="settings" label="Settings" ng-if="endpoint.type == 'CUSTOM_PREDICTION'" />
+            <li sidebar-tab-l1-link tab-name="code" label="Code" ng-if="endpoint.type == 'CUSTOM_PREDICTION'" />
+            <li sidebar-tab-l1-link tab-name="settings" label="Settings" ng-if="endpoint.type == 'CUSTOM_R_PREDICTION'" />
+            <li sidebar-tab-l1-link tab-name="code" label="Code" ng-if="endpoint.type == 'CUSTOM_R_PREDICTION'" />
+            <li sidebar-tab-l1-link tab-name="advanced" label="Advanced" />
+            
+            <li sidebar-tab-l1-link tab-name="enrichments" label="Enrichments" />
+            <li sidebar-tab-l1-link tab-name="test" label="Test queries" />
+            <!-- <li sidebar-tab-l1-link tab-name="raw" label="Raw config (debug)" /> -->
+        </ul>
+    </div>
+
+    <div class="span10 offset0 h100 boxed-next-to-sidebar">
+        <div style="padding: 0;" ng-switch="uiState.settingsPane" class="h100 api-endpoint api-endpoint-prediction">
+            <div ng-switch-when="loading">
+                Loading&hellip;
+            </div>
+
+            <div ng-switch-when="model">
+                <div class="design-tab-title noflex">Model</div>
+                <form class="dkuform-horizontal" style="margin: 10px">
+                    <div class="control-group">
+                        <div class="control-label">
+                            <label for="sdtPredictionEndpointModel">Prediction model</label>
+                        </div>
+                        <div class="controls">
+                            <select dku-bs-select
+                                id="sdtPredictionEndpointModel"
+                                ng-options="sm.id as sm.name for sm in savedModels"
+                                ng-model="endpoint.modelRef">
+                            </select>
+                            <a ui-sref="projects.project.savedmodels.savedmodel.versions({smId: savedModel.id})" ng-show="savedModel">
+                                <i class="object-icon universe-color icon-machine_learning_regression saved-model" /> Go to model page
+                            </a>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">
+                            <label for="sdtPredictionEndpointJava">Java scoring</label>
+                        </div>
+                        <div class="controls">
+                            <div disabled-if="savedModel.miniTask.backendType !== 'PY_MEMORY' || endpoint.outputExplanations === true" disabled-message="{{getBackendSelectionDisableMessage()}}" style="display: inline-block">
+                                <input id="sdtPredictionEndpointJava" type="checkbox" ng-model="endpoint.useJava" ng-disabled="savedModel.miniTask.backendType !== 'PY_MEMORY'">
+                                <div class="alert alert-warning" ng-show="endpoint.useJava && savedModel.conditionalOutputs.length">
+                                    Conditional outputs are not computed when using java scoring.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Compute explanations
+                        </label>
+                        <div class="controls">
+                            <div disabled-if="!canComputeExplanations()" disabled-message="Can not compute explanations for this model" style="display: inline-block">
+                                <label>
+                                <input type="checkbox" ng-disabled="!canComputeExplanations()"
+                                    ng-model="endpoint.outputExplanations" ng-change="onOutputExplanationsChange()"/>
+                                <span class="help-inline" style="padding-top: 2px;">Much slower</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="canComputeExplanations() && endpoint.outputExplanations">
+                        <div class="control-group">
+                            <label class="control-label">Computation method</label>
+                            <div class="controls">
+                                <label>
+                                    <input type="radio" ng-model="endpoint.individualExplanationParams.method" value="ICE"/>
+                                    ICE
+                                </label>
+                                <label>
+                                    <input type="radio" ng-model="endpoint.individualExplanationParams.method" value="SHAPLEY"/>
+                                    Shapley
+                                    <div class="help-inline">(more robust but slower)</div>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Number of explanations</label>
+                            <div class="controls">
+                                <input type="number" min="1" style="width:40px" ng-model="endpoint.individualExplanationParams.nbExplanations" required></input>
+                                <div class="help-inline">Most influential explanations to compute</div>
+                            </div>
+                        </div>
+                        <div ng-if="endpoint.individualExplanationParams.method ==  'SHAPLEY'">
+                            <div class="control-group">
+                                <label class="control-label">Number of Monte Carlo steps</label>
+                                <div class="controls">
+                                    <input type="number" min="25" max="1000" style="width:50px" ng-model="endpoint.individualExplanationParams.shapleyBackgroundSize" required></input>
+                                    <div class="help-inline">Higher means more robust but slower computation (between 25 and 1000)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="settings">
+                <div class="design-tab-title noflex">Settings</div>
+                <form class="dkuform-horizontal" style="padding: 10px">
+                    <div class="control-group">
+                        <div class="control-label">
+                            <label>Prediction type</label>
+                        </div>
+                        <div class="controls inline-labels">
+                            <label><input type="radio" name="ptype" ng-model="endpoint.modelType" value="CLASSIFICATION">&nbsp;Classification</label>
+                            <label><input type="radio" name="ptype" ng-model="endpoint.modelType" value="REGRESSION">&nbsp;Regression</label>
+                        </div>
+                    </div>
+                     <div class="control-group" ng-if="endpoint.type == 'CUSTOM_R_PREDICTION'">
+                        <div class="control-label">
+                            <label>Function name</label>
+                        </div>
+                        <div class="controls">
+                            <input type="text" ng-model="endpoint.userFunctionName" placeholder="R function name" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-show="endpoint.type == 'CUSTOM_R_PREDICTION'">
+                        <div class="control-label">
+                            <label>Pass arguments as list</label>
+                        </div>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="endpoint.passArgumentsAsList" />
+                                <span class="help-inline">
+                                    If enabled, the function takes a single argument, which is a list
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">
+                            <label for="custPredictionEndpointModel">Working folder (optional)</label>
+                        </div>
+                        <div class="controls">
+                            <select id="custPredictionEndpointModel" dku-bs-select
+                                ng-options="mf.id as mf.name for mf in managedFolders" ng-model="endpoint.inputFolderRef"></select>
+                            <a ui-sref="projects.project.managedfolders.managedfolder.summary({odbId: managedFolder.id})"
+                                ng-show="managedFolder">Folder details</a>
+                        </div>
+                    </div>
+                </form>
+                <div ng-if="endpoint.type == 'CUSTOM_R_PREDICTION'" style="padding: 10px">
+                    <h4 class="settings-section-title">Code environment</h4>
+                    <div code-env-selection-form="endpoint.envSelection" env-lang="'R'" in-plugin="false"></div>
+                </div>
+                <div ng-if="endpoint.type == 'CUSTOM_PREDICTION'" style="padding: 10px">
+                    <h4 class="settings-section-title">Code environment</h4>
+                    <div code-env-selection-form="endpoint.envSelection" env-lang="'PYTHON'" in-plugin="false"></div>
+                </div>
+            </div>
+
+            <div class="h100" ng-switch-when="advanced">
+                <div class="design-tab-title noflex">Advanced Settings</div>
+                <form class="dkuform-horizontal" style="padding: 10px">
+                    <h4 class="settings-section-title">Enrichments</h4>
+                    <div class="control-group">
+                        <label class="control-label">Return post-enrichment</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="endpoint.returnPostEnrichData" />
+                                <span class="help-inline">Return post-enrichment records in response</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Log post-enrichment</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="endpoint.auditPostEnrichData" />
+                                <span class="help-inline">Log in audit log</span>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+
+            <div class="h100" ng-switch-when="code">
+                <div class="h100">
+                    <div ng-if="endpoint.type == 'CUSTOM_PREDICTION'" code-snippet-editor
+                        code="endpoint.code"
+                        sample-type="'python'"
+                        categories="customCodeSnippetCategories"
+                        save-category="customCodeSnippetCategories[0]"
+                     />
+                    <div ng-if="endpoint.type == 'CUSTOM_R_PREDICTION'" code-snippet-editor
+                        code="endpoint.code"
+                        sample-type="'R'"
+                        categories="customCodeSnippetCategories"
+                        save-category="customCodeSnippetCategories[0]"
+                     />
+
+                </div>
+            </div>
+
+            <div ng-switch-when="enrichments" class="h100 enrichments" transcope="{datasets: datasets}">
+                <div ng-include="'templates/lambda/enrichments.html'" class="h100 vertical-flex"/>
+            </div>
+
+            <div ng-switch-when="test" class="h100 vertical-flex">
+                <div class="design-tab-title noflex">Test queries</div>
+
+                <div block-api-error></div>
+
+                <div endpoint-test-queries
+                    type="predict"
+                    endpoint="endpoint"
+                    deploy-result="deployResult"
+                    test-queries-result="testQueriesResult"
+                    input-dataset-smart-name="inputDatasetSmartName"
+                    datasets="datasets">
+                </div>
+            </div>
+
+            <div ng-switch-when="raw" class="h100 vertical-flex">
+                <pre class="debug" ng-bind="endpoint | json" style="margin: 10px" />
+            </div>
+        </div>
+      </div>
+    </div>
+</div>

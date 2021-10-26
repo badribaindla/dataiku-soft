@@ -1,0 +1,1 @@
+Synchronize the Hive table of a DSS dataset

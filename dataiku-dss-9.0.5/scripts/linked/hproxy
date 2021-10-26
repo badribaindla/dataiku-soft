@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+BINDIR=$(cd "$(dirname "$0")" && pwd -P)
+
+export DIP_HOME=$(dirname "$BINDIR")
+
+# Load basic environment
+source "$BINDIR"/env-default.sh
+if [ -z "$DKUINSTALLDIR" ]; then
+  echo >&2 "FATAL: DKUINSTALLDIR is not defined. Please check $BINDIR/env-default.sh"
+  exit 1
+fi
+source "$DKUINSTALLDIR/scripts/_startup.inc.sh"
+
+bkdl_set_global_env
+bkdl_set_java_env
+bkdl_load_env_files
+
+bkdl_env_sanity_check
+
+# Final environment setup
+export DKUBIN="$BINDIR"/dku
+
+export HPROXY_SANDBOX_CLASSPATH="$DKUINSTALLDIR/dist/dataiku-hproxy-sandbox.jar"
+
+if [ -n "$DKU_HIVE_SPARK_HOME" ]; then
+  export SPARK_HOME="$DKU_HIVE_SPARK_HOME"
+fi
+
+exec "$DKUJAVABIN" \
+  -Ddku.hproxy \
+  $DKU_JAVA_OPTS \
+  $DKU_HPROXY_JAVA_OPTS \
+  -XX:OnOutOfMemoryError="kill -9 %p" \
+  -Djava.library.path="$DKU_HPROXY_JAVA_LIBRARY_PATH:$DKU_HADOOP_JAVA_LIBRARY_PATH" \
+  -cp "$(hproxy_get_cp)" \
+  com.dataiku.hproxy.server.HProxyRunner "$@"
+
+  
+  
+

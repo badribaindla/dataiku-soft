@@ -1,0 +1,42 @@
+<div class="flow-tool-item-popover">
+    <div ng-if="nodeState.state == 'NOK'">
+        <div class="header">
+            <h5>Incompatible schema detected</h5>
+        </div>
+        <div class="buttons text-right modal-footer-std-buttons">
+            <button class="btn btn--danger" ng-click="ignoreSuggestion()">Ignore update</button>
+            <button class="btn btn--primary" ng-click="reviewSuggestion()">Review changes</button>
+        </div>
+    </div>
+
+	<div ng-if="nodeState.state == 'UNCHECKABLE'">
+		<div class="header">
+			<h5>Can't check the schema on this recipe</h5>
+		</div>
+		<p style="margin: 0; padding: 10px;">{{nodeState.uncheckableReason}}</p>
+
+		<p ng-if="nodeState.recipeShouldProbablyBeRebuilt" style="margin: 0; padding: 10px;">
+			Note that you might need to actually run this recipe for schema to be properly propagated
+			to output.
+		</p>
+
+		<div class="buttons text-right modal-footer-std-buttons">
+			<button class="btn btn--text btn--secondary" ui-sref="projects.project.recipes.recipe({recipeName:node.name})">Edit recipe</button>
+			<button class="btn btn--text btn--primary" ng-click="ignoreSuggestion()">Mark as OK</button>
+
+		</div>
+	</div>
+
+	<div ng-if="nodeState.state == 'FAILED_CHECK'">
+		<div class="header">
+			<h5>Failed checking this recipe</h5>
+		</div>
+		<div class="main oa alert alert-error" style="margin: 10px">
+			{{nodeState.checkFailure.detailedMessage}}
+		</div>
+		<div class="buttons text-right modal-footer-std-buttons">
+            <button class="btn btn--text btn--secondary" ui-sref="projects.project.recipes.recipe({recipeName:node.name})">Edit recipe</button>
+			<button class="btn btn--text btn--primary" ng-click="ignoreSuggestion()">Manually mark as OK</button>
+		</div>
+	</div>
+</div>

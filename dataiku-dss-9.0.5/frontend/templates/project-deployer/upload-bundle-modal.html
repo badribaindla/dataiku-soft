@@ -1,0 +1,82 @@
+<div class="modal modal3 dku-modal">
+    <div dku-modal-header-with-totem modal-title="Upload bundles to project" modal-totem="icon-upload" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body tight-body">
+            <div block-api-error />
+            <div class="control-group" ng-if="presetProjectKey">
+                <label class="control-label">Project key</label>
+                <div class="controls">
+                    <input type="text" disabled ng-pattern="/^\w+$/" ng-model="presetProjectKey" />
+                </div>
+            </div>
+            <div class="control-group" ng-if="!presetProjectKey">
+                <label class="control-label">Target project</label>
+                <div class="controls">
+                    <label class="checkbox-label">
+                        <input ng-model="uiState.useBundleProjectKey" type="checkbox">Use source project key of the bundle
+                    </label>
+                    <div class="help-inline">
+                        The bundle is uploaded to the project with the same key as its source project.
+                        If such a project does not exist, it is created.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group" ng-if="!presetProjectKey && !uiState.useBundleProjectKey">
+                <div class="controls">
+                    <div ng-switch="publishedProjects">
+                        <select dku-bs-select="{'liveSearch': true, 'noneSelectedText': 'No project selected'}"
+                                ng-switch-default
+                                required
+                                ng-model="uiState.overridingProject"
+                                ng-options="p as (p.createProjectMessage || p.projectBasicInfo.name) for p in publishedProjects"
+                                options-annotations="publishedProjectKeys">
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="control-group" ng-if="uiState.overridingProject.createProjectMessage">
+                <label class="control-label">New project key</label>
+                <div class="controls">
+                    <input type="text" ng-pattern="/^\w+$/" ng-model="uiState.overridingProject.projectBasicInfo.id" required />
+                    <div class="help-inline">
+                        should be unique
+                    </div>
+                </div>
+            </div>
+
+            <droparea drop="drop(files)" class="droparea-style-v2 control-group" >
+                <ul class="files" style="min-height: 75px; margin-bottom: 50px;">
+                    <li ng-repeat="file in uiState.fileProperties track by $index">
+                        <div class="file">
+                            <i class="icon-file"></i>
+                            <span class="path" title="{{ file.path }}">{{ file.path }}</span>
+                            <a href class="close" ng-click="deleteFile($index, $event)"><i class="icon-trash"></i></a>
+                            <span class="size">{{ file.length|filesize }}</span>
+                        </div>
+                    </li>
+                </ul>
+                <div class="h100" ng-if="!uiState.fileProperties.length">
+                    <div class="preview-cta" >
+                        No file yet
+                    </div>
+                </div>
+                <div class="upload-hook">
+                    Drag and drop your files here or
+                    <button class="btn btn--contained upload-button">Add a file</button>
+                </div>
+            </droparea>
+        </div>
+    </form>
+
+    <div class="modal-footer modal-footer-std-buttons">
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+        <button type="submit"
+            class="btn btn--text btn--primary"
+            ng-disabled="theform.$invalid || !uiState.fileProperties.length"
+            ng-click="uploadFilesAfterDigest(uiState.files)"
+            >
+            Upload
+        </button>
+    </div>
+</div>

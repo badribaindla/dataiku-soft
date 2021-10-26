@@ -1,0 +1,55 @@
+<div class="flex-no-grow recipe-modal-io__recipe-display-list" ng-if="editInputs.length == 0">
+	<div class="role-header" ng-show="role.name != 'main'">
+	   {{role.label || role.name}}
+	    <span ng-if="role.description" dku-md-popover="{{role.description}}" dku-md-title="{{role.label || role.name}}" popover-clazz="processor-help-popover" >
+            <i class="icon-question-sign"></i>
+	    </span>
+	</div>
+	<!-- use a ng-if to completely remove it when empty (and get rid of the bottom margin) -->
+	<div ng-class="{'bounded-list' : longRoleList}" ng-if="computablesMap">
+    	<ul class="chosen" add-remove ng-model="recipe.inputs[role.name].items" ng-if="recipe.inputs[role.name].items.length > 0" >
+	    	<li ng-repeat="input in recipe.inputs[role.name].items">
+	           	<div class="horizontal-flex" ng-init="computable = computablesMap[input.ref]">
+					<div class="illustration noflex">
+                        <i ng-if="computable.type == 'DATASET'" class="{{computable.dataset.type | datasetTypeToIcon}}"></i>
+                        <i ng-if="computable.type == 'MANAGED_FOLDER'" class="icon-box"></i>
+                        <i ng-if="computable.type == 'MODEL_EVALUATION_STORE'" class="icon-model-evaluation-store"></i>
+                        <i ng-if="computable.type == 'SAVED_MODEL'" class="icon-machine_learning_regression"></i>
+                        <i ng-if="computable.type == 'STREAMING_ENDPOINT'" class="{{computable.streamingEndpoint.type | datasetTypeToIcon}}"></i>
+					</div>
+					<div class="information flex qa_recipe_stack-selected-dataset">
+	    	        	<a ng-if="computable.type == 'DATASET'">
+	    	        		<span>
+	    	        			{{computable.dataset.name}}{{computable.localProject ? '' : (' (from project ' + computable.projectKey + ')')}}{{computable.dataset.managed ? ' (Managed)' : ''}}
+	    	        		</span>
+	    	        	</a>
+                        <a ng-if="computable.type == 'MANAGED_FOLDER'">
+                            <span>
+                                {{computable.box.name}}{{computable.localProject ? '' : (' (from project ' + computable.projectKey + ')')}}
+                            </span>
+                        </a>
+                        <a ng-if="computable.type == 'MODEL_EVALUATION_STORE'">
+                            <span>
+                                {{computable.mes.name}}{{computable.localProject ? '' : (' (from project ' + computable.projectKey + ')')}}
+                            </span>
+                        </a>
+	    	        	<a ng-if="computable.type == 'SAVED_MODEL'">
+	    	        		<span>
+	    	        			{{computable.model.name}}{{computable.localProject ? '' : (' (from project ' + computable.projectKey + ')')}}
+	    	        		</span>
+	    	        	</a>
+	    	        	<a ng-if="computable.type == 'STREAMING_ENDPOINT'">
+	    	        		<span>
+	    	        			{{computable.streamingEndpoint.id}}{{computable.localProject ? '' : (' (from project ' + computable.projectKey + ')')}}
+	    	        		</span>
+	    	        	</a>
+                        <div partitioned-by-info ref="input.ref"></div>
+					</div>
+	   			    <a class="action noflex" ng-click="remove($index)" ng-show="role.editableInModal && (role.arity != 'UNARY' || role.required == false)">
+                        <i class="icon-trash btn-close"></i>
+	   			    </a>
+				</div>
+		   	</li>
+		</ul>
+	</div>
+</div>

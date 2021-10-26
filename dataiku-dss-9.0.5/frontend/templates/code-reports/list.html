@@ -1,0 +1,81 @@
+<div class="list-page-4 flex dss-home-page list-page--flat-design">
+    <div data-extend-template="/templates/layouts/list-items-2.html" class="vertical-flex h100 main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            {{ 'report' | plurify : selection.allObjects.length }}
+        </span>
+
+        <!--  NEW   -->
+        <div style="display: inline-block"  data-block="newItem" ng-if="mayCreateActiveWebContent()">
+            <a disabled-if-ro class="btn btn--secondary" ng-click="createReport()">
+                <span plus-icon />&nbsp;New report</a>
+        </div>
+
+        <div data-block="empty">
+            <h1>
+                No report in this project
+            </h1>
+            <p>R Markdown reports allow you to generate documents
+                <br/>from a mixture of Markdown and code (R/Python)
+            </p>
+            <p class="small">
+                <span academy-link page="r-users">
+                    Read our tutorial
+                </span>
+                to learn more
+            </p>
+            <div class="import-first-dataset">
+                <a disabled-if-ro="" class="btn btn--contained btn--large btn--report" ng-click="createReport()">
+                    <span plus-icon />
+                    &nbsp;Create your first report
+                </a>
+            </div>
+        </div>
+
+        <!-- ITEM LAYOUT -->
+        <div data-block="item" class="h100">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit h100" dataset="item">
+                <div class="illustration">
+                    <i class="universe-color notebook {{'report' |typeToIcon}}"></i>
+                </div>
+                <div class="hitContent horizontal-flex h100">
+                    <div class="hit-content-main noflex">
+                        <h4 class="hit-content-main__title">
+                            <a ui-sref="projects.project.reports.report.view({projectKey : $stateParams.projectKey, reportId :item.id, reportName: (item.name | slugify)})"
+                               show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.name | boldify:selection.filterParams.userQueryResult">
+                            </a>
+                            <span class="hit-content-main__interests">
+                                <star-interest status="item.interest.starred"
+                                               on-toggle="starObject(nextStatus, item)"
+                                ></star-interest>
+                                <watch-interest status="item.interest.watching"
+                                                on-toggle="watchObject(nextStatus, item)"
+                                ></watch-interest>
+                            </span>
+                        </h4>
+                        <div class="hit-content-main__subtitle">
+                            {{item.type}}
+                            <span ng-show="item.lastModifiedOn">
+                                Modified {{ item.lastModifiedOn|friendlyTimeDeltaShort }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="hit-content__tags flex">
+                        <responsive-tags-list items="item.tags" tags-map="projectTagsMap" object-type="'REPORT'"></responsive-tags-list>
+                    </div>
+
+                    <div class="extra-actions flex">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <standardized-side-panel page="objects_list" object-type="{{ (selection.selectedObjects.length <= 1) ? ((selection.selectedObject) ? 'REPORT' : '') : 'MULTI' }}" single-type="REPORT">
+    </standardized-side-panel>
+</div>

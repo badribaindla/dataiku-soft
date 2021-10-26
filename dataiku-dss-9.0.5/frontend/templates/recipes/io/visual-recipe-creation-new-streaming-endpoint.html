@@ -1,0 +1,45 @@
+<div class="suggested-new-output-dataset h100" style="padding-top:20px">
+    <form name="forms.newOutputSEForm" class="dkuform-vertical-larger" ng-if="streamingEndpointOptions">
+        <div ng-if="!uiState.backendWarnings.length">
+            <div class="control-group">
+                <label class="control-label">Name</label>
+                <div class="controls">
+                    <input type="text" ng-pattern="/^[\w-_]+$/" custom-validation="isStreamingEndpointNameUnique" ng-model="newOutputSE.name" ng-required="true" placeholder="Name" auto-focus="true"/>
+                    <div class="alert alert-error" ng-show="!isStreamingEndpointNameUnique(newOutputSE.name)">
+                        Streaming endpoint "{{newOutputSE.name}}" already exists.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group" ng-if="streamingEndpointOptions.connections">
+                <label for="" class="control-label">Store into</label>
+                <div class="controls">
+                    <select ng-model="newOutputSE.$connection"
+                        dku-bs-select="{liveSearch:true,size:'auto'}"
+                        ng-options="item as item.connectionName group by item.connectionType for item in streamingEndpointOptions.connections | orderBy:'connectionType + connectionName'" />
+                </div>
+            </div>
+            <div class="control-group" ng-if="newOutputSE.$connection.formats && newOutputSE.$connection.formats.length">
+                <label for="" class="control-label">Format</label>
+                <div class="controls">
+                    <select dku-bs-select
+                        ng-model="newOutputSE.formatOptionId"
+                        ng-options="format.id as format.label for format in newOutputSE.$connection.formats" />
+                </div>
+            </div>
+        </div>
+
+
+        <div ng-show="uiState.backendWarnings.length">
+            <div class="alert" style="margin-top:10px">
+                <ul>
+                    <li ng-repeat="warning in uiState.backendWarnings track by $index"><strong>{{warning.title}}</strong> &ndash; {{warning.details}}</li>
+                </ul>
+            </div>
+            <div class="actions">
+                <button class="btn btn--primary actions" ng-click="uiState.backendWarnings = null" style="width:100%">
+                    Change settings
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

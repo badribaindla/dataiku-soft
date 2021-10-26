@@ -1,0 +1,27 @@
+<div data-extend-template="/templates/dashboards/insight-tile-template.html" class="h100">
+    <div data-block="content" class="metrics h100">
+
+        <div class="fh" ng-switch="tile.tileParams.displayMode">
+            <div ng-switch-when="HEATMAP" class="h100 oa center-children" style="padding: 20px">
+                <svg week-day-heatmap data="dailyData[tile.tileParams.summaryChart]"
+                     svg-titles formatter="tile.tileParams.summaryChart === 'presenceHours' ? niceHours : null"></svg>
+            </div>
+
+            <div ng-switch-when="CONTRIBUTORS_LEADERBOARD" class="h100 fh oa center-children">
+                <svg user-leaderboard data="activitySummary.contributorsSummary" prop="tile.tileParams.summaryChart" svg-titles></svg>
+            </div>
+
+            <div ng-switch-when="CONTRIBUTION_CHARTS" class="h100 oa" style="padding: 20px">
+                <div class="h100 fh">
+                    <svg simple-time-area-chart ts="activitySummary.contributorsChart.dates"
+                         values="activitySummary.contributorsChart.global[tile.tileParams.contributorsChart].data"
+                         scale="setContributorsChartScale" color="#EC407A" width="100%" height="100%"></svg>
+                </div>
+            </div>
+
+            <div ng-switch-when="PUNCHCARD" class="h100 oa">
+                <svg week-punch-card data="totalCommitsPerHour" style="width: 100%;" svg-titles></svg>
+            </div>
+        </div>
+    </div>
+</div>

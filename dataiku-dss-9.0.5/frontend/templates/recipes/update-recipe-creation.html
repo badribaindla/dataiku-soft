@@ -1,0 +1,73 @@
+<div ng-controller="UpdateRecipeCreationController" class="modal modal3 code-based-recipe-creation-modal io-modal" auto-size="false">
+
+    <div class="vertical-flex h100">
+        <div dku-modal-header-with-totem modal-class="noflex" modal-title="New push to editable recipe" modal-totem="icon-visual_push_to_editable_recipe"></div>
+        <form class="flex dkuform-modal-wrapper dkuform-vertical-larger" name="newRecipeForm">
+            <div class="fh">
+                <div class="vertical-flex h100">
+                    <div block-api-error></div>
+                    <div class="recipe-modal-io modal-body flex">
+                        <div class="fh">
+                            <div class="half-pane vertical-flex">
+                                <h4 class="header-text noflex">
+                                    <i class="icon-dku-quick_go_input"></i>&nbsp;Input dataset
+                                </h4>
+                                <div class="flex oa vertical-flex">
+                                    <div class="recipe-modal-io__padded-elem">
+                                        <div class="control-group">
+                                            <label for="" class="control-label"></label>
+                                            <div class="controls">
+                                                <div dataset-selector="io.inputDataset" available-datasets="availableInputDatasets" class="qa_recipe_available-datasets-dropdown" ></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        ng-if="!io.inputDataset"
+                                        class="recipe-modal-io__disabled-explanation">
+                                        This recipe requires an input dataset.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="half-pane" >
+                                <h4 class="header-text">
+                                    <i class="icon-dku-quick_go_input"></i>&nbsp;Output dataset
+                                </h4>
+                                <div class="recipe-modal-io__padded-elem">
+                                    <div ng-if="io.inputDataset" class="control-group">
+                                        <label for="" class="control-label">New editable dataset name</label>
+                                        <div class="controls">
+                                            <input type="text"
+                                            name="datasetName"
+                                            ng-model="newOutputDataset.name" class="qa_recipe_output-name"
+                                            ng-pattern="/^[\w-_]+$/"
+                                            check-new-dataset-name-unique
+                                            required />
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-error" ng-show="newRecipeForm.datasetName.$error.customValidation"> <i class="icon-dku-error"></i>
+                                        This name is already used by another dataset
+                                    </div>
+                                </div>
+                           </div>
+                        </div>
+                    </div>
+                    <div class="noflex modal-footer modal-footer-std-buttons">
+                        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">
+                            Cancel
+                        </button>
+
+                        <button 
+                            ng-disabled="!!creatingRecipe"
+                            disabled-if="!io.inputDataset || !!newRecipeForm.$invalid"
+                            disabled-message="Cannot create the recipe. Check inputs and/or outputs requirements."
+                            class="btn btn--text btn--primary qa_recipe_create-btn"
+                            ng-click="createRecipe()">
+                            Create recipe
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>

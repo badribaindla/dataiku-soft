@@ -1,0 +1,30 @@
+<div ng-class="{'compute-button-cell' : cell.isActions, 'odd-row' : rowIndex%2 == 1 && cell.partition != 'ALL', 'even-row' : rowIndex%2 == 0 && cell.partition != 'ALL', 'body-cell' : cell.partition != 'ALL', 'footer-cell' : cell.partition == 'ALL'}">
+    <span ng-if="cell.isPartition && cell.partition != 'ALL'" title="{{cell.partition}}">{{cell.partition}}</span>
+    <span ng-if="cell.isActions && cell.partition != 'ALL'" custom-element-popup>
+        <a class="mainzone dropdown-toggle btn btn--secondary has-caret" ng-click="togglePopover()">
+            Actions
+            <b class="caret" />
+        </a>
+        <ul class="popover custom-element-popup-popover dropdown-menu simple connection-info-popup">
+            <li>
+                <a ng-click="computeAllForPartition(cell.partition)">Compute</a>
+            </li>
+            <li>
+                <a ng-click="explorePartition(cell.partition)">Explore</a>
+            </li>
+            <li>
+                <a ng-click="clearPartition(cell.partition)">Clear</a>
+            </li>
+        </ul>
+    </span>
+    <span ng-if="cell.isPartition && cell.partition == 'ALL'">Whole dataset</span>
+    <span ng-if="cell.isActions && cell.partition == 'ALL'">
+        <button class="btn btn--secondary" ng-click="computeAllForPartition('ALL')">Compute</button>
+    </span>
+    <span ng-if="!cell.isPartition && !cell.isActions && cell.partition != 'ALL'" title="{{MetricsUtils.getFormattedValueForPartition(cell.displayedMetric, cell.partition, displayedMetricByPartitionData)}}">
+        {{MetricsUtils.getFormattedValueForPartition(cell.displayedMetric, cell.partition, displayedMetricByPartitionData)}}
+    </span>
+    <span ng-if="!cell.isPartition && !cell.isActions && cell.partition == 'ALL'" title="{{MetricsUtils.getFormattedValueForPartition(cell.displayedMetric, cell.partition, displayedMetricByPartitionData)}}">
+        {{MetricsUtils.getFormattedValueForPartition(cell.displayedMetric, cell.partition, displayedMetricByPartitionData)}}
+    </span>
+</div>

@@ -1,0 +1,80 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Random Forest
+    </div>
+    <div data-block="algorithm-description">
+        <p>A <strong>Random Forest</strong> is made of many decision trees. Each tree in the forest predicts a record,  and each tree "votes" for the final answer of the forest.<br />
+        The forest chooses the class having the most votes.
+        </p>
+        <p>
+        A decision tree is a simple algorithm which builds a decision tree. Each node of the decision tree includes a condition on one of the input features.
+        </p>
+        <p>
+        When "growing" (ie, training) the forest:
+        </p>
+        <ul>
+            <li>for each tree, a random sample of the training set is used;</li>
+            <li>for each decision point in the tree, a random subset of the input features is considered.</li>
+        </ul>
+        <p>Random Forests generally provide good results, at the expense of "explainability" of the model.</p>
+    </div>
+    <div data-block="algorithm-params">
+        <ml-hp-numerical
+                required
+                ng-model="mlTaskDesign.modeling.random_forest_classification.n_estimators"
+                label="Number of trees"
+                help-inline="Number of trees in the forest."
+                strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <div class="control-group">
+            <label class="control-label">Feature sampling strategy</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.random_forest_classification.selection_mode" options-descriptions="['Select the square root of the number of features (algorithm default)',
+                    'Select the square root of the number of features',
+                    'Select the base 2 logarithm of the number of features',
+                    'Select the given number of features',
+                    'Select the given proportion of features']">
+                    <option value="auto">Default</option>
+                    <option value="sqrt">Square root</option>
+                    <option value="log2">Logarithm</option>
+                    <option value="number">Fixed number</option>
+                    <option value="prop">Fixed proportion</option>
+                </select>
+                <div class="help-inline">Adjusts the number of features to sample at each split.</div>
+            </div>
+        </div>
+        <ml-hp-numerical ng-show="mlTaskDesign.modeling.random_forest_classification.selection_mode == 'number'"
+                         ng-model="mlTaskDesign.modeling.random_forest_classification.max_features"
+                         label="Number of features to sample"
+                         help-inline="The number of features to sample at each split."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+
+        <ml-hp-numerical ng-show="mlTaskDesign.modeling.random_forest_classification.selection_mode == 'prop'"
+                         ng-model="mlTaskDesign.modeling.random_forest_classification.max_feature_prop"
+                         decimal
+                         label="Proportion of features to sample"
+                         help-inline="The proportion of features to sample at each split."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.random_forest_classification.max_tree_depth"
+                         label="Maximum depth of tree"
+                         help-inline="Maximum depth of each tree in the forest. Higher values generally increase the quality of the prediction, but can lead to overfitting. High values also increase the training and prediction time."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.random_forest_classification.min_samples_leaf"
+                         label="Minimum samples per leaf"
+                         help-inline="Minimum number of samples required in a single tree node to split this node. Lower values increase the quality of the prediction (by splitting the tree mode), but can lead to overfitting and increased training and prediction time."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <div class="control-group">
+            <label class="control-label">Parallelism</label>
+            <div class="controls">
+                <input type="number" force-integer min="-1" max="100" ng-model="mlTaskDesign.modeling.random_forest_classification.n_jobs" />
+                <div class="help-inline">
+                    Number of cores used for parallel training. Using more cores leads to faster training but at the expense of more memory consumption, especially for large training datasets.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

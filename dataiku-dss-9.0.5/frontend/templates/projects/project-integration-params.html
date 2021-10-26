@@ -1,0 +1,143 @@
+<div>
+    <div ng-if="hook.type == 'github'">
+        <div class="control-group">
+            <label class="control-label">Username</label>
+            <div class="controls">
+                <input type="text" ng-model="hook.configuration.username"/>
+                <span class="help-inline">User of the auth token</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Auth token</label>
+            <div class="controls">
+                <input type="text" ng-model="hook.configuration.accessToken"/>
+                <span class="help-inline">Personal access token</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Repository</label>
+            <div class="controls">
+                <input type="text" ng-model="hook.configuration.repository"/>
+                <span class="help-inline">Complete, like: apache/hive</span>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="hook.type == 'slack-project'">
+        <div class="control-group">
+            <label class="control-label">Use global channel</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="hook.configuration.useGlobalChannel" />
+                    <span class="help-inline">Use an administrator-defined Slack channel</span>
+                </label>
+            </div>
+        </div>
+
+        <div ng-if="hook.configuration.useGlobalChannel" integration-channel-selector integration-type="'slack-project'" model="hook.configuration" field="channelId" />
+
+        <div class="control-group" ng-if="!hook.configuration.useGlobalChannel">
+            <label class="control-label">Mode</label>
+            <div class="controls" ng-if="hook.configuration" ng-init="hook.configuration.mode = hook.configuration.mode || 'WEBHOOK';">
+                <select ng-model="hook.configuration.mode">
+                    <option value="WEBHOOK">Use incoming webhook</option>
+                    <option value="API">Use API</option>
+                </select>
+            </div>
+        </div>
+        <div class="control-group" ng-if="hook.configuration.mode == 'API' && !hook.configuration.useGlobalChannel">
+            <label class="control-label">Authorization token</label>
+            <div class="controls">
+                <input type="text" ng-model="hook.configuration.authorizationToken"></input>
+                <span class="help-inline">Authentication token of a user or an integration</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="hook.configuration.mode == 'WEBHOOK' && !hook.configuration.useGlobalChannel">
+            <label class="control-label">Webhook URL</label>
+            <div class="controls">
+                <input name="webhookUrl" type="url" ng-model="hook.configuration.webhookUrl" class="webhook-url" required></input>
+                <div ng-if="form.$invalid && form.webhookUrl.$touched">
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!form.$error.required">Please fill this field.</div>
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!form.$error.url">Please enter a valid URL.</div>
+                </div>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!hook.configuration.useGlobalChannel">
+            <label class="control-label">Use Proxy</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="hook.configuration.useProxy"></input>
+                <span class="help-inline">Use DSS's proxy settings to connect</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!hook.configuration.useGlobalChannel">
+            <label class="control-label">Channel</label>
+            <div class="controls">
+                <input type="text" ng-model="hook.configuration.channel"></input>
+                <span class="help-inline">Id of a Slack channel</span>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="!hook.configuration.mode == 'API'">
+            <label class="control-label">As user</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="hook.configuration.asUser"/>
+                <span class="help-inline">Send using the authorization token identity</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!hook.configuration.asUser || hook.configuration.mode == 'WEBHOOK'">
+            <label class="control-label">User name</label>
+            <div class="controls">
+                <input type="text" ng-model="hook.configuration.username"/>
+                <span class="help-inline">The message will appear as sent by this user</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Icon (emoji)</label>
+            <div class="controls">
+                <input type="text" ng-model="hook.configuration.iconEmoji"/>
+                <span class="help-inline">Optional: emoji to use as icon</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Icon (url)</label>
+            <div class="controls">
+                <input type="text" ng-model="hook.configuration.iconUrl"/>
+                <span class="help-inline">Optional: url to use as icon</span>
+            </div>
+        </div>
+        <div include-no-scope="/templates/projects/integrations/messaging-like-selection.html" />
+    </div>
+
+    <div ng-if="hook.type == 'msft-teams-project'">
+        <div class="control-group">
+            <label class="control-label">Use global channel</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="hook.configuration.useGlobalChannel" />
+                    <span class="help-inline">Use an administrator-defined Teams channel</span>
+                </label>
+            </div>
+        </div>
+
+        <div ng-if="hook.configuration.useGlobalChannel" integration-channel-selector integration-type="'msft-teams-project'" model="hook.configuration" field="channelId" />
+
+        <div class="control-group" ng-if="!hook.configuration.useGlobalChannel">
+            <label class="control-label">Webhook URL</label>
+            <div class="controls">
+                <input name="webhookUrl" type="url" ng-model="hook.configuration.webhookUrl" class="webhook-url" required></input>
+                <div ng-if="form.$invalid && form.webhookUrl.$touched">
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!form.$error.required">Please fill this field.</div>
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!form.$error.url">Please enter a valid URL.</div>
+                </div>
+        </div>
+        <div class="control-group" ng-if="!hook.configuration.useGlobalChannel">
+            <label class="control-label">Use Proxy</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="hook.configuration.useProxy"></input>
+                <span class="help-inline">Use DSS's proxy settings to connect</span>
+            </div>
+        </div>
+
+        <div include-no-scope="/templates/projects/integrations/messaging-like-selection.html" />
+    </div>
+</div>

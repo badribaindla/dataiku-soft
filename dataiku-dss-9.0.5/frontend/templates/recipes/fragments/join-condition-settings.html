@@ -1,0 +1,71 @@
+<form class="dkuform-horizontal join-condition-settings">
+    <ng-include
+            src="'/templates/recipes/visual-recipes-fragments/join-edit-modal-column-from-to-section.html'"></ng-include>
+    <div class="control-group">
+        <label for="" class="control-label">Distance type</label>
+        <div class="controls">
+            <select
+                    dku-bs-select ng-model="current.condition.fuzzyMatchDesc.distanceType"
+                    ng-options="k as joinDistanceTypes[k] for k in availableDistances(current.condition)"
+            >
+            </select>
+        </div>
+    </div>
+
+    <div class="control-group" ng-show="current.condition.fuzzyMatchDesc.distanceType !== 'EXACT'">
+        <label for="" class="control-label">Threshold</label>
+        <div class="controls">
+            <input
+                    type="number"
+                    min="0"
+                    convert-percentage
+                    ng-show="isRelativeDistance(current.condition)"
+                    ng-model="current.condition.fuzzyMatchDesc.threshold"
+            />
+            <input
+                    type="number"
+                    min="0"
+                    ng-show="!isRelativeDistance(current.condition)"
+                    ng-model="current.condition.fuzzyMatchDesc.threshold"
+            />
+
+            <span class="help-inline" ng-show="current.condition.fuzzyMatchDesc.distanceType === 'GEO'">
+							Distance in kilometers
+						</span>
+            <span ng-show="isDefined(current.condition.fuzzyMatchDesc.relativeTo)">%</span>
+        </div>
+    </div>
+    <div class="control-group"
+         ng-if="!['GEO','EXACT'].includes(current.condition.fuzzyMatchDesc.distanceType)">
+        <label for="" class="control-label">Threshold type</label>
+        <div class="controls">
+            <select
+                    ng-init="typeOptions = [[undefined, 'Absolute value'],[0, 'Relative to ' + getDatasetName(join.table1)], [1, 'Relative to ' + getDatasetName(join.table2)]]"
+                    dku-bs-select ng-model="current.condition.fuzzyMatchDesc.relativeTo"
+                    ng-options="x[0] as x[1] for x in typeOptions"
+            />
+        </div>
+    </div>
+
+    <div class="control-group" ng-show="checkBothOperands(hasStringOperand)(current.condition)">
+        <label class="control-label">
+            Normalisation parameters
+        </label>
+        <div class="control-group">
+            <div class="controls fuzzy-join-normalisation-params">
+                <label ng-repeat="(k, val) in normalisationParams" title={{val.desc}}>
+                    <input type="checkbox" ng-model="current.condition.normaliseDesc[k]"/>
+                    {{val.label}}
+                </label>
+                <div ng-if="current.condition.normaliseDesc.clearStopWords || current.condition.normaliseDesc.transformToStem">
+                    <select dku-bs-select ng-model="current.condition.normaliseDesc.language"
+                            class="fuzzy-join-normalisation-params__language"
+                            ng-init="current.condition.normaliseDesc.language = current.condition.normaliseDesc.language || 'english'"
+                            ng-options="l as (l | capitalize) for l in ['english','french','german','italian','spanish','portuguese','dutch']"/>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <doclink class="db w100 tar padtop8" page="/other_recipes/fuzzy-join#available-distances" title="See documentation about distance types" />
+</form>

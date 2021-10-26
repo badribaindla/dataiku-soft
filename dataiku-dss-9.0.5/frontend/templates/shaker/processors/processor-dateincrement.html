@@ -1,0 +1,89 @@
+<form
+  on-any-blur="checkAndRefresh()"
+  name="processorForm"
+  publish-in-grand-parent="processorForm"
+>
+  <fieldset>
+    <span class="fieldLabel">Column</span>
+    <input
+      type="text"
+      bs-typeahead="step.$stepState.change.columnsBeforeStep"
+      autocomplete="off"
+      ng-trim="false"
+      ng-required="param.mandatory"
+      data-min-length="0"
+      ng-model="step.params.inCol"
+      data-provide="typeahead"
+      class="submit-on-blur"
+      next-on-enter
+      required="required"
+    />
+  </fieldset>
+
+  <fieldset>
+      <span class="fieldLabel">Increment by</span>
+      <select dku-bs-select
+          ng-model="step.params.incrementBy"
+          class="submit-on-blur"
+          next-on-enter
+          required>
+          <option value="COLUMN">Value in column</option>
+          <option value="STATIC">Static value</option>
+      </select>
+  </fieldset>
+
+  <fieldset ng-if="step.params.incrementBy === 'STATIC'">
+    <span class="fieldLabel">Increment</span>
+    <input
+      type="number"
+      ng-model="step.params.increment"
+      ng-required="param.mandatory"
+      class="submit-on-blur"
+      next-on-enter
+    />
+    <span class="help-inline" style="padding-left: 0;">
+      You can use negative value to decrement
+    </span>
+  </fieldset>
+
+  <fieldset ng-if="step.params.incrementBy === 'COLUMN'">
+    <span class="fieldLabel">Column</span>
+
+    <input
+      type="text"
+      bs-typeahead="step.$stepState.change.columnsBeforeStep"
+      autocomplete="off"
+      ng-trim="false"
+      ng-model="step.params.valueCol"
+      data-provide="typeahead"
+      class="submit-on-blur"
+      next-on-enter
+    />
+  </fieldset>
+
+  <fieldset>
+    <div class="fieldLabel">Date part</div>
+    <select
+      dku-bs-select
+      ng-model="step.params.datePart"
+      class="submit-on-blur"
+      required
+    >
+      <option value="DAY">Day</option>
+      <option value="WEEK">Week</option>
+      <option value="MONTH">Month</option>
+      <option value="QUARTER">Quarter</option>
+      <option value="YEAR">Year</option>
+    </select>
+  </fieldset>
+
+  <fieldset>
+    <span class="fieldLabel">Output column (empty for in-place)</span>
+    <input
+      type="text"
+      ng-model="step.params.outCol"
+      class="submit-on-blur"
+      next-on-enter
+    />
+  </fieldset>
+</form>

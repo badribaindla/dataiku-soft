@@ -1,0 +1,249 @@
+<div class="main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+
+    <div class="object-nav savedmodel-top-tabs no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width" navigator-object>
+
+        <div ng-if="topNav.tabsType=='SAVED_MODEL'" class="horizontal-flex">
+            <div std-object-breadcrumb class="flex oh" />
+            <div class="tabs noflex">
+                <a class="tab"  ng-class="{'enabled': topNav.tab == 'summary'}"  href="{{$state.href('projects.project.savedmodels.savedmodel.summary')}}" fw500-width>Summary</a>
+                <a class="tab"  ng-class="{'enabled': topNav.tab == 'versions'}"  href="{{$state.href('projects.project.savedmodels.savedmodel.versions')}}" fw500-width>Versions</a>
+                <a class="tab"  ng-class="{'enabled': topNav.tab == 'status'}" ui-sref="projects.project.savedmodels.savedmodel.status.metrics" fw500-width>Metrics &amp; Status</a>
+                <a class="tab"  ng-class="{'enabled': topNav.tab == 'settings'}" ui-sref="projects.project.savedmodels.savedmodel.settings" fw500-width>Settings</a>
+
+                <div class="otherLinks">
+                    <a class="btn btn--contained btn--alt btn--analysis" ng-show="smContext.savedModel.lastExportedFrom"
+                            href="{{ smContext.savedModel | savedModelMLTaskHref }}">
+                        <i class="icon-dku-nav_analysis"/>
+                        <span>View origin analysis</span>
+                    </a>
+                </div>
+                <div class="otherLinks">
+                    <div class="dib">
+                        <button class="mainzone btn btn--secondary" id="qa_generic_actions-dropdown" onfocus="this.blur();" ng-click="standardizedSidePanel.toggleTab('actions')">
+                            Actions
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="topNav.tabsType=='PREDICTION-SAVED_MODEL-VERSION'" class="horizontal-flex">
+
+            <div class="object-breadcrumb noflex">
+                <a class="item model" href="{{$state.href('projects.project.savedmodels.savedmodel.versions')}}" title="{{ topNav.item.data.name }}">
+                    <i class="icon icon-machine_learning_regression"></i>
+                    <span class="title ellipsis" title="{{topNav.item.data.name}}" style="max-width: calc(100vw - 1055px)">{{topNav.item.data.name}}</span>
+                </a>
+            </div>
+            <div class="models-intermediate-link noflex" style="margin-left: 15px">/</div>
+            <div class="models-intermediate-link noflex">
+                <a  ui-sref="projects.project.savedmodels.savedmodel.versions">Versions</a>
+            </div>
+            <div class="models-intermediate-link noflex">/</div>
+            <div class="selector flex-no-shrink mx-textellipsis">
+                <div custom-element-popup cep-position="align-left-bottom">
+                    <a ng-click="togglePopover()" class="mainzone" style="max-width: 100%;">
+                        <span class="caret"> <i class="icon-caret-down" /></span>
+                        {{versionsContext.currentVersion.snippet.userMeta.name || versionsContext.versions[0].snippet.userMeta.name}}
+                    </a>
+
+                    <div class="popover custom-element-popup-popover-light models-selector-popover"><ul>
+                        <li full-click>
+                            <span style="width: 19px; padding-left: 5px">
+                                <i class="icon-arrow-left" />
+                            </span>
+                            <a class="flex" main-click ui-sref="projects.project.savedmodels.savedmodel.versions">
+                                Back to versions list
+                            </a>
+                        </li>
+                        <li ng-repeat="version in versionsContext.versions" full-click class="horizontal-flex">
+                            <span class="noflex" style="width: 19px; padding-left: 5px">
+                                <i class="icon-star" ng-if="version.snippet.userMeta.starred" />
+                            </span>
+                            <a class="flex" main-click ui-sref="projects.project.savedmodels.savedmodel.prediction.report({fullModelId : version.snippet.fullModelId})">{{version.snippet.userMeta.name}}</a>
+                            <span class="metric noflex">
+                                {{versionsContext.activeMetric|mlMetricName: version.snippet}}: {{version.snippet.mainMetric|nicePrecision:2}} |
+                                {{version.snippet.sessionDate|date: 'yyyy/MM/dd-HH:mm'}}
+                            </span>
+                        </li>
+                    </ul></div>
+                </div>
+            </div>
+
+            <div class="tabs noflex" ng-if="topNav.tabsType=='PREDICTION-SAVED_MODEL-VERSION'">
+                <a class="tab"  ng-class="{'enabled': topNav.tab == 'report'}"  href="{{$state.href('projects.project.savedmodels.savedmodel.prediction.report', {fullModelId: $stateParams.fullModelId})}}#summary" >Report</a>
+            </div>
+
+            <div class="dib">
+                <div class="otherLinks">
+                    <button ng-click="createAndPinInsight(smContext.savedModel, uiState.settingsPane)" class="btn btn--contained btn--alt btn--publish" style="position:relative;"
+                        ng-if="!isPartition($state.params.fullModelId) && isActiveVersion($state.params.fullModelId, smContext.savedModel)">
+                        <i class="icon-dku-publish"></i>&nbsp;
+                        <span>Publish</span>
+                    </button>
+
+                    <button ng-if="isPartition($state.params.fullModelId)"
+                            class="btn btn--contained btn--alt btn--publish" disabled-if="true" disabled-message="Only the overall model can be published" disabled-position="tooltip-bottom">
+                        <i class="icon-dku-publish"></i>&nbsp;
+                        <span>Publish</span>
+                    </button>
+
+                    <button ng-if="!isPartition($state.params.fullModelId) && !isActiveVersion($state.params.fullModelId, smContext.savedModel)"
+                            class="btn btn--contained btn--alt btn--publish" disabled-if="true" disabled-message="Only the active version can be published" disabled-position="tooltip-bottom">
+                        <i class="icon-dku-publish"></i>&nbsp;
+                        <span>Publish</span>
+                    </button>
+
+                    <a class="btn btn--contained btn--alt btn--analysis" ng-click="goToAnalysisModelFromVersion()" ng-if="smContext.model.smOrigin">
+                        <i class="icon-dku-nav_analysis"/>
+                        <span>View original analysis</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="dib" ng-if="showDownloadModel()">
+            <div class="otherLinks">
+                <div class="dropdown">
+                    <button class="btn btn--secondary dropdown-toggle" data-toggle="dropdown" href>
+                        Actions <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu pull-right text-left">
+                        <li ng-show="showDownloadModel('snowflakefunction')">
+                            <a ng-click="exportToSnowflakeFunction()">
+                                <i class="icon-snowflake" />
+                                &nbsp;{{mayDownloadModel('snowflakefunction') ? "Export to Snowflake function" :
+                                    "Can't export to Snowflake function (details)"}}
+                            </a>
+                        </li>
+                        <li ng-show="showDownloadModel('pmml')">
+                            <a ng-click="downloadModel('pmml')">
+                                <i class="icon-cloud-download" />
+                                &nbsp;{{mayDownloadModel('pmml') ? "Download as PMML" : "Can't download as PMML (details)"}}
+                            </a>
+                        </li>
+                        <li ng-show="showDownloadModel('jar') && mayDownloadModel('jar')">
+                            <a ng-click="downloadModel('jar-fat')">
+                                <i class="icon-cloud-download" />
+                                &nbsp;Download as "fat" jar (standalone)
+                            </a>
+                        </li>
+                        <li ng-show="showDownloadModel('jar')">
+                            <a ng-click="downloadModel('jar-thin')">
+                                <i class="icon-cloud-download" />
+                                &nbsp;{{mayDownloadModel('jar') ? 'Download as "thin" jar (require libraries)' :
+                                    "Can't download as jar (details)"}}
+                            </a>
+                        </li>
+                        <li ng-show="showDownloadModel('jar') && mayDownloadModel('jar')">
+                            <a ng-click="downloadModel('jar-lib')">
+                                <i class="icon-cloud-download" />
+                                &nbsp;Download scoring libraries jar
+                            </a>
+                        </li>
+                        <li ng-if="showDownloadModel('docgen')">
+                            <a ng-click="downloadModel('docgen')">
+                                <i class="icon-cloud-download" />
+                                &nbsp;{{mayDownloadModel('docgen') ? "Export model documentation" :
+                                    "Can't export model documentation (details)"}}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="topNav.tabsType=='CLUSTERING-SAVED_MODEL-VERSION'" class="horizontal-flex">
+            <div class="object-breadcrumb noflex">
+                <a class="item model" href="{{$state.href('projects.project.savedmodels.savedmodel.versions')}}" title="{{ topNav.item.data.name }}">
+                    <i class="icon icon-machine_learning_clustering"></i>
+                    <span class="title ellipsis" title="{{topNav.item.data.name}}" style="max-width: calc(100vw - 1055px)">{{topNav.item.data.name}}</span>
+                </a>
+            </div>
+            <div class="models-intermediate-link noflex" style="margin-left: 15px">/</div>
+            <div class="models-intermediate-link noflex">
+                <a  ui-sref="projects.project.savedmodels.savedmodel.versions">Versions</a>
+            </div>
+            <div class="models-intermediate-link noflex">/</div>
+            <div class="selector flex-no-shrink mx-textellipsis">
+                <div custom-element-popup cep-position="align-left-bottom">
+                    <a ng-click="togglePopover()" class="mainzone" style="max-width: 100%;">
+                        <span class="caret"> <i class="icon-caret-down" /></span>
+                        {{versionsContext.currentVersion.snippet.userMeta.name}}
+                    </a>
+
+                    <div class="popover custom-element-popup-popover-light models-selector-popover"><ul>
+                        <li full-click>
+                            <span style="width: 19px; padding-left: 5px">
+                                <i class="icon-arrow-left" />
+                            </span>
+                            <a class="flex" main-click ui-sref="projects.project.savedmodels.savedmodel.versions">
+                                Back to versions list
+                            </a>
+                        </li>
+                        <li ng-repeat="version in versionsContext.versions" full-click class="horizontal-flex">
+                            <span class="noflex" style="width: 19px; padding-left: 5px">
+                                <i class="icon-star" ng-if="version.snippet.userMeta.starred" />
+                            </span>
+                            <a class="flex" main-click ui-sref="projects.project.savedmodels.savedmodel.clustering.report({fullModelId : version.snippet.fullModelId})">{{version.snippet.userMeta.name}}</a>
+                            <span class="metric noflex">
+                                {{versionsContext.activeMetric|mlMetricName: version.snippet}}: {{version.snippet.mainMetric|nicePrecision:2}} |
+                                {{version.snippet.sessionDate|date: 'yyyy/MM/dd-HH:mm'}}
+                            </span>
+                        </li>
+                    </ul></div>
+                </div>
+            </div>
+
+            <div class="tabs noflex" >
+                <a class="tab"  ng-class="{'enabled': topNav.tab == 'report'}"  href="{{$state.href('projects.project.savedmodels.savedmodel.clustering.report', {fullModelId: $stateParams.fullModelId})}}#summary" >Report</a>
+            </div>
+            <div class="dib">
+                <div class="otherLinks">
+                    <button ng-click="createAndPinInsight(smContext.savedModel, uiState.settingsPane)" class="btn btn--contained btn--alt btn--publish" style="position:relative;"
+                            ng-if="isActiveVersion($state.params.fullModelId, smContext.savedModel)">
+                        <i class="icon-dku-publish"></i>&nbsp;
+                        <span>Publish</span>
+                    </button>
+
+                    <button ng-if="!isActiveVersion($state.params.fullModelId, smContext.savedModel)"
+                            class="btn btn--contained btn--alt btn--publish disabled" disabled-if="true" disabled-message="Only the active version can be published" disabled-position="tooltip-bottom">
+                        <i class="icon-dku-publish"></i>&nbsp;
+                        <span>Publish</span>
+                    </button>
+
+                    <a class="btn btn--contained btn--alt btn--analysis" ng-click="goToAnalysisModelFromVersion()" ng-if="smContext.model.smOrigin">
+                        <i class="icon-dku-nav_analysis"/>
+                        <span>View original analysis</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="dib" ng-if="showDownloadModel()">
+                <div class="otherLinks">
+                    <div class="dropdown">
+                        <button class="btn btn--secondary dropdown-toggle" data-toggle="dropdown" href>
+                            Actions <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu pull-right text-left">
+                            <li ng-if="showDownloadModel('docgen')">
+                                <a ng-click="downloadModel('docgen')">
+                                    <i class="icon-cloud-download" />
+                                    &nbsp;{{mayDownloadModel('docgen') ? "Export model documentation" :
+                                        "Can't export model documentation (details)"}}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div ui-view class="dss-page"></div>
+
+</div>
+
+<standardized-side-panel page="object" object-type="SAVED_MODEL" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" close-on-click-outside="true">
+</standardized-side-panel>

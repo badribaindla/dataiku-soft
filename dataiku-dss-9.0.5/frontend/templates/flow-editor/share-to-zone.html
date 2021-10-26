@@ -1,0 +1,60 @@
+<div class="modal modal3 new-project-modal dku-modal" tab-model="modalTabState.active" auto-size="false">
+    <div dku-modal-header-with-totem modal-title="{{uiState.forceCreation ? 'Create a zone' : 'Share to a zone'}}" modal-totem="icon-share_to_zone" />
+    <form class="dkuform-modal-horizontal" name="shareZoneForm">
+        <div class="modal-body">
+            <div ng-if="uiState.creationMode == 'create'">
+                <div class="control-group" >
+                    <label for="newZoneName" class="control-label control-label-compact">Name</label>
+                    <div class="controls controls-compact">
+                        <input type="text"
+                            id="zoneName"
+                            ng-model="uiState.name"
+                            required
+                            auto-focus="true"
+                        />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label control-label-compact">Color</label>
+                    <div class="controls controls-compact image-uploader image-uploader--no-height">
+                        <div class="color-options color-options--no-margin color-preview">
+                            <span ng-repeat="color in uiState.stockColors track by $index" class="color-sample" ng-class="{selected: color == uiState.color}" ng-click="pickStockColor(color)"
+                                    style="background-color:{{color}};"  ></span>
+                            <label colorpicker colorpicker-with-input="true" ng-model="uiState.color">
+                                <span class="color-sample" style="background-color:{{uiState.color}};">
+                                    <i class="icon-tint" style="color:white;margin-left:0.25em;" />
+                                </span>
+                                <span class="color-code">{{uiState.color}}</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="uiState.creationMode == 'share'">
+                <div class="control-group" >
+                    <label for="zoneToSelect" class="control-label control-label-compact">Zone</label>
+                    <div class="controls controls-compact">
+                        <select dku-bs-select="{liveSearch:true}"
+                            data-size="10"
+                            ng-options="zone.id as zone.name for zone in uiState.zones | orderBy:'name':false:zoneComparator"
+                            ng-model="uiState.selectedZone"
+                            required
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div class="noflex dku-switches" ng-if="!uiState.forceCreation">
+                <div style="clear: both;"></div>
+                <a ng-click="uiState.creationMode = 'create';" ng-class="{'selected' : uiState.creationMode == 'create'}">New Zone</a>
+                    |
+                <a ng-click="uiState.creationMode = 'share';" ng-class="{'selected' : uiState.creationMode == 'share'}">Use existing zone</a>
+            </div>
+            <div block-api-error />
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="onClick()" ng-disabled="shareZoneForm.$invalid">{{uiState.creationMode == 'create' ? "Confirm" : "Share"}}</button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,48 @@
+<div class="modal modal3 git-log-modal dku-modal" auto-size="false">
+    <div class="vertical-flex h100">
+        <div dku-modal-header modal-title="Commit details" class="noflex has-border" />
+
+        <div class="modal-body flex no-padding" style="margin-bottom:1px;">
+            <div class="h100 oa">
+                <div block-api-error />
+
+                <div class="git-log border-bottom">
+                    <ul class="cell-list" style="margin: 10px;">
+                        <li class="commit-log-entry" style="border: none;">
+
+                            <div class="horizontal-flex">
+                                <div class="avatar noflex">
+                                    <span user-picture="commit.commit.author" size="32"></span>
+                                </div>
+                                <div class="information flex">
+                                    <div class="commit-message" from-markdown="commit.commit.message" no-markdown="true"></div>
+                                    <small><a ui-sref="profile.user.view({userLogin: commit.commit.author})">{{commit.commit.author}}</a> - {{commit.commit.timestamp | friendlyTimeDeltaShort}}</small>
+                                </div>
+                                <div class="commit-id noflex">
+                                    <small title="{{commit.commit.commit.commitId}}">
+                                        {{commit.commit.commitId}}
+                                    </small>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div style="padding: 20px">
+                    <div class="stats pull-left">
+                        <strong class="files">{{commit.changedFiles}}</strong> changed files -
+                        <strong class="additions">{{commit.addedLines}}</strong> additions -
+                        <strong class="deletions">{{commit.removedLines}}</strong> deletions
+                    </div>
+
+                    <div git-diff diff-entries="commit.diffEntries"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons" ng-show="createBranch || revertTo || revertCommit">
+            <button class="btn btn--text btn--secondary" ng-show="createBranch" ng-click="createBranch()">Create branch</button>
+            <button class="btn btn--text btn--danger" ng-show="revertTo" ng-click="revertTo()">Revert to this revision</button>
+            <button class="btn btn--text btn--danger" ng-show="revertCommit" ng-click="revertCommit()">Revert this change only</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,182 @@
+<div class="metrics h100 vertical-flex" ng-if="appConfig.licensedFeatures.advancedMetricsChecksAllowed || appConfig.licensing.ceEntrepriseTrial">
+	<div class="noflex w80">
+		<div style="margin: 10px  4px;">
+			<div>
+				<div class="pull-left controls">
+					<span>Display</span>
+
+					<div class="list-customfilter-box view-selector" style="display: inline-block">
+                        <span class="add-on"><i class="icon-eye-open"></i></span>
+                        <select dku-bs-select="{style:'dku-select-button'}"
+                                ng-model="uiState.listMode"
+                                ng-options="key as value for (key, value) in uiState.values"></select>
+                    </div>
+
+					<span>of</span>
+
+					<div displayed-metrics-selector
+						 choices="allComputedChecks"
+						 selected="displayedChecks"
+						 refresh-choices="refreshAllComputedChecks"
+						 on-close="saveMetricsNow"
+						 type="checks"></div>
+
+					<span ng-if="metricsCallbacks.isPartitioned()">on</span>
+
+					<div ng-if="metricsCallbacks.isPartitioned()" class="list-customfilter-box" style="display: inline-block">
+						<select dku-bs-select="{liveSearch:true,size:'auto', 'style':'dku-select-button'}"
+								ng-model="metricsChecks.displayedState.partition"
+								ng-options="p as (p === 'ALL' ? 'Whole dataset': p) for p in metricsPartitionsIds"></select>
+						<a ng-click="refreshMetricsPartitions()"><span class="right-add-on">
+							<i ng-class="{'icon-refresh': true, 'icon-spin': refreshing}"></i>
+						</span></a>
+					</div>
+
+					<div ng-if="canCompute" class="list-control-widget">
+						<button class="btn btn--secondary" ng-click="computeNow()">Compute</button>
+					</div>
+
+					<div ng-if="lastComputeResult" contextual-menu cep-position="align-right-top" ng-click="toggleContextualMenu($event)" class="list-control-widget" style="cursor:pointer; position:relative; display: inline-block;">
+						<span>
+							<i class="icon-dku-error" ng-if="hasErrors" style="color: #b94a48;"></i>
+							Last run results <i class="icon-arrow-right "></i>
+						</span>
+
+						<div class="contextualMenu last-metrics-run-results oa" ng-show="contextualMenu" style="z-index: 20;">
+							<div>Started {{lastComputeResult.startTime | date:'yyyy/MM/dd HH:mm'}}, finished {{lastComputeResult.endTime | date:'yyyy/MM/dd HH:mm'}}</div>
+
+							<div ng-if="lastComputeResult.runs">
+								<div>Computed {{lastComputeResult.results.length}} check values</div>
+								<div ng-repeat="run in lastComputeResult.runs">
+									<div>Check : {{run.name}}</div>
+									<div ng-if="run.error" class="alert alert-error">
+										<div>
+											<i class="icon-dku-error" />&nbsp;{{run.error.clazz}} : <span class="preserve-eol">{{run.error.message}}</span>
+											<div ng-click="run.expandError = !run.expandError"><i class="icon-eye"></i>&nbsp;Stacktrace</div>
+										</div>
+										<div class="error-info preserve-eol" ng-if="run.expandError" >{{run.error.stack}}</div>
+									</div>
+									<div ng-if="run.logTail != null && run.logTail.lines.length > 0" class="alert alert-info">
+										<div ng-click="run.expandLog = !run.expandLog"><i class="icon-eye"></i>&nbsp;Log</div>
+										<div class="error-info" ng-if="run.expandLog">
+											<div ng-repeat="line in run.logTail.lines track by $index">{{line}}</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div ng-if="!lastComputeResult.runs">
+								<div>Computed {{lastComputeResult.partitionsList.length}} partitions in {{lastComputeResult.allRuns.length}} runs ({{lastComputeResult.errorRuns.length}} errors)</div>
+								<div ng-repeat="run in lastComputeResult.errorRuns">
+									<div>Check : {{run.name}}</div>
+									<div ng-if="run.error" class="alert alert-error">
+										<div>
+
+											<i class="icon-dku-error" />&nbsp;{{run.error.clazz}} : <span class="preserve-eol">{{run.error.message}}</span>
+											<div ng-click="run.expandError = !run.expandError"><i class="icon-eye"></i>&nbsp;Stacktrace</div>
+										</div>
+										<div class="error-info preserve-eol" ng-if="run.expandError" >{{run.error.stack}}</div>
+									</div>
+									<div ng-if="run.logTail != null && run.logTail.lines.length > 0" class="alert alert-info">
+										<div ng-click="run.expandLog = !run.expandLog"><i class="icon-eye"></i>&nbsp;Log</div>
+										<div class="error-info" ng-if="run.expandLog">
+											<div ng-repeat="line in run.logTail.lines track by $index">{{line}}</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="pull-right">
+					<div class="computed-metrics-buttons" ng-if="metricsCallbacks.isPartitioned() || (allComputedChecks && allComputedChecks.notExistingViews && allComputedChecks.notExistingViews.indexOf('CHECKS_HISTORY') >= 0)">
+						<div custom-element-popup cep-position="align-right-bottom" close-on-click="true">
+							<i class="icon-cog mainzone cursor-pointer" ng-click="togglePopover()"></i>
+							<ul class="popover custom-element-popup-popover dropdown-menu">
+								<li ng-if="metricsScope !='PROJECT' && allComputedChecks && allComputedChecks.notExistingViews && allComputedChecks.notExistingViews.indexOf('CHECKS_HISTORY') >= 0">
+									<a ng-click="addAllChecksDatasetInFlow('CHECKS_HISTORY', null, null)">Create dataset from checks data</a>
+								</li>
+                                <li ng-if="metricsCallbacks.saveExternalChecksValues">
+                                    <a ng-click="addCheckValue()">Add a check value</a>
+                                </li>
+                                <li ng-if="metricsCallbacks.isPartitioned()">
+                                    <a ng-click="computeAll()">Compute all checks for all partitions</a>
+                                </li>
+                                <li ng-if="uiState.listMode == 'list'">
+                                    <a ng-click="exportTable()">Export table</a>
+                                </li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
+				<div style="clear: both;"></div>
+			</div>
+			<div ng-if="uiState.listMode === 'banner' && displayedChecks.checks.length" style="margin: 10px 0 20px 0;">
+				<div time-range-brush range="displayedChecksRange" selected-range="selectedRange" on-change="brushChanged()"></div>
+			</div>
+			
+			<span ng-if="computing"><i class="icon-refresh icon-spin"></i></span>
+
+		</div>
+	</div>
+
+	<div class="flex oa metrics-plots">
+		<div class="fh">
+			<div class="w80 h100">
+
+				<div class="centered-info" ng-if="!displayedChecks.checks.length && allComputedChecks.checks.length">
+					<p>No checks displayed</p>
+					<p class="small"><a ng-click="openDisplayedMetricsModal()">add some</a></p>
+				</div>
+
+				<div class="centered-info" ng-if="!displayedChecks.checks.length && !allComputedChecks.checks.length">
+					<p>No <span ng-show="metricsScope=='PROJECT'">project-level</span> checks yet</p>
+					<p class="small" ng-if="metricsScope == 'PROJECT'">Project-level metrics are created by Python code.</p>
+					<!-- saved models don't have the settings pages in the same place (relative to here) -->
+                    <p class="small" ng-if="!isInSavedModel && !hasNoMetricsSettings">create one in <a ui-sref="^.settings({selectedTab:'checks'})">the Edit tab</a></p>
+                    <p class="small" ng-if="isInSavedModel && !hasNoMetricsSettings">create one in <a href="{{$state.href('projects.project.savedmodels.savedmodel.settings') + '#status-checks'}}">the Settings tab</a></p>
+				</div>
+
+				<div class="fh" ng-if="uiState.listMode === 'banner' && displayedChecks.checks.length">
+					<div ng-repeat="displayedCheck in displayedChecks.checks">
+						<div check-banner displayed-data="getDisplayedData(displayedCheck)" displayed-check="displayedCheck" displayed-range="selectedRange"></div>
+					</div>
+				</div>
+				<div class="last-checks-table h100" ng-if="uiState.listMode === 'list' && displayedChecks.checks.length">
+					<table class="table-small table-striped table-hover" >
+						<thead>
+							<tr>
+								<th style="width: 20%">Check</th>
+								<th style="width: 30%">Infos</th>
+								<th style="width: 10%">Runs</th>
+								<th style="width: 10%">Last run</th>
+								<th style="width: 30%">Message</th>
+								<th style="width: 10%">Status</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="checkHistory in displayedChecksHistories">
+								<td>{{checkHistory.name}}</td>
+								<td class="info">{{getNiceInfo(checkHistory.check)}}</td>
+								<td>{{checkHistory.values.length}}</td>
+								<td>{{checkHistory.lastValue.time | date:'yyyy-MM-dd – HH:mm'}}</td>
+								<td>{{checkHistory.lastValue.message}}</td>
+								<td class="outcome-{{checkHistory.lastValue.outcome.toLowerCase()}} outcome-cell" ng-init="outcome = checkHistory.lastValue.outcome;">
+									<i></i>
+		<!-- 								<i ng-if="outcome == 'ERROR'" class="icon-remove"></i> -->
+		<!-- 								<i ng-if="outcome == 'OK'" class="icon-check"></i> -->
+		<!-- 								<i ng-if="outcome == 'WARNING'" class="icon-danger"></i> -->
+									<span>{{outcome}}</span>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<feature-locked feature-name="'Automatic status checks'" ng-if="!(appConfig.licensedFeatures.advancedMetricsChecksAllowed || appConfig.licensing.ceEntrepriseTrial)"></feature-locked>

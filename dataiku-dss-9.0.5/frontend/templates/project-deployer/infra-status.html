@@ -1,0 +1,36 @@
+<div class="infra-status fh">
+    <div block-api-error />
+    <div ng-if="infraStatus" class="oa pad16">
+        <div class="standard-container simple-columns">
+            <div class="standard-container__wrap standard-container__wrap--content-height pad24">
+                <div class="deployer-title">
+                    <span>Infrastructure details</span>
+                    <span class="pull-right status-icon" title="{{infraHealthErrorMessage}}" toggle="tooltip" data-container="body" data-placement="left">
+                        <i ng-class="infraHealthErrorMessage ? 'icon-dku-error text-error' : 'icon-dku-success text-success'"></i>
+                    </span>
+                </div>
+                <table class="table table-hover table-fixed table-striped mbot0">
+                    <tr>
+                        <th style="width: 40%;">Lifecycle Stage</th>
+                        <td class="break-word">{{ DeployerUtils.stageDetails(stages, infraStatus.infraBasicInfo.stage) }}</td>
+                    </tr>
+                    <tr>
+                        <th>Automation Node URL</th>
+                        <td class="horizontal-flex" ng-if="infraStatus.infraBasicInfo.automationNodeUrl">
+                            <a href="{{infraStatus.infraBasicInfo.automationNodeUrl}}" target="blank"  class="standard-list__external-link mx-textellipsis">
+                                {{ infraStatus.infraBasicInfo.automationNodeUrl }}
+                            </a>
+                            <a href="{{infraStatus.infraBasicInfo.automationNodeUrl}}" target="blank" class="no-underline padleft4 standard-list__external-link">
+                                <i class="icon-external-link smaller-font"></i>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="standard-container__wrap pad24">
+                <div class="deployer-title">Deployments</div>
+                <div project-deployments-list-widget="pseudoLightStatusList" health-map="healthMap" status-page="'infra'"></div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,136 @@
+<div class="object-details">
+
+    <!-- Creation -->
+    <div class="line" ng-if="selection.selectedObject.publishedBundleState.publishedOn">
+        <h4>Published on</h4>
+        <p>{{ selection.selectedObject.publishedBundleState.publishedOn | date:'yyyy/MM/dd HH:mm'}}</p>
+    </div>
+
+    <!-- Created by -->
+    <div class="line" ng-if="selection.selectedObject.publishedBundleState.publishedBy">
+        <h4>Published by</h4>
+        <p>{{ selection.selectedObject.publishedBundleState.publishedBy }}</p>
+    </div>
+
+    <!-- Release notes -->
+    <div class="block" ng-if="selection.selectedObject.exportManifest.exportUserInfo.releaseNotes">
+        <p>{{selection.selectedObject.exportManifest.exportUserInfo.releaseNotes}}</p>
+        <hr/>
+    </div>
+
+    <!-- Config item counts -->
+    <div class="accordion" ng-if="selection.selectedObject.contentSummary.configContent" ng-init="show=true">
+        <h4 class="accordion-title" ng-click="show=!show"><i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Project config
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="(configItem, num) in selection.selectedObject.contentSummary.configContent" ng-if="num > 0" class="mx-textellipsis horizontal-flex">
+                <span class="flex mx-textellipsis">{{ configItem | bundleProjectContent}}</span>
+                <span class="info noflex">{{num}}</span>
+            </li>
+        </ul>
+    </div>
+
+
+    <!-- Included datasets -->
+    <div class="accordion" ng-if="selection.selectedObject.contentSummary.includedDatasets" ng-init="show=selection.selectedObject.contentSummary.includedDatasets.length > 0">
+        <h4 class="accordion-title" ng-click="show=!show"><i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Included {{'dataset' | plurify: selection.selectedObject.contentSummary.includedDatasets.length}}
+            <span ng-if="selection.selectedObject.contentSummary.includedDatasets.length > 1">({{selection.selectedObject.contentSummary.includedDatasets.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="dataset in selection.selectedObject.contentSummary.includedDatasets" class="mx-textellipsis horizontal-flex">
+                <span class="flex mx-textellipsis">{{ dataset.name }}</span>
+                <span class="info noflex">{{ dataset.size | fileSizeOrNA }}</span>
+            </li>
+            <li ng-if="selection.selectedObject.contentSummary.includedDatasets.length == 0">
+                <span style="padding: 0;" class="info mx-center-children"><em>None</em></span>
+            </li>
+        </ul>
+    </div>
+
+
+    <!-- Included saved models -->
+    <div class="accordion" ng-if="selection.selectedObject.contentSummary.includedSavedModels" ng-init="show=selection.selectedObject.contentSummary.includedSavedModels.length > 0">
+        <h4 class="accordion-title" ng-click="show=!show"><i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Included saved {{'model' | plurify: selection.selectedObject.contentSummary.includedSavedModels.length}}
+            <span ng-if="selection.selectedObject.contentSummary.includedSavedModels.length > 1">({{selection.selectedObject.contentSummary.includedSavedModels.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="model in selection.selectedObject.contentSummary.includedSavedModels" class="mx-textellipsis horizontal-flex">
+                <span class="flex mx-textellipsis">{{ model.name }}</span>
+                <span class="info noflex">{{ model.size | fileSizeOrNA }}</span>
+            </li>
+            <li ng-if="selection.selectedObject.contentSummary.includedSavedModels.length == 0">
+                <span style="padding: 0;" class="info mx-center-children"><em>None</em></span>
+            </li>
+        </ul>
+    </div>
+    
+
+    <!-- Included model evaluation stores -->
+    <div class="accordion" ng-if="selection.selectedObject.contentSummary.includedModelEvaluationStores" ng-init="show=selection.selectedObject.contentSummary.includedModelEvaluationStores.length > 0">
+        <h4 class="accordion-title" ng-click="show=!show"><i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Included evaluation {{'store' | plurify: selection.selectedObject.contentSummary.includedModelEvaluationStores.length}}
+            <span ng-if="selection.selectedObject.contentSummary.includedModelEvaluationStores.length > 1">({{selection.selectedObject.contentSummary.includedModelEvaluationStores.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="store in selection.selectedObject.contentSummary.includedModelEvaluationStores" class="mx-textellipsis horizontal-flex">
+                <span class="flex mx-textellipsis">{{ store.name }}</span>
+                <span class="info noflex">{{ store.size | fileSizeOrNA }}</span>
+            </li>
+            <li ng-if="selection.selectedObject.contentSummary.includedModelEvaluationStores.length == 0">
+                <span style="padding: 0;" class="info mx-center-children"><em>None</em></span>
+            </li>
+        </ul>
+    </div>
+
+
+    <!-- Included managed folders -->
+    <div class="accordion" ng-if="selection.selectedObject.contentSummary.includedManagedFolders" ng-init="show=selection.selectedObject.contentSummary.includedManagedFolders.length > 0">
+        <h4 class="accordion-title" ng-click="show=!show"><i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Included managed {{'folder' | plurify: selection.selectedObject.contentSummary.includedManagedFolders.length}}
+            <span ng-if="selection.selectedObject.contentSummary.includedManagedFolders.length > 1">({{selection.selectedObject.contentSummary.includedManagedFolders.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="folder in selection.selectedObject.contentSummary.includedManagedFolders" class="mx-textellipsis horizontal-flex">
+                <span class="flex mx-textellipsis">{{ folder.name }}</span>
+                <span class="info noflex">{{ folder.size | fileSizeOrNA }}</span>
+            </li>
+            <li ng-if="selection.selectedObject.contentSummary.includedManagedFolders.length == 0">
+                <span style="padding: 0;" class="info mx-center-children"><em>None</em></span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Users -->
+    <div class="line users" ng-if="selection.selectedObject._source.user && selection.selectedObject._source.user.length">
+        <h4>Users</h4>
+        <div>
+            <a ng-repeat="login in selection.selectedObject._source.user" href="/profile/{{login}}/"
+               title="{{ users[login] || login }}" class="avatar"
+               toggle="tooltip" placement="left" animation="false" container=".catalog-tooltips">
+                <span user-picture="login" size="24" class="avatar24"></span>
+            </a>
+        </div>
+    </div>
+
+    <div dku-foldable open="true" class="accordion other-actions"
+         ng-show="macroRoles['BUNDLE'] && macroRoles['BUNDLE'].length > 0">
+        <h4 class="accordion-title" ng-click="foldableToggle()">
+            <i class="{{foldableChevronClazz}}"/>
+            Macros
+        </h4>
+
+        <div ng-show="foldableOpen">
+            <ul class="simple-list" style="margin-bottom: 10px; padding: 0;">
+                <li ng-repeat="runnable in macroRoles['BUNDLE']">
+                    <a class="link-std"
+                       ng-click="showCreateRunnable(runnable.runnable, runnable.roleTarget, selection.selectedObject.bundleId)">
+                        <i class="icon-fixed-width {{runnable.icon}}"/> {{runnable.label}}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

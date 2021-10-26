@@ -1,0 +1,46 @@
+<div class="section" ng-scope="{{errorScope = this}}">
+    <div block-api-error />
+    <div ng-if="parameterSetDesc.desc.meta.description" class="alert alert-info">
+        {{parameterSetDesc.desc.meta.description}}
+    </div>
+
+    <form class="dkuform-horizontal">
+        <div class="control-group" >
+            <label class="control-label" for="definableInline_{{parameterSet.name}}">Definable inline</label>
+            <div class="controls">
+                <input type="checkbox" id="definableInline_{{parameterSet.name}}" ng-model="parameterSet.defaultPermission.definableInline" />
+                <span class="help-inline">Users can provide values for the preset directly when using them</span>
+            </div>
+        </div>
+
+        <div class="control-group" >
+            <label class="control-label" for="definableAtProjectLevel_{{parameterSet.name}}">Definable at project level</label>
+            <div class="controls">
+                <input type="checkbox" id="definableAtProjectLevel_{{parameterSet.name}}" ng-model="parameterSet.defaultPermission.definableAtProjectLevel" />
+                <span class="help-inline">Users can create project-level presets</span>
+            </div>
+        </div>
+    </form>
+
+    <div>
+        <div ng-repeat="preset in presets">
+            <div plugin-preset
+                preset="preset"
+                parameter-set-desc="parameterSetDesc"
+                plugin-desc="pluginDesc"
+                remove="deletePresetInParameterSet"
+                error-scope="errorScope"
+                >
+            </div>
+        </div>
+        <div ng-if="presets.length === 0" class="placeholder-block">
+            No presets yet for this parameter set.
+        </div>
+        <div>
+            <button ng-click="createPresetInParameterSet()" class="btn btn--secondary">
+                <i plus-icon /> Add preset
+            </button>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,64 @@
+<div data-extend-template="/templates/recipes/single-output-recipe-creation.html" ng-controller="AddAnalysisToFlowController">
+    <div data-block="header"
+        dku-modal-header-with-totem
+        modal-class="noflex"
+        modal-totem="icon-visual_prep_cleanse_recipe"
+        modal-title="Deploy as preparation recipe" />
+
+    <div data-block="settings">
+        <div class="control-group">
+            <label for="" class="control-label">Input dataset</label>
+            <div class="controls">
+                <div dataset-selector="io.inputDataset" available-datasets="availableInputDatasets" class="qa_recipe_available-datasets-dropdown" ></div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Export charts</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="options.exportCharts"  style="width: auto"/>
+                    <span class="help-inline">Create charts on the new dataset</span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-show="dataset && !dataset.partitioned">
+            <label class="control-label">Build</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="buildAfterCreation" style="width: auto" />
+                    <span class="help-inline">Build the new dataset now</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="noflex modal-footer modal-footer-std-buttons" data-block="buttons">
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">
+            Cancel
+        </button>
+
+        <button type="submit"
+            ng-disabled="!formIsValid() || creatingRecipe"
+            class="btn btn--text btn--primary"
+            ng-click="createRecipe(false)"
+            ng-if="!buildAfterCreation && (io.newOutputTypeRadio != 'create' || !uiState.backendWarnings.length)">
+            Deploy
+        </button>
+
+        <button type="submit"
+            ng-disabled="!formIsValid() || creatingRecipe"
+            class="btn btn--text btn--primary"
+            ng-click="createRecipe(false)"
+            ng-if="buildAfterCreation && (io.newOutputTypeRadio != 'create' || !uiState.backendWarnings.length)">
+            Deploy &amp; build
+        </button>
+
+        <button type="submit"
+            ng-disabled="!formIsValid() || creatingRecipe"
+            class="btn btn--text btn--danger"
+            ng-click="createRecipe(true)"
+            ng-if="io.newOutputTypeRadio == 'create' && uiState.backendWarnings.length">
+            Deploy anyway
+        </button>
+    </div>
+</div>

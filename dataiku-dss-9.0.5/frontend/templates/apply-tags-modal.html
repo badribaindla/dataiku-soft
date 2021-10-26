@@ -1,0 +1,57 @@
+<div class="modal modal3 apply-tags-modal" >
+
+	<dku-modal-header-with-totem modal-totem="icon-tags">
+		<dku-modal-title>
+			{{ selectedItems.length==1 ? 'Tag "' + selectedItems[0].displayName + '"' : 'Tag ' + selectedItems.length + ' ' + (itemsType | niceTaggableType : selectedItems.length)}} 
+		</dku-modal-title>
+	</dku-modal-header-with-totem> 
+
+
+	<div class="modal-body modal-no-sizing">
+        <div ng-if="tagsSorted" class="tag-edit-filter" ng-class="{'tag-edit-filter--focus': filterFocused}">
+            <i class="icon-dku-search"></i>
+            <input ng-model="uiState.newTag" name="tagEditorInput" type="search" autocomplete="off"
+                   ng-focus="filterFocused = true" ng-blur="filterFocused = false"
+                   ng-keydown="createTagOnEnter($event)" placeholder="Filter tags or create a new tag"
+                   class="tag-edit-filter__input" aria-label="Selected tags"/>
+        </div>
+        <div block-api-error></div>
+        <div class="apply-tags vertical-flex h100">
+            <div ng-if="hasTags()" class="tag-help-text">
+                <span class="tag-help-text__name">Tag name</span>
+                <span ng-if="selectedItems.length > 1" class="tag-help-text__usage">Tag usage</span>
+            </div>
+            <div ng-if="hasTags() || canCreateTag()" class="tags tags-settings flex">
+                <ul>
+                    <li ng-repeat="item in tagsSorted.filteredList track by $index"
+                        class="tag-row horizontal-flex">
+
+                        <checkbox-tristate class="noflex" ng-model="item.newState" initial-state="item.initialState" id="'chk-'+$index" alabel="'Select/unselect tag: ' + item.title"></checkbox-tristate>
+                        <span class="tag-color noflex" style="background-color:{{item.tag.color}}"/>
+                        <span class="tag-title flex" ng-click="rotateCheckbox(item)" ui-global-tag="item.title" object-type="itemsType"/>
+                        <span ng-if="selectedItems.length > 1" class="tag-usage noflex" ng-class="{highlight: isChanged(item)}">{{usageText(item)}}</span>
+                    </li>
+
+                </ul>
+                <div ng-if="canCreateTag()" class="tag-row horizontal-flex tags-settings__create" ng-click="onAddTag()">
+                    <i class="icon-plus flex-no-grow"></i>
+                    <span class="flex">Create &laquo;{{uiState.newTag}}&raquo;</span>
+                    <span class="return flex-no-grow tags-settings-btn">&crarr;</span>
+                </div>
+            </div>
+            <div ng-if="!hasTags() && !canCreateTag()" class="noflex no-tag-yet"><p>No tags available</p></div>
+        </div>
+    </div>
+
+    <div class="modal-footer modal-footer-std-buttons has-border ">
+        <div class="pull-left apply-tags-modal__footer-info">
+            <i class="icon-info-sign padleftright4"></i>
+            Manage tags in Project Settings
+        </div>
+        <div class="pull-right">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="save();">Save</button>
+        </div>
+    </div>
+
+</div>

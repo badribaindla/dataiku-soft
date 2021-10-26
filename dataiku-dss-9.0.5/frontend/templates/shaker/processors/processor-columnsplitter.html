@@ -1,0 +1,76 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-grand-parent="processorForm" ng-controller="ColumnSplitterController">
+    <fieldset>
+        <span class="fieldLabel">Column</span>
+        <input
+            type='text'
+            bs-typeahead='step.$stepState.change.columnsBeforeStep'
+            autocomplete='off'
+            ng-trim="false"
+            ng-required="param.mandatory"
+            data-min-length='0'
+            ng-model='step.params.inCol'
+            class="submit-on-blur"
+            next-on-enter/>
+    </fieldset>
+    <fieldset>
+        <span class="fieldLabel">Delimiter</span>
+
+        <input type="text" ng-model="step.params.separator"
+            ng-trim="false"
+            class="submit-on-blur"
+            next-on-enter ng-trim="false"
+            required />
+    </fieldset>
+    <fieldset>
+        <span class="fieldLabel">
+            Output column<span ng-show="step.params.target=='COLUMNS'">s prefix</span>
+        </span>
+        <input type="text" ng-model="step.params.outColPrefix"
+            class="submit-on-blur"
+            next-on-enter
+            required />
+    </fieldset>
+    <fieldset>
+        <div class="fieldLabel">Output as</div>
+        <select dku-bs-select
+            ng-model="step.params.target"
+            class="submit-on-blur"
+            next-on-enter
+            required
+            >
+            <option value="JSON">Array (JSON)</option>
+            <option value="COLUMNS">Multiple columns</option>
+        </select>
+    </fieldset>
+    <fieldset>
+        <label>
+            <input type="checkbox" ng-model="step.params.limitOutput" class="submit-on-blur">
+            <span class="fieldLabel">Truncate</span></label>
+        <label>
+            <input type="checkbox" ng-model="step.params.keepEmptyChunks" class="submit-on-blur">
+            <span class="fieldLabel">Keep empty chunks</span>
+        </label>
+    </fieldset>
+    <div ng-if="step.params.limitOutput">
+        <fieldset>
+            <span class="fieldLabel">Max nb. columns to keep</span>
+            <input
+                type="number" min="1"
+                ng-model="step.params.limit"
+                ng-required="step.params.limitOutput"
+                class="submit-on-blur"
+                next-on-enter
+                ng-required="step.params.limitOutput">
+        </fieldset>
+        <fieldset>
+            <span class="fieldLabel">Starting from</span>
+            <select dku-bs-select
+                ng-model="step.params.startFrom"
+                class="submit-on-blur"
+                next-on-enter>
+                <option value="beginning">Beginning</option>
+                <option value="end">End</option>
+            </select>
+        </fieldset>
+    </div>
+</form>

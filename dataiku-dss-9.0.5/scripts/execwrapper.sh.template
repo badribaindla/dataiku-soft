@@ -1,0 +1,28 @@
+#! /bin/sh -e
+# DSS impersonation wrapper
+# To be called as: sudo -n /PATH/TO/execwrapper.sh ACTION ARGUMENT...
+
+# Configuration variables
+PYTHONBIN="{{PYTHONBIN}}"
+PYTHONDIR="{{PYTHONDIR}}"
+CONFIGDIR="{{CONFIGDIR}}"
+
+if [ $# -lt 1 ]; then
+  echo >&2 "Usage: $0 ACTION [ARGUMENT ...]"
+  exit 1
+fi
+ACTION="$1"
+shift
+
+case "$ACTION" in
+	"execute")
+		exec "$PYTHONBIN" "$PYTHONDIR"/exec.py "$CONFIGDIR" "$@"
+		;;
+	"acls")
+		exec "$PYTHONBIN" "$PYTHONDIR"/acls.py "$CONFIGDIR" "$@"
+		;;
+	*)
+		echo >&2 "Invalid action: $ACTION"
+		exit 1
+		;;
+esac

@@ -1,0 +1,41 @@
+<div class="bc-results-cost-matrix">
+<h3>Cost matrix</h3>
+<table class="table cost-matrix" ng-class="{short: !showActualGain}">
+    <!--<tr> <th>Prediction</th> <th>Reality</th> <th></th>
+        <th>Unit gain</th> <th colspan="2">Count</th>
+        <th colspan="2">Gain</th></tr>-->
+    <tr>
+        <td rowspan="2">If model predicts<br><code ng-bind="modelData.classes[1]" /></td>
+        <td class="success">and value is <code ng-bind="modelData.classes[1]" /></td>
+        <td>the gain is</td>
+        <td><input type="number" step="0.01" size="5" ng-model="headTaskCMW.tpGain"  ng-disabled="savedModel || evaluation" /></td>
+        <td>&times;</td> <td ng-bind="getMaybeWeighted(currentCutData.tp.records)"></td>
+        <td>=</td>       <td ng-bind="currentCutData.tp.records * headTaskCMW.tpGain | number : 2"></td>
+    </tr><tr>
+        <td class="error">but value is <code ng-bind="modelData.classes[0]" /></td>
+        <td>the gain is</td>
+        <td><input type="number" step="0.01" size="5" ng-model="headTaskCMW.fpGain"  ng-disabled="savedModel || evaluation" /></td>
+        <td>&times;</td> <td ng-bind="getMaybeWeighted(currentCutData.fp.records)"></td>
+        <td>=</td>       <td ng-bind="currentCutData.fp.records * headTaskCMW.fpGain | number : 2"></td>
+    </tr><tr>
+        <td rowspan="2">Model predicts<br><code ng-bind="modelData.classes[0]" /></td>
+        <td class="success">and value is <code ng-bind="modelData.classes[0]" /></td>
+        <td>the gain is</td>
+        <td><input type="number" step="0.01" size="5" ng-model="headTaskCMW.tnGain"  ng-disabled="savedModel || evaluation" /></td>
+        <td>&times;</td> <td ng-bind="getMaybeWeighted(currentCutData.tn.records)"></td>
+        <td>=</td>       <td ng-bind="currentCutData.tn.records * headTaskCMW.tnGain | number : 2"></td>
+    </tr><tr>
+        <td class="error">but value is <code ng-bind="modelData.classes[1]" /></td>
+        <td>the gain is</td>
+        <td><input type="number" step="0.01" size="5" ng-model="headTaskCMW.fnGain"  ng-disabled="savedModel || evaluation" /></td>
+        <td>&times;</td> <td ng-bind="getMaybeWeighted(currentCutData.fn.records)"></td>
+        <td>=</td>       <td ng-bind="currentCutData.fn.records * headTaskCMW.fnGain | number : 2"></td>
+    </tr><tr ng-if="showActualGain">
+        <th colspan="3">Average gain per record</th>
+        <th class="actual-gain" ng-bind="currentCutData.cmg | number : 2"></th>
+        <td>&times;</td> <td ng-bind="getMaybeWeighted(currentCutData.fn.records + currentCutData.fp.records + currentCutData.tn.records + currentCutData.tp.records)"></td>
+        <td>=</td>       <td ng-bind="(currentCutData.fn.records + currentCutData.fp.records + currentCutData.tn.records + currentCutData.tp.records) * currentCutData.cmg | number : 2"></td>
+    </tr>
+</table>
+
+</div>

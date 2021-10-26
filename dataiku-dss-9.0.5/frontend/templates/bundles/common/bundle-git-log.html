@@ -1,0 +1,24 @@
+<p ng-if="!changelog.logEntries.length" class="centered-info">
+    No change since previous bundle <span class="previous-bundle-id">{{changelog.previousBundleId}}</span>.
+</p>
+
+<div ng-if="changelog.logEntries.length">
+
+    <div class="bundle-commitlog">
+
+        <div ng-if="changelog.previousBundleId == null">
+            No previous bundle found, showing commits since project creation
+        </div>
+
+        <div ng-if="changelog.previousBundleId != null">
+            Showing commits since previous bundle <strong>{{changelog.previousBundleId}}</strong> <span ng-if="changelog.previousBundleTime">({{ changelog.previousBundleTime | date }})</span>
+        </div>
+
+        <div infinite-scroll="showMore()">
+            <div git-log log-entries="logEntries"
+                 last-status="changelog.previousBundleId == null ? 'Project creation' : 'Previous bundle: ' + changelog.previousBundleId + (changelog.previousBundleTime ? ' (' + (changelog.previousBundleTime | date) + ')' : '')"
+                 no-commit-diff="!!noCommitDiff"></div>
+        </div>
+
+    </div>
+</div>

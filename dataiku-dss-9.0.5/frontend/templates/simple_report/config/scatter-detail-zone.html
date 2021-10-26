@@ -1,0 +1,25 @@
+<ul add-remove ng-model="list" chart-drag-drop-list-replace="list" accept-drop="acceptCallback(data)">
+	<li ng-repeat="dimension in list track by $index" chart-drag-drop-list-item="list" class="chartdef-dropped chartdef-dropped-measure">
+		<div contextual-menu class="measure-wrapper" ng-click="toggleContextualMenu($event)">
+			<span class="measure"> 
+                <i class="icon-caret-down pull-left"></i>
+				<span dku-if="dimension.type == 'DATE'" class="measure-name" title="{{dimension.column}}">{{dimension.column}}</span>
+				<span dku-if="dimension.type == 'NUMERICAL'" class="measure-name" title="{{ dimension.column }}">{{ dimension.column }}</span>
+				<span dku-if="dimension.type == 'ALPHANUM'" class="measure-name" title="{{dimension.column}}">{{dimension.column}}</span>
+                <i class="icon-trash pull-right" ng-click="remove($index);"></i>
+			</span>
+			<div class="fixed-contextual-menu-align-left contextualMenu" ng-show="contextualMenu">
+				<form class="dkuform-chart-options">
+				<label ng-show="dimension.type == 'DATE'">
+					<span class="text">Date mode</span>
+					<select ng-model="dimension.dateMode" ng-options="x[0] as x[1] for x in dateFilterTypes" style="width: 100%"/>
+				</label>
+				<label ng-show="dimension.type == 'NUMERICAL'">
+					<span class="text">Treat as alphanum</span>
+					<input type="checkbox" ng-model="dimension.treatAsAlphanum" />
+				</label>
+			</form>
+		</div>
+	</div>
+</li>
+</ul>

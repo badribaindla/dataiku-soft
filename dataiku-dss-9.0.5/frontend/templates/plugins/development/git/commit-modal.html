@@ -1,0 +1,37 @@
+<div class="modal modal3 modal-w800" tab-model="uiState.activeTab">
+
+    <dku-modal-header-with-totem modal-title="Commit changes" modal-totem="icon-long-arrow-right" modal-class="has-border">
+        <dku-modal-tabs>
+            <li class="tab" tab-active="message">
+                <a tab-set="message">Message</a>
+            </li>
+            <li class="tab" tab-active="diff">
+                <a tab-set="diff">Diff</a>
+            </li>
+        </dku-modal-tabs>
+    </dku-modal-header-with-totem>
+
+    <div class="modal-body flex" ng-switch="uiState.activeTab" style="min-height: 200px">
+        <div class="fh">
+            <div block-api-error />
+
+            <div ng-switch-when="message" class="row-fluid h100 git-commit-message__container">
+                <div class="dku-border code-mirror h200px git-commit-message__editor" autocompletable-textarea no-markdown="true" no-tooltip-toolbar="true"
+                     ng-if="preparationData.diffEntries.length > 0">
+                    <textarea ng-model="uiState.message" ui-codemirror="commitEditorOptions" ng-if="commitEditorOptions" id="qa_plugindev_commit-textarea" />
+                </div>
+                <div class="text-info git-commit-message__editor" ng-if="preparationData.diffEntries.length === 0">
+                    <i class="icon-info-sign" />&nbsp;Nothing to commit
+                </div>
+            </div>
+
+            <div ng-switch-when="diff" class="row-fluid h100">
+                <div git-diff diff-entries="preparationData.diffEntries" class="git-commit-diff__viewer" />
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer modal-footer-std-buttons">
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+        <button type="button" class="btn btn--text btn--primary" id="qa_plugindev_create-commit" ng-click="gitCommit()" ng-disabled="preparationData.diffEntries.length === 0 || uiState.message.length === 0">Commit</button>
+    </div>
+</div>

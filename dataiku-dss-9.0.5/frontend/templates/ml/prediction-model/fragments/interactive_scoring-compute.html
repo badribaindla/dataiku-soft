@@ -1,0 +1,169 @@
+<div class="interactive-scoring__controls vertical-flex">
+    <div class="interactive-scoring__heading">
+        <span class="computation-params-gear" style="float:right" ng-click="toggleExplanationParamsPopin($event)">
+            <i class="icon-gear"></i>
+        </span>
+
+        <h3 class="interactive-scoring__header">Interactive Scoring</h3>
+        <div class="interactive-scoring__menu">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="safelyAddToBucket()" ng-disabled="!isDoneLoading()" onfocus="this.blur();">Add to Comparator</button>
+            <button class="btn btn--text btn--secondary" ng-click="changeView(SCORE_VIEW.COMPARE)">Compare ({{bucket.length}})</button>
+            <div custom-element-popup close-on-click="true" class="interactive-scoring__more-actions">
+                <button class="btn btn--icon btn--text btn--secondary btn--round mainzone" ng-click="togglePopover()">
+                    <i class="icon-dku-more"/>
+                </button>
+                <ul class="popover custom-element-popup-popover dropdown-menu">
+                    <li>
+                        <a ng-click="copyValues([getCurrentItem()])"><i class="icon-dku-copy-step"></i>&nbsp;Copy features</a>
+                    </li>
+                    <li>
+                        <a ng-click="openPasteDialog(SCORE_VIEW.COMPUTE)"><i class="icon-dku-paste-step"></i>&nbsp;Paste features</a>
+                    </li>
+                    <li>
+                        <a ng-click="!allFeaturesEmpty() && disableAllFeatures()" ng-class="{ 'disabled': allFeaturesEmpty() }"><span><i class="icon-empty"></i>&nbsp; Ignore all features</span></a>
+                    </li>
+                    <li>
+                        <a ng-click="resetAllFeaturesToDefault()"><i class="icon-undo"></i>&nbsp;Reset all features to default</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-scoring__control-body oa">
+        <div class="std-list-search-box interactive-scoring__search-box">
+            <span ng-if="!userFeatures" style="display: flex;">
+                <span class="add-on" ng-click="featureSortBy.isReversed = !featureSortBy.isReversed" style="cursor:pointer;"><i ng-class="featureSortBy.isReversed ? 'icon-sort-by-attributes-alt' : 'icon-sort-by-attributes'" /></span>
+                <select dku-bs-select class="input-group-btn interactive-scoring__feature-sort-by"  ng-model="featureSortBy.attribute" ng-options="opt.value as opt.label for opt in uiState.featureFilterOptions"></select>    
+            </span>
+            <span class="add-on" style="width: 50px;margin-left: 5px;"> <i class="icon-dku-search"></i></span>
+            <input class="interactive-scoring__search-bar" type="search" ng-model="search.name" placeholder="Filter..."/>
+        </div>
+        <div class="control-group" ng-if="uiState.hasPreparationSteps" >
+            <label class="dku-toggle interactive-scoring__prep_steps_toggle" >
+                <input type="checkbox" ng-model="uiState.applyPreparationScript" ng-change="onFeatureChange()" ng-click="sendBasicWT1Event()"
+                />
+                <span/>
+            </label>
+            Apply preparation script <i toggle="tooltip-right" container="body" data-html="true" title="The following values correspond to <br/> the {{uiState.applyPreparationScript ? 'input' : 'output'}} of the preparation script" class="icon-question-sign"></i> 
+        </div>
+
+        <div class="alert alert-warning" style="margin-top: 40px" ng-if="uiState.applyPreparationScript && uiState.couldNotRetrieveSchema">
+            <i class="icon-dku-warning"></i>
+            Could not fetch the input schema. Re-train this model to fix this issue.
+        </div>
+
+        <form name="featureForm">
+            <div class="interactive-scoring__feature" ng-repeat="feature in getFeatures() | filter:search:strict | filter:keepOnlyPartDimensions">
+                <div include-no-scope="/templates/ml/prediction-model/fragments/interactive_scoring-feature-input.html"></div>
+            </div>
+            <div class="interactive-scoring__feature" ng-repeat="feature in getFeatures() | filter:search:strict | filter:keepOnlyMainFeatures | orderBy:getFeatureOrderingExpression():isSortReversed():getFeatureComparator()">
+                <div include-no-scope="/templates/ml/prediction-model/fragments/interactive_scoring-feature-input.html"></div>
+            </div>
+            
+            <div ng-if="hasFilteredOutFeatures()" class="interactive-scoring__other-features">
+                <div class="interactive-scoring__features-caret" ng-click="showOtherFeatures = !showOtherFeatures">
+                    <i class="icon-caret-down" ng-if="showOtherFeatures"></i> 
+                    <i class="icon-caret-right" ng-if="!showOtherFeatures"></i> 
+                    Other features
+                </div>
+                <div ng-if="showOtherFeatures">
+                    <div class="interactive-scoring__feature" ng-repeat="feature in getFeatures() | filter:keepOtherFeatures | filter:search:strict | orderBy:getFeatureOrderingExpression(false):isSortReversed(false):getFeatureComparator(false)">
+                        <div include-no-scope="/templates/ml/prediction-model/fragments/interactive_scoring-feature-input.html"></div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="interactive-scoring__results oa">
+    <div class="interactive-scoring__results-header">
+
+        <h4 class="interactive-scoring__header interactive-scoring__prediction-header">
+            <div>
+                Prediction for {{ modelData.coreParams.target_variable }}:
+                <span ng-if="score !== undefined">
+                    <span ng-if="score">
+                        <span class="interactive-scoring__prediction" toggle="tooltip" title="{{ score.prediction }}">{{ formatPrediction(score.prediction) }}</span>
+                        <span ng-if="isMulticlass()"> - {{ getPredictedClassProba(score) }}%</span>
+                    </span>
+                    <span ng-if="!score" class="interactive-scoring__prediction interactive-scoring--greyed">None</span>
+                </span>
+            </div>
+        </h4>
+    </div>
+    <div ng-if="isBinaryClassification()" class="interactive-scoring__probability">
+        Probability for <span class="font-weight-semi-bold">{{ getPositiveClass() }}</span>:
+        <span ng-if="score" class="interactive-scoring__prediction">{{ getPositiveClassProba(score) }}%</span>
+        <span ng-if="!score" class="interactive-scoring--greyed">&nbsp; --</span>
+    </div>
+    <div class="interactive-scoring__results-body">
+        <div ng-if="errors.SCORE" api-error-alert="errors.SCORE" closable="true" error-foldable="false" />
+        <div ng-if="!errors.SCORE && computing['SCORE']" class="interactive-scoring__spinner-container">
+            <i class="dku-loader icon-spin dku-loader--inlined interactive-scoring__spinner"></i>
+        </div>
+        <div ng-if="!errors.SCORE && score !== undefined" style="height:100%">
+            <div ng-if="score === null" class="post-train-empty-state interactive-scoring__empty-state interactive-scoring--greyed">
+                <div class="post-train-empty-state__title">No prediction</div>
+                <p class="post-train-empty-state__explanation" ng-if="allFeaturesEmpty()">Set a feature value to compute a prediction</p>
+                <p class="post-train-empty-state__explanation" ng-if="!allFeaturesEmpty()">This row may have been ignored by the preparation script or the model.</p>
+            </div>
+            <div ng-if="score" class="h100">
+                <svg 
+                    ng-if="isClassification()" 
+                    prediction-bar-chart 
+                    style="width: 100%; height: 250px" 
+                    data="predictions"
+                    threshold="isOnPartitionedBaseModel() ? undefined : threshold"
+                ></svg>
+                <svg 
+                    ng-if="isRegression() && scale" 
+                    style="width: 100%;" 
+                    multi-line-chart 
+                    class="flex interactive-scoring__regression-chart"           
+                    height="100%"
+                    data-ys="axes.ys" 
+                    data-x="axes.x"
+                    data-x-marks="xm"
+                    data-x-mark-label-position="'top'"
+                    data-labels="labels" 
+                    data-axes="dataAxes"
+                    data-colors="['#D5D9D9', '#222222']" 
+                    data-format="predictionFormat()"
+                    data-options="{area: true}"
+                    hide-legend="true"
+                    disable-interactive-layer="true"
+                    data-x-scale="scale"
+                ></svg>
+            </div>
+        </div>
+    </div>
+    <div class="interactive-scoring__results-header">
+        <h4 class="interactive-scoring__header">Most influential features for <span class="interactive-scoring__prediction">{{ modelData.coreParams.target_variable }}</span> <span class="text-weak">({{ explanationParams.method }})</span></h4>
+    </div>
+    <div class="interactive-scoring__results-body interactive-scoring__results-body--explanations">
+        <div ng-if="errors.EXPLANATION" api-error-alert="errors.EXPLANATION" closable="true" error-foldable="false" />
+
+        <div ng-if="!errors.EXPLANATION">
+            <div ng-if="computing['EXPLANATION'] || outdatedExplanations" class="interactive-scoring__spinner-container">
+                <i class="dku-loader icon-spin dku-loader--inlined interactive-scoring__spinner" ng-if="computing['EXPLANATION']"></i>
+            </div>
+    
+            <div ng-if="explanations === null || getExplanationIncompatibility()" class="post-train-empty-state interactive-scoring__empty-state interactive-scoring--greyed">
+                <div class="post-train-empty-state__title">No explanations</div>
+                <p class="post-train-empty-state__explanation" ng-if="!getExplanationIncompatibility() && allFeaturesEmpty()">Set a feature value to compute a prediction</p>
+                <p class="post-train-empty-state__explanation" ng-if="getExplanationIncompatibility()">{{getExplanationIncompatibility()}}</p>
+            </div>
+    
+            <table ng-if="!errors.EXPLANATION && explanations" class="table table-striped explanations-table">
+                <tr ng-repeat="explanation in explanations">
+                    <th ng-style="{'width': barContainerWidth + 'px'}" title="{{explanation.value | number: 3}}" >
+                        <div class="explanation-card__explanation-bar explanation-bar--large" 
+                        ng-style="{ 'width' : explanation.barWidthRatio*barMaxWidth + 'px', 'background-color': explanation.value > 0 ? '#29AF5D' : '#F44336', 'margin-left': getExplanationXBarPosition(topExplanationValue, explanation.value) + 'px'}"></div>
+                    </th>
+                    <th class="explanations-cell--large"> {{ explanation.feature }} </th>
+                </tr>
+            </table> 
+        </div>
+    </div>
+</div>

@@ -1,0 +1,59 @@
+<div class="main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+    <div class="object-nav analysis-top-tabs horizontal-flex no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width" navigator-object navigator-disabled="insight.type != 'runnable-button'" global-keydown="{'ctrl-s meta-s':'saveInsight()'}">
+        <div std-object-breadcrumb class="flex oh" />
+        <div class="tabs noflex">
+            <a fw500-width
+                class="tab"
+                ng-class="{enabled: topNav.tab == 'summary'}"
+                href="{{$state.href('projects.project.dashboards.insights.insight.summary')}}">
+                Summary
+            </a>
+            <a fw500-width
+                class="tab"
+                ng-class="{enabled: topNav.tab == 'view'}"
+                href="{{$state.href('projects.project.dashboards.insights.insight.view')}}">
+                View
+            </a>
+            <a fw500-width
+                class="tab"
+                ng-if="canEditInsight(insight) && hasEditTab(insight)"
+                ng-class="{enabled: topNav.tab == 'edit'}"
+                href="{{$state.href('projects.project.dashboards.insights.insight.edit')}}" ng-if="hasEditTab(insight)">
+                Edit
+            </a>
+
+            <div class="otherLinks">
+
+                <span ng-if="originDashboardStateParams">
+                    <button class="btn btn--primary" ng-click="backToDashboard()">
+                        <i class="icon-arrow-left" />&nbsp;&nbsp; Back to dashboard
+                    </button>
+                </span>
+
+                <a class="btn btn--contained btn--lab"
+                   ng-if="projectSummary.canReadProjectContent && insight && DashboardUtils.getInsightSourceType(insight)"
+                   href="{{$root.StateUtils.href.dssObject(DashboardUtils.getInsightSourceType(insight), DashboardUtils.getInsightHandler(insight.type).getSourceId(insight), insight.projectKey)}}">
+                    <span>Go to source {{DashboardUtils.getInsightSourceType(insight) | niceConst | lowercase}}</span>
+                </a>
+
+                <span ng-if="topNav.tab == 'edit' && canEditInsight(insight) && hasEditTab(insight)">
+                    <span object-save-button save="saveInsight" can-write-override="true" can-save="true" is-dirty="isDirty()" object-id="insight.id" object-type="INSIGHT" dropdown-align-right="true" />
+                </span>
+
+                <div class="dropdown" style="margin-left: 5px" id="qa_insights_actions-dropdown" ng-if="canWriteDashboards() || canModerateDashboards() || isProjectAnalystRO() || insight.type == 'report' || (insight.type == 'dataset_table' && canExportDatasetsData())">
+                    <button class="mainzone btn btn--secondary" id="qa_generic_actions-dropdown" onfocus="this.blur();" ng-click="standardizedSidePanel.toggleTab('actions')">
+                        Actions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dss-page">
+        <div block-api-error />
+        <div ui-view class="h100" style="position: relative;" />
+    </div>
+</div>
+
+<standardized-side-panel page="object" object-type="INSIGHT" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" close-on-click-outside="true">
+</standardized-side-panel>

@@ -1,0 +1,1718 @@
+// Generic directive for Flow Graph, both in Flow editor page and flow runtime page
+@background-with-zones: #F9F9F9;
+#flow-graph {
+    @opacity-filtered-out: 0.15;
+    @opacity-unhighlight: 0.35;
+    @opacity-highlight: 1;//0.75;
+    @opacity-base: 1;//0.75; // Nodes are normally a bit transparent so that they are stronger when selected
+    @color-filtered-out: @grey-lighten-7;
+
+    cursor: grab;
+    .moving {
+        cursor: move;
+    }
+
+    .mx-node-color-rgba(@color, @opacity) {
+        color: rgba(red(@color), green(@color), blue(@color), @opacity);
+    }
+
+    .mx-node-opacity(@color) {
+        &.highlight, &:not(.filter-remove):hover {
+            .mx-node-color-rgba(@color, @opacity-highlight);
+        }
+        &.fade-out, &.fade-out--no-filter {
+           .mx-node-color-rgba(@color, @opacity-unhighlight);
+        }
+        &.filter-remove:not(.fade-out--no-filter) {
+            .mx-node-color-rgba(@color, @opacity-filtered-out);
+            &:not(.focus) > g {
+                .mx-node-color-rgba(@text-weak, @opacity-filtered-out);
+            }
+        }
+        &.selected.selected {
+            color: @color;
+        }
+    }
+
+    .mx-node-fill(@color) {
+        fill: @color;
+        color: @color;
+        .nodelabel-wrapper {
+            overflow: hidden;
+            span {
+                color: @white-base;
+                background: @color;
+            }
+        }
+        .mx-node-opacity(@color);
+    }
+    .mx-ml-recipe-flow-icon {
+        .mx-node-fill(@ml-recipe-color);
+    }
+    .mx-visual-recipe-flow-icon {
+        .mx-node-fill(@visual-recipe-color);
+    }
+    .mx-code-recipe-flow-icon {
+        .mx-node-fill(@code-recipe-color);
+    }
+    .mx-continuous-recipe-flow-icon {
+        .mx-node-fill(@streaming-endpoint-color);
+    }
+
+    .recipeicon-pig,
+    .recipeicon-hive,
+    .recipeicon-impala,
+    .recipeicon-python,
+    .recipeicon-julia,
+    .recipeicon-shell,
+    .recipeicon-r,
+    .recipeicon-sql_script,
+    .recipeicon-sql_query,
+    .recipeicon-pyspark,
+    .recipeicon-sparkr,
+    .recipeicon-spark_scala,
+    .recipeicon-spark_sql_query { .mx-code-recipe-flow-icon  }
+
+    .recipeicon-shaker,
+    .recipeicon-sync,
+    .recipeicon-update,
+    .recipeicon-sampling,
+    .recipeicon-grouping,
+    .recipeicon-distinct,
+    .recipeicon-join,
+    .recipeicon-fuzzyjoin,
+    .recipeicon-split,
+    .recipeicon-topn,
+    .recipeicon-sort,
+    .recipeicon-pivot,
+    .recipeicon-vstack,
+    .recipeicon-merge_folder,
+    .recipeicon-window,
+    .recipeicon-download,
+    .recipeicon-export { .mx-visual-recipe-flow-icon  }
+    
+    .recipeicon-csync,
+    .recipeicon-cpython,
+    .recipeicon-ksql,
+    .recipeicon-streaming_spark_scala { .mx-continuous-recipe-flow-icon  }    
+
+    .recipeicon-prediction_training,
+    .recipeicon-prediction_scoring,
+    .recipeicon-clustering_training,
+    .recipeicon-clustering_scoring,
+    .recipeicon-evaluation,
+    .recipeicon-standalone_evaluation,
+    .recipeicon-clustering_cluster { .mx-ml-recipe-flow-icon }
+
+    .recipeicon-custom-code { .mx-node-fill(@custom-recipe-color); }
+    .recipeicon-app { .mx-node-fill(@grey-lighten-3); }
+
+    display: block;
+    &:not(.with-zones) {
+        background: @white-base;
+    }
+    &.with-zones {
+        background: @background-with-zones;
+    }
+    height: 100%;
+
+    svg {
+        width: 100% !important;
+        height: 100% !important;
+        &.crosshair {
+            cursor: crosshair;
+        }
+        g.node:not(.zone):not(.zone_label), g.edge{
+            &.highlight {
+                fill-opacity: @opacity-highlight;
+                stroke-opacity: @opacity-highlight;
+            }
+            &.fade-out, &.fade-out--no-filter {
+                fill-opacity: @opacity-unhighlight;
+                stroke-opacity: @opacity-unhighlight;
+            }
+            &.filter-remove:not(.fade-out--no-filter) {
+                fill-opacity: @opacity-filtered-out;
+                stroke-opacity: @opacity-filtered-out;
+                &.selected:not(.focus) > g {
+                    color: @text-weak;
+                }
+                &:not(.focus) > g {
+                    .mx-node-color-rgba(@text-weak, @opacity-filtered-out);
+                    fill: @grey-lighten-3;
+                }
+            }
+            &.fade-out:not(:hover):not(.selected),
+            &.filter-remove:not(.selected) {
+                .dataset-zone-imported, .dataset-zone-exported {
+                    fill-opacity: calc(~"0.2 * "@opacity-unhighlight); // Base opacity + faded
+                }
+                .folder-zone-imported, .model-zone-imported, .partitioning-indicator {
+                    fill-opacity: calc(~"0.5 * "@opacity-unhighlight); // Base opacity + faded
+                }
+            }
+
+            .nodelabel-wrapper span {
+                color: @white-base;
+                background: #2196F3;
+            }
+            &:not(.selected) {
+                .nodelabel-wrapper span {
+                    color: inherit;
+                    background: none;
+                }
+                .selection-outline {
+                    visibility: hidden;
+                }
+            }
+        }
+        g.zone_cluster {
+            cursor: pointer;
+            polygon {
+                stroke: @grey-lighten-5;
+                stroke-width: 1px;
+                fill: @white-base;
+            }
+        }
+
+        g.zone_cluster.selected polygon {
+            stroke: inherit;
+            fill: @white-base;
+            stroke-width: 2;
+        }
+        g.node:not(.zone):not(.zone_label) {
+            cursor: pointer;
+            text-align: center;
+            opacity: @opacity-base;
+            .selection-outline {
+                fill: none;
+                stroke: #007eff;
+                stroke-width: 2px;
+            }
+            &:not(.filter-remove):hover {
+                fill-opacity: @opacity-highlight;
+                stroke-opacity: @opacity-highlight;
+            }
+
+            .flow-totem-ok, .flow-totem-error, .flow-totem-disabled, .avatar32 {
+                border: 2px solid @white-base;
+            }
+            .flow-totem-ok, .flow-totem-error, .flow-totem-disabled {
+                color: @white-base;
+                font-size: 17px;
+                border-radius: 50%;
+                display: inline-block;
+                width: 30px;
+                height: 30px;
+                padding: 4px 1px 0 0;
+                box-sizing: border-box;
+            }
+            .flow-totem-ok {
+                background: @digital-green-base;
+            }
+            .flow-totem-error {
+                background: @error-red-base;
+            }
+            .flow-totem-disabled {
+                background: @grey-background;
+            }
+            .flow-totem-ok.icon-forward {
+                font-size: 16px;
+                padding: 5px 7px;
+            }
+
+            .flow-discussions-sticker__background {
+                fill: @white-base;
+            }
+
+            .flow-discussions-sticker__indicator {
+                overflow: visible;
+                color: @bright-gray-base;
+                font-size: 19px;
+            }
+
+            .flow-discussions-sticker__indicator--unread {
+                color: @dataset-color;
+            }
+
+            .flow-discussions-sticker__content {
+                color: @white-base;
+                font-size: 10px;
+            }
+
+            .flow-information-sticker__background {
+                fill: @white-base;
+            }
+
+            .flow-information-sticker__indicator {
+                overflow: visible;
+                color: @bright-gray-lighten-1;
+                font-size: 17px;
+            }
+
+            &[data-type=RECIPE] {
+                .flow-discussions-sticker__indicator {
+                    font-size: 35px;
+                }
+                .flow-discussions-sticker__content {
+                    font-size: 19px;
+                }
+                .flow-information-sticker__indicator {
+                    font-size: 34px;
+                }
+            }
+
+            &.filter-remove {
+                .never-built-computable.never-built-computable.never-built-computable {
+                    .main-dataset-rectangle {
+                        stroke: @grey-lighten-3;
+                    }
+                    .nodeicon, .nodelabel-wrapper {
+                        color: inherit;
+                    }
+                    .selection-outline {
+                        stroke: @grey-lighten-3;
+                    }
+                }
+            }
+
+            .never-built-computable.never-built-computable.never-built-computable {
+                .main-dataset-rectangle, .partitioning-indicator {
+                    &:not(.dataset-zone-imported) {
+                        fill: @white-base !important;
+                    }
+                    stroke: @dataset-color;
+                    stroke-dasharray: 5,5;
+                }
+                .nodeicon, .nodelabel-wrapper {
+                    color: inherit;
+                }
+                .selection-outline {
+                    stroke-dasharray: 5,5;
+                }
+            }
+        }
+        g.edge {
+            text {
+                display: none;
+            }
+            ellipse {
+                fill: #000001; // Can't use full black as it is converted to white when exporting the flow in PDF.
+            }
+            stroke: @grey-lighten-3;
+            stroke-width: 0.7px;
+
+            &:not(.filter-remove):hover,
+            &.highlight {
+                fill-opacity: 1;
+                stroke-opacity: 1;
+                path {
+                    stroke-width: 2px;
+                    stroke: @grey-lighten-1;
+                }
+                ellipse {
+                    fill: #000001; // Can't use full black as it is converted to white when exporting the flow in PDF.
+                }
+            }
+            &.grey-out-path {
+                path.grey-out-path {
+                    stroke: #e9e9e9;
+                }
+
+                ellipse.grey-out-path {
+                    stroke: #e9e9e9;
+                    fill: #e9e9e9;
+                }
+             }
+        }
+
+        g[data-type] {
+            .icon-being-built {
+                color: @success-green-base;
+                font-size: 20px;
+            }
+            .icon-continuous-activity-done {
+                color: @warning-background-strong;
+                font-size: 20px;
+            }
+            .icon-about-to-be-built {
+                color: @success-green-base;
+                font-size: 20px;
+            }
+
+            >.dataset-rectangle {
+                stroke-width: 2px;
+                stroke: @white-base;
+            }
+            .dataset-zone-exported {
+                stroke-width: 1px;
+                fill-opacity: 0.2;
+                stroke: @dataset-color;
+                stroke-dasharray: 4 2;
+            }
+            .dataset-zone-imported.dataset-zone-imported {
+                fill-opacity: 0.2;
+                &.main-dataset-rectangle {
+                    stroke-width: 1px;
+                    stroke: @dataset-color;
+                    stroke-dasharray: 4 2;
+                }
+            }
+            .model-zone-exported {
+                &.sm-icon path{
+                    transform : translate(5px, 5px) scale(0.9);
+                }
+                &.fill {
+                    stroke-width: 1px;
+                    fill-opacity: 0.2;
+                    stroke: @analysis-color;
+                    stroke-dasharray: 4 2;
+                }
+            }
+            .model-zone-imported.model-zone-imported {
+                fill-opacity: 0.6;
+                stroke-width: 2px;
+                stroke: @analysis-color;
+                stroke-dasharray: 4 2;
+            }
+            .folder-zone-imported.folder-zone-imported {
+                fill-opacity: 0.5;
+            }
+            .partitioning-indicator {
+                fill-opacity: 0.5;
+            }
+            .node__rectangle--blank {
+                color: @white-base;
+                fill: @white-base;
+                fill-opacity: 1.0;
+            }
+            .node__rectangle--partitioned {
+                stroke-width: 2px;
+                stroke: @white-base;
+            }
+            .nodeicon {
+                color: @white-base;
+                font-size: 42px;
+                .icon-bar-chart {
+                    font-size: 39px;
+                }
+            }
+            .nodeicon-not-inverted {
+                color: inherit;
+                font-size: 42px;
+            }
+            .nodeicondataset-imported {
+                color: inherit;
+                font-size: 42px;
+            }
+
+            .nodeicon-small {
+                color: @white-base;
+                font-size: 15px;
+            }
+            .nodeicon-small-dark {
+                color: @grey-lighten-5;
+                font-size: 15px;
+            }
+
+            .nodelabel-wrapper {
+                p, span {//p is deprecated
+                    .mx-ssp(12px, @font-weight-normal);
+                    display: inline-block;
+                    line-height: 1.2;
+                    opacity: 1;
+                    // When selected, we use a background so the element should have a proper size
+                    padding: 1px 6px;
+                    border-radius: 3px;
+                }
+            }
+        }
+
+        g[data-type=LOCAL_DATASET] {
+            .mx-node-fill(@dataset-color);
+        }
+        g[data-type=FOREIGN_DATASET] {
+            .mx-node-fill(#000001); // Can't use full black as it is converted to gray in PDF when exporting the flow.
+
+            .dataset {
+                &.error {
+                    fill: @error-red-base;
+                }
+                &.good {
+                    fill: @info-blue-base;
+                }
+            }
+            .nodelabel-wrapper span {
+                color: @white-base;
+                background: @grey-base;
+            }
+
+            .top {
+                fill: @white-base;
+                opacity: 0.1;
+            }
+        }
+        g[data-type=LOCAL_STREAMING_ENDPOINT] {
+            .mx-node-fill(@streaming-endpoint-color);
+        }
+        
+        g[data-type=LOCAL_SAVEDMODEL] {
+            .mx-ml-recipe-flow-icon;
+        }
+        g[data-type=LOCAL_MODELEVALUATIONSTORE] {
+            .mx-ml-recipe-flow-icon;
+        }
+        g[data-type=LOCAL_MANAGED_FOLDER] {
+            .mx-node-fill(@dataset-color);
+        }
+        g[data-type=FOREIGN_MANAGED_FOLDER], g[data-type=FOREIGN_SAVEDMODEL], g[data-type=FOREIGN_MODELEVALUATIONSTORE] {
+          .mx-node-fill(#000001); // Can't use full black as it is converted to gray in PDF when exporting the flow.
+        }
+        g[data-type=RECIPE] {
+            .recipe {
+                fill: @white-base;
+            }
+            &[data-state~=DONE] {
+                .recipe {
+                    fill: @success-green-base;
+                }
+            }
+            &[data-state~=RUNNING] {
+                .recipe {
+                    fill: @info-blue-base;
+                }
+            }
+            &[data-state~=FAILED] {
+                .recipe {
+                    fill: @error-red-base;
+                }
+            }
+            &:not(.selected) {
+                .nodelabel-wrapper {
+                    visibility: hidden;
+                }
+            }
+        }
+
+        // Special node type in navigator
+        g[data-type=ANALYSIS] {
+            .mx-node-fill(@analysis-color);
+        }
+        g[data-type=JUPYTER_NOTEBOOK], g[data-type=SQL_NOTEBOOK] {
+            .mx-node-fill(@notebook-color);
+        }
+
+        .node-top-label {
+            text-align: center;
+            font-size: 14px;
+            color: @grey-lighten-1;
+            span {
+                background: rgba(255, 255, 255, 0.7);
+            }
+        }
+    }
+
+    &.navigator {
+        svg {
+            g[data-type]:not(g[data-type=LOCAL_SAVEDMODEL]) {
+                &.selected.selected, &.highlight, &:not(.filter-remove):hover {
+                    color: @white-base;
+                }
+            }
+        }
+    }
+
+    &:not(.no-animation) {
+        g.node, g.edge {
+            .dkutransition(~'all 0.20s ease-in');
+        }
+    }
+
+    &.rectangle-selection svg {
+        cursor: crosshair;
+    }
+
+    &.has-selection svg{
+        g.node:not(.zone):not(.zone_label) {
+            fill-opacity: @opacity-unhighlight;
+            stroke-opacity: @opacity-unhighlight;
+            &.highlight{
+                fill-opacity: @opacity-highlight;
+                stroke-opacity: @opacity-highlight;
+            }
+            &.selected {
+                fill-opacity: 1;
+                stroke-opacity: 1;
+                .nodelabel-wrapper {
+                    overflow: initial;
+                }
+            }
+            &:not(.highlight):not(:hover):not(.selected) {
+                .dataset-zone-imported, .dataset-zone-exported {
+                    fill-opacity: calc(~"0.2 * "@opacity-unhighlight); // Base opacity + faded
+                }
+                .folder-zone-imported, .model-zone-imported, .partitioning-indicator {
+                    fill-opacity: calc(~"0.5 * "@opacity-unhighlight); // Base opacity + faded
+                }
+            }
+        }
+        & g.zone_cluster:not(.clusterHighlight) .zone_header {
+            .graph-zoned-cluster__no-color;
+        }
+
+        g.edge.select-preview > path {
+            stroke-width: 3;
+        }
+    }
+
+    @keyframes fold-fade-in {
+        from {opacity: 0;}
+        to {opacity: 1}
+    }
+
+
+    & svg{
+
+        .edge.folded-edge.folded-nested.folded-boundary-edge.unfold-preview > path {
+            opacity: 0;
+        }
+
+        .fold-transition .folded-icon {
+            animation: fold-fade-in 0.5s; //use animation on new elements
+        }
+
+        g.node, g.edge {
+
+            &.select-preview > path {
+                stroke-width: 2;
+            }
+
+            &.fold-preview > path, &.fold-preview .folded-icon > path,
+            &.unfold-preview > path, &.unfold-preview .folded-icon > path {
+                stroke-dasharray: 8;
+                stroke-width: 2;
+            }
+
+            &.fold-transition, &.fold-transition * {
+                transition: opacity 0.5s ease, visibility 0.5s ease;
+            }
+            &.folded-nested {
+                visibility: hidden;
+                opacity: 0;
+
+                &.unfold-preview {
+                    visibility: visible;
+                    opacity: 0.4;
+                    pointer-events: none;
+                }
+
+                .folded-boundary-marker-circle {
+                    pointer-events: none;
+                }
+
+            }
+            &.folded-node.folded-node {
+                visibility: hidden;
+                opacity: 0;
+
+                &.unfold-preview {
+                    visibility: visible;
+                    opacity: 0.4;
+                    pointer-events: none;
+                }
+
+                .folded-icon {
+
+                }
+            }
+            &.folded-edge {
+                path, ellipse {
+                    opacity: 0;
+                }
+                .folded-boundary-marker {
+                    opacity: 1;
+                }
+
+                &.unfold-preview {
+                    path, ellipse {
+                        opacity: 0.4;
+                        pointer-events: none;
+                    }
+                    .folded-boundary-marker {
+                     //   opacity: 0;
+                    }
+                }
+            }
+            &.folded-boundary-edge.folded-boundary-edge, &.folded-edge.folded-boundary-edge {
+                path {
+                    opacity: 0;
+                    pointer-events:none;
+                }
+
+                ellipse { //end of the exiting line
+                    opacity: 0;
+                    pointer-events:none;
+                }
+
+                &.unfold-preview > path, &.unfold-preview > ellipse {
+                    opacity: 0.4;
+                    pointer-events: none;
+                }
+
+                path.folded-boundary-marker-line {
+                    opacity: 1;
+                }
+
+                path.folded-boundary-marker-plus {
+                    cursor: pointer;
+                    opacity: 1;
+                    stroke: #0b93d5;
+                    stroke-width: 2px;
+                }
+
+                .folded-boundary-marker-circle {
+                    visibility: visible;
+                    cursor: pointer;
+                    stroke: #0b93d5;
+                    stroke-width: 2px;
+                    fill: white;
+                }
+
+                &:hover {
+                    .folded-boundary-marker-circle {
+                        fill: #0b93d5;
+                    }
+                    path.folded-boundary-marker-plus {
+                        stroke: white;
+                    }
+                }
+
+            }
+        }
+    }
+
+    .svg-debug-text {
+        display: block !important;
+    }
+
+    &.with-flow-view-focus svg {
+        g.node.out-of-focus {
+            .bzicon {
+                fill: @color-filtered-out !important;
+                color: @color-filtered-out !important;
+            }
+            .partitioning-indicator {
+                fill: @color-filtered-out !important;
+            }
+            &:not(.selected) {
+                .nodelabel-wrapper span {
+                    color: @color-filtered-out !important;
+                }
+            }
+
+            .never-built-computable.never-built-computable {
+                .main-dataset-rectangle {
+                    stroke: @grey-lighten-7 !important;
+                }
+                .nodeicon, .nodelabel-wrapper {
+                    color: @grey-lighten-7 !important;
+                }
+            }
+        }
+        g.zone_cluster {
+            & .zone_header {
+                .graph-zoned-cluster__no-color;
+            }
+            &.out-of-focus {
+                background-color: @color-filtered-out !important;
+                color: @text-important !important;
+                stroke: @color-filtered-out !important;
+            }
+            & .tool-simple-zone {
+                stroke: none;
+            }
+        }
+    }
+}
+
+.graph-zoned-cluster__no-color {
+    // !important because these are set by js directly on style
+    color: inherit !important;
+    background-color: inherit !important;
+    stroke: inherit !important;
+}
+
+.zone_cluster{
+    &:not(.selected) .zone_header div {
+        height: ~"calc(100% - 1px)";
+        border-bottom: 1px solid @grey-lighten-5;
+    }
+}
+
+.zone_header {
+    background-color: inherit;
+}
+
+.zone_header div {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    line-height: 100%;
+    font-size: 22px;
+    margin: 0px;
+    background-color: inherit;
+}
+
+.zone_header p {
+    margin: auto;
+    padding: 0px 0px 0px 16px;
+    flex: 1 1 auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 2;
+}
+
+.zone_header i {
+    margin-right: 16px;
+}
+
+#flow-widgets-container {
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    pointer-events: none;
+    & > * {
+        pointer-events: initial;
+    }
+
+}
+
+@flow-zone-controls-height: 30px;
+
+.flow_zone_controls {
+    background: transparent;
+    height: @flow-zone-controls-height;
+}
+
+.flow--zoomed.flow--zoomed {
+    width: ~"calc(100% - 4px)";
+    height: ~"calc(100% - @{flow-zone-controls-height} - 2px)";
+    margin-right: auto;
+    margin-left: auto;
+    background-color: white;
+}
+
+.flow-widgets-container--zoomed {
+    top: ~"calc(@{flow-zone-controls-height} + 10px)" !important;
+}
+
+.selectpicker--zoomed.selectpicker--zoomed {
+    background-color: transparent;
+    border-color: transparent;
+}
+
+
+@keyframes animated-selection {
+  0% { stroke-dashoffset: 0; }
+  33% { stroke-dashoffset: 3; }
+  66% { stroke-dashoffset: 6; }
+  100% { stroke-dashoffset: 9; }
+}
+#flow-selection-rectangle {
+    fill-opacity: 0.13;
+    stroke-dasharray: 8, 12;
+    stroke: @grey-lighten-3;
+    stroke-width: 1;
+}
+
+#flow-tool-zone {
+    position: absolute;
+    bottom: 0;
+    width: 260px;
+
+    .tool-selector {
+        width: 260px;
+        .selector.selector.selector {
+            width: 100%;
+            text-align: left;
+            text-transform: initial;
+            .mx-ssp(13px, @font-weight-normal);
+            .mx-textellipsis;
+        }
+    }
+
+    .flow-tool-mainzone {
+        margin-bottom: 10px;
+        width: 260px;
+        box-sizing: border-box;
+        background: @white-base;
+        border: 1px solid @border-color;
+
+        .header {
+            padding: 0 10px;
+            border-bottom: 1px solid @border-color;
+            h5 {
+                margin: 5px 0;
+                font-weight: @font-weight-semi-bold;
+            }
+            .close {
+                outline: none;
+            }
+            .zoom {
+                color: @grey-lighten-6;
+                margin: 3px 6px;
+                &:hover {
+                    color: @grey-lighten-5;
+                }
+            }
+        }
+
+        .tool-progress {
+            padding: 10px;
+        }
+
+        .tool-options-form {
+            label.control-label {
+                line-height: 14px;
+                font-size: 12px;
+            }
+            input[type=checkbox] {
+                margin: 0;
+            }
+        }
+
+        ul.tool-facet{
+            .mx-tool-facet;
+            margin-bottom: 10px;
+            .tool-state {
+                margin-top: 5px;
+            }
+            label {
+                padding-left: 5px;
+                padding-right: 10px;
+            }
+            .bullet {
+                top: 5px;
+            }
+        }
+        .tool-actions {
+            line-height: 26px;
+            margin: 5px 10px 5px;
+        }
+
+        .multi-update-text, .update-text {
+            margin:0 10px 0px 10px;
+            padding:2px;
+            border-radius:2px;
+            background-color: @info-background-light;
+            height: 50px;
+            line-height:50px;
+            word-break: break-word;
+            overflow: hidden;
+            span {
+                width: 100%;
+                display: inline-block;
+                vertical-align: middle;
+                line-height: 16px;
+                text-align: center;
+            }
+        }
+        .update-text {
+            height:20px;
+            line-height: 20px;
+        }
+        .control-group.disabled {
+            opacity: 0.4;
+        }
+    }
+
+    input[type="date"]::-webkit-outer-spin-button,
+    input[type="date"]::-webkit-inner-spin-button,
+    input[type="date"]::-webkit-clear-button { /* Removes the cross to clear and the buttons to increment/decrement */
+        -webkit-appearance: none;
+        margin: 0;
+    }
+}
+
+.propagate-schema-tool__options-form {
+    margin-meft: 0;
+    margin-top: 10px;
+
+    .control-group label.control-label {
+        margin-bottom: 10px;
+        line-height: 15px;
+        height: auto;
+        font-size: 12px;
+        width: 210px;
+    }
+}
+
+ul.simple-list {
+    margin: 0;
+    li {
+        padding: 0 15px;
+        a {
+            .mx-link-nodecoration;
+            color: @text-weak;
+            &:hover {
+                color: @text-important;
+            }
+        }
+    }
+}
+
+#flow-editor-page {
+    background: @white-base;// Override color set by dss-home-page
+    position: relative;
+    margin: 0;
+
+    .mainPane {
+        padding: 0;
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        height: 100%;
+        width: 75%;
+
+        .search-menu {
+        	position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .new-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+
+        &.no-pointer-events {
+            // When the rectangle selection is active, not element on the mainPane should react to anything
+            // Only the svg itself needs to get mousemouse and mouseup
+            * {
+                pointer-events: none;
+            }
+            svg {
+                pointer-events: initial;
+            }
+        }
+
+        &.full-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3004; // higher than nav
+        }
+    }
+
+    .rightPane {
+        position: absolute;
+        right: 0;
+        width: ~"calc(100% - @{right-panel-bubbles-width})";
+        top: 0;
+        bottom:0;
+        .content {
+            overflow: auto;
+            height: 100%;
+            position: relative;
+
+            .notselected {
+                margin-top: 100px;
+                text-align: center;
+                color: @grey-lighten-5;
+                font-weight: @font-weight-normal;
+            }
+        }
+    }
+
+    #flow-search-input {
+        input {
+            width: 230px;
+        }
+    }
+
+    #flow-search-counter {
+        .mx-ssp(13px, @font-weight-normal);
+        &{
+            background: fade(@white-base, 80%);
+        }
+        &.with-zones {
+            background: fade(@background-with-zones, 80%);
+        }
+        position: absolute;
+        top: 27px;
+        padding-right: 40px; // Make room for the bootstrap tooltips
+        strong, small {
+            color: @grey-lighten-1;
+        }
+    }
+
+    .flow-search-popover {
+        position : absolute;
+        width : 300px;
+        top : 30px;
+        z-index : 2000;
+        background-color: @white-base;
+        box-shadow: 3px 3px 3px 3px rgba(0,0,0,0.3);
+        border-radius: 0 0 3px 3px;
+        font-size: 13px;
+        .no-match {
+            padding: 1em;
+            text-align: center;
+        }
+        .scrollzone {
+              max-height : 368px;
+            overflow: auto;
+        }
+        ul {
+            margin-bottom: 0;
+            li {
+                .actions {
+                    font-size: 10px;
+                    opacity: 0;
+                    a {
+                        text-decoration: none;
+                    }
+                }
+                &:hover {
+                    background: @selected-hover-color;
+                    .actions {
+                        opacity: 1;
+                    }
+                }
+                a {
+                    color: @text-weak;
+                    span:hover {
+                        text-decoration: underline;
+                    }
+                }
+                border-radius: 0;
+                padding-left: 5px;
+                padding-top: 5px;
+                padding-bottom: 2px;
+                min-height: 24px;
+                color: @text-weak;
+                line-height: 1.1em;
+                i {
+                    float: left;
+                    font-size: 1.7em;
+                    color: rgba(0,0,0,0.25);
+                    margin-right: 10px;
+                }
+                .title {
+                    max-width: 72%;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    display: inline-block;
+                }
+                small {
+                    color: rgba(0,0,0,0.4);
+                    text-decoration: none;
+                    font-size: 0.9em;
+                    margin-left: 0em;
+                    strong {
+                        text-transform: capitalize;
+                    }
+                }
+
+                date {
+                    display: inline;
+                    color: @grey-lighten-6;
+                    font-size: 10px;
+                }
+
+                .line2 {
+                    display: block;
+                    margin-left: 38px;
+
+                    ul.tags {
+                        font-size: 10px;
+                        margin: 0;
+
+                        li.tag {
+                            color: @white-base;
+                            display: inline;
+                            list-style: none;
+                            border-radius: 0.4em;
+                            margin-right: 0.3em;
+                            padding-top: 0.2em;
+                            padding-bottom: 0.2em;
+                            padding-left: 0.5em;
+                            padding-right: 0.5em;
+                            opacity: 0.7;
+                            &:hover {
+                                opacity: 1;
+                            }
+                        }
+
+                    }
+                }
+                &:hover {
+                     background: fade(@categorical-yellow-base, 7%);
+                }
+                &.active {
+                    color: @text-important;
+                    background: fade(@categorical-yellow-base, 23%);
+                }
+            }
+        }
+    }
+}
+
+.mx-tool-facet {
+    font-family: SourceSansPro;
+    font-weight: @font-weight-normal;
+
+    li {
+        label {
+            margin: 0;
+        }
+        &:hover, .single-focused {
+            background: @grey-background;
+            .global-tag-category-label {
+                background-color: @grey-lighten-7;
+            }
+        }
+    }
+    .bullet {
+        margin: 0 10px;
+        top: 7px;
+    }
+    .text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        overflow-wrap: break-word;
+        max-width: 178px;
+    }
+    .number {
+        text-align: right;
+        display: block;
+        width: 20px;
+    }
+}
+
+.flow-filter,
+.flow-filter__options-popover {
+    .mx-tool-facet;
+    li {
+        cursor: pointer;
+    }
+
+    .bullet {
+        top: 0;
+    }
+}
+
+[flow-filter] {
+    background-color: @success-green-base;
+    .flow-filter__controls {
+        .icon {
+            color: @text-weak;
+            &:hover {
+                color: @text-important;
+            }
+            cursor: pointer;
+            padding-left: 10px;
+        }
+    }
+    .active-filter{
+        font-weight: @font-weight-bold;
+    }
+    .flow-filter__mode-selector {
+        width: 240px !important;
+    }
+    .facet-filterable-list__value-list__items{
+        max-height: 100px;
+        overflow-y: auto;
+        padding-right: 10px;
+        margin-right: -10px;
+    }
+    .flow-filter__facet-title{
+        margin-top: 4px;
+        margin-bottom: 2px;
+    }
+    .flow-filter__option{
+        cursor: pointer;
+        color: @grey-lighten-1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        &:hover {
+            background: @white-base;
+        }
+    }
+    .flow-filter__filter-name{
+        white-space: nowrap;
+        max-width: 200px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+    .filter-line{
+        display: flex;
+    }
+}
+
+.flow-filter {
+    .flow-filter__daterangepicker{
+        .theInput{
+            width:240px;
+        }
+    }
+    .line {
+        margin-top: 10px;
+        &.flow-filter__filter-rule {
+            .bootstrap-select {
+                width: 100px !important;
+            }
+            .input-append > .theInput,
+            [custom-element-popup] > .dku-select-button {
+                width: 205px !important;
+
+            }
+        }
+    }
+
+}
+
+.flow-filter__typeahead.dropdown-menu{
+    overflow: hidden;
+}
+
+#flow-editor-page {
+    .flow-filter-toggle-button {
+        text-transform: initial;
+        .tooltip {
+            text-transform: none;
+        }
+    }
+}
+
+.flow-tool-selector-popover {
+    top: auto;
+    bottom: 40px;
+    left: 10px;
+    width: 260px;
+
+    padding: 7px;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.15);
+
+    h2 {
+        font-weight: @font-weight-normal;
+        font-size: 15px;
+        color: @text-weak;
+        border-bottom: 1px solid @border-color;
+        margin: 4px 0 3px 0;
+        line-height: 21px;
+    }
+
+    .flow-view:hover {
+        background: @white-base;
+    }
+
+    .views-group {
+        div {
+            padding-left: 20px
+        }
+    }
+
+    .active-view a {
+        color: #00aedb;
+        font-weight: @font-weight-bold;
+    }
+}
+
+.flow-tool-item-popover {
+    .buttons{
+        padding: 10px;
+    }
+    .main {
+        max-height: 200px;
+    }
+    .header {
+        padding: 15px;
+        border-bottom: 1px solid @border-color;
+        h5 {
+            margin: 10px 0;
+            font-weight: @font-weight-normal;
+            font-size:18px;
+            color: @grey-lighten-2;
+        }
+    }
+}
+
+.empty-flow-cta {
+    margin: 110px auto 0 auto;
+    width: 500px;
+
+    h1 {
+        margin-top: 0;
+        margin-bottom: 18px;
+        font-size: 30px;
+    }
+    p {
+        font-size: 14px;
+    }
+    p.image {
+        margin: 25px 0;
+    }
+    h1, p {
+        text-align: center;
+        font-weight: @font-weight-normal;
+        color: @text-weak;
+    }
+}
+
+.navigator-nav-bar-overlay {
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 100;
+
+    &:hover {
+        opacity: 0;
+    }
+}
+
+#flow-graph.navigator {
+    z-index: 200000;
+    background: rgba(255, 255, 255, 0.9);
+    top: 40px;
+    height: auto;
+
+    svg {
+        cursor: default;
+
+        foreignObject.recipe-icon, foreignObject.nav-nodeicon {
+            overflow: visible;
+        }
+
+        .recipeicon-custom-code {
+            .recipe-icon > div {
+                background-color: @custom-recipe-color;
+
+                i {
+                    color: @white-base;
+                    font-size: .5em;
+                    margin-top: 0.45em;
+                    display: inline-block;
+                }
+            }
+        }
+        .recipeicon-app {
+            .recipe-icon > div {
+                background-color: @grey-lighten-3;
+
+                i {
+                    color: @white-base;
+                    font-size: .5em;
+                    margin-top: 0.45em;
+                    display: inline-block;
+                }
+            }
+        }
+
+        .recipe-icon > div {
+            background-color: @white-base;
+            border-radius: 50%;
+            height: 100%;
+            width: 100%;
+        }
+
+        .dataset-info > div , .node-status > div {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+
+            &.center {
+                display: block;
+                text-align: center;
+                padding-top: 10px;
+
+                h6 span, .counts > span {
+                    padding: 3px;
+                    background: rgba(255, 255, 255, 0.7);
+                }
+            }
+
+            &.left {
+                flex-wrap: wrap-reverse;
+                text-align: right;
+                h6 {
+                    padding-left: 10px;
+                }
+            }
+            &:not(.left):not(.center) {
+                flex-wrap: wrap;
+                text-align: left;
+                h6 {
+                    padding-right: 10px;
+                }
+            }
+
+            > * {
+                -webkit-flex: 0 0 auto;
+                flex: 0 0 auto;
+            }
+
+            box-sizing: border-box;
+            padding: 0 20px;
+            color: @grey-lighten-1;
+
+            > div {
+                width: 100%;
+            }
+
+            h6 {
+                .mx-textellipsis;
+                margin: 0;
+            }
+
+            .counts {
+                i {
+                    margin-right: 2px;
+                }
+            }
+
+            span.count {
+                padding-right: 8px;
+            }
+        }
+
+        g[data-type] {
+            cursor: pointer;
+            &.highlight, &:hover {
+                opacity: 1;
+            }
+        }
+
+        g.bzicon {
+            cursor: pointer;
+            circle {
+                fill: none;
+            }
+            &.selected circle {
+                stroke: #007eff;
+                stroke-width: 5;
+            }
+        }
+
+        g.selected rect {
+            stroke: #007eff;
+            stroke-width: 2;
+        }
+
+        g[data-type="LOCAL_SAVEDMODEL"].selected rect{
+            stroke-width: 5;
+
+        }
+
+        g[data-type="LOCAL_MODELEVALUATIONSTORE"].selected rect{
+            stroke-width: 5;
+
+        }
+
+        g[data-type=LOCAL_MANAGED_FOLDER].selected{
+            rect{
+                stroke:none;
+            }
+            .icon-flow_dataset_folder::before{
+                color:#007eff;
+            }
+
+        }
+
+        g[data-type=LOCAL_DATASET], g[data-type=FOREIGN_DATASET], g[data-type=LOCAL_STREAMING_ENDPOINT], g[data-type=JUPYTER_NOTEBOOK], g[data-type=SQL_NOTEBOOK], g[data-type=ANALYSIS], g[data-type=INSIGHT] {
+            color: @white-base;
+        }
+
+        g[data-type=LOCAL_SAVEDMODEL], g[data-type=FOREIGN_SAVEDMODEL], [data-type=LOCAL_MODELEVALUATIONSTORE], g[data-type=FOREIGN_MODELEVALUATIONSTORE], g[data-type=LOCAL_MANAGED_FOLDER], g[data-type=FOREIGN_MANAGED_FOLDER] {
+            fill-opacity: 0;
+
+            .nav-nodeicon i {
+                display: inline-block;
+                margin-top: -0.21em;
+                margin-left: -0.21em;
+            }
+        }
+
+        g[data-type=FOREIGN_MANAGED_FOLDER] {
+            color: @grey-lighten-1;
+        }
+
+        .flowLink {
+            text-align: center;
+        }
+    }
+
+    .right-sidebar {
+        border-left: 1px solid @border-color; //TODO @style should be standard
+        background: @white-base;
+    }
+
+    .nonflow-items {
+        border-top: 1px solid @grey-base;
+
+        .header {
+            text-align: center;
+            margin: 15px 0;
+            i { font-size: 30px; }
+        }
+
+        ul {
+            list-style: none;
+            margin: 0;
+        }
+    }
+
+    .object-right-column-summary i.icon.color {
+        font-size: 14px;
+        padding-right: 5px;
+    }
+
+    i.close-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        color: @grey-lighten-6;
+    }
+}
+
+
+#flow-tooltip {
+    font-size: 13px;
+    padding: 0;
+    pointer-events: none;
+    min-width: 200px;
+    max-width: 300px;
+
+    .header {
+        border-bottom: 1px solid @border-color;
+        padding: 15px 10px 15px 15px;
+        .title {
+            font-family: 'SourceSansPro';
+            font-size: 14px;
+            font-weight: @font-weight-normal;
+            margin: 0;
+        }
+        .interests {
+            padding-left: 15px;
+        }
+    }
+    .never-built-computable {
+        border-bottom: 1px solid @border-color;
+    }
+    .body {
+        padding: 0 15px;
+        >:first-child {
+            margin-top: 15px;
+        }
+        >:last-child {
+            margin-bottom: 15px;
+        }
+        .bullet {
+            margin: 0 5px;
+            top: 2px;
+        }
+    }
+    .success-icon {
+        color: @success-text;
+    }
+}
+
+.multi-right-column-summary {
+    .item-header .object-icon {
+        .flow-multi-right-column i {
+            font-size: 11px;
+            line-height: 14px;
+        }
+        &.single-type i {
+            font-size: 24px;
+        }
+    }
+}
+.copy-data-tooltip{
+    z-index: 9999;
+    padding-left: 10px;
+    padding-right: 10px;
+    .help-inline {
+        color: @text-weak;
+        font-size: 12px;
+        width: 230px;
+    }
+}
+
+.flow-export-dir {
+    input[type=number] {
+        vertical-align: top !important;
+    }
+
+    .flow-export-error {
+        display: block;
+        color: @errorText;
+    }
+
+    .exclamation-error-display {
+        position: absolute;
+        color: @errorText;
+        margin-left: 70px;
+        margin-top: -16px;
+    }
+}
+
+[navigator-flow]{
+    g[data-type="LOCAL_SAVEDMODEL"] {
+        rect {
+            transform-origin: center;
+            transform-box: fill-box;
+        }
+    }
+    g[data-type="LOCAL_MODELEVALUATIONSTORE"] {
+        rect {
+            transform-origin: center;
+            transform-box: fill-box;
+        }
+    }
+}
+
+.recipe-custom-code-object {
+    align-items: center;
+    display: flex;
+    font-size: 60px;
+    height: 100%;
+    justify-content: center;
+    width: 100%;
+}
+
+.subflow-copy-modal-categorie-title {
+    font-weight: @font-weight-normal;
+    font-size: 18px;
+    color: @text-weak;
+    border-bottom: 1px solid @grey-lighten-7;
+    padding-bottom: 8px;
+    line-height: 24px;
+}
+
+.flow-actions-controls {
+    .horizontal-flex;
+    text-align: center;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    height: auto;
+    .flow-actions {
+        display: inline-block;
+        align-self: flex-end;
+    }
+}

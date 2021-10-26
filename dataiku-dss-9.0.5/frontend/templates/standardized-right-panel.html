@@ -1,0 +1,170 @@
+<div class="right-panel no-transitions-on-load" ng-class="{'right-panel--opened': standardizedSidePanel.opened}">
+    <div class="right-panel__bubbles">
+        <div class="right-panel__bubble right-panel__bubble--gray"
+            ng-click="togglePanel()"
+            toggle="tooltip" animation="false" data-original-title="{{ (standardizedSidePanel.opened) ? 'Close panel' : 'Open panel' }}">
+            <i ng-class="{'icon-arrow-left': !standardizedSidePanel.opened, 'icon-arrow-right': standardizedSidePanel.opened}"></i>
+        </div>
+        <div ng-repeat="tab in displayedTabs"
+            class="right-panel__bubble right-panel__bubble--blue"
+            ng-class="{'right-panel__bubble--active': isTabActive(tab.name)}"
+            ng-click="clickTab(tab.name)"
+            toggle="tooltip" animation="false" data-original-title="{{ getTooltipText(tab) }}">
+            <i ng-class="tab.icon"></i>
+        </div>
+    </div>
+    <div class="right-panel__content" ng-switch="page">
+        <div ng-switch-when="flow" class="h100">
+            <div class="rightPane h100" ng-if="nodesGraph.nodes" right-column-tab="{{ getCurrentTab() }}">
+                <div ng-switch="objectType" class="content h100" flow-right-column style="overflow: auto">
+                    <div ng-class="{ 'h100': $stateParams.zoneId }" ng-switch-default>
+                        <h4 class="right-panel__content--empty" ng-show="nodesGraph && !isFlowEmpty">
+                            Click an item to view details
+                        </h4>
+                    </div>
+                    <div class="h100 right-panel__content--object" ng-switch-when="RECIPE" recipe-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="ZONE" zone-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="LOCAL_DATASET" dataset-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="FOREIGN_DATASET" dataset-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="LOCAL_SAVEDMODEL" saved-model-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="FOREIGN_SAVEDMODEL" saved-model-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="LOCAL_MODELEVALUATIONSTORE" model-evaluation-store-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="FOREIGN_MODELEVALUATIONSTORE" model-evaluation-store-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="LOCAL_MANAGED_FOLDER" managed-folder-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="FOREIGN_MANAGED_FOLDER" managed-folder-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="MULTI" multi-items-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="LOCAL_STREAMING_ENDPOINT"   streaming-endpoint-right-column-summary />
+                    <div class="h100 right-panel__content--object" ng-switch-when="FOREIGN_STREAMING_ENDPOINT" streaming-endpoint-right-column-summary />
+                </div>
+            </div>
+        </div>
+
+        <div ng-switch-when="object" ng-switch="objectType" class="h100">
+            <div ng-switch-default>
+                <h4 class="right-panel__content--empty">
+                    Click an item to view details
+                </h4>
+            </div>
+            <div ng-switch-when="DATASET" ng-controller="DatasetPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div dataset-right-column-summary job-start-redirects="true" class="h100" />
+            </div>
+            <div ng-switch-when="FOREIGN_DATASET" ng-controller="ForeignDatasetPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div dataset-right-column-summary job-start-redirects="true" class="h100" />
+            </div>
+            <div ng-switch-when="SAVED_MODEL" ng-controller="SavedModelPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div saved-model-right-column-summary job-start-redirects="true" class="h100" />
+            </div>
+            <div ng-switch-when="MODEL_EVALUATION_STORE" ng-controller="ModelEvaluationStorePageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div model-evaluation-store-right-column-summary job-start-redirects="true" class="h100" />
+            </div>
+            <div ng-switch-when="SQL_NOTEBOOK" ng-controller="sqlNotebookPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div sql-notebook-right-column-summary class="h100" />
+            </div>
+            <div ng-switch-when="JUPYTER_NOTEBOOK" ng-controller="jupyterNotebookPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div jupyter-notebook-right-column-summary class="h100" />
+            </div>
+            <div ng-switch-when="MANAGED_FOLDER" ng-controller="ManagedFolderPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div managed-folder-right-column-summary job-start-redirects="true" class="h100" />
+            </div>
+            <div ng-switch-when="STREAMING_ENDPOINT" ng-controller="StreamingEndpointPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div streaming-endpoint-right-column-summary class="h100" />
+            </div>
+            <div ng-switch-when="RECIPE" ng-controller="RecipePageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div recipe-right-column-summary class="h100" />
+            </div>
+            <div ng-switch-when="DASHBOARD" ng-controller="DashboardPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div dashboard-right-column-summary job-start-redirects="true" class="h100" />
+            </div>
+            <div ng-switch-when="INSIGHT" ng-controller="InsightPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div insight-right-column-summary job-start-redirects="true" class="h100" />
+            </div>
+            <div ng-switch-when="WEB_APP" ng-controller="WebAppPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div web-app-right-column-summary class="h100" />
+            </div>
+            <div ng-switch-when="REPORT" ng-controller="ReportPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div report-right-column-summary class="h100" />
+            </div>
+            <div ng-switch-when="ANALYSIS" ng-if="!topNav.item.data.loading" ng-controller="AnalysisPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div analysis-right-column-summary class="h100" />
+            </div>
+            <div ng-switch-when="SCENARIO" ng-controller="ScenarioPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div scenario-right-column-summary class="h100" />
+            </div>
+            <div ng-switch-when="CONTINUOUS_ACTIVITY" ng-controller="ContinuousActivityPageRightColumnActions" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div continuous-activity-right-column-summary class="h100" />
+            </div>
+        </div>
+
+        <div ng-switch-when="objects_list" ng-switch="objectType" class="h100">
+            <div ng-switch-default>
+                <h4 class="right-panel__content--empty">
+                    Click an item to view details
+                </h4>
+            </div>
+            <div ng-switch-when="DATASET" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div dataset-right-column-summary class="h100" />
+            </div>
+            
+            <div ng-switch-when="STREAMING_ENDPOINT" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div streaming-endpoint-right-column-summary class="h100" />
+            </div>
+            
+            <div ng-switch-when="MULTI" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div multi-items-right-column-summary single-type="{{singleType}}"
+                selected-items="getSelectedListItems()" class="h100"/>
+            </div>
+
+            <div ng-switch-when="RECIPE" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div recipe-right-column-summary class="h100" />
+            </div>
+            
+            <div ng-switch-when="ANALYSIS" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div analysis-right-column-summary class="h100" />
+            </div>
+
+            <div ng-switch-when="SQL_NOTEBOOK" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div sql-notebook-right-column-summary class="h100" />
+            </div>
+
+            <div ng-switch-when="JUPYTER_NOTEBOOK" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div jupyter-notebook-right-column-summary class="h100" />
+            </div>
+          
+            <div ng-switch-when="SCENARIO" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div scenario-right-column-summary class="h100" />
+            </div>
+
+            <div ng-switch-when="CONTINUOUS_ACTIVITY" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div continuous-activity-right-column-summary class="h100" />
+            </div>
+
+            <div ng-switch-when="WEB_APP" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div web-app-right-column-summary class="h100" />
+            </div>
+
+            <div ng-switch-when="REPORT" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div report-right-column-summary class="h100" />
+            </div>
+
+            <div ng-switch-when="DASHBOARD" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div dashboard-right-column-summary class="h100" />
+            </div>
+
+            <div ng-switch-when="INSIGHT" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div insight-right-column-summary class="h100" />
+            </div>
+
+            <div ng-switch-when="LAMBDA_SERVICE" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div lambda-service-right-column-summary class="h100" />
+            </div>
+
+            <div ng-switch-when="BUNDLES_DESIGN" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div bundles-design-right-column-summary class="h100" />
+            </div>
+
+            <div ng-switch-when="BUNDLES_DESIGN_MULTI" right-column-tab="{{ getCurrentTab() }}" class="h100 right-panel__content--object">
+                <div bundles-design-right-column-summary class="h100" />
+            </div>
+        </div>
+    </div>
+</div>

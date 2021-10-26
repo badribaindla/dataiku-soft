@@ -1,0 +1,74 @@
+<div include-no-scope="/templates/bundles/automation/navbar.html" />
+<div class="dss-page row-fluid offset0 bundle-activation-settings" global-keydown="{'ctrl-s meta-s':'save()'}">
+	<div block-api-error />
+
+	<div class="span2 offset0 nav-list-sidebar sidebar-admin modal-footer-std-buttons" tab-model="uiState.settingsPane">
+		<ul>
+            <li sidebar-tab-l1-link tab-name="connections" label="Connections" />
+            <li sidebar-tab-l1-link tab-name="codeenvs" label="Code envs" />
+		</ul>
+
+		<button type="button" class="pull-right btn btn--outline btn--primary" style="margin: 10px" ng-disabled="!dirtySettings()" ng-click="save()">
+            <i class="icon-save">&nbsp;</i> Save<span ng-show="!dirtySettings()">d</span>
+        </button>
+    </div>
+
+    <div class="span10 h100 offset0 boxed-next-to-sidebar" ng-switch on="uiState.settingsPane">
+        <div ng-switch-when="connections" class="h100 oa">
+            <form class="common-styles-only">
+                <ul add-remove ng-model="settings.remapping.connections" class="remapping">
+                    <li ng-repeat="connectionRemapping in settings.remapping.connections">
+                        <input ng-model="connectionRemapping.source" type="text" bs-typeahead="typeAheadValues"/>
+                        <i class="icon-long-arrow-right" />
+                        <select ng-model="connectionRemapping.target"
+                                dku-bs-select="{liveSearch:true,size:'auto'}"
+                                ng-options="item.name as item.name group by item.type for item in availableConnections | orderBy:'type + name'" />
+                        <a ng-click="remove($index)"> <i class="icon-trash btn-close"></i></a>
+                    </li>
+                    <li>
+                        <hr ng-if="settings.remapping.connections.length" />
+                        <a ng-click="addConnectionRemapping()"><i class="icon-plus-sign" /> Add new connection</a>
+                    </li>
+                </ul>
+            </form>
+            <div class="alert alert-info">
+                The last bundle uses the following connections:
+                <ul>
+                    <li ng-repeat="connection in usedByLastBundle" ng-if="!connection.name.startsWith('@virtual')" class="horizontal-flex">
+                        <div class="flex">
+                            {{connection.name}} <small>({{connection.type}})</small>
+                        </div>
+
+                        <div class="noflex">
+                            <span ng-if="connection.mapsTo">Currently mapped to {{connection.mapsTo.name}} <small>({{connection.mapsTo.type}})</small></span>
+                            <strong ng-if="!connection.mapsTo"><i class="icon-warning-sign" /> No mapping in current configuration - <a ng-click="addConnectionRemapping(connection.name)"><i class="icon-plus-sign" /> add</a></strong>
+                            <strong ng-if="connection.mapsTo && connection.mapsTo.type !== connection.type"><i class="icon-warning-sign" /> Type mismatch</strong>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div ng-switch-when="codeenvs" class="h100 oa">
+            <form class="dkuform-horizontal">
+                <div class="control-group">
+                    <label for="" class="control-label">Env import mode</label>
+                    <div class="controls">
+                        <label>
+                            <select dku-bs-select type="checkbox" ng-model="settings.codeEnvsBehavior.importTimeMode" ng-options="x[0] as x[1] for x in AutomationUtils.pythonEnvImportTimeModes" options-descriptions="AutomationUtils.pythonEnvImportTimeModeDescs" layout="list" />
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Package list source</label>
+                    <div class="controls">
+                        <label>
+                            <select dku-bs-select type="checkbox" ng-model="settings.codeEnvsBehavior.envImportSpecificationMode" ng-options="x[0] as x[1] for x in AutomationUtils.envImportSpecificationModes" options-descriptions="AutomationUtils.envImportSpecificationModeDescs" layout="list" />
+                        </label>
+                    </div>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>

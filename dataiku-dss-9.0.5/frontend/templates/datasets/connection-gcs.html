@@ -1,0 +1,69 @@
+<form class="dkuform-horizontal" ng-controller="GCSDatasetController">
+    <div class="row-fluid">
+        <div class="span7 generic-white-box">
+            <div fs-provider-settings provider-type="'GCS'" provider-connection-type="'GCS'" connection-has-metadata="!dataset.managed" path-change-needs-confirm="dataset.managed" default-path="''" config="dataset.params" on-change="onCoreParamsChanged()"></div>
+            <div include-no-scope="/templates/datasets/fragments/fs-generic-advanced-options.html" />
+        </div>
+
+        <div class="span5">
+            <button class="btn btn--secondary" ng-click="listFiles('GCS')"> <i class="icon-refresh" />List files
+            </button>
+            <div include-no-scope="/templates/datasets/fragments/fs-files-listing.html" />
+        </div>
+    </div>
+
+    <button style="margin-top: 20px" class="btn btn--primary btn--wide" ng-click="detectOrPreview()"> <i class="icon-refresh" />&nbsp;Test
+    </button>
+
+    <fieldset>
+        <h2 class="settings-section-title">Metastore catalog</h2>
+        <div class="control-group">
+            <label for="" class="control-label">
+                Sync
+            </label>
+            <div class="controls">
+                <input type="checkbox" ng-model="dataset.params.metastoreSynchronizationEnabled" id="metastoreSynchronizationEnabled" />
+                <label class="help-inline" for="metastoreSynchronizationEnabled">
+                    Should the definition of this dataset be synchronized to the active metastore catalog?
+                </label>
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="" class="control-label">
+                Metastore database
+            </label>
+            <div class="controls">
+                <input type="text" ng-model="dataset.params.metastoreDatabaseName" name="metastoreDatabaseName" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/" />
+                <span class="help-inline" ng-hide="connectionParamsForm.metastoreDatabaseName.$invalid">
+                    You only need to fill this if you want to synchronize this dataset to or from the metastore. If empty, defaults to the fallback DB of the connection.
+                </span>
+                <span class="help-inline error-text-color" ng-show="connectionParamsForm.metastoreDatabaseName.$invalid">
+                    Metastore database names can only contains letters, numbers and underscores.
+                </span>
+            </div>
+        </div>
+         <div class="control-group">
+            <label for="" class="control-label">
+                Metastore table
+            </label>
+            <div class="controls">
+                <input type="text" ng-model="dataset.params.metastoreTableName" name="metastoreTableName" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/" />
+                <span class="help-inline" ng-hide="connectionParamsForm.metastoreTableName.$invalid">
+                    You only need to fill this if you want to synchronize this dataset to or from the metastore. If empty, defaults to the dataset name.
+                </span>
+                <span class="help-inline error-text-color" ng-show="connectionParamsForm.metastoreTableName.$invalid">
+                    Metastore table names can only contains letters, numbers and underscores.
+                </span>
+            </div>
+        </div>
+        <div class="control-group" ng-show="dataset.params.metastoreSynchronizationEnabled">
+            <label class="control-label">Synchronize to metastore</label>
+            <div class="controls">
+                <button class="btn btn--danger" ng-click="resynchronizeMetastore()">
+                    <span class=" icon-refresh icon">&nbsp;</span>
+                    Synchronize
+                </button>
+            </div>
+        </div>
+    </fieldset>
+</form>

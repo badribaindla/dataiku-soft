@@ -1,0 +1,58 @@
+<div class="future">
+    <div class="future-icon" future-main-target="future">
+        <div class="h100 center-children">
+            <i class="{{icon || 'icon-cogs'}} grey" />
+        </div>
+    </div>
+
+    <div class="future-body" future-main-payload="future">
+        <div class="abort"
+            ng-show="!future.aborted && future.alive"
+            ng-click="future.confirming = true;"
+            ng-mouseenter="future.hoverClose = true"
+            ng-mouseleave="future.hoverClose = false"
+            ng-class="{hovered : future.hoverClose}">
+            <span>Abort</span>
+            <del>&times;</del>
+        </div>
+        <div class="aborted" ng-if="future.aborted || !future.alive">
+            <span ng-if="future.alive">aborting</span>
+            <span ng-if="!future.alive">finished</span>
+        </div>
+
+        <div class="name mx-textellipsis">{{futureDisplayName}}</div>
+
+        <div class="details">
+            <span class="target" ng-repeat="target in futurePayload.targets">
+                <span class="separator" ng-if="$index > 0">|</span>
+                <span ng-if="target.objectType != 'PROJECT'">
+                    <span dss-object-link item="target" class="target"/>
+                    <span ng-if="target.projectKey">in
+                        <span ng-if="$stateParams.projectKey != target.projectKey">
+                            project <a href="{{StateUtils.href.project(target.projectKey)}}">{{target.projectKey}}</a>
+                        </span>
+                        <span ng-if="$stateParams.projectKey == target.projectKey">current project</span>
+                    </span>
+                </span>
+                <span ng-if="target.objectType == 'PROJECT' && target.projectKey">
+                    project <a href="{{StateUtils.href.project(target.projectKey)}}">{{target.projectKey}}</a>
+                </span>
+            </span>
+            <span class="duration" ng-if="future.alive">
+                <span class="separator">|</span>
+                Started {{future.startTime | friendlyTimeDelta}}
+            </span>
+            <span ng-if="inAdmin">
+                <span class="separator">|</span>
+                <span class="owner">Started by <a href="/profile/{{future.owner}}/">@{{future.owner}}</a></span>
+            </span>
+        </div>
+
+        <div class="state" future-progress-bar="future.progress">
+            <div ng-if="future.alive && bar.perpetual" class="perpetual-bar"><div class="done"></div></div>
+            <div ng-if="future.alive && !bar.perpetual" class="usual-bar"><div class="done" style="width: {{bar.percentage}}%;"></div></div>
+            <div ng-if="!future.alive" class="no-bar"></div>
+        </div>
+    </div>
+    <div future-abort-confirmation="future" abort-fn="abortFuture(future.jobId)" ></div>
+</div>

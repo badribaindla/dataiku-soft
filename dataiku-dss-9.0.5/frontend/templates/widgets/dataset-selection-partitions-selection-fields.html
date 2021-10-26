@@ -1,0 +1,29 @@
+<fieldset ng-show="partitioned">
+    <label for="" class="control-label">Use partitions</label>
+    <div class="controls">
+        <select ng-model="selection.partitionSelectionMethod" ng-options="x[0] as x[1] for x in SamplingData.partitionSelectionMethods" options-descriptions="SamplingData.partitionSelectionMethodsDesc" dku-bs-select layout="list" />
+    </div>
+</fieldset>
+<fieldset ng-show="partitioned && selection.partitionSelectionMethod == 'SELECTED'">
+    <span class="fieldLabel">Partitions</span>
+    <div class="controls">
+        <span ng-show="partitionsList == null || partitionsList.length == 0">
+            <input type="text" ng-model="selection.selectedPartitions" comma-separated-view style="display:inline-block; width: 176px" />
+            <button ng-if="partitionsList == null" class="btn btn--secondary" ng-click="loadPartitionsList()"> <i class="icon-list"  style="cursor:pointer" toggle="tooltip" title="Retrieve list" data-placement="bottom"></i>
+            </button>
+        </span>
+        <span class="help-inline" ng-show="partitionsList == null || partitionsList.length == 0">Comma-separated list</span>
+        <span class="help-inline" ng-show="partitionsList != null && partitionsList.length == 0">(No partition built)</span>
+
+        <span ng-show="partitionsList != null && partitionsList.length > 0 ">
+            <select dku-bs-select data-actions-box="true" data-live-search="true" ng-model="selection.selectedPartitions"
+                    ng-options="part for part in partitionsList" multiple="multiple" />
+        </span>
+    </div>
+</fieldset>
+<fieldset ng-if="partitioned && selection.partitionSelectionMethod == 'LATEST_N'">
+    <label class="control-label">Nb. partitions</label>
+    <div class="controls">
+        <input type="number" force-integer min="1" max="100000000" ng-model="selection.latestPartitionsN" />
+    </div>
+</fieldset>

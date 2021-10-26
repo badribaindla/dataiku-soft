@@ -1,0 +1,55 @@
+<form ng-controller="CreateColumnWithGRELController" class="grel-step" name="processorForm" publish-in-grand-grand-parent="processorForm">
+	<fieldset on-any-blur="checkAndRefresh()">
+		<label class="control-label">Output column</label>
+		<input  type="text"
+                ng-model="step.params.column"
+                ng-required="true"
+                required="required"
+                class="submit-on-blur"
+                next-on-enter/>
+	</fieldset>
+
+	<fieldset on-any-blur="checkAndRefresh()">
+		<label for="" class="control-label">Expression</label>
+
+            <div class="formula-mini-editor">
+                <textarea class="expression submit-on-blur" ng-model="step.params.expression" />
+                <button type="button" ng-click="edit()" ng-disabled="modalShown" class="btn btn--full btn--primary btn--outline" style="max-width: 210px;">Open editor panel</button>
+            </div>
+        </div>
+	</fieldset>
+
+    <fieldset on-any-blur="checkAndRefresh()">
+        <label class="control-label">Error column</label>
+        <input  type="text"
+                ng-model="step.params.errorColumn"
+                ng-required="false"
+                required="false"
+                class="submit-on-blur"
+                next-on-enter/>
+    </fieldset>
+
+    <fieldset on-any-blur="checkAndRefresh()" ng-if="step.$translatability.checkedNativeSpark || step.$translatability.checkedSql">
+        <label class="control-label">SQL translation</label>
+        <input  type="text"
+                ng-model="step.params.forcedSQLTranslation"
+                ng-required="false"
+                required="false"
+                class="submit-on-blur"
+                next-on-enter/>
+        <span class="help-inline">
+            To use in place of the default translation of the formula to SQL
+        </span>
+    </fieldset>
+
+    <fieldset on-any-blur="checkAndRefresh()" ng-if="step.$translatability.checkedNativeSpark || step.$translatability.checkedSql">
+        <label class="control-label">Cast output</label>
+        <select dku-bs-select
+            ng-model="step.params.forcedCast.type"
+            ng-options="t[0].type as t[1] for t in storageTypes"
+            class="submit-on-blur"
+            next-on-enter
+            required
+            ></select>
+    </fieldset>
+</form>

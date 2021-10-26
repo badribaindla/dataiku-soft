@@ -1,0 +1,112 @@
+<div global-keydown="{'ctrl-s meta-s':'saveProject()'}">
+    <div class="h100 row-fluid">
+        <div class="span2 offset0 nav-list-sidebar sidebar-admin">
+            <ul>
+                <li class="l1" ng-class="{active: uiState.active == 'permissions'}" full-click>
+                    <a ng-click="uiState.active = 'permissions'" main-click>Permissions</a>
+                </li>
+            </ul>
+            <div class="horizontal-flex" style="margin: 20px; height: auto;"> <!-- no h100 as horizontal-flex does -->
+                <div ng-if="projectIsDirty()" class="btn-group save-button flex" style="flex-basis: 50px;">
+                    <button class="btn btn--outline btn--primary" style="width: 100%" ng-click="saveProject()">
+                        <i class="icon-save"></i>
+                        &nbsp;Save
+                    </button>
+                </div>
+                <div ng-if="!projectIsDirty()" class="btn-group save-button flex" style="flex-basis: 50px;">
+                    <button class="btn btn--outline btn--primary" ng-disabled="true" style="width: 100%" >
+                        <i class="icon-save"></i>
+                        &nbsp;Saved!
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="span10 h100 offset0 boxed-next-to-sidebar" ng-switch="uiState.active">
+            <div ng-switch-when="permissions" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <h2 class="settings-section-title mtop0">Security</h2>
+
+                    <div class="control-group">
+                        <label class="control-label">Owner</label>
+                        <div class="controls">
+                            <select
+                            dku-bs-select
+                            ng-options="usr.login as usr.displayName for usr in allUsers"
+                            ng-model="ui.ownerLogin"/>
+                        </div>
+                    </div>
+                    <table sort-table class="table table-striped table-hover permissions" >
+                        <thead>
+                            <tr>
+                                <th colspan="2">Group name</th>
+                                <th>View</th>
+                                <th>
+                                    Write
+                                    &nbsp;<i class="icon-question-sign cursor-pointer" container="body" title="This permission allows a group to publish or delete bundles on this project" toggle="tooltip"></i>
+                                </th>
+                                <th>Deploy</th>
+                                <th>Admin</th>
+                                <th>&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody add-remove ng-model="publishedProject.permissions">
+                            <tr ng-hide="publishedProject.permissions.length">
+                                <td colspan="13" style="text-align: center; font-size: 16px; line-height: 40px; color: #666">
+                                    No group is granted access to this project
+                                </td>
+                            </tr>
+                            <tr ng-repeat="perm in publishedProject.permissions">
+
+                                <td colspan="2">{{perm.group}}</td>
+                                <td>
+                                    <label class="checkbox" for="readDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$readDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$readDisabled" ng-model="perm.read" id="readDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkbox" for="writeDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$writeDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$writeDisabled" ng-model="perm.write" id="writeDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkbox" for="deployDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$deployDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$deployDisabled" ng-model="perm.deploy" id="deployDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkbox" for="adminDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$adminDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$adminDisabled" ng-model="perm.admin" id="adminDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <a class="link-danger" ng-click="remove($index)"> <i class="icon-trash" /></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div ng-show="unassignedGroups.length" style="margin-bottom: 20px;">
+                        <select dku-bs-select="{liveSearch:true,width:250}"
+                            style="display: inline-block;"
+                            ng-model="newPerm.group"
+                            ng-options="g for g in unassignedGroups"
+                            data-none-selected-text="Select a group..." >
+                        </select>
+                        <button style="display: inline-block;" ng-disabled="!newPerm.group" ng-click="addPermission(publishedProject)" class="btn btn--secondary">
+                            <span plus-icon />
+                            Grant access to group
+                        </button>
+                    </div>
+                    <div class="alert alert-info" style="border-radius: 0px"> <i class="icon-info-sign" /> To manage groups go to
+                        <a class="tab" ng-class="{'enabled': $state.includes('admin.groups')}" href="/admin/security/groups/">DSS global administration</a>.
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

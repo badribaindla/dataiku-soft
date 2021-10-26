@@ -1,0 +1,51 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-grand-parent="processorForm" ng-controller="FindReplaceController">
+    <div include-no-scope="/templates/shaker/processors/processor-applies-to.html" />
+
+    <fieldset ng-show="step.params.appliesTo == 'SINGLE_COLUMN'">
+        <span class="fieldLabel">Output column (empty for in-place)</span>
+        <input
+                type="text"
+                ng-model="step.params.output"
+                class="submit-on-blur"
+                next-on-enter/>
+    </fieldset>
+
+    <fieldset>
+        <span class="fieldLabel">Replacements</span>
+        <mapping-editor ng-model="step.params.mapping" on-change="checkAndRefresh()" add-label="Add replacement"></mapping-editor>
+    </fieldset>
+
+    <fieldset>
+        <span class="fieldLabel">Matching mode</span>
+	    <select dku-bs-select
+            ng-model="step.params.matching"
+	        class="submit-on-blur"
+	        next-on-enter
+	        required
+            dku-bs-select
+	        >
+	        <option value="FULL_STRING">Complete value</option>
+	        <option value="SUBSTRING">Substring</option>
+	        <option value="PATTERN">Regular expression</option>
+	    </select>
+	</fieldset>
+
+    <fieldset>
+        <span class="fieldLabel">Normalization mode</span>
+	    <select dku-bs-select
+            ng-model="step.params.normalization"
+	        class="submit-on-blur"
+            dku-bs-select
+	        next-on-enter ng-options="x[0] as x[1] for x in normalizationModes" />
+	</fieldset>
+
+
+    <fieldset>
+        <label class="control-label">
+        <input type="checkbox" ng-model="step.params.stopAfterFirstMatch" ng-init="false"
+            class="submit-on-blur"/>
+            Only perform the first matching replacement
+            </label>
+    </fieldset>
+
+</form>

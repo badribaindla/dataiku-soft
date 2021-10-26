@@ -1,0 +1,81 @@
+<div class="mbot20" ng-inject="ChartFeatures"
+    ng-show="legends.length || chartOptionsState.smoothingEnabled || chartOptionsState.xAxisEnabled || chartOptionsState.strokeWidthEnabled
+    || ChartFeatures.hasFillOpacity(chart.def) || ChartFeatures.hasInChartValues(chart.def.type) || ChartFeatures.hasInChartLabels(chart.def.type)"> <!-- hide if empty -->
+
+
+    <h2 class="foldable-title" id="qa_charts_display-submenu-header" ng-click="optionsFolds.chartMode = !optionsFolds.chartMode"> <i class="icon-caret-right" ng-show="!optionsFolds.chartMode" /><i class="icon-caret-down" ng-show="optionsFolds.chartMode" />
+        Display
+    </h2>
+
+    <div class="options-zone" ng-show="optionsFolds.chartMode">
+
+        <!-- Options for "standard-aggregated charts" -->
+        <form class="dkuform-chart-options">
+            <div ng-if="legends.length">
+                <ng-include src="'/templates/simple_report/config/legend-optzone.html'"></ng-include>
+            </div>
+
+            <div class="control-group" ng-show="chartOptionsState.smoothingEnabled">
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" id="qa_charts_smoothing-input" ng-model="chart.def.smoothing" />
+                        Smoothing
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="chartOptionsState.brushEnabled">
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="chart.def.brush" />
+                        Display timeline
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="chartOptionsState.xAxisEnabled">
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" id="qa_charts_show-X-axis" ng-model="chart.def.showXAxis" />
+                        Show horizontal axis
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="chartOptionsState.strokeWidthEnabled">
+                <div class="controls">
+                    <label>
+                        Stroke width: <div dku-slider min="1" max="5" value="chart.def.strokeWidth" nb-decimal-places="0" />
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="ChartFeatures.hasFillOpacity(chart.def)">
+                <div class="controls">
+                    <label>
+                        Fill opacity: <div dku-slider min="0" max="1" value="chart.def.fillOpacity" nb-decimal-places="1" />
+                    </label>
+                </div>
+            </div>
+
+
+            <div class="control-group" ng-show="ChartFeatures.hasInChartValues(chart.def.type)">
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" id="qa_charts_display-chart-values-input" ng-model="chart.def.showInChartValues" />
+                        Display value in chart
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="ChartFeatures.hasInChartLabels(chart.def.type)">
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" id="qa_charts_display-chart-labels-input" ng-model="chart.def.showInChartLabels" />
+                        Display labels in chart
+                    </label>
+                    </div>
+            </div>
+        </form>
+    </div>
+</div>

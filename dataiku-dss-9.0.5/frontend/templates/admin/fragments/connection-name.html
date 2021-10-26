@@ -1,0 +1,20 @@
+<div ng-show="creation">
+    <h1 class="page-title" style="margin-bottom: 0">New {{connection.type | connectionTypeToNameForItem}} connection</h1>
+</div>
+<div ng-show="!creation">
+    <h1 class="page-title" style="margin-bottom: 0">{{connection.type | connectionTypeToNameForItem}} connection: {{connection.name}}</h1>
+</div>
+<form class="dkuform-horizontal" ng-if="creation" style="border-bottom: 1px #ccc solid; margin-bottom: 10px">
+    <div class="control-group">
+        <label for="" class="control-label">New connection name</label>
+        <div class="controls">
+            <input type="text" name="connection_name" ng-model="connection.name" custom-validation="isConnectionNameUnique"
+            placeholder="Connection name" required ng-pattern="/^[\w-_]+$/" />
+        </div>
+    </div>
+    <div class="control-group">
+        <div class="alert alert-error" ng-show="renaming.connection_name.$error.customValidation"> <i class="icon-dku-error"></i>
+            This name is already used by another connection
+        </div>
+    </div>
+</form>

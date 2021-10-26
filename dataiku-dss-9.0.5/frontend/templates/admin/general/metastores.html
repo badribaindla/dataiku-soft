@@ -1,0 +1,37 @@
+<div class="paned-settings-page-pane">
+    <h1>Metastore catalogs</h1>
+
+    <div class="alert alert-info">
+        These parameters control how DSS synchronizes datasets that are eligible for synchronization to a metastore catalog.
+    </div>
+
+    <div class="section">
+        <h2>Synchronization of datasets</h2>
+        
+        <form class="dkuform-horizontal">
+            <div class="control-group">
+                <label for="" class="control-label">Metastore kind</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="generalSettings.metastoreCatalogsSettings.synchronizeTo.flavor" 
+                        ng-options="x[0] as x[1] for x in [['HIVESERVER2', 'Active HiveServer2 (if available)'], ['DSS_INTERNAL', 'Internal DSS catalog (for Spark-on-K8S)'], ['AWS_GLUE', 'AWS Glue']]" />
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="generalSettings.metastoreCatalogsSettings.synchronizeTo.flavor == 'AWS_GLUE'">
+                <label for="" class="control-label">Glue Auth</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="generalSettings.metastoreCatalogsSettings.synchronizeTo.glueCredentialsMode" 
+                        ng-options="x[0] as x[1] for x in [['DEFAULT', 'Use AWS credentials from the environment'], ['FROM_CONNECTION', 'Use AWS credentials from a connection']]" />
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="generalSettings.metastoreCatalogsSettings.synchronizeTo.flavor == 'AWS_GLUE' && generalSettings.metastoreCatalogsSettings.synchronizeTo.glueCredentialsMode == 'FROM_CONNECTION'">
+                <label for="" class="control-label">Connection to use</label>
+                <div class="controls">
+                	<input type="text" ng-model="generalSettings.metastoreCatalogsSettings.synchronizeTo.glueCredentialsBearingConnection" />
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>

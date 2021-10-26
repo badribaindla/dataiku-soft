@@ -1,0 +1,103 @@
+<form class="dkuform-horizontal" ng-controller="StreamingEndpointSQSSettingsController">
+    <div future-waiting response="captureFuture" ng-if="captureFuture && !captureFuture.hasResult"></div>
+    <div block-api-error ></div>
+	<div class="control-group">
+		<label class="control-label">Connection</label>
+		<div class="controls">
+            <select dku-bs-select ng-model="streamingEndpoint.params.connection" ng-options="c for c in connections"></select>
+		</div>
+	</div>
+
+    <div class="control-group">
+        <label class="control-label">Queue</label>
+        <div class="controls" ng-if="!uiState.queuesFetched || uiState.forceCustom">
+            <input type="text" ng-model="streamingEndpoint.params.queueName" />
+            <button class="btn btn--secondary" type="button" ng-click="fetchQueues()">Fetch queues</button>
+        </div>
+        <div class="controls" ng-if="uiState.queuesFetched && !uiState.forceCustom">
+            <select dku-bs-select ng-model="streamingEndpoint.params.queueName" ng-options="t for t in uiState.queues"/>
+            <button class="btn btn--secondary" type="button" ng-click="uiState.forceCustom = true;">Enter custom</button>
+            <div class="alert alert--danger" ng-if="uiState.testResults && !uiState.testResults.connectionOk">
+                Failed to test connection: {{uiState.testResults.connectionError}}
+            </div>
+        </div>
+    </div>
+
+    <div class="control-group" ng-if="streamingEndpoint.params.queueName.endsWith('.fifo')">
+        <label class="control-label">Message group</label>
+        <div class="controls">
+            <input type="text" ng-model="streamingEndpoint.params.messageGroupIdColumn" />
+            <span class="help-inline">For FIFO queues, column to store/retrieve the message group id from</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="streamingEndpoint.params.queueName.endsWith('.fifo')">
+        <label class="control-label">Deduplication</label>
+        <div class="controls">
+            <input type="text" ng-model="streamingEndpoint.params.deduplicationIdColumn" />
+            <span class="help-inline">For FIFO queues, column holding the deduplication id to use when writing</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Format</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="streamingEndpoint.params.formatType" >
+                <option value="json">JSON</option>
+                <option value="string">Text</option>
+            </select>
+        </div>
+    </div>
+    <div class="control-group" ng-if="streamingEndpoint.params.formatType == 'string'">
+        <label class="control-label">Column name</label>
+        <div class="controls">
+            <input type="text" ng-model="streamingEndpoint.params.formatParams.columnName" />
+        </div>
+    </div>
+    <div style="margin: 10px 0;">
+        <span class="btn-group">
+            <button class="btn btn--secondary" ng-click="trySample(false)">
+                Try sampling
+            </button>
+            <button class="btn btn--secondary btn--icon" data-toggle="dropdown">
+                <i class="icon-caret-down"></i>
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-right text-left">
+                <li>
+                    <a ng-click="trySample(false)">Try sampling and infer column names</a>
+                </li>
+                <li>
+                    <a ng-click="trySample(true)">Try sampling and infer column names and types</a>
+                </li>
+            </ul>
+        </span>
+    </div>
+    <div class="alert alert-info" ng-if="!uiState.sample.schemaDetection.warningLevel && streamingEndpoint.schema.columns.length == 0 && uiState.sample.schemaDetection.newSchema.columns.length > 0">
+        Detected {{uiState.sample.schemaDetection.newSchema.columns.length}} columns : 
+       <button type="button" class="btn btn--secondary" ng-click="useSchemaFromData()">Use inferred schema</button>
+    </div>
+    <div ng-if="uiState.sample.schemaDetection.warningLevel && uiState.sample.table != null && uiState.sample.table.rows.length > 0" class="alert {{getAlertClassForDetection(uiState.sample)}}">
+        <div>
+            <button type="button" class="btn btn--secondary" ng-click="useSchemaFromData()">Use inferred schema</button>
+        </div>
+        <ul style="margin-top: 10px;">
+            <div ng-if="uiState.sample.schemaDetection.detectedButNotInSchema">Current schema lacks columns: {{}}</div>
+            <li ng-repeat="c in uiState.sample.schemaDetection.detectedButNotInSchema">
+                Detected but not in schema: {{c}}
+            </li>
+            <li ng-repeat="c in uiState.sample.schemaDetection.inSchemaButNotDetected">
+                In schema but not detected: {{c}}
+            </li>
+            <li ng-repeat="r in uiState.sample.schemaDetection.textReasons">
+                {{r}}
+            </li>
+        </ul>
+    </div>
+    <div style="position: relative;"> <!-- for the 'preview' overlay -->
+        <!-- abuse the dataset field to pass the streaming endpoint -->
+        <div simple-detection-preview-table dataset="streamingEndpoint" table="uiState.sample.table" headers="uiState.sample.table.headers" schema-is-user-editable="false"/>
+        <div class="alert alert-info" ng-if="uiState.sample.table != null && uiState.sample.table.rows.length == 0">No rows captured</div>
+        <div class="alert alert--danger" ng-if="uiState.sample.error">
+            {{uiState.sample.error}}
+        </div>
+    </div>
+</form>

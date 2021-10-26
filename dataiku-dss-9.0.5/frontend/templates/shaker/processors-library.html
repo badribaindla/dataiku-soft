@@ -1,0 +1,56 @@
+<div class="processors-library main-panel__movable-element-inside-fixed-element main-panel__movable-element-inside-fixed-element--using-width" ng-show="shakerUIState.showProcessorsLibrary">
+    <div class="processors-library-header">
+        <div class="pull-right">
+            <button type="button" class="close" ng-click="toggleLibrary()">×</button>
+        </div>
+        <strong>Processors library</strong>
+        <div class="std-list-search-box" style="display: inline-block; margin-right: 35px; margin-left: 140px;">
+            <span class="add-on"> <i class="icon-dku-search"/></span>
+            <input
+                type="search"
+                class="library-search-input"
+                ng-model="shakerUIState.libraryQuery"
+                style="width: 190px;"
+            />
+        </div>
+        <strong>{{filteredProcessors.length}}</strong> processors
+    </div>
+
+    <div class="library-main-zone horizontal-flex" id="library-main-zone">
+        <div class="library-scroll-column noflex" style="width: 275px">
+            <ul class="processor-tags column-content">
+                <li ng-repeat="tag in processors.tags" ng-show="!shakerUIState.libraryQuery || shakerUIState.tagsCount[tag.id] > 0 || tag.selected">
+                    <label class="processor-tag" ng-class="{'has-data': shakerUIState.tagsCount[tag.id] > 0, selected: tag.selected}">
+                        <span class="count">{{shakerUIState.tagsCount[tag.id]}}</span>
+                        <input type="checkbox" ng-checked="tag.selected" ng-click="selectTag(tag)" />
+                        {{tag.label}}
+                    </label>
+                </li>
+            </ul>
+        </div>
+
+        <div class="library-scroll-column noflex" style="width: 300px; background: white">
+            <ul ng-show="filteredProcessors.length" class="processors column-content">
+                <li ng-repeat="processor in filteredProcessors">
+                    <a class="processor"
+                        ng-class="{displayed: shakerUIState.displayedProcessor.type == processor.type}"
+                        ng-click="addUnconfiguredStep(processor.type); toggleLibrary()"
+                        ng-mouseenter="displayProcessor(processor)">
+                        <i class="{{ processor|shakerStepIcon }}" />
+                        <span ng-bind-html="processor.enDescription" />
+                    </a>
+                </li>
+            </ul>
+            <div ng-show="filteredProcessors.length == 0" class="placeholder-block">
+                No processor matches your selection
+            </div>
+        </div>
+
+        <div class="library-scroll-column help-column flex" style="background: white; padding: 10px 0 0 15px;">
+            <div ng-show="shakerUIState.displayedProcessor" class="oa column-content">
+                <h1 style="font-size: 17px;" ng-bind-html="shakerUIState.displayedProcessor.enDescription"></h1>
+                <div class="processor-description" from-markdown="shakerUIState.displayedProcessor.help" target-blank="true"></div>
+            </div>
+        </div>
+    </div>
+</div>

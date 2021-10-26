@@ -1,0 +1,239 @@
+<div ng-controller="StdModelReportFeaturesHandlingController">
+
+    <div class="features-handling ">
+
+        <h2 class="settings-section-title" style="margin-top: 4px">Input features</h2>
+        <div style="margin-bottom: 5px">
+            <div class="std-list-search-box list-control-widget" style="vertical-align:top; margin-left:0;">
+                <span class="add-on">
+                    <i class="icon-dku-search"></i>
+                </span>
+                <input type="search" ng-model="filter.query" placeholder="Search..." style="width: 130px" >
+            </div>
+            <span ng-show="filter.pagination.maxPage">
+                <span style="display:inline-block; margin:0 30px;; color:#666" ng-show="filter.pagination.size">
+                    {{ filter.pagination.from + 1 }}-{{ filter.pagination.to + 1 }} of {{ filter.pagination.size }}
+                </span>
+                <div class="pagination dibvam" style="margin: 0 0" ng-show="filter.pagination.size">
+                    <ul>
+                        <li class="{{ filter.pagination.page == 1 ? 'disabled' : ''}}">
+                            <a href ng-click="filter.pagination.prevPage()" class="icon-chevron-left"></a>
+                        </li>
+                        <li ng-repeat="i in [1, filter.pagination.maxPage] | range"
+                    class="{{ filter.pagination.page == i ? 'active' : ''}}">
+                            <a href ng-click="filter.pagination.goToPage(i)">{{i}}</a>
+                        </li>
+                        <li class="{{ filter.pagination.page == filter.pagination.maxPage ? 'disabled' : ''}}">
+                            <a href ng-click="filter.pagination.nextPage()" class="icon-chevron-right"></a>
+                        </li>
+                    </ul>
+                </div>
+            </span>
+        </div>
+
+        <div >
+            <div ng-repeat="proc in currentPageItems" class="item handle-{{proc.role.toLowerCase()}}">
+                <div class="name" ng-if="proc.hasReport" full-click>
+                    <a ng-click="proc.unfolded = !proc.unfolded" main-click> <i class="icon-caret-down" ng-show="proc.unfolded"/><i class="icon-caret-right" ng-show="!proc.unfolded"/>
+                        &nbsp;{{proc.name}}
+                    </a>
+                </div>
+                <div class="name" ng-if="!proc.hasReport">
+                    <i class="icon-caret-down" style="color: #bbb"/>&nbsp;{{proc.name}}
+                </div>
+                <div class="role">
+                    <span ng-if="proc.role=='INPUT'">
+                        <span class="icon-arrow-right"></span>
+                        &nbsp;Input
+                    </span>
+
+                    <span ng-if="proc.role=='TARGET'">
+                        <span class="icon-bullseye"></span>
+                        &nbsp;Target
+                    </span>
+
+                    <span ng-if="proc.role=='WEIGHT'">
+                        <span class="icon-dku-weight"></span>
+                        Weight
+                    </span>
+
+                    <span ng-if="proc.role=='PROFILING'">
+                        <span class="icon-arrow-right"></span>
+                        &nbsp;Display only
+                    </span>
+
+                    <span ng-if="proc.role=='REJECT'">
+                        <span class="icon-remove"></span>
+                        &nbsp;Rejected
+                    </span>
+                </div>
+
+                <div class="type">
+                    <span ng-if="proc.type=='CATEGORY'">
+                        <i class="icon-font"></i>
+                        Category
+                    </span>
+                    <span ng-if="proc.type=='VECTOR'">
+                        <span style="font-size: 14px">[ ]</span>
+                        Vector
+                    </span>
+                    <span ng-if="proc.type=='IMAGE'">
+                        <i class="icon-picture"></i>
+                        Image
+                    </span>
+                    <span ng-if="proc.type=='TEXT'">
+                        <i class="icon-italic"></i>
+                        Text
+                    </span>
+                    <span ng-if="proc.type=='NUMERIC'">#&nbsp;Numeric</span>
+                </div>
+                <div class="summary">
+
+                    <span ng-show="proc.role=='INPUT' || proc.role=='PROFILING'">
+                        <span ng-show="proc.type == 'CATEGORY'">
+                            <span ng-if="proc.category_handling == 'NONE'">No handling</span>
+                            <span ng-if="proc.category_handling == 'DUMMIFY'">Dummy-encode</span>
+                            <span ng-if="proc.category_handling == 'IMPACT'">Impact-code</span>
+                            <span ng-if="proc.category_handling == 'FLAG_PRESENCE'">Flag presence</span>
+                            <span ng-if="proc.category_handling == 'HASHING'">Hashing</span>
+                            <span ng-if="proc.category_handling == 'CUSTOM'">Custom</span>
+                            <span ng-if="proc.category_handling != 'FLAG_PRESENCE'">
+                                <span ng-show="proc.missing_handling=='DROP_ROW'">, drop missing</span>
+                                <span ng-show="proc.missing_handling=='IMPUTE'">, impute missing</span>
+                            </span>
+                        </span>
+                        <span ng-show="proc.type == 'NUMERIC'">
+                            <span ng-if="proc.numerical_handling == 'FLAG_PRESENCE'">
+                                Flag presence
+                            </span>
+                            <span ng-if="proc.numerical_handling == 'REGULAR'">
+                                <span ng-show="proc.rescaling=='AVGSTD'">Avg-std rescaling</span>
+                                <span ng-show="proc.rescaling=='MINMAX'">Min-max rescaling</span>
+                            </span>
+                            <span ng-if="proc.numerical_handling == 'BINARIZE'">
+                                Binarize
+                            </span>
+                            <span ng-if="proc.numerical_handling == 'CUSTOM'">
+                                Custom
+                            </span>
+                            <span ng-if="proc.numerical_handling == 'QUANTILE_BIN'">
+                                Bin in {{proc.quantile_bin_nb_bins}} quantiles
+                            </span>
+                        </span>
+
+                        <span ng-show="proc.type == 'TEXT'">
+                            <span ng-show="proc.text_handling=='TOKENIZE_HASHING'">Term hashing</span>
+                            <span ng-show="proc.text_handling=='TOKENIZE_HASHING_SVD'">Term hashing + SVD</span>
+                            <span ng-show="proc.text_handling=='CUSTOM'">Custom</span>
+                        </span>
+                        <span ng-show="proc.type == 'VECTOR'">
+                            <span ng-if="proc.vector_handling == 'UNFOLD'">Unfold</span>
+                        </span>
+                        <span ng-show="proc.type == 'IMAGE'">
+                            <span ng-if="proc.image_handling == 'CUSTOM'">Custom</span>
+                        </span>
+                    </span>
+                </div>
+                <div ng-if="proc.unfolded" class="details">
+                    <div ng-if="proc.type == 'CATEGORY' && proc.category_handling == 'IMPACT'">
+                        <h4>Impact coding map</h4>
+                        <div class="row-fluid"  ng-init="zippedImpact = getLimitedZippedImpact(proc.name)">
+                            <div class="span3">
+                                <table class="table table-small table-striped">
+                                    <tr ng-repeat="i in zippedImpact|listSlice:0:10">
+                                        <td>{{i[0]}}</td>
+                                        <td>{{i[1]|number:3}}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="span3">
+                                <table class="table table-small table-striped">
+                                    <tr ng-repeat="i in zippedImpact|listSlice:10:20">
+                                        <td>{{i[0]}}</td>
+                                        <td>{{i[1]|number:3}}</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div class="span6">
+                                <div class="doctor-explanation">
+                                    <h1>Impact coding</h1>
+                                    <p>
+                                        Impact coding a category feature consists of replacing each value of
+                                    the feature by its "impact" on the target variable. Roughly speaking, this
+                                    means that each value is replaced by the average of the target for this value.
+                                    </p>
+                                    <p>
+                                        This impact coding map shows the values of <strong>{{proc.name}}</strong> that have the highest impact on <strong>{{modelData.coreParams.target_variable}}</strong>
+                                    </p>
+                                    <div class="learnmore">
+                                        <a target="_blank" rel="noopener noreferrer"
+                                           href="https://doc.dataiku.com/dss/latest/machine-learning/features-handling/categorical.html">
+                                            Learn more
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="proc.type == 'TEXT' && proc.text_handling == 'TOKENIZE_COUNTS'">
+                        <h4>Count vectorization</h4>
+                        <ul>
+                            <li>Used words: {{modelData.preprocessingReport.countvec[proc.name].used_words}}</li>
+                            <li>Dropped words: {{modelData.preprocessingReport.countvec[proc.name].dropped_words}}</li>
+                        </ul>
+                    </div>
+                    <div ng-if="proc.type == 'TEXT' && proc.text_handling == 'TOKENIZE_TFIDF'">
+                        <h4>TF/IDF vectorization</h4>
+                        <ul>
+                            <li>Used words: {{modelData.preprocessingReport.tfidfvec[proc.name].used_words}}</li>
+                            <li>Dropped words: {{modelData.preprocessingReport.tfidfvec[proc.name].dropped_words}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div ng-if="modelData.perf.processed_feature_names" class="preprocessed">
+        <h2 class="settings-section-title">Preprocessed features ({{modelData.perf.processed_feature_names.length}})</h2>
+        <div ng-if="modelData.perf.processed_feature_names.length > 500 && !uiState.showAllPreprocessedFeatures">
+            <a ng-click="uiState.showAllPreprocessedFeatures = true">Show all (could be slow)</a>
+        </div>
+        <div class="horizontal-flex" style="flex-wrap: wrap" ng-if="modelData.perf.processed_feature_names.length <= 500 || uiState.showAllPreprocessedFeatures">
+            <div class="feature-item ellipsed"
+                 ng-repeat="name in modelData.perf.processed_feature_names"
+                 title="{{name | mlFeature}}">
+                <span style="margin-right: 10px"><i class="icon-circle" style="margin-right: 3px; vertical-align: middle; font-size: 5px"></i>{{name | mlFeature}}</span>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <h2 class="settings-section-title">Feature generation</h2>
+
+        <div ng-if="!modelData.preprocessingReport.pairwise_linear && !modelData.preprocessingReport.polynomial_interactions && modelData.preprocessing.feature_generation.manual_interactions.interactions.length === 0">
+            None enabled
+        </div>
+
+        <div ng-if="modelData.preprocessingReport.pairwise_linear">
+            <strong>Linear combinations: enabled</strong>, generated {{modelData.preprocessingReport.pairwise_linear.built_features}} new features from {{modelData.preprocessingReport.pairwise_linear.input_features}} input features
+        </div>
+
+        <div ng-if="modelData.preprocessingReport.polynomial_interactions">
+            <strong>Polynomial combinations: enabled</strong>, generated {{modelData.preprocessingReport.polynomial_interactions.built_features}} new features from {{modelData.preprocessingReport.polynomial_interactions.input_features}} input features
+        </div>
+
+        <div ng-if="modelData.preprocessing.feature_generation.manual_interactions.interactions.length > 0">
+            <strong>Feature Interactions</strong>
+            <ul>
+                <li ng-repeat="interaction in modelData.preprocessing.feature_generation.manual_interactions.interactions">
+                    {{interaction.column_1}} &times; {{interaction.column_2}}
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+</div>

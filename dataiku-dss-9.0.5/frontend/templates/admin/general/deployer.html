@@ -1,0 +1,108 @@
+<div class="paned-settings-page-pane">
+    <h1>Deployer</h1>
+    
+    <div class="section">
+        <h2>General</h2>
+        <form class="dkuform-horizontal">
+            <div class="control-group">
+                <label for="" class="control-label">Mode</label>
+                <div class="controls">
+                    <select dku-bs-select
+                            ng-model="generalSettings.deployerClientSettings.mode"
+                            ng-options="x[0] as x[1] for x in DEPLOYER_MODES"
+                            options-descriptions="DEPLOYER_MODES_DESCRIPTIONS" />
+                    <span class="help-inline">Reload DSS in your browser after changing this</span>
+                </div>
+            </div>
+            <div class="control-group" ng-show="generalSettings.deployerClientSettings.mode =='REMOTE'">
+                <label for="" class="control-label">Deployer URL</label>
+                <div class="controls">
+                    <input type="text"
+                           ng-model="generalSettings.deployerClientSettings.nodeUrl"
+                           placeholder="http://host:port" />
+                </div>
+            </div>
+            <div class="control-group" ng-show="generalSettings.deployerClientSettings.mode =='REMOTE'">
+                <label for="" class="control-label">Deployer API key</label>
+                <div class="controls">
+                    <input type="password"
+                           ng-model="generalSettings.deployerClientSettings.apiKey"/>
+                    <span class="help-inline">An admin API key valid on the remote Deployer</span>
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="generalSettings.deployerClientSettings.mode =='REMOTE'">
+                <label class="control-label">Trust all certificates</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="generalSettings.deployerClientSettings.trustAllSSLCertificates" />
+                </div>
+            </div>
+            
+            <div class="control-group" ng-show="generalSettings.deployerClientSettings.mode =='REMOTE'">
+                <label for="" class="control-label">Show local Deployer</label>
+                <div class="controls">
+                    <input type="checkbox"
+                           ng-model="generalSettings.deployerServerEnabledDespiteRemote"/>
+                    <span class="help-inline">When Deployer is configured in "Publish on a remote Deployer", the Deployer of this DSS node is generally not used. Enable this to show it nevertheless.</span>
+                </div>
+            </div>
+                
+                <div ng-show="generalSettings.deployerClientSettings.mode =='LOCAL' || generalSettings.deployerClientSettings.mode =='REMOTE'  && generalSettings.deployerServerEnabledDespiteRemote">
+                    <div class="control-group" >
+                        <label for="" class="control-label">API deployment stages</label>
+                        <div class="controls">
+                            <editable-list ng-model="generalSettings.apiDeployerServerSettings.stages" sortable="true" add-label="Add stage">
+                                <editable-list-input type="text" ng-model="it.id" placeholder="Stage ID" required="true"/>
+                                <i class="editable-list__arrow-icon icon-long-arrow-right"></i>
+                                <input type="text" class="editable-list__input" ng-model="it.desc" placeholder="Stage description"/>
+                            </editable-list>
+                            <span class="help-inline">
+                                Product life-cycle steps
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div ng-show="generalSettings.deployerClientSettings.mode =='LOCAL' || generalSettings.deployerClientSettings.mode =='REMOTE'  && generalSettings.deployerServerEnabledDespiteRemote">
+                    <div class="control-group" >
+                        <label for="" class="control-label">Project deployment stages</label>
+                        <div class="controls">
+                            <editable-list ng-model="generalSettings.projectDeployerServerSettings.stages" sortable="true" add-label="Add stage">
+                                <editable-list-input type="text" ng-model="it.id" placeholder="Stage ID" required="true"/>
+                                <i class="editable-list__arrow-icon icon-long-arrow-right"></i>
+                                <input type="text" class="editable-list__input" ng-model="it.desc" placeholder="Stage description"/>
+                            </editable-list>
+                            <span class="help-inline">
+                                Product life-cycle steps
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    <div class="section">
+        <h2>API Designer: Testing</h2>
+        <form class="dkuform-horizontal">
+            <div class="control-group">
+                <label for="" class="control-label">Connection for bundled data</label>
+                <div class="controls" >
+                    <select dku-bs-select ng-model="generalSettings.lambdaDevBundledConnection" ng-options="c for c in sqlConnections">
+                        <option value="" style="font-style: italic">None</option>
+                    </select>
+                    <span class="help-inline">
+                        SQL connection to load the bundled data when testing API services.
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Test server status</label>
+                <div class="controls" >
+                    <span ng-bind="(lambdaDevServerStatus.status || 'Unknown') | niceConst" />
+                    <span ng-if="lambdaDevServerStatus.port">(port {{lambdaDevServerStatus.port}})</span>
+                    <button class="btn btn--secondary btn--icon" ng-click="lambdaDevServerPoll()"><i class="icon-refresh" /></button>
+                    <button class="btn btn--danger" ng-if="lambdaDevServerStatus.status && lambdaDevServerStatus.status !== 'STOPPED'"
+                            ng-click="lambdaDevServerStop()">Stop</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,906 @@
+     <!-- /main.html -->
+     <div id="disconnected-overlay" ng-click="reconnectWebSocket()"><span>Disconnected</span></div>
+
+        <div class="row-fluid master-nav noflex"
+            ng-if="appConfig.loggedIn && topNav.top != 'LOGIN' && appConfig.licensing.valid && !isFullScreen()"
+            ng-class="{automation: appConfig.isAutomation, 'master-nav__home--tall': topNav.isTall}">
+            <div class="master-nav__tile master-nav__logo {{topNav.top}}">
+                <!-- The href is there to keep the display of the link and the click to really do the transition with the reload -->
+                <a ng-href="{{getHomeHref()}}"
+                    id="qa_navbar_home-button"
+                    ng-click="onClickHref($event)"
+                    ng-mouseover="onEnterSecondNav('DSS_HOME')"
+                    ng-mouseleave="onLeaveSecondNav()"
+                    title="Home">
+                    <i ng-if="!wl.navbarIconUrl" class="icon-dkubird" />
+                    <img ng-if="wl.navbarIconUrl" ng-src="{{wl.navbarIconUrl}}" style="height:24px" alt="{{wl.productLongName}}" />
+                </a>
+                <a ng-show="wsFail" rel="noopener noreferrer" toggle="tooltip" title="Could&nbsp;not&nbsp;establish&nbsp;WebSocket&nbsp;connection"
+                    target="_blank" href="{{$root.versionDocRoot}}/troubleshooting/problems/websockets.html"><span style="color: red"><i class="wsFailIcon icon-warning-sign"/></span></a>
+            </div>
+
+            <div class="master-nav__tile master-nav__home master-nav__home--banner" ng-if="topNav.top == 'DSS_HOME'">
+                <span ng-if="!appConfig.isAutomation" ng-bind="wl.productLongName" />
+                <span ng-if="appConfig.isAutomation && appConfig.projectsModuleEnabled">{{wl.productLongName}} Automation</span>
+                <span ng-if="appConfig.isAutomation && !appConfig.projectsModuleEnabled">{{wl.productLongName}} Deployer</span>
+            </div>
+            <div class="master-nav__tile master-nav__home master-nav__home--banner" ng-if="topNav.top.includes('DEPLOYER')">
+                <a ui-sref="deployer" title="Deployer">
+                    Deployer
+                </a>
+            </div>
+            <div class="master-nav__tile master-nav__home" ng-if="topNav.top != 'DSS_HOME' && !topNav.top.includes('DEPLOYER') && topNav.top != 'PLUGINS'">
+                <div class="master-nav__home--project-title-with-branch" ng-if="topNav.projectCurrentBranch && appConfig.gitMode == 'PROJECT'">
+                    <a ng-class="{active: topNav.top == 'HOME'}" class="master-nav__home--project-title"
+                       ng-mouseover="onEnterSecondNav('HOME')"
+                       ng-mouseleave="onLeaveSecondNav()"
+                       ui-sref="projects.project.home.regular" ui-sref-opts="{reload:true}"
+                       title="{{topNav.project.name}} {{' - ' + topNav.projectCurrentBranch}}"
+                       show-tooltip-on-text-overflow text-tooltip="topNav.project.name">
+                    </a>
+                    <span class="master-nav__home--branch-separator">on</span>
+                    <a ng-class="{active: topNav.top == 'HOME'}" class="master-nav__home--branch"
+                       ng-mouseover="onEnterSecondNav('HOME')"
+                       ng-mouseleave="onLeaveSecondNav()"
+                       ui-sref="projects.project.version-control"
+                       title="{{topNav.project.name}} {{' - ' + topNav.projectCurrentBranch}}">
+                        <i class="icon-dku-git" /> {{topNav.projectCurrentBranch}}
+                    </a>
+                </div>
+                <a ng-if="!(topNav.projectCurrentBranch && appConfig.gitMode == 'PROJECT')"
+                   ng-class="{active: topNav.top == 'HOME'}"
+                   ng-mouseover="onEnterSecondNav('HOME')" ng-mouseleave="onLeaveSecondNav()"
+                   ui-sref="projects.project.home.regular" ui-sref-opts="{reload:true}">
+                   <div show-tooltip-on-text-overflow text-tooltip="topNav.project.name"></div>
+                </a>
+            </div>
+            <div class="master-nav__tile master-universe" ng-if="topNav.top != 'DSS_HOME' && !topNav.top.includes('DEPLOYER')">
+                <section ng-class="{'master-nav__menu-trigger--on-focus': isTouchDevice}" class="master-nav__menu-trigger master-nav__menu--flow" id="flow-menu-trigger" tabindex="0">
+                    <!-- Add the link only if not in a touch device -->
+                    <a ng-class="{active: topNav.top == 'FLOW', 'recipes': topNav.left === 'recipes'}"
+                        class="master-universe__icon master-universe__icon--flow"
+                        ng-if="topNav.isProjectAnalystRO && topNav.showFlowNavLink && !isTouchDevice"
+                        ng-mouseover="onEnterSecondNav('FLOW')"
+                        ng-mouseleave="onLeaveSecondNav()"
+                        ui-sref-opts="{reload:true}"
+                        ui-sref="projects.project.flow({zoneId : destZone})"
+                        ng-mousedown="destZone = getDestZone()">
+                        <i class="icon-dku-nav_flow"/>
+                    </a>
+                    <a ng-class="{active: topNav.top == 'FLOW', 'recipes': topNav.left === 'recipes'}"
+                        class="master-universe__icon master-universe__icon--flow"
+                        ng-if="topNav.isProjectAnalystRO && topNav.showFlowNavLink && isTouchDevice"
+                        ng-mouseover="onEnterSecondNav('FLOW')"
+                        ng-mouseleave="onLeaveSecondNav()">
+                        <i class="icon-dku-nav_flow"/>
+                    </a>
+                    <nav class="master-nav__menu" ng-click="closeNavMenu('flow-menu-trigger')">
+                        <ul>
+                            <li>
+                                <a  ui-sref="projects.project.flow({zoneId : destZone})"
+                                    ng-mousedown="destZone = getDestZone()"
+                                    class="master-section flow"
+                                    ng-class="{'active': topNav.left === 'flow'}">
+                                    Flow
+                                    <span class="master-section__shortcut">G+F</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a ui-sref="projects.project.datasets.list"
+                                    class="master-section flow"
+                                    ng-class="{'active': topNav.left === 'datasets'}">
+                                    Datasets
+                                    <span class="master-section__shortcut">G+D</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a ui-sref="projects.project.recipes.list"
+                                    class="master-section recipes"
+                                    ng-class="{'active': topNav.left === 'recipes'}">
+                                    Recipes
+                                    <span class="master-section__shortcut">G+R</span>
+                                </a>
+                            </li>
+                            <li ng-if="appConfig.streamingEnabled">
+                                <a ui-sref="projects.project.streaming-endpoints.list"
+                                    class="master-section flow"
+                                    ng-class="{'active': topNav.left === 'streaming-endpoints'}">
+                                    Streaming endpoints
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </section>
+                <section ng-class="{'master-nav__menu-trigger--on-focus': isTouchDevice}" class="master-nav__menu-trigger master-nav__menu--analyses" id="analyses-menu-trigger" tabindex="0">
+                    <a ng-class="{active: topNav.top == 'ANALYSES'}"
+                        class="master-universe__icon master-universe__icon--analyses"
+                        ng-if="topNav.isProjectAnalystRO && topNav.showLabNavLink && !isTouchDevice"
+                        ng-mouseover="onEnterSecondNav('ANALYSES')"
+                        ng-mouseleave="onLeaveSecondNav()"
+                        ui-sref-opts="{reload:true}"
+                        ui-sref="projects.project.analyses.list">
+                        <i class="icon-dku-nav_analysis" />
+                    </a>
+                    <a ng-class="{active: topNav.top == 'ANALYSES'}"
+                        class="master-universe__icon master-universe__icon--analyses"
+                        ng-if="topNav.isProjectAnalystRO && topNav.showLabNavLink && isTouchDevice"
+                        ng-mouseover="onEnterSecondNav('ANALYSES')"
+                        ng-mouseleave="onLeaveSecondNav()">
+                        <i class="icon-dku-nav_analysis" />
+                    </a>
+                    <nav class="master-nav__menu" ng-click="closeNavMenu('analyses-menu-trigger')">
+                        <ul>
+                            <li>
+                                <a ui-sref="projects.project.analyses.list"
+                                    class="master-section analyses"
+                                    ng-class="{'active': topNav.left === 'analyses'}">
+                                    Visual Analyses
+                                    <span class="master-section__shortcut">G+A</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </section>
+                <section ng-class="{'master-nav__menu-trigger--on-focus': isTouchDevice}" class="master-nav__menu-trigger master-nav__menu--notebooks" id="notebooks-menu-trigger" tabindex="0">
+                    <a ng-class="{active: topNav.top == 'NOTEBOOKS'}"
+                        class="master-universe__icon master-universe__icon--notebooks"
+                        ng-if="topNav.isProjectAnalystRO && topNav.showCodeNavLink && !isTouchDevice"
+                        ng-mouseover="onEnterSecondNav('NOTEBOOKS')"
+                        ng-mouseleave="onLeaveSecondNav()"
+                        ui-sref-opts="{reload:true}"
+                        ui-sref="projects.project.notebooks.list">
+                        <i class="icon-code"/>
+                    </a>
+                    <a ng-class="{active: topNav.top == 'NOTEBOOKS'}"
+                        class="master-universe__icon master-universe__icon--notebooks"
+                        ng-if="topNav.isProjectAnalystRO && topNav.showCodeNavLink && isTouchDevice"
+                        ng-mouseover="onEnterSecondNav('NOTEBOOKS')"
+                        ng-mouseleave="onLeaveSecondNav()">
+                        <i class="icon-code"/>
+                    </a>
+                    <nav class="master-nav__menu" ng-click="closeNavMenu('notebooks-menu-trigger')">
+                        <ul>
+                            <li>
+                                <a ui-sref="projects.project.notebooks.list"
+                                    class="master-section notebooks"
+                                    ng-class="{'active': topNav.left === 'notebooks'}">
+                                    Notebooks
+                                    <span class="master-section__shortcut">G+N</span>
+                                </a>
+                            </li>
+                            <li ng-if="appConfig && appConfig.rstudioServerEmbedURL">
+                                <a ui-sref="projects.project.rstudioserver.embed"
+                                    class="master-section notebooks"
+                                    ng-class="{'active': topNav.left === 'rstudio-server'}">
+                                    RStudio Server
+                                </a>
+                            </li>
+                            <li>
+                                <a ui-sref="projects.project.webapps.list"
+                                    class="master-section notebooks"
+                                    ng-class="{'active': topNav.left === 'webapps'}">
+                                    Webapps
+                                </a>
+                            </li>
+                            <li>
+                                <a ui-sref="projects.project.reports.list"
+                                    class="master-section notebooks"
+                                    ng-class="{'active': topNav.left === 'reports'}">
+                                    RMarkdown Reports
+                                </a>
+                            </li>
+                            <li>
+                                <a ui-sref="projects.project.libedition"
+                                    class="master-section notebooks"
+                                    ng-class="{'active': topNav.left === 'libraries'}">
+                                    Libraries
+                                    <span class="master-section__shortcut">G+L</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </section>
+                <section ng-class="{'master-nav__menu-trigger--on-focus': isTouchDevice}" class="master-nav__menu-trigger master-nav__menu--jobs" id="jobs-menu-trigger" tabindex="0">
+                    <a ng-class="{active: topNav.top == 'JOBS'}"
+                        class="master-universe__icon master-universe__icon--jobs"
+                        ng-if="topNav.isProjectAnalystRO && !isTouchDevice"
+                        ng-mouseover="onEnterSecondNav('JOBS')"
+                        ng-mouseleave="onLeaveSecondNav()"
+                        ui-sref-opts="{reload:true}"
+                        ui-sref="projects.project.jobs.list">
+                        <i class="icon-dku-nav_jobs"/>
+                    </a>
+                    <a ng-class="{active: topNav.top == 'JOBS'}"
+                        class="master-universe__icon master-universe__icon--jobs"
+                        ng-if="topNav.isProjectAnalystRO && isTouchDevice"
+                        ng-mouseover="onEnterSecondNav('JOBS')"
+                        ng-mouseleave="onLeaveSecondNav()">
+                        <i class="icon-dku-nav_jobs"/>
+                    </a>
+                    <nav class="master-nav__menu" ng-click="closeNavMenu('jobs-menu-trigger')">
+                        <ul>
+                            <li>
+                                <a ui-sref="projects.project.jobs.list"
+                                    class="master-section job"
+                                    ng-class="{'active': topNav.left === 'jobs'}">
+                                    Jobs
+                                    <span class="master-section__shortcut">G+J</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a ui-sref="projects.project.scenarios.list"
+                                    class="master-section job"
+                                    ng-class="{'active': topNav.left === 'scenarios'}">
+                                    Scenarios
+                                </a>
+                            </li>
+                            <li>
+                                <a ui-sref="projects.project.monitoring.scenarios"
+                                    class="master-section job"
+                                    ng-class="{'active': topNav.left === 'monitoring'}">
+                                    Automation monitoring
+                                </a>
+                            </li>
+                            <li ng-if="appConfig.streamingEnabled">
+                                <a ui-sref="projects.project.continuous-activities.list"
+                                    class="master-section job"
+                                    ng-class="{'active': topNav.left === 'continuous-activities'}">
+                                    Continuous activities
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </section>
+                <section ng-class="{'master-nav__menu-trigger--on-focus': isTouchDevice}" class="master-nav__menu-trigger master-nav__menu--wiki" id="wiki-menu-trigger" tabindex="0">
+                    <a ng-class="{active: topNav.top == 'WIKI'}"
+                        class="master-universe__icon master-universe__icon--wiki"
+                        ng-if="topNav.isProjectAnalystRO && !isTouchDevice"
+                        title="Wiki"
+                        ng-mouseover="onEnterSecondNav('WIKI')"
+                        ng-mouseleave="onLeaveSecondNav()"
+                        ui-sref-opts="{reload:true}"
+                        ui-sref="projects.project.wiki">
+                        <i class="icon-dku-wiki"/>
+                    </a>
+                    <a ng-class="{active: topNav.top == 'WIKI'}"
+                        class="master-universe__icon master-universe__icon--wiki"
+                        ng-if="topNav.isProjectAnalystRO && isTouchDevice"
+                        title="Wiki"
+                        ng-mouseover="onEnterSecondNav('WIKI')"
+                        ng-mouseleave="onLeaveSecondNav()">
+                        <i class="icon-dku-wiki"/>
+                    </a>
+                    <nav class="master-nav__menu" ng-click="closeNavMenu('wiki-menu-trigger')">
+                        <ul>
+                            <li>
+                                <a ui-sref="projects.project.wiki"
+                                    ui-sref-opts="{reload:true}"
+                                    class="master-section wiki"
+                                    ng-class="{'active': topNav.left === 'wiki'}">
+                                    Wiki
+                                    <span class="master-section__shortcut">G+W</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </section>
+                <section ng-class="{'master-nav__menu-trigger--on-focus': isTouchDevice}" class="master-nav__menu-trigger master-nav__menu--dashboard" id="dashboard-menu-trigger" tabindex="0">
+                    <a ng-class="{active: topNav.top == 'DASHBOARD'}"
+                        class="master-universe__icon master-universe__icon--dashboard"
+                        ng-if="!isTouchDevice"
+                        ng-mouseover="onEnterSecondNav('DASHBOARD')"
+                        ng-mouseleave="onLeaveSecondNav()"
+                        ui-sref-opts="{reload:true}"
+                        ui-sref="projects.project.dashboards.list">
+                        <i class="icon-dku-dashboard"/>
+                    </a>
+                    <a ng-class="{active: topNav.top == 'DASHBOARD'}"
+                        class="master-universe__icon master-universe__icon--dashboard"
+                        ng-if="isTouchDevice"
+                        ng-mouseover="onEnterSecondNav('DASHBOARD')"
+                        ng-mouseleave="onLeaveSecondNav()">
+                        <i class="icon-dku-dashboard"/>
+                    </a>
+                    <nav class="master-nav__menu" ng-click="closeNavMenu('dashboard-menu-trigger')">
+                        <ul>
+                            <li>
+                                <a ui-sref="projects.project.dashboards.list"
+                                    class="master-section dashboard"
+                                    ng-class="{'active': topNav.left == 'dashboards'}">
+                                    Dashboards
+                                    <span class="master-section__shortcut">G+P</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a ui-sref="projects.project.dashboards.insights.list"
+                                    class="master-section dashboard"
+                                    ng-class="{'active': topNav.left == 'insights'}">
+                                    Insights
+                                    <span class="master-section__shortcut">G+I</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    </section>
+                <section ng-class="{'master-nav__menu-trigger--on-focus': isTouchDevice}" class="master-nav__menu-trigger master-nav__menu--more" id="more-menu-trigger" tabindex="0">
+                        <a ng-class="{active: topNav.top == 'MORE'}"
+                            class="master-universe__icon master-universe__icon--more"
+                            ng-if="topNav.isProjectAnalystRO"
+                            ng-mouseover="onEnterSecondNav('MORE')"
+                            ng-mouseleave="onLeaveSecondNav()"
+                            ui-sref-opts="{reload:true}">
+                            <i class="icon-dku-more"/>
+                        </a>
+                        <nav class="master-nav__menu" ng-click="closeNavMenu('more-menu-trigger')">
+                            <ul>
+                                <li ng-if="!topNav.isAppInstance">
+                                    <a ng-if="topNav.isProjectAnalystRW"
+                                        ui-sref="projects.project.lambdaservices.list"
+                                        class="master-section more"
+                                        ng-class="{'active': topNav.left === 'lambda'}">
+                                        API Designer
+                                    </a>
+                                </li>
+                                <li ng-if="!topNav.isAppInstance">
+                                    <a ng-if="!appConfig.isAutomation && topNav.isCurrentProjectAdmin"
+                                        ui-sref="projects.project.bundlesdesign.list"
+                                        class="master-section more"
+                                        ng-class="{'active': topNav.left === 'bundlesdesign'}">
+                                        Bundles
+                                    </a>
+                                    <a ng-if="appConfig.isAutomation && topNav.isCurrentProjectAdmin"
+                                        ui-sref="projects.project.bundlesautomation.list"
+                                        class="master-section more"
+                                        ng-class="{'active': topNav.left === 'bundlesautomation'}">
+                                        Bundles
+                                    </a>
+                                </li>
+                                <hr ng-if="!topNav.isAppInstance" />
+                                <li>
+                                    <a ui-sref="projects.project.variables"
+                                        class="master-section more"
+                                        ng-class="{'active': topNav.left == 'variables'}">
+                                        Variables
+                                    </a>
+                                </li>
+                                <li>
+                                    <a ng-if="topNav.isProjectAnalystRW"
+                                        ui-sref="projects.project.runnables.list"
+                                        class="master-section more"
+                                        ng-class="{'active': topNav.left === 'runnables'}">
+                                        Macros
+                                    </a>
+                                </li>
+                                <li>
+                                    <a ui-sref="projects.project.version-control"
+                                        class="master-section more"
+                                        ng-class="{'active': topNav.left == 'version-control'}"
+                                        ng-if="appConfig.gitMode == 'PROJECT' && topNav.showVersionControlFeatures">
+                                        Version control
+                                    </a>
+                                </li>
+                                <hr ng-if="!topNav.isAppInstance && !appConfig.isAutomation && topNav.isCurrentProjectAdmin">
+                                <li ng-if="!topNav.isAppInstance && !appConfig.isAutomation && topNav.isCurrentProjectAdmin">
+                                    <a ui-sref="projects.project.appdesigner"
+                                       class="master-section more"
+                                       ng-class="{'active': topNav.left == 'appdesigner'}">
+                                        Application Designer
+                                    </a>
+                                </li>
+                                <hr>
+                                <li>
+                                    <a ng-if="topNav.canAccessProjectSettings"
+                                        ui-sref="projects.project.settings"
+                                        class="master-section more more-settings-link"
+                                        ng-class="{'active': topNav.left === 'settings'}">
+                                        Settings
+                                    </a>
+                                </li>
+                                <li>
+                                    <a ng-if="topNav.canAccessProjectSecurity"
+                                        ui-sref="projects.project.security"
+                                        class="master-section more"
+                                        ng-class="{'active': topNav.left == 'security'}">
+                                        Security
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </section>
+            </div>
+
+            <div class="master-nav__tile master-nav__tile--grow" ng-if="topNav.top == 'DSS_HOME'" >
+                <div ng-if="isShowNavSearch()" class="horizontal-flex std-list-search-box">
+                    <div class="noflex" >
+                        <span class="add-on">
+                            <i class="icon-filter"></i>
+                        </span>
+                    </div>
+
+                    <input class="flex" id="qa_homepage_search-bar"
+                           type="search"
+                           auto-focus="true"
+                           ng-model="topNav.homeSearchFilter"
+                           placeholder="Filter items..."
+                           ui-keydown="{'enter': 'goToFirstFilteredProject()'}"/>
+
+                    <div ng-if="topNav.homeSearchFilter!=''" class="noflex clear-button" ng-click="topNav.homeSearchFilter=''">
+                        <span class="add-on" >
+                            <i class="icon-remove"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="master-nav__tile master-nav__tile--grow" ng-if="topNav.top != 'DSS_HOME'">
+                <div ng-switch="topNav.top">
+                    <span ng-switch-when="API_DEPLOYER">
+                        <span class="master-section master-section--heading master-section--api-deployer infras">
+                            <i class="master-section__icon master-section__icon--deployer icon-api-service"></i>
+                            API Services
+                        </span>
+                        <a class="master-section infras"
+                            ui-sref="apideployer.deployments.dashboard"
+                            ng-class="{'master-nav-bottom-caret': topNav.left == 'deployments', 'active': topNav.left == 'deployments'}">
+                            Deployments
+                        </a>
+                        <a class="master-section infras"
+                            ui-sref="apideployer.services.list"
+                            ng-class="{'master-nav-bottom-caret': topNav.left == 'services', 'active': topNav.left == 'services'}">
+                            Services
+                        </a>
+                        <a class="master-section infras"
+                            ui-sref="apideployer.infras.list"
+                            ng-class="{'master-nav-bottom-caret': topNav.left == 'infras', 'active': topNav.left == 'infras'}">
+                            Infrastructures
+                        </a>
+                    </span>
+                    <span ng-switch-when="PROJECT_DEPLOYER">
+                        <span class="master-section master-section--heading master-section--project-deployer infras">
+                            <i class="master-section__icon master-section__icon--deployer icon-dku-project"></i>
+                            Projects
+                        </span>
+                        <a class="master-section infras"
+                            ui-sref="projectdeployer.deployments.dashboard"
+                            ng-class="{'master-nav-bottom-caret': topNav.left == 'deployments', 'active': topNav.left == 'deployments'}">
+                            Deployments
+                        </a>
+                        <a class="master-section infras"
+                            ui-sref="projectdeployer.projects.list"
+                            ng-class="{'master-nav-bottom-caret': topNav.left == 'projects', 'active': topNav.left == 'projects'}">
+                            Projects
+                        </a>
+                        <a class="master-section infras"
+                            ui-sref="projectdeployer.infras.list"
+                            ng-class="{'master-nav-bottom-caret': topNav.left == 'infras', 'active': topNav.left == 'infras'}">
+                            Infrastructures
+                        </a>
+                    </span>
+                    <span ng-switch-when="FLOW">
+                        <div ng-switch="topNav.left">
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="flow">
+                                Flow
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="datasets">
+                                Datasets
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="recipes">
+                                Recipes
+                            </span>
+                        </div>
+                    </span>
+                    <span ng-switch-when="ANALYSES">
+                        <div ng-switch="topNav.left">
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="analyses">
+                                Visual analyses
+                            </span>
+                        </div>
+                    </span>
+                    <span ng-switch-when="NOTEBOOKS">
+                        <div ng-switch="topNav.left">
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="notebooks">
+                                Notebooks
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="webapps">
+                                Webapps
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="reports">
+                                RMarkdown Reports
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="libraries">
+                                Libraries
+                            </span>
+                        </div>
+                    </span>
+                    <span ng-switch-when="JOBS">
+                        <div ng-switch="topNav.left">
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="jobs">
+                                Jobs
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="scenarios">
+                                Scenarios
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="monitoring">
+                                Monitoring
+                            </span>
+                        </div>
+                    </span>
+                    <span ng-switch-when="WIKI">
+                        <div ng-switch="topNav.left">
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="wiki">
+                                Wiki
+                            </span>
+                        </div>
+                    </span>
+                    <span ng-switch-when="DASHBOARD">
+                        <div ng-switch="topNav.left">
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="dashboards">
+                                Dashboards
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="insights">
+                                Insights
+                            </span>
+                        </div>
+                    </span>
+                    <span ng-switch-when="MORE">
+                        <div ng-switch="topNav.left">
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="lambda">
+                                API Designer
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="bundlesdesign">
+                                Bundles
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="variables">
+                                Variables
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="runnables">
+                                Macros
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="appsdesign">
+                                Application Designer
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="settings">
+                                Settings
+                            </span>
+                            <span class="master-section master-nav-bottom-caret" ng-switch-when="security">
+                                Security
+                            </span>
+                        </div>
+                    </span>
+                </div>
+
+            </div>
+
+            <span class="master-status__icon" conflict-icon></span>
+
+            <div class="master-nav__tile master-node" ng-if="appConfig.nodeName">
+                {{appConfig.nodeName}}
+            </div>
+
+            <div class="global-finder-nav-outer-box" ng-click="openGlobalFinder()">
+                <div class="horizontal-flex global-finder-nav-box">
+                    <div class="noflex">
+                        <i class="global-finder-nav-box__icon icon-dku-search"></i>
+                    </div>
+                    <span class="global-finder-nav-box__text flex" id="qa_global-finder-nav-box__text">Search {{::wl.productShortName}}...</span>
+                    <span class="global-finder-nav-box__shortcut noflex">{{ globalFinderShortcut }}</span>
+                </div>
+            </div>
+
+            <div class="master-nav__tile master-status">
+                <span class="master-nav__menu-trigger master-nav__menu-trigger--on-focus master-status__icon-right" tabindex="0">
+                    <a class="apps"
+                        title="Applications">
+                        <i class="icon-dku-apps" />
+                    </a>
+                    <nav class="master-nav__menu master-nav__menu--right master-nav__menu--with-icons">
+                        <ul>
+                            <li>
+                                <a ng-show="appConfig.projectsModuleEnabled"
+                                    class="master-section"
+                                    ui-sref="project-list"
+                                    id="qa_homepage_projects-link">
+                                    <i class="master-section__icon icon-dku-projects"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Projects
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Browse projects
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a ng-show="appConfig.projectsModuleEnabled"
+                                    class="master-section"
+                                    ui-sref="apps.list"
+                                    id="qa_homepage_apps-link">
+                                    <i class="master-section__icon icon-project-app"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Applications
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Browse Applications
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a ng-show="appConfig.projectsModuleEnabled"
+                                    class="master-section"
+                                    ui-sref="catalog.items">
+                                    <i class="master-section__icon icon-search"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Catalog
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Search across projects and data sources
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="master-section"
+                                    ui-sref-opts="{reload:true}"
+                                    ui-sref="wikis">
+                                    <i class="master-section__icon icon-dku-wiki"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Wikis
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Share knowledge with your team
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="master-section"
+                                    ui-sref="inbox">
+                                    <i class="master-section__icon icon-comments"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Discussions
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Read your subscribed discussions
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                            <hr>
+                            <li>
+                                <a ng-show="appConfig.deployerServerEnabled"
+                                    class="master-section"
+                                    ui-sref="deployer">
+                                    <i class="master-section__icon icon-rocket"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Local Deployer
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Deploy models and projects
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a ng-show="appConfig.deployerMode === 'REMOTE'"
+                                    class="master-section"
+                                    href="{{appConfig.deployerURL}}"
+                                    target="_blank"
+                                    rel="noopener noreferrer">
+                                    <i class="master-section__icon icon-rocket"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Remote Deployer &nbsp; <i class="icon-external-link"></i>
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Deploy models and projects
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a ng-show="appConfig.projectsModuleEnabled"
+                                    class="master-section"
+                                    href="{{$state.href('automation.outcomes')}}">
+                                    <i class="master-section__icon icon-dku-nav_jobs"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Automation monitoring
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Monitor all scheduled scenarios
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                            <hr>
+                            <li>
+                                <a class="master-section"
+                                    ui-sref="plugins.store">
+                                    <i class="master-section__icon icon-puzzle-piece"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Plugins
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Install or craft extensions
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="master-section"
+                                    ui-sref="libedition.libpython">
+                                    <i class="master-section__icon icon-code"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Global Shared Code
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Write custom code & add resources
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="master-section"
+                                    ui-sref="meanings">
+                                    <i class="master-section__icon icon-dku-meanings"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Meanings
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Define custom meanings
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                            <hr>
+                            <li>
+                                <a ng-show="canSeeAdminMenu()"
+                                    class="master-section"
+                                    ui-sref="admin.home">
+                                    <i class="master-section__icon icon-cog"></i>
+                                    <div class="master-section__title-block">
+                                        <span class="master-section__title">
+                                            Administration
+                                        </span>
+                                        <span class="master-section__subtitle">
+                                            Configure instance settings
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </span>
+
+                <span class="master-status__icon master-status__icon-right master-status__icon--help ">
+                    <a class="help"
+                        ng-click="toggleHelpDrawer($event)"
+                        title="Help">
+                        <i class="icon-dku-help" />
+                    </a>
+                </span>
+
+                <span class="master-status__icon master-status__icon-right master-status__icon--activity">
+                    <a class="activity"
+                        ng-click="toggleActivityDrawer()"
+                        title="Activity">
+                        <i class="icon-dku-activity" />
+                    </a>
+                </span>
+
+                <span class="master-status__icon master-status__icon-right master-status__icon--usercenter">
+                    <a class="usercenter"
+                        ng-click="toggleUserDrawer()"
+                        style="position: relative"
+                        title="User center"
+                        id="qa_navbar_user-center">
+                        <div user-picture='appConfig.login' size="20"/>
+                        <span class="red-circle" ng-if="hasUnreadThings()"/>
+                    </a>
+                </span>
+
+                <span class="master-status__icon" ng-show="wsFail" style="margin-left: 15px;" >
+                    <a target="_blank" rel="noopener noreferrer" toggle="tooltip"
+                    title="Could not establish WebSocket connection"
+                    href="{{$root.versionDocRoot}}/troubleshooting/problems/websockets.html">
+                        <span style="line-height: 21px; color: red"><i class="wsFailIcon icon-warning-sign"/></span>
+                    </a>
+                </span>
+            </div>
+        </div>
+
+        <div running-futures-box></div>
+        <div topbar-drawer ng-class="{'master-nav__home--tall' : topNav.isTall}"><div admin-drawer /></div>
+        <div topbar-drawer ng-class="{'master-nav__home--tall' : topNav.isTall}"><div help-drawer /></div>
+        <div topbar-drawer ng-class="{'master-nav__home--tall' : topNav.isTall}"><div user-drawer /></div>
+        <div topbar-drawer ng-class="{'master-nav__home--tall' : topNav.isTall}"><div activity-drawer /></div>
+        <spinner ng-show="httpRequests.length && !appConfig.unattendedMode && spinnerPosition == undefined"></spinner>
+        <activity-indicator activity-indicator="activityIndicator"/>
+
+        <!-- NONE mode: no license, display Community login stuff -->
+        <div ng-if="appConfig && appConfig.licensingMode == 'NONE'">
+            <ng-include src="'/templates/register.html'"></ng-include>
+        </div>
+
+        <!-- SAAS mode -->
+        <div ng-show="appConfig && appConfig.licensingMode == 'SAAS'">
+           <div ng-show="isSAASAuth() && appConfig.saasAccess.loggedIn && !appConfig.saasAccess.hasAccess" class="alert alert-error evil-hacker" style="width:80%; margin: 0 auto; margin-top: 8em;">
+             <i class="icon-dku-error icon-2x"></i>
+              <span style="font-size:1.3em">You cannot access this DSS instance</span>
+                <p>Please contact your administrator to get access</p>
+            </div>
+            <div ng-show="!appConfig.licensing.valid && !appConfig.licensing.expired" class="alert alert-error evil-hacker" style="width:80%; margin: 0 auto; margin-top: 8em;">
+                <i class="icon-dku-error icon-3x"></i>
+                <span style="font-size:1.3em">Could not get license details: {{appConfig.licensing.invalidMessage}}</span>.
+                <p>Please contact Dataiku</p>
+            </div>
+            <div ng-show="!appConfig.licensing.valid && appConfig.licensing.expired" class="alert alert-error evil-hacker" style="width:80%; margin: 0 auto; margin-top: 8em;">
+             <i class="icon-dku-error icon-2x"></i>
+               <span style="font-size:1.3em">This DSS instance is not active anymore</span>
+                <p>Please contact Dataiku</p>
+            </div>
+           <!--<div ng-show="appConfig.saasAccess.loggedIn && appConfig.saasAccess.hasAccess && !appConfig.licensing.valid && !appConfig.saasAccess.instanceOwner" class="alert alert-error evil-hacker" style="width:80%; margin: 0 auto; margin-top: 8em;">
+             <i class="icon-dku-error icon-2x"></i>
+              <span style="font-size:1.3em">This DSS instance is not active anymore</span>
+                <p>Please contact your administrator</p>
+            </div>
+           <div ng-show="appConfig.saasAccess.loggedIn && appConfig.saasAccess.hasAccess && !appConfig.licensing.valid && appConfig.saasAccess.instanceOwner" class="alert alert-error evil-hacker" style="width:80%; margin: 0 auto; margin-top: 8em;">
+             <i class="icon-dku-error icon-2x"></i>
+              <span style="font-size:1.3em">This DSS instance is not active anymore</span>
+                <p>Please go to <a href="https://cloud.dataiku.com">Dataiku Cloud</a>.</p>
+            </div>-->
+        </div>
+
+
+        <div ng-show="appConfig && appConfig.licensingMode == 'ON_PREMISE_DISCONNECTED'" class="noflex">
+            <div ng-show="appConfig && !appConfig.licensing.valid && !appConfig.licensing.expired" class="alert alert-error evil-hacker" style="width:80%; margin: 0 auto; margin-top: 8em;">
+                <i class="icon-warning-sign icon-3x"></i>
+                <span style="font-size:1.3em">This copy of {{wl.productLongName}} is not properly licensed : {{appConfig.licensing.invalidMessage}}</span>.
+                <p>Please ensure your license file is properly configured or contact Dataiku to obtain a new license</p>
+            </div>
+            <div ng-if="appConfig && !appConfig.licensing.valid && appConfig.licensing.expired">    <ng-include src="'/templates/renew-license.html'"></ng-include>
+            </div>
+        </div>
+
+        <!-- CONNECTED (auto renew) mode -->
+        <!--<div ng-show="appConfig && appConfig.licensingMode == 'ON_PREMISE_CONNECTED'">
+            <div ng-show="appConfig && !appConfig.licensing.valid" class="alert alert-error evil-hacker" style="width:80%; margin: 0 auto; margin-top: 8em;">
+                <i class="icon-warning-sign icon-3x"></i>
+                <span style="font-size:1.3em">This copy of {{wl.productLongName}} is not properly licensed : {{appConfig.licensing.invalidMessage}}</span>.
+                <p>{{appConfig.licensing.refreshStatusMessage}}</p>
+                <p>Please verify your subscription details or contact Dataiku support.</p>
+            </div>
+            <div ng-show="appConfig && appConfig.licensing.valid && appConfig.licensing.expired" class="alert alert-error evil-hacker">
+                <i class="icon-warning-sign icon-2x"></i>
+                <span style="font-size:1.3em">Your license has expired ({{appConfig.licensing.expiresOn|friendlyTimeDelta}}).</span>
+                <p>{{appConfig.licensing.refreshStatusMessage}}</p>
+                <p>Please verify your subscription details or contact Dataiku support.</p>
+            </div>
+        </div>
+        -->
+
+     <div ng-if="appConfig && appConfig.licensing.valid && (appConfig.loggedIn || $state.current.name == 'login' || $state.current.name == 'logged-out')"
+          ng-class="{'main-view-not-in-home': !$state.includes('home') && !$state.includes('project-list') && !$state.includes('apps.list'),
+                     'master-nav__home--tall': topNav.isTall, 'main-view':!isFullScreen()}">
+         <div ui-view class="h100"></div>
+         <!-- <pre style="position:relative;">{{$state|json}}</pre> -->
+     </div>
+
+     <div ng-show="!appConfig">
+         <div block-api-error></div>
+         <!--    <h1>Loading DSS</h1>-->
+     </div>
+
+     <div achievements class="noflex"/>
+
+     <nps-survey ng-if="appConfig.npsSurveyActive" app-config="appConfig"></nps-survey>

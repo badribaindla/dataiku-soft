@@ -1,0 +1,1 @@
+Extract randomly n rows.

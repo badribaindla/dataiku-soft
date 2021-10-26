@@ -1,0 +1,36 @@
+<div>
+	<div class="control-group">
+		<label for="" class="control-label">Files selection</label>
+		<div class="controls">
+			<select dku-bs-select ng-model="params.filesSelectionRules.mode" ng-options="x[0] as x[1] for x in filesSelectionRulesModes" options-descriptions="filesSelectionRulesModesDesc" />
+		</div>
+	</div>
+
+	<div class="control-group" ng-show="params.filesSelectionRules.mode == 'EXPLICIT_SELECT_FILES'">
+		<label for="" class="control-label">Files to include</label>
+		<div class="controls" style="max-width: 250px">
+			<ng2-values-list [(items)]="params.filesSelectionRules.explicitFiles" add-label="Add file" value-placeholder="E.g my-file-name.xml"></ng2-values-list>				
+		</div>
+	</div>
+
+	<div class="control-group" ng-show="params.filesSelectionRules.mode == 'RULES_INCLUDED_ONLY'">
+		<label for="" class="control-label">Inclusion rules</label>
+		<div class="controls" style="max-width: 350px">
+			<editable-list ng-model="params.filesSelectionRules.includeRules" add-label="Add rule" prepare="prepareNewRule">
+				<input type="text" ng-model="it.expr" placeholder="Expression" class="mright8"/>
+				<select style="width: 64px" ng-model="it.mode" ng-options="x[0] as x[1] for x in [['GLOB', 'Glob'], ['REGEXP', 'Regex']]" class="mright8"/>
+				<select style="width: 128px" ng-model="it.matchingMode" ng-options="x[0] as x[1] for x in [['FULL_PATH', 'Path in dataset'], ['FILENAME', 'File name']]" />
+			</editable-list>
+		</div>
+	</div>
+	<div class="control-group" ng-show="params.filesSelectionRules.mode == 'RULES_ALL_BUT_EXCLUDED'">
+		<label for="" class="control-label">Exclusion rules</label>
+		<div class="controls" style="max-width: 350px">
+			<editable-list ng-model="params.filesSelectionRules.excludeRules" add-label="Add rule" prepare="prepareNewRule">
+				<input type="text" ng-model="it.expr" placeholder="Expression" class="mright8"/>
+				<select style="width: 64px" ng-model="it.mode" ng-options="x[0] as x[1] for x in [['GLOB', 'Glob'], ['REGEXP', 'Regex']]" class="mright8"/>
+				<select style="width: 128px" ng-model="it.matchingMode" ng-options="x[0] as x[1] for x in [['FULL_PATH', 'Path in dataset'], ['FILENAME', 'File name']]" />
+			</editable-list>
+		</div>
+	</div>
+</div>

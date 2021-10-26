@@ -1,0 +1,1 @@
+select(df, ends_with("suffix"))

@@ -1,0 +1,111 @@
+<div class="theme-settings paned-settings-page-pane">
+
+        <h1>Themes &amp; Customization</h1>
+    
+        <div class="section">
+            <h2 id="dss-instance-name">DSS instance name</h2>
+
+            <form class="dkuform-horizontal">
+                <div class="control-group node-name-control-group">
+                    <label for="" class="control-label">Name</label>
+                    <div class="controls">
+                        <input type="text" ng-model="generalSettings.nodeName" />
+                    </div>
+                </div>
+            </form>
+        </div>
+    
+    
+        <div class="section">
+            <h2 id="theme">Theme</h2>
+
+            <ul class="themes-list">
+                <li ng-class="{'active':!appConfig.theme.id}" class="theme" ng-click="setCurrentTheme();">
+                    <div class="thumbnail-wrapper">
+                        <div class="overlay"></div>
+                        <div class="thumbnail" style="background-image:url('/static/dataiku/images/default-theme.png')"></div>
+                        <div class="hover-icon"><i class="icon-ok-sign"></i></div>
+                    </div>
+                    <div class="meta">
+                        Default
+                    </div>
+                </li>
+                <li ng-repeat="theme in themes" ng-class="{'active':theme.id == appConfig.theme.id}" class="theme" ng-click="setCurrentTheme(theme);">
+                    <div class="thumbnail-wrapper">
+                        <div class="overlay"></div>
+                        <div class="thumbnail" style="background-image:url({{getThemeThumbnailUrl(theme)}})"></div>
+                        <div class="hover-icon"><i class="icon-ok-sign"></i></div>
+                    </div>
+                    <div class="meta">
+                        {{theme.name}} | {{theme.author}}
+                    </div>
+                </li>
+            </ul>
+        </div>
+    
+    
+        <div ng-controller="AdminPersonalHomePagesController" class="section">
+            <form class="dkuform-horizontal">
+                <h2 id="homepage-articles">Home page articles</h2>
+
+                <div class="alert alert-info">
+                    Select here the Wiki articles that will appear in the "Getting started with DSS" sliding panel on users' home page.
+                    <br />
+                    The articles selected here will only be visible to users who have access to the projects containing those articles.
+                    <br />
+                    Make sure you manage access rights to those projects correctly.
+                </div>
+                <div class="no-home-page-article-yet" ng-show="generalSettings.personalHomePages.articles.length == 0">
+                    <p>No home page article yet.</p>
+                </div>
+                <editable-list ng-model="generalSettings.personalHomePages.articles" add-label="Add an article" >
+                    <div project-key-picker="{ noneSelectedText: 'Select a project', liveSearch: true }"
+                        project-key="it.projectKey"
+                        id="projectKeyInput"
+                        class="dib">
+                    </div>
+                    <div class="dib" ng-switch on="it.projectKey">
+                        <div object-picker="it.id"
+                            type="ARTICLE"
+                            project-key="it.projectKey"
+                            ng-disabled="!it.projectKey"
+                            ng-switch-default >
+                        </div>
+                    </div>
+                </editable-list>
+
+            </form>
+        </div>
+    
+        <div ng-controller="ProjectStatusController" class="section project-status-settings">
+            <h2 id="project-status">Project status</h2>
+            <div class="no-project-status-yet" ng-show="projectStatusList.length == 0">
+                <p>No project status yet.</p>
+            </div>
+            <editable-list class="project-status-form" ng-model="projectStatusList" sortable="true" template="{ name: newStatus.name, color: newStatus.defaultColor }" add-label="Add a status">
+                <span class="status-color" style="background-color:{{it.color}};" colorpicker ng-model="it.color" ></span>
+                <editable-list-input type="text" ng-model="it.name" unique="true" placeholder="E.g. ready for production" required="true"/>
+            </editable-list>
+        </div>
+    
+        <div class="section">
+            <h2 id="projects-list-messages">Projects list messages</h2>
+
+            <div class="alert alert-info">
+                Messages written here will appear as a specific tile on the "Mosaic" view of the projects list, for all users.
+            </div>
+    
+            <div class="home-messages-settings">
+                <div class="no-home-message-yet" ng-show="generalSettings.homeMessages.length == 0">
+                    <p>No home message yet.</p>
+                </div>
+                <editable-list class="home-messages-list-wrapper" ng-model="generalSettings.homeMessages" sortable="true" add-label="Add a message">
+                    <div class="home-message" ng-class="{'expanded' : isExpanded}">
+                        <editable-list-input type="text" ng-model="it.name" classes="home-message-title" placeholder="Message title"/>
+                        <editable-list-input type="textarea" ng-model="it.content" classes="home-message-content" placeholder="Message content"/>
+                        <i class="home-message-settings-btn" ng-class="isExpanded ? 'icon-resize-small' : 'icon-resize-full'" ng-click="isExpanded = !isExpanded"></i>
+                    </div>
+                </editable-list>
+            </div>
+        </div>
+    </div>

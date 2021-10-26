@@ -1,0 +1,138 @@
+<div class="modal modal3 new-insight-modal" ng-controller="NewInsightModalController" auto-size="false" tab-model="uiState.modalTab">
+
+    <div dku-modal-header
+         modal-title="{{inDashboard ? (displayableInsightType ? 'Add ' + (displayableInsightType | lowercase) + ' to dashboard' : 'Add tile to dashboard') : (displayableInsightType ? 'New ' + displayableInsightType + ' insight' : 'New insight')}}"
+         modal-class="has-border" />
+
+
+    <form name="newInsightForm" class="dkuform-modal-horizontal dkuform-modal-wrapper" load-insight-list>
+
+        <!-- Insight type selection screen-->
+        <div ng-if="!insight.type && !insight.tileType" class="modal-body insight-types" style="max-height: 520px;">
+            <div>
+                <div ng-repeat="type in insightTypes"
+                    ng-click="selectType(type);"
+                    class="btn"
+                    ng-if="(inDashboard || type != 'static_file') && type != 'eda'"> <!-- static file and eda insights cannot be created from here -->
+                    <i class="{{ type |  insightTypeToIcon }} {{type | insightTypeToColor:true }} universe-color" />
+                    <div class="name">{{DashboardUtils.getInsightHandler(DashboardUtils.getInsightTypeGroup(type)).name}}</div>
+                    <div class="desc">{{DashboardUtils.getInsightHandler(DashboardUtils.getInsightTypeGroup(type)).desc}}</div>
+                </div><!--
+                 --><div class="btn" ng-if="inDashboard && type != 'eda'" ng-repeat="(type, t) in simpleTileTypes" ng-click="returnSimpleTile(type);">
+                    <i class="{{ type |  insightTypeToIcon }} {{type | insightTypeToColor:true }} universe-color" />
+                    <div class="name">{{t.name}}</div>
+                    <div class="desc">{{t.desc}}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create tab -->
+        <div ng-if="insight.type" ng-show="uiState.modalTab == 'new' && insight.type !== 'static_file' && insight.type !== 'eda'">
+            <div class="modal-body no-h-padding" style="padding-top: 0;">
+                <div class="links">
+                    <a class="pull-right" ng-if="inDashboard" ng-click="uiState.modalTab = 'existing'">Pick existing insight</a>
+                    <a ng-click="resetModal()" class="back"><i class="icon-arrow-left" /> Type selection</a>
+                </div>
+
+                <div style="padding: 0 20px;">
+
+                    <div block-api-error />
+
+                    <div ng-switch on="getInsightTypeGroup(insight.type)" class="dashboard-tile">
+                        <div ng-switch-when="dataset_table" dataset-table-insight-create-form />
+                        <div ng-switch-when="chart" chart-insight-create-form />
+                        <div ng-switch-when="discussions" discussions-insight-create-form />
+                        <div ng-switch-when="static_file" static-file-insight-create-form />
+                        <div ng-switch-when="jupyter" jupyter-insight-create-form />
+                        <div ng-switch-when="metrics" metrics-insight-create-form />
+                        <div ng-switch-when="managed-folder_content" managed-folder-content-insight-create-form />
+                        <div ng-switch-when="saved-model_report" saved-model-report-insight-create-form />
+                        <div ng-switch-when="web_app" web-app-insight-create-form />
+                        <div ng-switch-when="report" report-insight-create-form />
+                        <div ng-switch-when="scenario" scenario-insight-create-form />
+                        <div ng-switch-when="project_activity" project-activity-insight-create-form />
+                        <div ng-switch-when="runnable-button" runnable-button-insight-create-form />
+                        <div ng-switch-when="article" article-insight-create-form />
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer modal-footer-std-buttons">
+                <button type="button"  class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+                <button type="submit" ng-disabled="(!insight.type && !insight.tileType) || !newInsightForm.$valid" class="btn btn--text btn--primary" ng-click="create()">{{inDashboard ? 'Add' : 'Create insight'}}</button>
+            </div>
+        </div>
+
+        <!-- Pick existing tab -->
+        <div ng-if="insight.type && uiState.modalTab == 'existing' || insight.type == 'static_file'" insight-preview-loading>
+            <div class="modal-body existing-tab no-padding border-bottom vertical-flex">
+                <div block-api-error />
+                <div class="filters noflex horizontal-flex border-bottom">
+                    <div class="back noflex" style="line-height: 26px;">
+                        <a ng-click="uiState.modalTab = 'new'" class="back"><i class="icon-arrow-left" /></a>
+                    </div>
+
+                    <div class="dku-search-input flex" style="flex-basis: 1px">
+                        <input type="search" ng-model="filter.q" placeholder="Search&hellip;">
+                    </div>
+                    <div ng-if="hook.sourceTypes" class="source-types noflex" style="width: 115px;">
+                        <select ng-model="filter.sourceType" dku-bs-select="{noneSelectedText: 'source type'}" ng-options="type as (type|niceConst) for type in hook.sourceTypes"></select>
+                    </div>
+
+                    <div object-picker="filter.sourceId" type="{{hook.sourceType || filter.sourceType}}" class="flex" style="flex-basis: 2px" ng-disabled="noInsightOfSelectedType" />
+                </div>
+
+                <div class="row-fluid flex oa">
+                    <div class="span6 offset0 border-right">
+                        <div class="insight-list" style="height: 300px;">
+                            <p class="centered-info" ng-show="!filteredInsights.length" style="font-size: 17px;">
+                                <span ng-if="!noInsightOfSelectedType">No insight matches your query</span>
+                                <span ng-if="noInsightOfSelectedType">{{displayableInsightType ? 'No insight of type ' + displayableInsightType + '.' : 'No insight of this type'}}</span>
+                            </p>
+                            <ul ng-show="filteredInsights.length" class="dku-colored-list clickable odd oa">
+                                <li ng-repeat="insight in filteredInsights" class="horizontal-flex"
+                                    ng-click="addToDashboard(insight)"
+                                    ng-mouseover="uiState.hoveredInsight = insight"
+                                    ui-hoverintent="loadInsightPreview()"
+                                    ng-mouseleave="uiState.hoveredInsight = null">
+                                    <i class="noflex insight-icon universe-background {{insight.type | insightTypeToIcon }} {{insight.type | insightTypeToColor}}" />
+                                    <div class="flex mx-textellipsis">{{insight.name}}</div>
+                                    <div class="noflex add">Add</div>
+                                    <span class="universe-color" ng-class="{'dashboard' : isInsightInDashboard(insight)}"><i class="icon-dku-dashboard"></i></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="span6 offset0" style="height: 300px;">
+                        <p class="centered-info" ng-show="!uiState.hoveredInsight" style="font-size: 17px;">
+                            Hover on an insight to see details
+                        </p>
+
+                        <div ng-show="uiState.hoveredInsight" class="insight-details">
+                            <object-details object-type="INSIGHT" object-data="{insight: uiState.hoveredInsight}" context="new-insight" editable="canWriteProject()"/></object-details>
+                        </div>
+                    </div>
+                </div>
+                <div class="advanced-mode" ng-show="advancedMode">
+                    <div class="dib">
+                        <label class="dku-toggle" style="vertical-align: text-bottom;">
+                            <input type="checkbox" ng-model="pointerMode.isPointerMode" />
+                            <span/>
+                        </label>
+                        Create a pointer to the existing insight instead of duplicating it.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-std-buttons">
+                <div class="advanced-parameters">
+                    <label class="advanced-parameters--label">
+                        <input type="checkbox" ng-model="advancedMode">&nbsp;Advanced parameters
+                    </label>
+                </div>
+                <button type="button"  class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+                <button type="submit" class="btn btn--text btn--primary" ng-click="dismiss()">Done</button>
+            </div>
+        </div>
+
+    </form>
+</div>

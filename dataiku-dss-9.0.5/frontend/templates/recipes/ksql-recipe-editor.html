@@ -1,0 +1,111 @@
+<div ng-controller="KsqlRecipeController" data-extend-template="/templates/layouts/code-based-recipe-editor-layout.html">
+
+    <div class="mainPane code-based-recipe-main-zone vertical-flex h100" data-block="recipeEditor">
+        <div block-api-error />
+
+        <div ng-if="valCtx.validationResult.inputsToSynchronize.length > 0" class="noflex">
+            <div ng-repeat="synchronization in valCtx.validationResult.inputsToSynchronize" >
+                <div class="alert alert-info">
+                <h4>
+                    <i class="icon-warning-sign"></i>
+                    Missing KSQL stream
+                </h4>
+                <h5>
+                    The streaming endpoint '{{synchronization.id}}' has no corresponding stream.
+                </h5>
+                <button class="btn btn--primary" ng-click="synchronizeInput(synchronization)">Synchronize</button>
+                </div>
+            </div>
+        </div>
+        <div ng-if="valCtx.validationResult.inputsToResynchronize.length > 0" class="noflex">
+            <div ng-repeat="synchronization in valCtx.validationResult.inputsToResynchronize" >
+                <div class="alert alert-info">
+                <h4>
+                    <i class="icon-warning-sign"></i>
+                    Incompatible KSQL stream
+                </h4>
+                <h5>
+                    The schema of '{{synchronization.id}}' doesn't match the columns of the corresponding stream.
+                </h5>
+                <button class="btn btn--primary" ng-click="synchronizeInput(synchronization)">Synchronize</button>
+                </div>
+            </div>
+        </div>
+
+        <code-snippet-editor code="script.data"
+            sample-type="'ksql'"
+            categories="['ksql-std-dkuapi', 'ksql-std-3rd', 'user-ksql-std']"
+            save-category="'user-ksql-std'"
+            editor-options="editorOptions"
+            resolve-code-for-preview-func="resolveCodeForPreviewFunc"
+            resolve-code-for-insertion-func = "resolveCodeForInsertionFunc"
+            >
+        </code-snippet-editor>
+
+        <div include-no-scope="/templates/recipes/fragments/recipe-editor-statusbar.html" class="noflex"/>
+
+        <div class="bottom-bar noflex">
+            <div class="horizontal-flex">
+                <span class="noflex">
+                    <div class="btn-group dropup" style="margin-right: 5px;">
+                        <button class="btn btn-default"
+                            ng-disabled="isJobRunning()"
+                            title="Only checks query syntax and schema consistency. Does not run the query."
+                            ng-click="startedJob.job = null; validateRecipe()">
+
+                            <i class="dib"
+                                style="width: 15px; position: relative; top: 1px;"
+                                ng-class="{'icon-check': !recipe.params.skipPrerunValidate, 'icon-check-empty': recipe.params.skipPrerunValidate}" />
+                            Validate
+                        </button>
+
+                        <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="padding-right: 12px;">
+                            <span class="caret"></span>
+                        </button>
+
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a ng-disabled="isJobRunning()" ng-click="recipe.params.skipPrerunValidate = !recipe.params.skipPrerunValidate">
+                                    <i class="icon-check" />&nbsp;
+                                    {{recipe.params.skipPrerunValidate ? 'Enable validation before running' : 'Disable validation before running'}}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </span>
+
+                <span class="flex">
+                    <div include-no-scope="/templates/recipes/fragments/continuous-recipe-controls.html" />
+                </span>
+            </div>
+        </div>
+        <div include-no-scope="/templates/recipes/fragments/continuous-activity-result.html" class="noflex recipe-job-result" />
+    </div>
+
+
+    <div data-block="additionalTabsContent">
+        <div ng-if="topNav.tab == 'advanced'" class="dss-page oa small-lr-padding">
+            <div block-api-error/>
+
+            <div class="row-fluid">
+                <div class="horizontal-centerer">
+
+                    <div class="recipe-settings-section1 w800">
+                        <h1 class="recipe-settings-section1-title">Concurrent activities</h1>
+
+                        <form class="dkuform-horizontal recipe-settings-section2">
+                            <div class="control-group">
+                                <label class="control-label">Recipe limit</label>
+                                <div class="controls">
+                                    <input type="number" ng-model="recipe.maxRunningActivities"/>
+                                    <span class="help-inline">Limit the number of concurrent activities for this recipe (zero for "unlimited").</span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,77 @@
+
+
+
+<div class="dss-page row-fluid offset0 admin__connections">
+
+
+    <div class="span2 offset0 nav-list-sidebar sidebar-admin oa">
+        <ul>
+            <li class="l1" ng-class="{'active': $state.is('admin.connections.list')}" full-click>
+                <a main-click ui-sref="admin.connections.list">Overview</a>
+            </li>
+            <li class="l1" ng-class="{'active': $state.is('admin.connections.hiveindexing')}" full-click>
+                <a main-click ui-sref="admin.connections.hiveindexing">Indexing of Hive databases</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="span10 h100 offset0 boxed-next-to-sidebar">
+        <div class="h100" style="position: relative;">
+            <div class="list-page-4 flex dss-home-page admin__connections">
+                <div>
+                    <div data-extend-template="/templates/layouts/list-items-2-single-line.html" class="vertical-flex">
+                        <div block-api-error />
+                        <!-- COUNTER -->
+                        <span data-block="counter-name">Connections</span>
+
+                        <div data-block="empty">
+                            <h1 ng-if="$state.is('admin.connections.list')">No connections</h1>
+                            <h1 ng-if="$state.is('admin.connections.hiveindexing')">No Hive database</h1>
+                        </div>
+                        <div data-block="item">
+                            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span>
+                                <!-- because checkbox click is prioritary -->
+                                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)"/>
+                            </label>
+                            <div class="hit">
+                                <div class="illustration">
+                                    <i class="{{item.type | connectionTypeToIcon}} universe-color dataset"></i>
+                                </div>
+                                <div class="hitContent">
+                                    <div class="hit-content-main">
+                                        <h4 class="hit-content-main__title">
+                                            <a href="{{ $state.href('admin.connections.edit', {connectionName : item.name}) }}"
+                                               ng-if="item.type !== 'hiveserver2'"
+                                               title="{{ item.displayName }}"
+                                               ng-bind-html="item.name | boldify:selection.filterParams.userQueryResult">
+                                            </a>
+                                            <span
+                                               ng-if="item.type === 'hiveserver2'"
+                                               title="{{ item.params.db }}"
+                                               ng-bind-html="item.params.db | boldify:selection.filterParams.userQueryResult">
+                                            </span>
+                                        </h4>
+                                        <div ng-if="$state.is('admin.connections.list')" class="hit-content-main__subtitle">
+                                            {{ item.type|niceType }}
+                                        </div>
+                                    </div>
+                                    <div class="processing_progress">
+                                        <span ng-if="!item.indexingMetadata.currentJobId && item.indexingMetadata.lastIndexDate" style="color: #999;">Indexed</span>
+                                        <span ng-if="item.indexingMetadata.processingStep" class="pull-right">{{item.indexingMetadata.processingStep === 'SCAN' ?'Scanning...' : 'Indexing...'}} <i style="font-size: 16px; vertical-align: middle;    padding-left: 10px;" class="icon-refresh"></i></span>
+                                        <!--<span ng-if="item.indexingMetadata.processingProgress.aborted && item.indexingMetadata.processingProgress" style="color:#CE1329;">Aborting...</span>-->
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- PREVIEW -->
+                        <div data-block="preview" right-column-tab="details">
+                            <div connection-right-column-summary></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

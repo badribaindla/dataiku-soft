@@ -1,0 +1,105 @@
+<div class="discussions-widget common-styles-only h100" ng-controller="DiscussionsWidgetController" >
+	<div block-api-error />
+
+	<div class="h100 w100 horizontal-flex" style="transition: transform 300ms; transform: translateX(0%);" ng-style="{ transform: discussionWidgetPage() != 'LIST' ? 'translateX(-100%)' : 'translateX(0%)' }">
+
+		<div class="discussions-widget-list h100 w100 noflex" ng-init="resetInputs()">
+			<div ng-if="!discussions.length" class="h100" style="padding-top: 20px">
+				<div class="noflex">
+					<div class="discussions-widget-nodiscuplaceholder">
+						<i class="icon-comments" /> No discussion on this object
+						<div style="font-size: 0.7em; margin: 15px;">
+							Discussions are visible to all users with access to this project.
+							You can get notifications by watching this object.
+						</div>
+					</div>
+					<div class="discussions-widget-newconvbtn">
+						<a class="btn btn--primary btn--large" ng-click="uiState.creatingNewConv = true">
+							<i class="icon-plus" /> New discussion
+						</a>
+					</div>
+				</div>
+			</div>
+			<div ng-if="discussions.length" class="h100 vertical-flex">
+				<div class="noflex discussions-widget-header white-header">
+					<div class="discussions-widget-line discussions-widget-searchbar horizontal-flex">
+						<div class="flex discussions-widget-line-main">
+							<input ng-class="{filled: uiState.search.length}" ng-model="uiState.search" placeholder="Search discussions&hellip;" dku-local-keypress="{'enter': 'onSearchBarEnter($event)'}" />
+							<i class="icon-remove clear-filter" ng-class="{filled: uiState.search.length}" ng-click="uiState.search = ''"></i>
+							<i class="icon-dku-search"></i>
+						</div>
+						<div class="noflex discussions-widget-line-right">
+							<a ng-click="uiState.showClosed = !uiState.showClosed;" ng-class="{checked: uiState.showClosed}" title="{{ uiState.showClosed ? 'Hide resolved discussions' : 'Show resolved discussions' }}" toggle="tooltip-left"><i class="icon-DKU_resolve"></i></a>
+						</div>
+					</div>
+				</div>
+				<div class="noflex discussions-widget-list-discussions">
+					<div class="discussions-widget-noconvplaceholder" ng-if="!uiState.showClosed && (discussions | filter:{closedOn: 0}:true).length == 0">
+						No open discussions
+					</div>
+					<div class="discussions-widget-noconvplaceholder" ng-if="uiState.search && (( uiState.showClosed ? discussions : (discussions | filter:{closedOn: 0}:true) ) | filter:uiState.search).length == 0">
+						No discussions matching search terms
+					</div>
+					<div class="discussions-widget-line discussions-widget-discussion horizontal-flex"
+						ng-repeat="discussion in discussions | filter:uiState.search | orderBy:'lastReplyTime':true track by $index"
+						ng-click="openDiscussion(discussion, true)"
+						ng-class="{'unread-discussion': ((discussion.users[appConfig.login] || {}).lastReadTime || 0) < discussion.lastReplyTime, 'closed-discussion': (discussion.closedOn > 0)}"
+						ng-if="uiState.showClosed || discussion.closedOn == 0"
+						>
+						<div class="discussions-widget-unread"
+							ng-show="((discussion.users[appConfig.login] || {}).lastReadTime || 0) < discussion.lastReplyTime"
+							>
+						</div>
+						<div class="discussions-widget-line-left noflex">
+							<div user-picture="discussion.replies[discussion.replies.length - 1].author" size="32"></div>
+						</div>
+						<div class="discussions-widget-line-main flex">
+							<div class="discussions-widget-line-item single-line horizontal-flex">
+								<div class="discussions-widget-topic flex" title="{{ discussion.topic || 'Unnamed discussion' }}">{{ discussion.topic || 'Unnamed discussion' }}</div>
+								<span class="discussions-widget-unread-tag noflex">{{ getNumberOfNewReplies(discussion, discussion.users[appConfig.login].lastReadTime || 0) }}</span>
+								<div class="discussions-widget-date noflex">{{ discussion.lastReplyTime | friendlyDateTime:'EEE, d MMM' }}</div>
+							</div>
+							<div class="discussions-widget-line-item single-line discussions-widget-participants" ng-bind-html="getDiscussionParticipants(discussion)"></div>
+							<div class="discussions-widget-preview markdown-preview" from-markdown="discussion.replies[discussion.replies.length - 1].text"></div>
+						</div>
+					</div>
+				</div>
+				<div class="flex discussions-widget-newconvbtn">
+					<a class="btn btn--primary btn--large btn--full" ng-click="uiState.creatingNewConv = true">New discussion</a>
+				</div>
+			</div>
+		</div>
+
+		<div class="h100 w100 noflex" ng-switch="discussionWidgetPage()">
+			<div class="h100 w100" ng-switch-when="DISCUSSION" ng-init="resetInputs()" include-no-scope="/templates/widgets/discussions-widget-discussion.html"></div>
+
+			<div class="discussions-widget-newconv h100 w100" ng-switch-when="CREATION" ng-init="resetInputs()">
+				<div class="discussions-widget-header">
+					<div class="discussions-widget-line horizontal-flex">
+						<div class="discussions-widget-line-left noflex">
+							<a ng-click="uiState.creatingNewConv = false">
+								<i class="icon-chevron-left" />
+							</a>
+						</div>
+						<div class="discussions-widget-line-main flex">
+							<div class="discussions-widget-line-item">
+								New discussion
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="discussions-widget-line">
+					<input class="discussions-widget-newconv-topic"
+						type="text"
+						ng-model="uiState.newConvTopic"
+						placeholder="Topic"
+						required="required"
+						maxlength="200"
+						autofocus="autofocus"
+						/>
+				</div>
+				<div include-no-scope="/templates/widgets/discussions-widget-newreply.html"></div>
+			</div>
+		</div>
+	</div>
+</div>

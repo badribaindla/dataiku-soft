@@ -1,0 +1,17 @@
+<li ng-if="isTreeModel()" sidebar-tab-l2-link tab-name="tree_summary" label="Decision tree" disable-link="{{!!tabNotAvailableText('tree_summary') }}" disable-message="{{tabNotAvailableText('tree_summary')}}" />
+<li ng-if="isEnsembleModel()" sidebar-tab-l2-link tab-name="ensemble_summary" label="Decision trees" disable-link="{{!!tabNotAvailableText('ensemble_summary') }}" disable-message="{{tabNotAvailableText('ensemble_summary')}}" />
+
+<li sidebar-tab-l2-link ng-if="!isTreeModel() && !isEnsembleModel() && !hasVariableImportance() && (!hasRawCoefficients() || isMulticlass())"
+    tab-name="variables_interpretation" label="Variables" />
+
+<li sidebar-tab-l2-link ng-if="hasVariableImportance()"
+    tab-name="variables_importance" label="Variables importance" />
+<li sidebar-tab-l2-link ng-if="hasRawCoefficients() && !isMulticlass()"
+    tab-name="coefficients" label="Regression coefficients" />
+<li sidebar-tab-l2-link ng-if="getAlgorithm() == 'LARS'"
+    tab-name="coef_path" label="Coefficient path" />
+
+<li ng-if="evaluation || modelData.backendType == 'PY_MEMORY' || modelData.backendType == 'KERAS'" sidebar-tab-l2-link tab-name="pdp_plot" label="Partial dependence" disable-link="{{!!tabNotAvailableText('pdp_plot') }}" disable-message="{{tabNotAvailableText('pdp_plot')}}"/>
+<li ng-if="(evaluation || modelData.backendType == 'PY_MEMORY' || modelData.backendType == 'KERAS')" sidebar-tab-l2-link tab-name="subpopulation" label="Subpopulation analysis" disable-link="{{!!tabNotAvailableText('subpopulation')}}" disable-message="{{tabNotAvailableText('subpopulation')}}"/>
+<li ng-if="evaluation || modelData.backendType == 'PY_MEMORY' || modelData.backendType == 'KERAS'" sidebar-tab-l2-link tab-name="individual_explanations" label="Individual explanations" disable-link="{{!!tabNotAvailableText('individual_explanations')}}" disable-message="{{tabNotAvailableText('individual_explanations')}}"/>
+<li ng-if="evaluation || modelData.backendType == 'PY_MEMORY' || modelData.backendType == 'KERAS'" sidebar-tab-l2-link tab-name="interactive_scoring" label="Interactive scoring" disable-link="{{!!tabNotAvailableText('interactive_scoring')}}" disable-message="{{tabNotAvailableText('interactive_scoring')}}"/>

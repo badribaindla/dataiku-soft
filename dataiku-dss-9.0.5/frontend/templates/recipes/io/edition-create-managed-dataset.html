@@ -1,0 +1,114 @@
+<div class="suggested-new-output-dataset h100">
+    <div class="setup-top-row setup-row">
+        <span class="descriptive">Add new dataset</span>
+    </div>
+    <form name="forms.newOutputDatasetForm" class="top-line" ng-if="managedDatasetOptions">
+        <div ng-if="!uiState.backendWarnings.length">
+            <div class="control-group">
+                <label class="control-label">Name</label>
+                <div class="controls">
+                    <input type="text" ng-pattern="/^[\w-_]+$/" custom-validation="isDatasetNameUnique" ng-model="newOutputDataset.name" class="qa_recipe_output-name" ng-required="true" placeholder="Name" auto-focus="{{io.newOutputTypeRadio == 'create'}}"/>
+                    <div class="alert alert-error" ng-show="!isDatasetNameUnique(newOutputDataset.name)">
+                        Dataset "{{newOutputDataset.name}}" already exists.
+                    </div>
+    	            <check-hive-handles-dataset-name class='sub-form-field-warning' dataset-name="newOutputDataset.name" dataset-connection-type="newOutputDataset.connectionOption.connectionType" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Store into</label>
+                <div class="controls">
+                    <select ng-model="newOutputDataset.connectionOption"
+                        dku-bs-select="{liveSearch:true,size:'auto'}"
+                        ng-options="item as item.connectionName group by item.connectionType for item in managedDatasetOptions.connections|orderBy:'connectionType + connectionName'"
+                        id="qa_recipe_store-into" />
+                </div>
+            </div>
+            <div class="control-group" ng-if="newOutputDataset.connectionOption.fsProviderTypes && newOutputDataset.connectionOption.fsProviderTypes.length > 1">
+                <label for="" class="control-label">Store using</label>
+                <div class="controls">
+                    <select ng-model="newOutputDataset.typeOption"
+                        dku-bs-select
+                        ng-options="t for t in newOutputDataset.connectionOption.fsProviderTypes" />
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="newOutputDataset.connectionOption.canOverrideSQLCatalog">
+                <label class="control-label" ng-switch="newOutputDataset.connectionOption.connectionType">
+                    <span ng-switch-when="BigQuery">BigQuery project</span>
+                    <span ng-switch-when="Snowflake">Database</span>
+                    <span ng-switch-default>Catalog</span>
+                </label>
+                <div class="controls">
+                    <input type="text" ng-model="newOutputDataset.overrideSQLCatalog" placeholder="{{newOutputDataset.connectionOption.unoverridenSQLCatalog}}" />
+                </div>
+            </div>
+            <div class="control-group" ng-if="newOutputDataset.connectionOption.canOverrideSQLSchema">
+                <label class="control-label" ng-switch="newOutputDataset.connectionOption.connectionType">
+                    <span ng-switch-when="BigQuery">BigQuery dataset</span>
+                    <span ng-switch-default>Schema</span>
+                </label>
+                <div class="controls">
+                    <input type="text" ng-model="newOutputDataset.overrideSQLSchema" placeholder="{{newOutputDataset.connectionOption.unoverridenSQLSchema}}" />
+                </div>
+            </div>
+
+            <div class="controls-side-by-side-40-60" ng-if="newOutputDataset.connectionOption.formats.length && partitioningOptions.length > 1">
+                <div class="control-group">
+                    <label for="" class="control-label">Format</label>
+                    <div class="controls">
+                        <select dku-bs-select
+                            ng-model="newOutputDataset.formatOptionId"
+                            ng-options="format.id as format.label for format in newOutputDataset.connectionOption.formats" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Partitioning</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="newOutputDataset.partitioningOption" ng-options="x.id as x.label for x in partitioningOptions" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="newOutputDataset.connectionOption.formats.length && partitioningOptions.length <= 1">
+                <div class="control-group">
+                    <label for="" class="control-label">Format</label>
+                    <div class="controls">
+                        <select dku-bs-select
+                            ng-model="newOutputDataset.formatOptionId"
+                            ng-options="format.id as format.label for format in newOutputDataset.connectionOption.formats" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="!newOutputDataset.connectionOption.formats.length && partitioningOptions.length > 1">
+                <label class="control-label">Partitioning</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="newOutputDataset.partitioningOption" ng-options="x.id as x.label for x in partitioningOptions" />
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn--primary btn--large btn--full" ng-click="createAndUseNewOutputDataset(false)" ng-disabled="forms.newOutputDatasetForm.$invalid">
+                    Create dataset
+                </button>
+            </div>
+        </div>
+
+
+        <div ng-if="uiState.backendWarnings.length">
+            <div class="alert" style="margin-top:10px">
+                <ul>
+                    <li ng-repeat="warning in uiState.backendWarnings track by $index"><strong>{{warning.title}}</strong> &ndash; {{warning.details}}</li>
+                </ul>
+            </div>
+            <div class="actions">
+                <button class="btn btn--secondary actions w100" ng-click="uiState.backendWarnings = null">
+                    Change settings
+                </button>
+                <button class="btn btn--danger actions w100" ng-click="createAndUseNewOutputDataset(true)">
+                    Create anyway
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

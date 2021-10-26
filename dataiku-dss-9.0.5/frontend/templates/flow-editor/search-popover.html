@@ -1,0 +1,63 @@
+<div class="flow-search-popover" >
+	<div ng-if="shown" style="display: none;"
+		global-keydown="{
+			'down': 'flowSearchSelectNext($event)',
+			'up': 'flowSearchSelectPrevious($event)',
+			'enter': 'flowSearchGo()',
+			'esc': 'hidePopover()',
+			'ctrl-f': 'pommef()',
+			'meta-f': 'pommef()'}" />
+	<div ng-show="flowSearch.items.length == 0" class="no-match">
+		No match found
+	</div>
+
+	<div class="scrollzone">
+		<ul class="nav nav-pills nav-stacked" infinite-scroll="loadMoreItems()" infinite-scroll-distance="0.5">
+			<li ng-repeat="item in flowSearch.items | limitTo:currentlyDisplayedItems" ng-class="{active: $index == flowSearch.index}" data-index="$index" >
+				<div  ng-click="flowSearchSelectIndex($index)">
+					<div class="pull-right actions">
+						<a ng-click="zoomGraph(item.id)"><i class="icon-zoom-in" /></a>
+					</div>
+					<div>
+						<a ng-click="StateUtils.go.recipe(item.name, item.projectKey); $event.stopPropagation()" class="directlink" ng-show="item.nodeType.endsWith('RECIPE')">
+							<span class="title"><strong>Recipe</strong>: {{item.name}}</span>
+						</a>
+						<a ng-click="StateUtils.go.dataset(item.name, item.projectKey); $event.stopPropagation()" class="directlink" ng-show="item.nodeType.endsWith('DATASET')">
+							<span class="title"><strong>Dataset</strong>: {{item.description || item.name}}</span>
+						</a>
+						<a ng-click="StateUtils.go.managedFolder(item.name, item.projectKey); $event.stopPropagation()" class="directlink" ng-show="item.nodeType.endsWith('FOLDER')">
+							<span class="title"><strong>Managed folder</strong>: {{item.description}}</span>
+						</a>
+						<a ng-click="StateUtils.go.savedModel(item.name, item.projectKey); $event.stopPropagation()" class="directlink" ng-show="item.nodeType.endsWith('MODEL')">
+							<span class="title"><strong>Model</strong>: {{item.description}}</span>
+						</a>
+						<a ui-sref="projects.project.flow({zoneId: item.zoneId})" class="directlink" ng-show="item.nodeType.endsWith('ZONE')">
+							<span class="title"><strong>Zone</strong>: {{item.description}}</span>
+						</a>
+					</div>
+					<div>
+						<small ng-show="item.nodeType.endsWith('RECIPE')">{{item.recipeType|recipeTypeToName}}</small>
+						<small ng-show="item.nodeType.endsWith('DATASET')">{{item.type|datasetTypeToName}}</small>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+
+	<div ng-show="flowSearch.items.length > 0" style="border-top: 1px #ccc solid; padding: 5px; text-align: right; color: #999">
+		Found
+		<span ng-show="flowSearch.nbDatasets">
+			<strong>{{flowSearch.nbDatasets}}</strong> dataset<span ng-show="flowSearch.nbDatasets > 1">s</span>
+		</span>
+		<span ng-show="flowSearch.nbRecipes">
+			<strong>{{flowSearch.nbRecipes}}</strong> recipe<span ng-show="flowSearch.nbRecipes > 1">s</span>
+		</span>
+		<span ng-show="flowSearch.nbFolders">
+			<strong>{{flowSearch.nbFolders}}</strong> folder<span ng-show="flowSearch.nbFolders > 1">s</span>
+		</span>
+		<span ng-show="flowSearch.nbModels">
+			<strong>{{flowSearch.nbModels}}</strong> model<span ng-show="flowSearch.nbModels > 1">s</span>
+		</span>
+	</div>
+
+</div>

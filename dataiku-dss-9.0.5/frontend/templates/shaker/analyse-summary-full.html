@@ -1,0 +1,96 @@
+<div class="shaker summary" style="min-height: 150px;">
+    <strong>
+        Summary
+        <span colspan="1" ng-if="categoricalsNeedRecompute(['count', 'countMissing', 'countInvalid'])">
+            <i class="icon-warning-sign out-of-date-warning" title="Values out of date, needs recompute"></i>
+        </span>
+    </strong>
+    <div ng-if="!hasCategorical('count') || !hasCategorical('countMissing')">
+        <div style="text-align: center;">
+            <span class="not-computed">Not computed</span>
+        </div>
+        <div style="text-align: center;">
+            <a class="small-link-button" ng-click="uiState.configureFullSampleStatistics()">Click to configure <i class="icon-cog"></i></a>
+        </div>
+    </div>
+    <div ng-if="hasCategorical('count') && hasCategorical('countMissing')">
+        <!-- empty/not empty -->
+        <span>
+            <progress-bar class="progress-validity grey-neutral" 
+                neutral="{{100 * (analysis.fullSampleAnalysis.categorical.count.value) / (analysis.fullSampleAnalysis.categorical.count.value + analysis.fullSampleAnalysis.categorical.countMissing.value)}}"
+                warning="{{100 * (analysis.fullSampleAnalysis.categorical.countMissing.value) / (analysis.fullSampleAnalysis.categorical.count.value + analysis.fullSampleAnalysis.categorical.countMissing.value)}}">
+            </progress-bar>
+        </span>
+        <table>
+            <tr>
+                <th colspan="3">Not empty <span style="color: #808080;">&bull;</span></th>
+                <td colspan="3" class="lining-nums" ng-bind="analysis.fullSampleAnalysis.categorical.count.value | number:0"></td>
+                <td colspan="2" class="lining-nums" ng-bind="( 100 * (analysis.fullSampleAnalysis.categorical.count.value) / (analysis.fullSampleAnalysis.categorical.count.value + analysis.fullSampleAnalysis.categorical.countMissing.value) | number:1) + ' %'"></td>
+            </tr>
+            <tr>
+                <th colspan="3">Empty <span style="color: #ddd">&bull;</span></th>
+                <td colspan="3" class="lining-nums" ng-bind="analysis.fullSampleAnalysis.categorical.countMissing.value | number:0"></td>
+                <td colspan="2" class="lining-nums" ng-bind="( 100 * (analysis.fullSampleAnalysis.categorical.countMissing.value) / (analysis.fullSampleAnalysis.categorical.count.value + analysis.fullSampleAnalysis.categorical.countMissing.value) | number:1) + ' %'"></td>
+            </tr>
+        </table>
+        
+        <!-- meaning validity -->
+        <div ng-if="!hasCategorical('countInvalid')" style="margin-top: 5px;">
+            <div ng-if="column.meaningOrigin != 'USER'">
+                <span>Validity cannot be computed on auto-detected meanings.</span>
+            </div>
+            <div ng-if="column.meaningOrigin == 'USER'">
+                <div>
+                    Validity : <span>{{column.meaningLabel}}</span>
+                    <a class="small-link-button" ng-click="uiState.configureFullSampleStatistics()"><i class="icon-cog"></i></a>
+                </div>
+                <table class="not-computed">
+                    <tr>
+                        <th colspan="3">Valid <span style="color: #7ed6aa;">&bull;</span></th>
+                        <td colspan="3" class="lining-nums">&mdash;</td>
+                        <td colspan="2" class="lining-nums">&mdash;</td>
+                    </tr>
+                    <tr>
+                        <th colspan="3">Invalid <span style="color: #de7985">&bull;</span></th>
+                        <td colspan="3" class="lining-nums">&mdash;</td>
+                        <td colspan="2" class="lining-nums">&mdash;</td>
+                    </tr>
+                    <tr>
+                        <th colspan="3">Empty <span style="color: #ddd">&bull;</span></th>
+                        <td colspan="3" class="lining-nums">&mdash;</td>
+                        <td colspan="2" class="lining-nums">&mdash;</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div ng-if="hasCategorical('countInvalid')" style="margin-top: 5px;">
+            <span>
+                Validity : <span>{{column.meaningLabel}}</span>
+            </span>
+            <span>
+                <progress-bar class="progress-validity" 
+                    success="{{100 * (analysis.fullSampleAnalysis.categorical.count.value - analysis.fullSampleAnalysis.categorical.countInvalid.value) / (analysis.fullSampleAnalysis.categorical.count.value + analysis.fullSampleAnalysis.categorical.countMissing.value)}}"
+                    warning="{{100 * (analysis.fullSampleAnalysis.categorical.countMissing.value) / (analysis.fullSampleAnalysis.categorical.count.value + analysis.fullSampleAnalysis.categorical.countMissing.value)}}"
+                    error="{{100 * (analysis.fullSampleAnalysis.categorical.countInvalid.value) / (analysis.fullSampleAnalysis.categorical.count.value + analysis.fullSampleAnalysis.categorical.countMissing.value)}}">
+                </progress-bar>
+                <table>
+                    <tr>
+                        <th colspan="3">Valid <span style="color: #7ed6aa;">&bull;</span></th>
+                        <td colspan="3" class="lining-nums" ng-bind="analysis.fullSampleAnalysis.categorical.count.value - analysis.fullSampleAnalysis.categorical.countInvalid.value | number:0"></td>
+                        <td colspan="2" class="lining-nums" ng-bind="( 100 * (analysis.fullSampleAnalysis.categorical.count.value - analysis.fullSampleAnalysis.categorical.countInvalid.value) / (analysis.fullSampleAnalysis.categorical.count.value + analysis.fullSampleAnalysis.categorical.countMissing.value) | number:1) + ' %'"></td>
+                    </tr>
+                    <tr>
+                        <th colspan="3">Invalid <span style="color: #de7985">&bull;</span></th>
+                        <td colspan="3" class="lining-nums" ng-bind="analysis.fullSampleAnalysis.categorical.countInvalid.value | number:0"></td>
+                        <td colspan="2" class="lining-nums" ng-bind="( 100 * (analysis.fullSampleAnalysis.categorical.countInvalid.value) / (analysis.fullSampleAnalysis.categorical.count.value + analysis.fullSampleAnalysis.categorical.countMissing.value) | number:1) + ' %'"></td>
+                    </tr>
+                    <tr>
+                        <th colspan="3">Empty <span style="color: #ddd">&bull;</span></th>
+                        <td colspan="3" class="lining-nums" ng-bind="analysis.fullSampleAnalysis.categorical.countMissing.value | number:0"></td>
+                        <td colspan="2" class="lining-nums" ng-bind="( 100 * (analysis.fullSampleAnalysis.categorical.countMissing.value) / (analysis.fullSampleAnalysis.categorical.count.value + analysis.fullSampleAnalysis.categorical.countMissing.value) | number:1) + ' %'"></td>
+                    </tr>
+                </table>
+            </span>
+        </div>
+    </div>
+</div>

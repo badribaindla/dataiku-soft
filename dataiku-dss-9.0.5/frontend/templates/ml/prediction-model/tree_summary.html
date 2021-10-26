@@ -1,0 +1,20 @@
+<div class="h100" ng-controller="DecisionTreeController">
+    <div block-api-error />
+    <div ng-show="noTreesFound && !fatalAPIError">
+        <div ng-if="modelData.modeling.skipExpensiveReports" class="alert alert-info">
+            <i class="icon-dku-help"></i>
+            Decision Tree visualisation is unavailable for this model because computation of expensive results was disabled.
+            <br>
+            Retrain the model with computation of expensive results enabled to view the decision tree.
+        </div>
+        <div ng-if="!modelData.modeling.skipExpensiveReports" class="alert alert-error">
+            <i class="icon-dku-error"></i>
+            Decision Tree visualisation is unavailable for this model, it was either trained with a previous
+            version of DSS or computation of expensive results was disabled.
+            <br>
+            Retrain the model (with computation of expensive results enabled) to view the decision tree.
+        </div>
+    </div>
+    <div ng-if="!noTreesFound" class="h100" decision-tree-control data="treeData" classes="modelData.classes" core-params="modelData.coreParams" disable-transitions="$stateParams.exportMode">
+    </div>
+</div>

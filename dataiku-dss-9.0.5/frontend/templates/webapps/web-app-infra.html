@@ -1,0 +1,37 @@
+<div ng-scope="{{errorScope = this}}">
+    <div container-selection-form="infra.containerSelection" selection-label="'Container'"></div>
+    <h2 class="settings-section-title" ng-if="containerInfo && containerInfo.type == 'KUBERNETES'">Deployment sizing</h2>
+    <div class="control-group" ng-if="containerInfo && containerInfo.type == 'KUBERNETES'">
+        <label for="" class="control-label">Number of replicas</label>
+        <div class="controls">
+           <input type="number" force-integer min="1" ng-model="infra.scaling.initialReplicas" />
+        </div>
+    </div>
+    
+    <div deployment-hpa="infra.scaling" container-info="containerInfo" ng-if="!isVirtualWebappSettings && containerInfo && containerInfo.type == 'KUBERNETES'"/>
+
+    <p class="mtop24" ng-show="containerInfo && (containerInfo.type == 'KUBERNETES' || containerInfo.type=='DOCKER') "><a ng-click="showAdvancedSettings = !showAdvancedSettings">Advanced settings</a></p>
+
+    <div ng-if="showAdvancedSettings">
+
+        <h2 class="settings-section-title" ng-if="!isVirtualWebappSettings && containerInfo && containerInfo.type == 'KUBERNETES'">Advanced tuning</h2>
+
+        <div class="alert alert-warning">
+            These settings are for very specific use cases. You do not usually need to modify them. Overriding exposition settings is not recommended.
+        </div>
+
+        <div yaml-modifier="infra.deploymentModifier" container-info="containerInfo" ng-if="!isVirtualWebappSettings && containerInfo && containerInfo.type == 'KUBERNETES'"/>
+        <p ng-if="!isVirtualWebappSettings && containerInfo && containerInfo.type == 'KUBERNETES'" class="help">
+            Pod enhancers can provide additional capabilities, notably for advanced autoscaling. Please refer to the documentation for more details.
+        </p>
+        
+        <div class="control-group" ng-if="!isVirtualWebappSettings && containerInfo && containerInfo.type == 'KUBERNETES'">
+            <label for="overrideGlobalK8sExposition" class="control-label">Override global exposition</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="infra.overrideGlobalK8sExposition" id="overrideGlobalK8sExposition"/>
+            </div>
+        </div>
+        <div service-exposition="infra.exposition" exposition-usage-context="'WEBAPP'" container-info="!isVirtualWebappSettings && containerInfo" ng-if="containerInfo && (containerInfo.type != 'KUBERNETES' || infra.overrideGlobalK8sExposition)"></div>
+
+    </div>
+</div>

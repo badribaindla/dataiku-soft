@@ -1,0 +1,61 @@
+<div class="job">
+    <div class="future-icon">
+        <div class="h100 center-children">
+            <i class="icon-play text-success" />
+        </div>
+    </div>
+
+    <div class="future-body">
+        <div class="abort"
+            ng-show="!job.stableState"
+            ng-click="job.confirming = true;"
+            ng-mouseenter="job.hoverClose = true" ng-mouseleave="job.hoverClose = false" ng-class="{hovered: job.hoverClose}">
+            <span>Abort</span>
+            <del>&times;</del>
+        </div>
+        <div class="name mx-textellipsis"><a href="{{ StateUtils.href.job(job.def.projectKey, job.def.id) }}">
+            <span ng-if="job.state == 'WAITING_CONFIRMATION'">Build waiting</span>
+            <span ng-if="!(job.state == 'WAITING_CONFIRMATION')">Build in progress</span>
+        </a></div>
+        <div class="details">
+            <span class="target">In <a href="{{ StateUtils.href.job(job.def.projectKey, job.def.id) }}">job</a></span>
+            <span class="separator">|</span>
+            <span class="target">Building</span>
+            <span class="target" ng-repeat="output in job.def.outputs">
+                <span class="separator" ng-if="$index > 0">|</span>
+                <a href="{{StateUtils.href.dssObject(output.type || 'DATASET', output.targetDataset, output.targetDatasetProjectKey)}}">
+                    {{output.targetDataset}}
+                </a>
+                in
+                <span ng-if="$stateParams.projectKey != output.targetDatasetProjectKey">
+                    <a href="{{StateUtils.href.project(output.targetDatasetProjectKey)}}">{{output.targetDatasetProjectKey}}</a>
+                </span>
+                <span ng-if="$stateParams.projectKey == output.targetDatasetProjectKey">current project</span>
+            </span>
+            <span class="duration">
+                <span class="separator">|</span>
+                <span ng-if="job.state == 'WAITING_CONFIRMATION'">Waiting since {{ job.startTime | friendlyTimeDeltaShort}}</span>
+                <span ng-if="!(job.state == 'WAITING_CONFIRMATION')">Started {{ job.startTime | friendlyTimeDeltaShort}}</span>
+            </span>
+            <span ng-if="job.def.initiator != appConfig.user.login">
+                <span class="separator">|</span>
+                <span class="owner">
+                    by
+                    <a href="/profile/{{job.def.initiator}}/">
+                        {{job.def.initiatorDisplayName || '@'+job.def.initiator}}
+                    </a>
+                </span>
+            </span>
+            <span ng-if="job.kernelPid">
+                <span class="separator">|</span>
+                <span class="target">
+                    Process {{job.kernelPid}}
+                </span>
+            </span>
+        </div>
+        <div class="state" ng-if="!(job.state == 'WAITING_CONFIRMATION')">
+            <div class="perpetual-bar"><div class="done"></div></div>
+        </div>
+    </div>
+    <div future-abort-confirmation="job" abort-msg="'Abort the job?'" abort-fn="abortJob(job.def.projectKey, job.def.id)" ></div>
+</div>

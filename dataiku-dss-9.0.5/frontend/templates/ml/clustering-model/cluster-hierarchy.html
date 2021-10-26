@@ -1,0 +1,93 @@
+<div class="cluster-hierarchy h100" style="position: relative">
+    <div class="cluster-container fh horizontal-flex">
+        <div class="h100 flex" style="position: relative">
+            <div class="h100 vertical-flex">
+                <div style="padding: 10px" class="noflex row-fluid">
+                    <button class="btn btn--secondary" ng-click="expandAll()">Expand All</button>
+                    <button class="btn btn--secondary" ng-click="collapse()" style="margin-right:10px">Collapse</button>
+                    <span ng-show="!editing">Click on a node to expand or collapse it.</span>
+                    <span ng-show="editing">Nodes on the right will become the new clusters</span>
+                    <div class="pull-right" style="position: relative" ng-if="!readOnly">
+                        <div >
+                            <button class="btn btn--secondary" ng-click="reset()" ng-disabled="!diff" style="margin-right:20px">Reset</button>
+                            <button class="btn btn--outline btn--primary" ng-click="commitClustering()" ng-disabled="!diff">Save</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex oa">
+                    <div id="container" style="position: relative;">
+                        <ul class="dropdown-menu" style="min-width: 115px;" ng-if="!readOnly">
+                            <li><a ng-click="editCluster(selectedNode)">Edit details</a></li>
+                            <li><a ng-click="setAsCluster(selectedNode)" ng-if="!isCluster(selectedNode)">Set as cluster</a></li>
+                        </ul>
+                        <svg class="chart-std-font" height="10000" puppeteer-hook puppeteer-hook-element-content-loaded>
+                            <g></g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        <div class="stats-area noflex vertical-flex">
+            <div class="stats-header noflex">
+                <div ng-if="!selectedNode" class="hover-indication">
+                    Hover over a node to see its contents.
+                </div>
+                <div ng-if="selectedNode">
+                        <div class="horizontal-flex">
+                            <div class="color-indicator noflex" ng-style="{'background-color':nodeColor(selectedNode)}"></div>
+                            <div class="cluster-name noflex" title="{{getName(selectedNode.id)}}">{{getName(selectedNode.id)}}</div>
+                            <div class="noflex" ng-if="!readOnly"><i class="icon-pencil filigran" style="margin-left: 15px" ng-click="editCluster(selectedNode)"></i></div>
+                        </div>
+                        <div class="node-size-container">
+                            <div><b>Size</b></div>
+                            <div>{{selectedNode.weight}} samples ({{nodeProportion(selectedNode)}}%)</div>
+                        </div>
+                </div>
+            </div>
+
+            <div class="stats-table-area flex oya vertical-flex" ng-if="selectedNode">
+
+                <div class="noflex std-list-sort-box">
+                    <sort-order-button  class="order" sob-opt="{'buttonClass':'btn'}" value="featureSort.sortDesc" ></sort-order-button>
+
+                    <select dku-bs-select="{'width':'228px'}"
+                            ng-model="featureSort.sortBy" class="sort-select">
+                        <option value="default">Dataset order</option>
+                        <option value="global">Variable signifiance</option>
+                        <option value="parent">Difference to parent</option>
+                    </select>
+                </div>
+                <div class="horizontal-flex noflex row-element">
+                    <div class="feature-width title noflex">Feature</div>
+                    <div class="avg-width title noflex">Avg</div>
+                    <div class="parent-width title noflex">Parent Avg</div>
+                </div>
+                <div class="flex" style="width:300px">
+                    <div fat-repeat="featureIndex" class="fh" as="i" row-height="30" digest-child-only="true">
+                        <div class="horizontal-flex row-element">
+                            <div class="noflex feature-width feature" title="{{normalizeFeature(features[i])}}">{{normalizeFeature(features[i])}}</div>
+                            <div class="noflex avg-width avg" ng-style="{'background-color': featureColor(i)}" color-contrast="{{featureColor(i)}}"
+                                title="{{normalizeFeatureValue(features[i], selectedNode.representative[i])}}">
+                                {{normalizeFeatureValue(features[i], selectedNode.representative[i])}}
+                            </div>
+                            <div class="parent-width parent">
+                                <div class="noflex horizontal-flex" ng-if="selectedNode.parent" style="font-size: 10px; justify-content:space-around;">
+                                    <div class="flex" style="text-align:center; margin-right:10px">
+                                        {{normalizeFeatureValue(features[i], selectedNode.parent.representative[i])}}
+                                    </div>
+                                    <div ng-style="{'color': arrowColor(i)}" style="font-size:15px; margin-right: 5px">
+                                        <i class="icon-caret-up" ng-show="arrowUp(i)"></i>
+                                        <i class="icon-caret-down" ng-show="!arrowUp(i)"></i>
+                                    </div>
+                                </div>
+                                <div ng-if="!selectedNode.parent"> - </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

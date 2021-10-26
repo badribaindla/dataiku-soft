@@ -1,0 +1,55 @@
+<div class="checklist-body">
+	<div class="checklist-items">
+		<ul>
+			<li class="checklist-item horizontal-flex" ng-repeat="item in checklist.items">
+				<span class="noflex">
+					<span class="item-done-checkbox vat btn--secondary" ui-checkbox ng-model="item.done" ng-disabled="readOnly" ng-click="onItemStateChange()" />
+				</span>
+
+				<div class="flex checklist-text markdown-std">
+					<div ng-if="!item.editingText"  ng-class="{'done':item.done}" ng-click="!readOnly && enterEditItem(item, $event)" style="cursor:pointer">
+						<span from-markdown="item.text" />
+					</div>
+					<div ng-if="item.editingText" class="edit-zone" autocompletable-textarea>
+						<div class="common-styles-only" ng-if="editorOptions" dku-local-keypress="{'esc' : 'cancelEditItem()', 'ctrl-s meta-s':'validateEditItem()', 'ctrl-enter meta-enter': 'validateEditItem()'}">
+							<textarea msd-elastic
+									  ng-model="state.editingItemText"
+									  placeholder="Text"
+									  auto-focus="true"
+									  style="max-width:100%"
+									  ui-codemirror="editorOptions">
+							</textarea>
+						</div>
+						<div class="toolbar">
+							<button class="btn btn--success" ng-click="validateEditItem()">Save</button>
+							<button class="btn btn--secondary" ng-click="cancelEditItem()">Cancel</button>
+
+							<a class="pull-right link-danger" ng-click="cancelEditItem(); deleteItem(item)"><i class="icon-trash" /></a>
+						</div>
+					</div>
+				</div>
+			</li>
+		</ul>
+
+		<div ng-if="!readOnly && !state.addingItem" class="new-item-trigger">
+			<a ng-click="enterAddItem()">Add a task</a>
+		</div>
+
+		<div ng-if="state.addingItem" class="new-item-zone common-styles-only" autocompletable-textarea>
+			<div ng-if="editorOptions" dku-local-keypress="{'esc' : 'leaveAddItem()', 'ctrl-s meta-s':'addNewItem()', 'ctrl-enter meta-enter': 'addNewItem()'}">
+				<textarea msd-elastic
+						  ng-model="state.newItemText"
+						  placeholder="Add an item ..."
+						  auto-focus="true"
+						  style="max-width:100%"
+						  ui-codemirror="editorOptions">
+				</textarea>
+			</div>
+			<div style="margin-top: 6px;">
+				<button class="btn btn--success" ng-click="addNewItem()">Add</button>
+				<button class="btn btn--secondary" ng-click="leaveAddItem()">Cancel</button>
+			</div>
+		</div>
+	</div>
+
+</div>

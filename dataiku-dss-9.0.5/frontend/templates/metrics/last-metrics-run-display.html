@@ -1,0 +1,52 @@
+                    <div ng-if="lastComputeResult" contextual-menu cep-position="align-right-top" ng-click="toggleContextualMenu($event)" class="list-control-widget" style="cursor:pointer; position:relative; display: inline-block;">
+                        <span>
+                            <i class="icon-warning-sign" ng-if="hasErrors" style="color: #b94a48;"></i>
+                               Last run results <i class="icon-arrow-right "></i>
+                        </span>
+                        <div class="contextualMenu last-metrics-run-results oa" ng-show="contextualMenu" style="z-index: 20;">
+                            <div>Started {{lastComputeResult.startTime | date:'yyyy/MM/dd HH:mm'}}, finished {{lastComputeResult.endTime | date:'yyyy/MM/dd HH:mm'}}</div>
+
+                            <div ng-if="lastComputeResult.runs">
+                                <div>Skipped {{lastComputeResult.skipped.length}} metrics</div>
+                                <div>Computed {{lastComputeResult.computed.length}} metrics</div>
+                                <div ng-repeat="run in lastComputeResult.runs">
+                                    <div>Run on {{run.engine}}</div>
+                                    <div ng-if="run.error" class="alert alert-error">
+                                        <div>
+
+                                            <i class=icon-dku-error" />&nbsp;{{run.error.clazz}} : <span class="preserve-eol">{{run.error.message}}</span>
+                                            <div ng-click="run.expandError = !run.expandError"><i class="icon-eye"></i>&nbsp;Stacktrace</div>
+                                        </div>
+                                        <div class="error-info preserve-eol" ng-if="run.expandError" >{{run.error.stack}}</div>
+                                    </div>
+                                    <div ng-if="run.logTail != null && run.logTail.lines.length > 0" class="alert alert-info">
+                                        <div ng-click="run.expandLog = !run.expandLog"><i class="icon-eye"></i>&nbsp;Log</div>
+                                        <div class="error-info" ng-if="run.expandLog">
+                                            <div ng-repeat="line in run.logTail.lines track by $index">{{line}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div ng-if="!lastComputeResult.runs">
+                                Computed {{lastComputeResult.partitionsList.partitions.length}} partitions in {{lastComputeResult.allRuns.length}} runs ({{lastComputeResult.errorRuns.length}} errors)
+                                <div ng-repeat="run in lastComputeResult.errorRuns">
+                                    <div>Run on {{run.engine}}</div>
+                                    <div ng-if="run.error" class="alert alert-error">
+                                        <div>
+
+                                            <i class=icon-dku-error" />&nbsp;{{run.error.clazz}} : <span class="preserve-eol">{{run.error.message}}</span>
+                                            <div ng-click="run.expandError = !run.expandError"><i class="icon-eye"></i>&nbsp;Stacktrace</div>
+                                        </div>
+                                        <div class="error-info preserve-eol" ng-if="run.expandError" >{{run.error.stack}}</div>
+                                    </div>
+                                    <div ng-if="run.logTail != null && run.logTail.lines.length > 0" class="alert alert-info">
+                                        <div ng-click="run.expandLog = !run.expandLog"><i class="icon-eye"></i>&nbsp;Log</div>
+                                        <div class="error-info" ng-if="run.expandLog">
+                                            <div ng-repeat="line in run.logTail.lines track by $index">{{line}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>

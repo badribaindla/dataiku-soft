@@ -1,0 +1,144 @@
+<div ng-controller="ClusteringTrainingRecipeEditor">
+    <div class="top-level-tabs objecttype-recipe">
+        <div class="row-fluid object-nav horizontal-flex">
+            <div std-object-breadcrumb class="flex oh" />
+            <div class="noflex">
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab  == 'summary'}" ng-click="topNav.tab ='summary'">
+                    Summary</a>
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab  == 'settings'}" ng-click="topNav.tab ='settings'">
+                    Settings</a>
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab  == 'io'}" ng-click="topNav.tab ='io'">
+                    Input / Output</a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'gitlog'}" ng-click="topNav.tab='gitlog'">
+                    History
+                </a>
+                <div class="otherLinks">
+                    <div style="display: inline-block" ng-if="desc.generatingModelId">
+                        <a class="btn btn--contained btn--alt btn--analysis" ng-click="goToAnalysisModel()">
+                            <i class="icon-dku-nav_analysis"/>
+                            <span>View original analysis</span>
+                        </a>
+                    </div>
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-save-button.html" />
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-tabs-other-links.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-io-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+    <div class="dss-page"  ng-if="topNav.tab == 'settings'">
+        <div ng-if="isMLBackendType('VERTICA')" class="noflex alert alert-warning">
+            <strong>Vertica ML backend is no longer supported:</strong>
+            <br />
+            Cannot run recipe.
+        </div>
+        <div block-api-error></div>
+
+        <div class="h100 vertical-flex">
+            <div class="flex">
+                <div class="fh">
+                    <div class="h100 oa">
+                        <div class="horizontal-centerer">
+                            <div style="background-color: #ffffff">
+                                <div ng-show="recipeStatus.allMessagesForFrontend.anyMessage" style="padding: 10px">
+                                    <div info-messages-raw-list-with-alert="recipeStatus.allMessagesForFrontend" />
+                                </div>
+                            </div>
+                            <div class="formbased-recipe-infozone w800">
+                                <ul>
+                                    <li> <strong>{{desc.script.steps.length}}</strong>
+                                        preparation steps are applied
+                                    </li>
+                                    <li> <strong>{{desc.modeling.algorithm}}</strong>
+                                        algorithm is used
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="recipe-settings-section1 w800" ng-if="desc.backendType != 'VERTICA'">
+                                <h1 class="recipe-settings-section1-title">Sampling</h1>
+                                <div class="recipe-settings-section2">
+                                    <p ng-if="isMLBackendType('PY_MEMORY')">
+                                        If your dataset does not fit in your RAM, you may want to subsample the set on which splitting will be performed
+                                    </p>
+                                    <form class="dkuform-horizontal">
+                                        <div sampling-form-without-partitions selection="desc.sampling.selection" />
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="horizontal-centerer" ng-if="isMLBackendType('MLLIB')">
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Spark configuration</h1>
+                                <div spark-override-config config="desc.sparkParams.sparkConf" task="desc" task-type="MLLib" class="recipe-settings-section2" ></div>
+                                <form class="dkuform-horizontal recipe-settings-section2">
+	                                <div class="control-group">
+	                                    <label class="control-label">Spark engine</label>
+	                                    <div class="controls" >
+	                                        <select dku-bs-select ng-model="desc.sparkParams.sparkExecutionEngine" >
+	                                            <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+	                                            <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+	                                            <option value="DATABRICKS">Databricks</option>
+	                                        </select>
+	                                    </div>
+	                                </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="recipe-settings-section1 w800">
+                            <h1 class="recipe-settings-section1-title">Container configuration</h1>
+
+                            <div class="recipe-settings-section2"
+                                 container-selection-form="recipe.params.containerSelection"></div>
+                        </div>
+
+                        <div class="horizontal-centerer" ng-if="featureFlagEnabled('model_evaluation_stores')">
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Labels</h1>
+                                <form class="dkuform-horizontal recipe-settings-section2">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Labels to add to a version of a saved model on training</label>
+                                        <div class="controls">
+                                            <ng2-key-values-list
+                                                [(items)]="recipe.labels"
+                                                add-label="Add a label"
+                                                key-placeholder="Label key"
+                                                value-placeholder="Label value"
+                                            ></ng2-key-values-list>
+                                            <div class="help-inline">
+                                                Optional. Informative labels for the model.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="noflex job-result-pane" ng-if="valCtx.preRunValidationError || startedJob.jobId">
+                <div class="recipe-settings-floating-result">
+                    <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="recipe-settings-floating-run">
+            <div
+                class="recipe-settings-floating-run__container"
+                disabled-if="isMLBackendType('VERTICA')"
+                disabled-message="Vertica ML backend is no longer supported">
+                <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-partitions.html"></div>
+                <span include-no-scope="/templates/recipes/fragments/run-job-buttons.html"></span>
+            </div>
+        </div>
+    </div>
+
+</div>

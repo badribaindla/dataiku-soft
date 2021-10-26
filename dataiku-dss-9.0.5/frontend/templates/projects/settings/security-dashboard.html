@@ -1,0 +1,138 @@
+<div style="position: relative" class="h100 dashboard-authorizations" filtered-multi-select-rows select-click-behaviour="select-add" ng-model="dashboardAuthorizations.authorizations" ng-controller="ProjectSettingsDashboardController" global-keydown="{'ctrl-s meta-s':'saveAuthorizations()'}">
+    <div class="vertical-flex fh h100">
+        <div class="noflex authorizations-header" >
+            <div class="pull-right">
+                <button ng-if="isDashboardAuthorizationDirty()" ng-click="saveAuthorizations()" class="btn btn--outline btn--primary"><i class="icon-save" style="margin-right: 10px;"></i>Save</button>
+                <button ng-if="!isDashboardAuthorizationDirty()" disabled class="btn btn--outline btn--primary"><i class="icon-save" style="margin-right: 10px;"></i>Saved</button>
+            </div>
+            <h2 class="page-subtitle dib">Dashboard sources</h2>
+            <div block-api-error></div>
+            <div class="dib" style="padding-left: 15px;">
+                <label class="dku-toggle" style="vertical-align: text-bottom;">
+                    <input type="checkbox" ng-model="dashboardAuthorizations.allAuthorized" />
+                    <span/>
+                </label>
+                Dashboard-only users can access all objects
+            </div>
+            <p style="margin-top: 10px;">Add objects accessible by dashboard-only users</p>
+        </div>
+        <div class="noflex dku-colored-list spaced fattable-default-header dku-border-bottom" ng-model="dashboardAuthorizations.authorizations" ng-class="{disabled: dashboardAuthorizations.allAuthorized}">
+            <div class="disablable" ng-disabled="dashboardAuthorizations.allAuthorized">
+                <input type="checkbox"
+                    class="select-cb"
+                    ng-model="selection.all"
+                    dku-indeterminate="selection.some"
+                    ng-change="updateMassSelectionCheckbox();" />
+
+                <span class="dropdown">
+                    <a data-toggle="dropdown" class="btn btn--secondary dropdown-toggle unselectable" ng-class="{disabled:selection.none}">
+                        ACTIONS <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a ng-click="removeReaderAuthorizations(selection.selectedObjects)"><i class="icon-trash"/>Delete</a>
+                        </li>
+                        <li ng-show="!isDisabledReaderAuth(selection,'RUN')">
+                            <a ng-show="!isAllReaderAuth(selection,'RUN')" ng-click="setReaderAuth(selection.selectedObjects, true, 'RUN')">
+                                <i class="icon-play"/>Allow run
+                            </a>
+                            <a ng-show="isAllReaderAuth(selection,'RUN')" ng-click="setReaderAuth(selection.selectedObjects, false, 'RUN')">
+                                <i class="icon-play"/>Disallow run
+                            </a>
+                        </li>
+                        <li ng-show="!isDisabledReaderAuth(selection,'WRITE')">
+                            <a ng-show="!isAllReaderAuth(selection,'WRITE')" ng-click="setReaderAuth(selection.selectedObjects, true, 'WRITE')">
+                                <i class="icon-pencil"/>Allow write
+                            </a>
+                            <a ng-show="isAllReaderAuth(selection,'WRITE')" ng-click="setReaderAuth(selection.selectedObjects, false, 'WRITE')">
+                                <i class="icon-pencil"/>Disallow write
+                            </a>
+                        </li>
+                    </ul>
+                </span>
+
+                <div class="std-list-search-box with-icon" style="display: inline-block">
+                    <span class="search-icon"><i class="icon-dku-search"></i></span>
+                    <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Search…" class="ng-pristine ng-valid">
+                </div>
+
+                <div custom-element-popup="" close-on-click="true" class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown ng-scope">
+                    <a class="btn btn--secondary dropdown-toggle mainzone has-caret" ng-click="togglePopover()" style="padding-right: 25px; background: white;">
+                        <i plus-icon />
+                        Add authorized object
+                        <b class="caret"></b>
+                    </a>
+                    <ul class="popover custom-element-popup-popover dropdown-menu oa" style="max-height: 53vh;">
+                        <li ng-repeat="type in exposableTypes">
+                            <a ng-click="newSource.type = type"><i class='{{type | typeToIcon}} {{type | typeToColor}} universe-color object-icon'></i> {{type | niceConst}}</a>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+            <div style="width: 100px; text-align: center">
+                Allow run
+            </div>
+            <div style="width: 100px; text-align: center">
+                Allow write
+            </div>
+            <div style="width: 100px;">
+            </div>
+            <div style="width: 30px;">
+            </div>
+        </div>
+        <div class="flex" style="flex-grow: 0; flex-basis: {{36*selection.filteredObjects.length + 1}}px;">
+        <div class="fh">
+        <div class="h100 fattable-default-style disablable authorization-table" fat-repeat="selection.filteredObjects" as="readerAuth" row-height="36" ng-disabled="dashboardAuthorizations.allAuthorized" tabindex="0" style="outline:none" ng-keydown="multiSelectKeydown($event, true)">
+            <div ng-class="{focused: selection.selectedObject === readerAuth,selected: readerAuth.$selected}" full-click>
+
+                <div class="unselectable">
+                    <span style="display:none;" main-click ng-click="objectClicked(readerAuth, $event)"></span> <!-- because checkbox click is prioritary -->
+                    <span class="mass unselectable">
+                        <input type="checkbox" ng-model="readerAuth.$selected" ng-click="checkBoxChanged(readerAuth, $event)" />
+                    </span>
+                    <i class="{{readerAuth.objectRef.objectType | typeToIcon }} {{readerAuth.objectRef.objectType | typeToColor}}" />
+                    <span class="mx-textellipsis name">
+                        {{readerAuth.objectRef.objectDisplayName}}
+                    </span>
+                    <span>
+                        <small>&nbsp;– <a href="{{getReaderAuthUrl(readerAuth)}}">view</a></small>
+                    </span>
+                </div>
+                <div class="mode" ng-repeat="mode in ['RUN', 'WRITE']">
+                    <span ng-if="availableModesForType[readerAuth.objectRef.objectType].indexOf(mode) > -1">
+                        <input type="checkbox" checklist-model="readerAuth.modes" checklist-value="mode" />
+                    </span>
+                </div>
+
+                <div class="project-key">
+                    <span ng-show="readerAuth.objectRef.projectKey">
+                        {{readerAuth.objectRef.projectKey}}
+                    </span>
+                </div>
+                <div class="remove">
+                    <i class="icon-trash" ng-click="removeReaderAuthorization(readerAuth)" style="cursor: pointer;" />
+                </div>
+            </div>
+        </div>
+        </div>
+        </div>
+
+        <div class="noflex dku-border-top newsource-selector" ng-if="newSource.type">
+            <i class="icon-remove cursor-pointer" ng-click="newSource.type = null" />
+            <div object-picker="newSourceSmartId"
+                type="{{newSource.type}}"
+                object="newSourceObject"
+                unusable="readerAuthorizationsByType[newSource.type]"
+                class="std-size-selector selector"
+                ng-disabled="dashboardAuthorizations.allAuthorized"
+                ></div>
+
+            <div class="btn btn--secondary"
+                ng-click="addReaderAuthorization(newSourceObject)"
+                ng-disabled="dashboardAuthorizations.allAuthorized || !newSource.type || !newSourceSmartId || (readerAuthorizationsByType[newSource.type] || []).indexOf(newSourceObject.smartId) != -1">
+                Add
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,267 @@
+<div class="shaker-columns-view vertical-flex h100 no-select" filtered-multi-select-rows ng-model="table.headers">
+<div class="noflex header">
+
+    <!-- Big top bar -->
+    <div class="shaker-summary-wrapper" custom-formula-zone="replace">
+        <!-- Step summury -->
+        <div include-no-scope="/templates/shaker/shaker-summary-stats.html"></div>
+        <!-- Views buttons -->
+        <div class="view-buttons-wrapper">
+            <div class="columns-sort"> <!-- Sort button -->
+                <sort-order-button class="order" sob-opt="{'buttonClass':'btn btn--secondary'}" value="selection.orderReversed" >
+                </sort-order-button>
+                <select dku-bs-select ng-model="selection.orderQuery">
+                    <optgroup label="Column's">
+                        <option value="$idx" selected>Index</option>
+                        <option value="name">Name</option>
+                        <option value="meaningLabel">Meaning</option>
+                    </optgroup>
+                    <optgroup label="All meanings">
+                        <option value="comp_cardinality">Cardinality</option>
+                        <option value="okPercentage">% valid</option>
+                        <option value="nokPercentage">% invalid</option>
+                        <option value="nonemptyPercentage">% non empty</option>
+                        <option value="emptyPercentage">% empty</option>
+                    </optgroup>
+                    <optgroup label="Numeric first">
+                        <option value="comp_min">Min</option>
+                        <option value="comp_max">Max</option>
+                        <option value="comp_mean">Mean</option>
+                        <option value="comp_median">Median</option>
+                        <option value="comp_stddev">StdDev</option>
+                    </optgroup>
+                </select>
+            </div>
+           <a style="font-size: 27px; vertical-align: middle; text-decoration: none"
+                   ng-click="showWarningsDetails()" class="text-warning" ng-show="table.warnings.totalCount">
+                <i class="icon-warning-sign" toggle="tooltip" title="Warnings occurred while previewing" />
+            </a>
+            <div include-no-scope="/templates/shaker/shaker-views-buttons.html" class="dib" style="margin:10px">
+            </div>
+        </div>
+    </div>
+
+    <div block-api-error></div>
+
+    <form class="filter-form form-inline column-header">
+        <div class="control-group column-title">
+            <span custom-element-popup class="mass-action-btn" cep-position="align-left-bottom" cep-offset-left="-26" close-on-click="true">
+                <input type="checkbox"
+                    class="select-cb"
+                    ng-model="selection.all"
+                    dku-indeterminate="selection.some"
+                    ng-change="updateMassSelectionCheckbox();">
+                <a ng-class="{disabled:selection.none}" ng-click="togglePopover()" class="mainzone dropdown-toggle">
+                    <span ng-hide='selection.none'>ACTIONS</span>
+                    <b class="caret"></b>
+                </a>
+                <ul class="popover custom-element-popup-popover dropdown-menu column-header-menu shaker-column-row-popup">
+
+                    <!-- First section only for shaker with steps -->
+                    <div class="section">
+                        <div class="section-content">
+                            <ul class="nav dropdown">
+                                <li>
+                                    <a ng-click="deleteColumns(selection.selectedObjects)" > <i class="icon-trash"></i>
+                                        Delete
+                                    </a>
+                                </li>
+                                <li>
+                                    <a ng-click="renameColumns(selection.selectedObjects)" > <i class="icon-edit"></i>
+                                        Rename…
+                                    </a>
+                                </li>
+
+                                 <!-- Add change meaning -->
+                                <li ng-if="massColumnActions2" class="dropdown-submenu">
+                                    <a>Change meaning</a>
+                                    <ul class="dropdown-menu" style="max-height: 60vh; overflow-y: scroll;">
+                                        <li>
+                                            <a ng-click="changeType(selection.selectedObjects, null)">Auto-detect</a>
+                                        </li>
+                                        <li ng-if="suggestedTypes" class="divider"></li>
+                                        <li ng-repeat="t in suggestedTypes | orderBy:'name'">
+                                            <a ng-click="changeType(selection.selectedObjects, t.id)">
+                                                {{t.name}}</a>
+                                        </li>
+                                        <li class="divider"></li>
+                                        <li ng-repeat="t in otherTypes | orderBy:'name'">
+                                            <a ng-click="changeType(selection.selectedObjects, t.id)">
+                                                {{t.name}}</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Suggestions -->
+                    <div ng-repeat="(category, suggs) in massColumnActions"  ng-if="shakerState.withSteps && shakerState.writeAccess" class="section">
+                        <div class="section-content">
+                            <ul class="nav dropdown">
+                                <!--<li class="nav-header suggestion-category">{{category}}</li>-->
+                                <li ng-repeat="sugg in suggs" class="suggestion">
+                                    <a ng-click="sugg.action(this)" ng-bind-html="sugg.text" />
+                                </li>
+                                <!--<div ng-repeat-end class="divider" />-->
+                            </ul>
+                        </div>
+                    </div>
+                    <div ng-if="shakerWritable && hasMoreMassColumnActions" class="section">
+                        <div class="section-content">
+                            <ul class="nav dropdown">
+                                <li class="dropup dropdown-submenu">
+                                    <a>More actions</a>
+                                    <ul class="dropdown-menu">
+                                        <li class="nav-header suggestion-category"  ng-repeat-start="(category, acts) in massColumnActions2">
+                                           {{category}}
+                                        </li>
+                                        <li ng-repeat-end ng-repeat="act in acts">
+                                            <a ng-click="act.action(this)" ng-bind-html="act.text"></a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </ul>
+            </span>
+            <span class="select-count">{{selection.selectedObjects.length + " / " + selection.allObjects.length}}</span>
+            <div class="std-list-search-box">
+                <span class="add-on"><i class="icon-dku-search"></i></span>
+                <input type="search" ng-model="selection.filterQuery.name" placeholder="Filter">
+            </div>
+        </div>
+        <div class="control-group column-type" style="width: 180px;">
+            <div class="list-customfilter-box list-control-widget">
+                <span class="add-on"><i class="icon-filter"></i></span>
+                <select dku-bs-select="{liveSearch:true}" ng-model="selection.filterQuery.selectedType.userQuery"
+                        ng-options="type as label for (type, label) in appConfig.meanings.labelsMap">
+                    <option value="" selected>All meanings</option>
+                </select>
+            </div>
+        </div>
+        <div class="control-group column-infos"><div class="list-customfilter-box list-control-widget">
+            <span class="add-on"><i class="icon-eye"></i></span>
+            <select dku-bs-select ng-model="columnFilter.info">
+                <optgroup label="All meanings">
+                    <option value="comp_cardinality">Cardinality</option>
+                    <option value="okPercentage">% valid</option>
+                    <option value="nokPercentage">% invalid</option>
+                    <option value="nonemptyPercentage">% non empty</option>
+                    <option value="emptyPercentage">% empty</option>
+                    <option value="comp_mode">Mode</option>
+                </optgroup>
+                <optgroup label="Numeric only">
+                    <option value="comp_min">Min</option>
+                    <option value="comp_max">Max</option>
+                    <option value="comp_mean">Mean</option>
+                    <option value="comp_median">Median</option>
+                    <option value="comp_stddev">StdDev</option>
+                </optgroup>
+            </select>
+        </div></div>
+        <div class="control-group column-validity">
+            <div custom-element-popup class="list-customfilter-box list-control-widget list-control-dropdown">
+                <span class="add-on"><i class="icon-filter"></i></span>
+                <button class="btn mainzone dku-select-button" ng-click="togglePopover()">
+                    <span>Status
+                        <span class="validity-filter validity-filter-valid"   ng-show="columnFilter.validity.valid" ></span>
+                        <span class="validity-filter validity-filter-invalid" ng-show="columnFilter.validity.invalid"></span>
+                        <span class="validity-filter validity-filter-missing" ng-show="columnFilter.validity.missing"></span>
+                    </span>
+                    <span class="caret"></span>
+                </button>
+                <div class="popover custom-element-popup-popover dropdown-menu" style="padding: 6px">
+                    <div ng-click="$event.stopPropagation()">
+                        <label>
+                            <input type="checkbox" ng-model="columnFilter.validity.valid" style="margin: 3px;">
+                            All valid
+                        </label>
+                        <label>
+                            <input type="checkbox" ng-model="columnFilter.validity.invalid"  style="margin: 3px;">
+                            With invalid
+                        </label>
+                        <label>
+                            <input type="checkbox" ng-model="columnFilter.validity.missing"  style="margin: 3px;">
+                            With missing
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="column-btns">&nbsp;</div>
+    </form>
+</div>
+
+<div fat-draggable fat-draggable-on-drop="reorderColumnCallback" class="flex columns unstyled shaker-column-row" fat-repeat="selection.filteredObjects" as="column" row-height="36" init-scope="initColumn" tabindex="0" style="outline:none" ng-keydown="multiSelectKeydown($event, true)">
+    <div class="column-header" data-column-name="{{column.name}}" ng-class="{focused: selection.selectedObject===column,selected: column.$selected}" full-click>
+        <div class="column-title">
+            <i class="icon-reorder fat-draggable__handler"></i>
+            <span style="display:none;" main-click ng-click="objectClicked(column, $event)"></span> <!-- because checkbox click is prioritary -->
+            <div class="mass noflex unselectable">
+                <input type="checkbox" ng-model="column.$selected" ng-click="checkBoxChanged(column, $event)" />
+            </div>
+            <form class="inline-edit" ng-submit="renameColumn(column, name); blur()">
+                <input id="renameColumn{{column.$idx}}" type="text" ng-model="name" required />
+                <span class="mx-textellipsis">{{column.name}}</span>
+                <label for="renameColumn{{column.$idx}}" class="icon-pencil"></label>
+            </form>
+        </div>
+
+        <div class="column-type" custom-element-popup cep-position="smart" close-on-click="true" style="width: 180px;">
+            <button class="show-on-hover mainzone btn dropdown-toggle" ng-click="togglePopover()">
+                <span>{{ column.selectedType.name | meaningLabel }}</span>
+                <span class="caret"></span>
+            </button>
+            <ul class="popover custom-element-popup-popover dropdown-menu pull-right shaker-column-row-popup simple" style="padding: 0 5px;">
+                <li ng-repeat="(k, v) in columnTypes(column, true)">
+                    <a ng-click="changeType([column], k)">{{ k | meaningLabel }}</a>
+                </li>
+                <li class="divider"></li>
+                <li ng-repeat="(k,v) in columnTypes(column, false)">
+                    <a ng-click="changeType([column], k)">{{ k | meaningLabel }}</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="column-infos mx-textellipsis" title="{{column.info_reason}}" ng-bind="column.info === null ? '—' : column.info"></div>
+        <div class="column-validity">
+            <progress-bar class="progress-validity" success="{{column.okPercentage}}"
+                warning="{{column.emptyPercentage}}" error="{{column.nokPercentage}}"
+                title="{{(column.okPercentage|nicePrecision:2) + '% valid, ' + (column.nokPercentage|nicePrecision:2) + '% invalid, ' + (column.emptyPercentage|nicePrecision:2) + '% empty'}}"></progress-bar>
+        </div>
+
+        <div class="column-btns" custom-element-popup cep-position="smart" close-on-click="true">
+            <a ng-click="togglePopover()" class="mainzone column-actions icon-cog" title="Actions"></a>
+
+            <ul class="popover custom-element-popup-popover dropdown-menu pull-right shaker-column-row-popup columns-view-actions-popup">
+                <li><a ng-click="deleteColumns([column])">Remove</a></li>
+                <li><a href="#renameColumn{{column.$idx}}" onclick="$(this.hash).focus(); return false;">Rename</a></li>
+                <li><a ng-click="analyzeColumn(column)">Analyze…</a></li>
+                <li class="divider"></li>
+                <li ng-repeat-start="(category, acts) in actions" class="header">
+                    {{category}}
+                </li>
+                <li ng-repeat-end ng-repeat="act in acts">
+                    <a href ng-click="act.action(this)" ng-bind-html="act.text"></a>
+                </li>
+                <li ng-if="actions2" class="divider"></li>
+                <li ng-if="actions2" class="dropup dropdown-submenu"><a>More</a>
+                    <ul class="dropdown-menu">
+                        <li ng-repeat-start="(category, acts) in actions2" class="header">
+                            {{category}}
+                        </li>
+                        <li ng-repeat-end ng-repeat="act in acts">
+                            <a href ng-click="act.action(this)" ng-bind-html="act.text"></a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="recipe-job-result noflex" include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"></div>
+
+</div>

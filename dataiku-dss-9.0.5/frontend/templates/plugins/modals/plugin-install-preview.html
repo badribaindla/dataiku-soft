@@ -1,0 +1,141 @@
+<div class="modal modal3 plugin-preview" class="plugin-preview" tab-model="uiState.activeTab">
+    <div ng-if="!isUpdate" dku-modal-header modal-title="Install {{storePlugin.meta.label || storePlugin.id }}" modal-class="has-border"></div>
+    <dku-modal-header ng-if="isUpdate" modal-class="has-border">
+        <dku-modal-title>Update {{storePlugin.meta.label || storePlugin.id }}</dku-modal-title>
+        <dku-modal-tabs ng-if="isUpdate">
+            <li class="tab" tab-active="details"><a tab-set="details">Details</a></li>
+            <li ng-show="computeNbComponents(storePlugin) > 0" class="tab" tab-active="components">
+                <a tab-set="components">Components ({{computeNbComponents(storePlugin)}})</a>
+            </li>
+            <li class="tab" tab-active="revisions">
+                <a tab-set="revisions">Revisions</a>
+            </li>
+        </dku-modal-tabs>
+    </dku-modal-header>
+    <form action="" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body pad16" ng-if="!isUpdate">
+            <span>Please note that plugins uninstallation has best-effort (Tier 2) support.</span>
+        </div>
+        <div class="modal-body" ng-switch="uiState.activeTab" ng-if="isUpdate">
+            <div ng-switch-when="details" class="plugin-info">
+                <div class="plugin-info__header">
+                    <div class="plugin-info__details">
+                        <div class="plugin-details__description" ng-if="storePlugin.meta.description" from-markdown="storePlugin.meta.description"></div>
+                        <a target="_blank" rel="noopener noreferrer" href="{{storePlugin.meta.url}}">Plugin documentation &nbsp; <i class="icon-external-link"></i></a>
+                    </div>
+                    </form>
+                    <div class="plugin-info__icon-container">
+                        <i class="plugin-card__icon {{ storePlugin.meta.icon }}"></i>
+                    </div>
+                </div>
+
+                <div class="line">
+                    <span class="line-title">Author</span>
+                    <span class="line-content">
+                        {{storePlugin.meta.author}}
+                    </span>
+                </div>
+
+                <div class="line">
+                    <span class="line-title">Latest Version</span>
+                    <span class="line-content">
+                        {{storePlugin.storeVersion}}
+                    </span>
+                </div>
+
+                <div class="line">
+                    <span class="line-title">Installed Version</span>
+                    <span class="line-content">
+                        {{installedVersion}}
+                    </span>
+                </div>
+
+                <div class="line">
+                    <span class="line-title">License</span>
+                    <span class="line-content">
+                        {{storePlugin.meta.licenseInfo}}
+                    </span>
+                </div>
+
+                <div class="line" ng-if="pluginData.installedDesc.desc.meta.supportLevel">
+                    <span class="line-title">Support tier
+                        <a href="https://doc.dataiku.com/dss/latest/troubleshooting/support-tiers.html" target="blank"class="link-std"><i class="icon-question-sign"></i></a>
+                    </span >
+                    <span class="line-content">
+                        {{pluginData.installedDesc.desc.meta.supportLevel |niceConst}}
+                    </span>
+                </div>
+
+                <div class="line tags-and-reload">
+                    <span class="line-title">Tags</span>
+                    <span class="line-content">
+                        <ul class="tags inline">
+                            <li ng-repeat="tag in storePlugin.meta.tags">
+                                <span class="plugin__tag tag">{{tag}}</span>
+                            </li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+            <div ng-switch-when="components" class="plugin-components">
+                <ul class="plugin-components__group" ng-repeat="contentType in contentTypes">
+                    <li
+                        ng-repeat="content in storePlugin.content[contentType]"
+                        class="plugin-component-item plugin-component-item--readonly"
+                    >
+                        <div class="plugin-component-item__content">
+                        <div class="plugin-component-item__icon-column">
+                            <i class="plugin-component-item__icon {{ getComponentIcon(contentType, content) }}"></i>
+                        </div>
+                        <div class="plugin-component-item__meta-column">
+                            <h5 class="plugin-component-item__name">{{ content.meta.label || content.id }}</h5>
+                            <div
+                            ng-if="content.meta.description"
+                            class="plugin-component-item__description"
+                            from-markdown="content.meta.description"
+                            ></div>
+                        </div>
+                        <div class="plugin-component-item__right-column">
+                            <span class="plugin-component-item__type">{{ contentType | humanContentType }}</span>
+                        </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div ng-switch-when="revisions" class="plugin-revisions">
+                <table sort-table class="table table-striped" style="table-layout: fixed">
+                <thead>
+                    <tr>
+                    <th>Version</th>
+                    <th>Changed</th>
+                    <th>Comments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="revision in storePlugin.revisions">
+                    <td>{{ revision.version }}</td>
+                    <td>{{ revision.releaseTime | date : 'longDate' }}</td>
+                    <td>{{ revision.releaseNotes }}</td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons has-border" ng-if="storePlugin.storeFlags.downloadable == true">
+            <button class="btn btn--text btn--secondary plugin-preview__button" ng-click="dismiss()">Cancel</button>
+            <button type="button" class="btn btn--text btn--primary plugin-preview__button" ng-click="installPlugin(storePlugin, isUpdate)" ng-if="appConfig.admin">
+                {{isUpdate ? 'Update to ' + storePlugin.storeVersion : 'Confirm Install'}}
+            </button>
+            <span
+                toggle="tooltip"
+                title="Only administrators can update or install plugins from the store."
+                class="btn btn--text btn--secondary disabled plugin-preview__button"
+                ng-if="!appConfig.admin">
+                {{isUpdate ? 'Update to ' + storePlugin.storeVersion : 'Confirm Install'}}
+            </span>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons has-border" ng-if="!storePlugin.storeFlags.downloadable">
+            <button class="btn btn--text btn--secondary" ng-click="dismiss()">Close</button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,66 @@
+<div class="modal modal3 engines-modal dku-modal" global-keydown="{'esc': 'dismiss()'}">
+    <div dku-modal-header-with-totem modal-class="noflex" modal-title="Recipe engine" modal-totem="icon-cogs" />
+
+    <div class="modal-body">
+        <div block-api-error />
+        <!-- Selectable engines -->
+        <div ng-repeat="engine in recipeStatus.engines"
+            ng-if="engine.isSelectable"
+            ng-class="{selected: engine.type == recipeStatus.selectedEngine.type}"
+            class="engine selectable"
+            ng-click="selectEngine(engine.type)" >
+            <div class="selection-indicator">
+                <i class="icon-ok" title="active" ng-if="engine.type == recipeStatus.selectedEngine.type" />
+                <i class="icon-star text-warning" title="recommended" ng-if="engine.recommended && engine.type != recipeStatus.selectedEngine.type" />
+            </div>
+            <div class="engine__name qa_recipe_available-engine-name">{{engine.label}}</div>
+            <div class="engine__status">
+                <div ng-show="engine.description" class="engine__description">
+                    {{engine.description}}
+                </div>
+                <div ng-class="{'engine__status-details--warning': engine.statusWarnLevel=='WARN', 'engine__status-details--error': engine.statusWarnLevel=='ERROR'}"
+                    class="engine__status-details"
+                    ng-show="engine.statusMessage">
+                    <span ng-show="engine.statusWarnLevel=='ERROR'">You cannot use this engine:</span>
+                    <p class="engine__status-message">{{engine.statusMessage}}</p>
+                </div>
+                <div ng-show="engine.statusAdditionalMessage"
+                    class="engine__status-details">
+                    <span>This engine will not be optimized:</span>
+                    <p class="engine__status-message">{{engine.statusAdditionalMessage}}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Non selectable engines -->
+        <div ng-if="nUnselectableEngines" class="unselectable-engines-toggle">
+            <a class="pull-right" ng-show="!options.$showUnselectableEngines" ng-click="options.$showUnselectableEngines = true"> Show </a>
+            <a class="pull-right" ng-show="options.$showUnselectableEngines" ng-click="options.$showUnselectableEngines = false"> Hide </a>
+
+            <div class="unselectable-engines-toggle__title" ng-click="options.$showUnselectableEngines = !options.$showUnselectableEngines">
+                + {{nUnselectableEngines}} non-selectable engine{{nUnselectableEngines < 2 ? '' : 's'}}
+            </div>
+        </div>
+        <div ng-repeat="engine in recipeStatus.engines" 
+            ng-if="!engine.isSelectable && options.$showUnselectableEngines" 
+            class="engine engine--disabled">
+            <span class="selection-indicator" ng-class="{'icon-ok': engine.type == recipeStatus.selectedEngine.type}"></span>
+            <div class="engine__name">{{engine.label}}</div>
+            <div class="engine__status">
+                <div ng-show="engine.description" class="engine__description">
+                    {{engine.description}}
+                </div>
+                <div ng-class="{'engine__status-details--warning': engine.statusWarnLevel=='WARN', 'engine__status-details--error': engine.statusWarnLevel=='ERROR'}"
+                    class="engine__status-details"
+                    ng-show="engine.statusMessage">
+                    <p class="engine__status-message">{{engine.statusMessage}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer modal-footer-std-buttons">
+        <button type="button" class="btn btn--text btn--primary" ng-click="resetEngineType()">Reset engine to default</button>
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Close</button>
+    </div>
+</div>

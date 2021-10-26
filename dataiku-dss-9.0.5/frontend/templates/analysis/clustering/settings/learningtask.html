@@ -1,0 +1,50 @@
+<div class="design-tab-title">General settings</div>
+<div class="doctor-settings-page" ng-controller="CMLTaskSamplingController">
+
+    <div class="doctor-explanation" style="margin-bottom: 10px">
+        <p>
+            <strong>DSS</strong> can help you choose your clustering settings automatically. This was done when you first created the model.
+        </p>
+        <p>
+        If you choose to redetect appropriate settings, all your current settings will be overwritten.
+        </p>
+    </div>
+
+
+	<button ng-click="reguessAll()" class="btn btn--secondary">
+        <i class="icon-magic"/> &nbsp;
+        Re-detect settings
+    </button>
+
+    <h2 class="settings-section-title">Sampling</h2>
+
+    <p>
+    If your dataset does not fit in your RAM, you may want to extract a sample on which clustering will be performed
+    </p>
+
+    <form class="dkuform-horizontal">
+        <div sampling-form-with-partitions selection="mlTaskDesign.sampling.selection" dataset-smart-name="analysisCoreParams.inputDatasetSmartName"/>
+    </form>
+
+    <h2 class="settings-section-title" ng-if="featureFlagEnabled('model_evaluation_stores')">Metadata</h2>
+    <div class="row-fluid" ng-if="featureFlagEnabled('model_evaluation_stores')">
+        <div class="span7">
+            <form class="dkuform-horizontal">
+                <div class="control-group required">
+                    <label class="control-label">Labels</label>
+                    <div class="controls">
+                        <ng2-key-values-list
+                            [(items)]="mlTaskDesign.labels"
+                            add-label="Add a label"
+                            key-placeholder="Label key"
+                            value-placeholder="Label value"
+                        ></ng2-key-values-list>
+                        <div class="help-inline">
+                            Optional. Informative labels for the model.
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

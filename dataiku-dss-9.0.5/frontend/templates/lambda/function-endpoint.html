@@ -1,0 +1,97 @@
+<div class="fh" ng-controller="FunctionEndpointController">
+
+    <div class="span2 offset0 h100 oa nav-list-sidebar sidebar-admin modal-footer-std-buttons">
+        <ul tab-model="uiState.settingsPane">
+            <li sidebar-tab-l1-link tab-name="settings" label="Settings" />
+            <li sidebar-tab-l1-link tab-name="code" label="Code" />
+            <li sidebar-tab-l1-link tab-name="test" label="Test queries" />
+            <!-- <li sidebar-tab-l1-link tab-name="raw" label="Raw config (debug)" /> -->
+        </ul>
+    </div>
+
+    <div class="span10 offset0 h100 boxed-next-to-sidebar">
+        <div style="padding: 0;" ng-switch="uiState.settingsPane" class="h100 oa api-endpoint api-endpoint-prediction">
+            <div ng-switch-when="loading">
+                Loading&hellip;
+            </div>
+
+            <div ng-switch-when="settings">
+                <div class="design-tab-title noflex">Settings</div>
+                <form class="dkuform-horizontal" style="margin: 10px">
+                    <div class="control-group">
+                        <div class="control-label">
+                            <label>Function name</label>
+                        </div>
+                        <div class="controls">
+                            <input type="text" ng-model="endpoint.userFunctionName" placeholder="Function name" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-show="endpoint.type == 'R_FUNCTION'">
+                        <div class="control-label">
+                            <label>Pass arguments as list</label>
+                        </div>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="endpoint.passArgumentsAsList" />
+                                <span class="help-inline">
+                                    If enabled, the function takes a single argument, which is a list
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">
+                            <label for="custPredictionEndpointModel">Working folders (optional)</label>
+                        </div>
+                        <div class="controls">
+                            <div add-remove ng-model="endpoint.inputFolderRefs">
+                                <ul style="list-style: none; margin: 0;">
+                                    <li ng-repeat="ifr in endpoint.inputFolderRefs" style="margin: 2px 0;">
+                                        <select id="custPredictionEndpointModel" dku-bs-select
+                                            ng-options="mf.id as mf.name for mf in managedFolders" ng-model="ifr.ref"></select>
+                                        <a ng-click="remove($index)"><i class="icon-trash"></i></a>
+                                    </li>
+                                </ul>
+                                <button class="btn btn--text btn--secondary" ng-click="add({})">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div style="padding: 10px">
+                    <h4 class="settings-section-title">Code environment</h4>
+                    <div code-env-selection-form="endpoint.envSelection" env-lang="envLang" in-plugin="false"></div>
+                </div>
+            </div>
+
+            <div class="h100" ng-switch-when="code">
+                <div class="h100">
+                    <div code-snippet-editor
+                        code="endpoint.code"
+                        sample-type="sampleType"
+                        categories="customCodeSnippetCategories"
+                        save-category="customCodeSnippetCategories[0]" />
+                </div>
+            </div>
+
+            <div ng-switch-when="test" class="h100 vertical-flex">
+                <div class="design-tab-title noflex">Test queries</div>
+
+                <div block-api-error></div>
+
+                <div endpoint-test-queries
+                    type="function"
+                    endpoint="endpoint"
+                    deploy-result="deployResult"
+                    test-queries-result="testQueriesResult"
+                    input-dataset-smart-name="inputDatasetSmartName"
+                    datasets="datasets">
+                </div>
+            </div>
+
+            <!-- <div ng-switch-when="raw" class="h100 vertical-flex">
+                <pre class="debug" ng-bind="endpoint | json" style="margin: 10px"/>
+            </div> -->
+        </div>
+
+    </div>
+</div>

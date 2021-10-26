@@ -1,0 +1,93 @@
+<div class="modal modal3 modal-w1000 project-folder-permissions-modal" auto-size="false">
+    <dku-modal-header modal-class="has-border" >
+        <dku-modal-title>
+            Project folder "{{folder.name}}" permissions
+        </dku-modal-title>
+    </dku-modal-header>
+
+    <form class="dkuform-modal-horizontal no-margin" name="projectFolderPermissionsForm">
+        <div class="modal-body">
+            <div block-api-error></div>
+            <div>
+                <div class="alert alert-warn" style="border-radius: 0px">
+                    <i class="icon-warning-sign" />&nbsp;All users who have access to folders or projects in the descendants of this folder will automatically have read access. <button class="btn btn--secondary" ng-click="getEffectiveReaders()">List effective readers</button>
+                </div>
+                <div ng-if="ui.effectiveReaders">{{ui.effectiveReaders}}</div>
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Project folder owner :</label>
+                        <div class="controls">
+                            <select
+                            dku-bs-select="{ liveSearch: true }"
+                            ng-options="usr.login as usr.displayName for usr in allUsers"
+                            ng-model="ui.owner"/>
+                        </div>
+                    </div>
+                    <table sort-table class="table permissions" ng-class="{'table-striped table-hover': projectFolderSettings.permissions.length > 0}" >
+                        <thead>
+                            <tr>
+                                <th colspan="2">Group name</th>
+                                <th>Read</th>
+                                <th>Write contents</th>
+                                <th>Admin</th>
+                                <th>&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody add-remove ng-model="projectFolderSettings.permissions" class="no-border">
+                            <tr ng-hide="projectFolderSettings.permissions.length">
+                                <td colspan="6" style="text-align: center; font-size: 18px; line-height: 60px;" class="text-prompt">
+                                    No group have access to this project folder
+                                </td>
+                            </tr>
+                            <tr ng-repeat="perm in projectFolderSettings.permissions">
+
+                                <td colspan="2">{{perm.group}}</td>
+                                <td>
+                                    <label class="checkbox" for="readDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$readDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$readDisabled" ng-model="perm.read" id="readDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkbox" for="writeContentsDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$writeContentsDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$writeContentsDisabled" ng-model="perm.writeContents" id="writeContentsDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkbox" for="adminDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$adminDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$adminDisabled" ng-model="perm.admin" id="adminDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <a class="link-danger" ng-click="remove($index)"> <i class="icon-trash" /></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div ng-show="unassignedGroups.length" style="margin-bottom: 20px;">
+                        <select dku-bs-select="{liveSearch:true,width:250}"
+                            style="display: inline-block;"
+                            ng-model="newPerm.group"
+                            ng-options="g for g in unassignedGroups"
+                            data-none-selected-text="Select a group..." >
+                        </select>
+                        <button style="display: inline-block;" ng-disabled="!newPerm.group" ng-click="addPermission()" class="btn btn--secondary">
+                            <span plus-icon />
+                            &nbsp;Grant access to group
+                        </button>
+                    </div>
+                    <div class="alert alert-info" style="border-radius: 0px">
+                        <i class="icon-info-sign" />&nbsp;To manage groups go to <a class="tab" ng-class="{'enabled': $state.includes('admin.groups')}" href="/admin/security/groups/">DSS global administration</a>.
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="confirm()">Save</button>
+        </div>
+    </form>
+</div>

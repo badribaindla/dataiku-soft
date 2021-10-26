@@ -1,0 +1,181 @@
+<div class="eo-bundle-right-column-summary right-column-summary object-right-column-summary vertical-flex h100">
+
+    <div item-header
+        class="column-header noflex"
+        href="getItemHeaderHref(rightColumnItem)"
+        color="shared-objects"
+        icon="icon-dku-share"
+        title="Shared Objects">
+        Shared Objects
+    </div>
+
+    <div class="exposed-objects-wrapper flex oa">
+
+        <!-- from project to project -->
+        <div class="from-to-wrapper column-panel accordion">
+            <ul>
+                <li>
+                    <span class="field-name">From:</span>
+                    <croped-project-picture
+                        project-key="rightColumnItem.fromProjectKey"
+                        object-type="'PROJECT'"
+                        object-id="rightColumnItem.fromProjectKey"
+                        size-x="80"
+                        size-y="170">
+                    </croped-project-picture>
+                    <span class="project-name">{{rightColumnItem.fromProjectName}}</span>
+                </li>
+                <li>
+                    <span class="field-name">To:</span>
+                    <croped-project-picture
+                        project-key="rightColumnItem.toProjectKey"
+                        object-type="'PROJECT'"
+                        object-id="rightColumnItem.toProjectKey"
+                        size-x="80"
+                        size-y="170">
+                    </croped-project-picture>
+                    <span class="project-name">{{rightColumnItem.toProjectName}}</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Datasets -->
+        <div class="exposed-datasets-wrapper column-panel accordion" ng-if="rightColumnItem.exposedDatasets.length">
+            <span ng-init="show = true"/>
+            <h4 class="accordion-title" ng-click="show=!show">
+                <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+                Datasets ({{rightColumnItem.exposedDatasets.length}})
+            </h4>
+            <ul ng-show="show">
+                <li ng-repeat="dataset in rightColumnItem.exposedDatasets">
+                    <i class="type {{dataset.type | datasetTypeToIcon}}"></i>
+                    <a ng-click="rightColumnItem.canReadFromProject && goToOriginal(dataset, $event)"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}">
+                       {{dataset.name}}
+                    </a>
+                    <!-- <i class="go-to-btn icon icon-reply"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}"
+                       ng-click="rightColumnItem.canReadFromProject && goToOriginal(dataset, $event)">
+                    </i> -->
+                    <i class="go-to-btn icon icon-dku-share"
+                       ng-class="{'disabled' : !rightColumnItem.canReadToProject}"
+                       ng-click="rightColumnItem.canReadToProject && goToForeign(dataset, $event)"
+                       title="open in target project"
+                       toggle="tooltip"
+                       >
+                    </i>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Models -->
+        <div class="exposed-models-wrapper column-panel accordion" ng-if="rightColumnItem.exposedModels.length">
+            <span ng-init="show = true"/>
+            <h4 class="accordion-title" ng-click="show=!show">
+                <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+                Models ({{rightColumnItem.exposedModels.length}})
+            </h4>
+            <ul ng-show="show">
+                <li ng-repeat="model in rightColumnItem.exposedModels">
+                    <i class="type {{model.type | modelTypeToIcon}}"></i>
+                    <a ng-click="rightColumnItem.canReadFromProject && goToOriginal(model, $event)"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}">
+                       {{model.name}}
+                    </a>
+                    <!-- <i class="go-to-btn icon icon-reply"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}"
+                       ng-click="rightColumnItem.canReadFromProject && goToOriginal(model, $event)">
+                    </i> -->
+                </li>
+            </ul>
+        </div>
+
+        <!-- Managed Folders -->
+        <div class="exposed-folders-wrapper column-panel accordion" ng-if="rightColumnItem.exposedFolders.length">
+            <span ng-init="show = true"/>
+            <h4 class="accordion-title" ng-click="show=!show">
+                <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+                Managed Folders ({{rightColumnItem.exposedFolders.length}})
+            </h4>
+            <ul ng-show="show">
+                <li ng-repeat="folder in rightColumnItem.exposedFolders">
+                    <i class="type icon-folder-open"></i>
+                    <a ng-click="rightColumnItem.canReadFromProject && goToOriginal(folder, $event)"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}">
+                       {{folder.name}}
+                    </a>
+                    <!-- <i class="go-to-btn icon icon-reply"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}"
+                       ng-click="rightColumnItem.canReadFromProject && goToOriginal(folder, $event)">
+                    </i> -->
+                </li>
+            </ul>
+        </div>
+
+        <!-- Notebook -->
+        <div class="exposed-notebooks-wrapper column-panel accordion" ng-if="rightColumnItem.exposedNotebooks.length">
+            <span ng-init="show = true"/>
+            <h4 class="accordion-title" ng-click="show=!show">
+                <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+                Notebooks ({{rightColumnItem.exposedNotebooks.length}})
+            </h4>
+            <ul ng-show="show">
+                <li ng-repeat="notebook in rightColumnItem.exposedNotebooks">
+                    <i class="type icon-dku-nav_notebook"></i>
+                    <a ng-click="rightColumnItem.canReadFromProject && goToOriginal(notebook, $event)"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}">
+                       {{notebook.name}}
+                    </a>
+                    <!-- <i class="go-to-btn icon icon-reply"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}"
+                       ng-click="rightColumnItem.canReadFromProject && goToOriginal(folder, $event)">
+                    </i> -->
+                </li>
+            </ul>
+        </div>
+
+        <!-- Webapp -->
+        <div class="exposed-webapps-wrapper column-panel accordion" ng-if="rightColumnItem.exposedWebApps.length">
+            <span ng-init="show = true"/>
+            <h4 class="accordion-title" ng-click="show=!show">
+                <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+                Webapps ({{rightColumnItem.exposedWebApps.length}})
+            </h4>
+            <ul ng-show="show">
+                <li ng-repeat="webapp in rightColumnItem.exposedWebApps">
+                    <i class="type icon-code"></i>
+                    <a ng-click="rightColumnItem.canReadFromProject && goToOriginal(webapp, $event)"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}">
+                       {{webapp.name}}
+                    </a>
+                    <!-- <i class="go-to-btn icon icon-reply"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}"
+                       ng-click="rightColumnItem.canReadFromProject && goToOriginal(webapp, $event)">
+                    </i> -->
+                </li>
+            </ul>
+        </div>
+
+        <!-- Report -->
+        <div class="exposed-reports-wrapper column-panel accordion" ng-if="rightColumnItem.exposedReports.length">
+            <span ng-init="show = true"/>
+            <h4 class="accordion-title" ng-click="show=!show">
+                <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+                Reports ({{rightColumnItem.exposedWebApps.length}})
+            </h4>
+            <ul ng-show="show">
+                <li ng-repeat="report in rightColumnItem.exposedReports">
+                    <i class="type {{'report' |typeToIcon}}"></i>
+                    <a ng-click="rightColumnItem.canReadFromProject && goToOriginal(report, $event)"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}">
+                       {{report.name}}
+                    </a>
+                    <!-- <i class="go-to-btn icon icon-reply"
+                       ng-class="{'disabled' : !rightColumnItem.canReadFromProject}"
+                       ng-click="rightColumnItem.canReadFromProject && goToOriginal(report, $event)">
+                    </i> -->
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

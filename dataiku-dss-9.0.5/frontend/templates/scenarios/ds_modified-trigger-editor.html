@@ -1,0 +1,47 @@
+<div ng-controller="DatasetModifiedTriggerController">
+	<div ng-include ="'/templates/scenarios/fragments/trigger-header.html'"></div>
+	<form name="descriptionForm" class="dkuform-horizontal trigger-form" ng-show="trigger.$expanded">
+		<div class="control-group">
+			<label class="control-label">Run every (seconds)</label>
+
+			<div class="controls">
+				<input type="number" ng-model="trigger.delay" min="1" required />
+			</div>
+		</div>
+		<div ng-include="'/templates/scenarios/fragments/trigger-grace-delay-settings.html'" />
+
+		<div class="control-group">
+			<div class="controls">
+				<step-items-table items="trigger.params.watches" can-dataset="true" can-managed-folder="true" can-saved-model="true" needs-partitions="true" datasets="datasets" savedmodels="savedmodels" managedfolders="managedfolders"></step-items-table>
+			</div>
+		</div>
+		<div class="control-group" ng-show="trigger.params.watches.length > 1">
+			<label class="control-label">Trigger when</label>
+			<div class="controls">
+				<label>
+					<input type="radio" ng-model="trigger.params.triggerWhenAllFire" ng-value="false"/>
+					Any is modified
+				</label>
+				<label>
+					<input type="radio" ng-model="trigger.params.triggerWhenAllFire" ng-value="true"/>
+					All are modified
+				</label>
+			</div>
+		</div>
+		<div class="control-group" ng-show="trigger.params.watches.length > 1 && trigger.params.triggerWhenAllFire">
+			<label class="control-label">Observation time frame (seconds)</label>
+			<div class="controls">
+				<input type="number" ng-model="trigger.params.monitorWindowSeconds" placeholder="Unlimited" min="0"/>
+				<span style="display: inline-block; vertical-align: middle;" dku-html-tooltip ng-show="trigger.params.monitorWindowSeconds && trigger.params.monitorWindowSeconds < trigger.delay">
+                        <tooltip-trigger><i class="icon-warning-sign"></i></tooltip-trigger>
+                        <tooltip-content>
+							An observation time frame mush be greater than "Run every" parameter for changes to be detected.
+						</tooltip-content>
+                    </span>
+				<span class="help-inline">
+	All objects must have been modified within a specified time frame for the trigger to be fired.<br/>Changes are detected every time a trigger runs (specified by "Run every" field).
+</span>
+			</div>
+		</div>
+	</form>
+</div>

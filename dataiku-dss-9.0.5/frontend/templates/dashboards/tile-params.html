@@ -1,0 +1,151 @@
+<form class="dku-right-col-form tile-params">
+
+    <div class="control-group">
+        <label class="control-label">Title</label>
+        <div class="controls">
+            <input type="text" ng-model="tile.title" placeholder="{{getDefaultTileTitle(tile, insight)}}" ng-change="feelIfEmpty()" ng-focus="feelIfEmpty()" ng-blur="emptyIfUnchanged()" class="tile-title-input"/>
+            <div style="margin-top: 5px">
+                <select dku-bs-select ng-model="tile.showTitle">
+                    <option value="YES">Display title permanently</option>
+                    <option value="MOUSEOVER">Display title on mouseover</option>
+                    <option value="NO">Do not display title</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div ng-switch on="tile.tileType">
+
+        <div ng-switch-when="INSIGHT">
+
+            <div class="control-group content-insight">
+                <label class="control-label">
+                    {{insight ? (DashboardUtils.getInsightHandler(tile.insightType).nameForTileParams || DashboardUtils.getInsightHandler(tile.insightType).name || 'Insight') : 'Content insight'}}
+                </label>
+                <div class="controls">
+                    <div ng-if="insight">
+                        <i class="insight-icon universe-background {{insight.type | insightTypeToIcon}} {{insight.type |insightTypeToColor}}" />
+                        {{ insight.name }}
+                        <small>-
+                            <a ng-if="canEditInsight(insight) && DashboardUtils.hasEditTab(insight)"
+                                href="{{$root.StateUtils.href.insight(insight.id, insight.projectKey, {name: insight.name, tab: 'edit'})}}"
+                                >
+                                edit
+                            </a>
+                            <a ng-if="!canEditInsight(insight) || !DashboardUtils.hasEditTab(insight)"
+                                href="{{$root.StateUtils.href.insight(insight.id, insight.projectKey, {name: insight.name})}}"
+                                >
+                                view
+                            </a>
+                        </small>
+                    </div>
+                    <div ng-if="!insight" class="error-text-color">
+                        <i class="icon-warning-sign" />
+                        <strong>Insight was deleted</strong> <!-- TODO @dashboards OR has non-exposed foreign sources -->
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="control-group" ng-if="(tile.displayMode == 'INSIGHT') && insight && DashboardUtils.hasOptions(insight)">
+                <label class="control-label">{{DashboardUtils.getInsightHandler(tile.insightType).name || 'Insight'}} options</label>
+                <div class="controls">
+                    <div ng-switch on="tile"> <!-- reload directive for every tile -->
+                        <div ng-switch-default>
+                            <div ng-switch="tile.insightType">
+                                <div ng-switch-when="dataset_table" dataset-table-insight-tile-params tile-params="tile.tileParams" insight="insight" />
+                                <div ng-switch-when="chart" chart-insight-tile-params tile-params="tile.tileParams" insight="insight" />
+                                <div ng-switch-when="comments" comments-insight-tile-params tile-params="tile.tileParams" />
+                                <div ng-switch-when="html" html-insight-tile-params tile-params="tile.tileParams" />
+                                <div ng-switch-when="jupyter" jupyter-insight-tile-params tile-params="tile.tileParams" />
+                                <div ng-switch-when="metrics" metrics-insight-tile-params tile-params="tile.tileParams" />
+                                <div ng-switch-when="scenario_last_runs" scenario-last-runs-insight-tile-params tile-params="tile.tileParams" />
+                                <div ng-switch-when="scenario_run_button" scenario-run-button-insight-tile-params tile-params="tile.tileParams" insight="insight" />
+                                <div ng-switch-when="saved-model_report" saved-model-report-insight-tile-params tile-params="tile.tileParams" insight="insight" />
+                                <div ng-switch-when="project_activity" project-activity-insight-tile-params tile-params="tile.tileParams" insight="insight" />
+                                <div ng-switch-when="web_app" web-app-insight-tile-params tile-params="tile.tileParams" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="control-group" ng-show="DashboardUtils.tileCanLink(tile)">
+                <label class="control-label">Behavior on click</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="tile.clickAction">
+                        <option selected value="DO_NOTHING">Nothing</option>
+                        <option value="OPEN_INSIGHT" ng-if="tile.tileType == 'INSIGHT'">Open content insight</option>
+                        <option value="OPEN_OTHER_INSIGHT"
+                                data-content='Open other insight &nbsp; <i class="icon-external-link" style="color: #999; font-size: 0.8em;" />'>
+                            Open other insight
+                        </option>
+                    </select>
+                    <div object-picker="tile.targetInsightId" type="INSIGHT" ng-if="tile.clickAction == 'OPEN_OTHER_INSIGHT'" />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Tile display</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="tile.displayMode" class="display-mode-select">
+                        <option selected value="INSIGHT">{{DashboardUtils.getInsightHandler(tile.insightType).name || 'Insight'}}</option>
+                        <option value="INSIGHT_DESC">Insight description</option>
+                        <option value="IMAGE">Image</option>
+                        <option value="IMAGE_AND_INSIGHT_DESC">Image and insight description</option>
+                    </select>
+
+                    <div ng-if="tile.displayMode == 'IMAGE' || tile.displayMode == 'IMAGE_AND_INSIGHT_DESC'">
+                        <div class="image-upload">
+                            <div ng-show="!tile.imageId" class="no-image">
+                                <div ng-click="openUploadPictureDialog(tile)" class="btn btn--secondary">Upload image</div>
+                            </div>
+                            <div ng-show="tile.imageId" class="has-image">
+                                <i class="icon-picture"></i>
+                                <div>
+                                    <span class="uploaded">Uploaded Image</span>
+                                    <small class="pull-right">
+                                        <a ng-click="openUploadPictureDialog(tile)">Change</a>
+                                        &nbsp;&nbsp;&nbsp;
+                                        <a ng-click="tile.imageId = ''">Remove</a>
+                                    </small>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 5px">
+                            <select dku-bs-select ng-model="tile.resizeImageMode">
+                                <option value="ORIG_SIZE">Display image at original size</option>
+                                <option value="FIT_SIZE">Resize image to fit tile</option>
+                                <option value="STRETCH_SIZE">Stretch image to fully cover tile</option>
+                                <option value="FIT_CROP_SIZE">Resize and crop image to fully cover tile</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <div ng-if="tile.displayMode == 'INSIGHT_DESC' || tile.displayMode == 'IMAGE_AND_INSIGHT_DESC'">
+                        <a ui-sref="projects.project.dashboards.insights.insight.summary({insightId: insight.id, insightName: (insight.name |slugify)})">Edit insight description</a>
+                    </div>
+
+                    <label ng-if="tile.displayMode == 'INSIGHT'"><input type="checkbox" ng-model="tile.autoLoad"> Load insight when dashboard opens</label>
+                </div>
+            </div>
+        </div>
+
+        <div ng-switch-when="TEXT" text-tile-params tile-params="tile.tileParams" />
+        <div ng-switch-when="IFRAME" iframe-tile-params tile-params="tile.tileParams" />
+        <div ng-switch-when="IMAGE" image-tile-params tile="tile" />
+
+        <div class="control-group">
+            <span class="color-picker-wrapper">
+                <span class="color-picker" ng-class="{'default': !tile.borderColor}" style="background-color:{{tile.borderColor ? tile.borderColor : '#EEE'}};" colorpicker debounce="true" ng-model="tile.borderColor"></span>
+                <span class="label">Border color</span>
+                <small><a class="reset" ng-click="deleteTileBorderColor();" ng-class="{'disabled' : !tile.borderColor}" > - Reset to default</a></small>
+            </span>
+        </div>
+
+
+    </div>
+</form>

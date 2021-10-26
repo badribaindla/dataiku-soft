@@ -1,0 +1,55 @@
+<div class="design-tab-title">Algorithms
+	<div data-block="newItem" class="dropdown dib">
+		<button class="btn btn--select dropdown-toggle mleft8 ml-guess-policy-switch" data-toggle="dropdown">Change algorithm presets<i class="caret"></i></button>
+		<ul class="dropdown-menu detailed-dropdown-menu detailed-dropdown-menu--with-icon" data-extend-template="/templates/analysis/mlcommon/settings/change-algorithm-presets-dropdown.html"></ul>
+	</div>
+	<button class="btn btn--text btn--primary" ng-click="copyAlgorithmSettings(true)"
+		data-container="body" data-toggle="tooltip" data-placement="bottom"
+		title="Copy the algorithms of this modeling task to another modeling task.">
+		Copy to...
+	</button>
+	<button class="btn btn--text btn--primary" ng-click="copyAlgorithmSettings(false)" ng-disabled="!canWriteProject()"
+		data-container="body" data-toggle="tooltip" data-placement="bottom"
+		title="Copy the algorithms of another modeling task to this modeling task.">
+		Copy from...
+	</button>
+</div>
+<div class="span3 offset0 algorithm-list">
+	<div class="algorithm-item"
+		ng-repeat="alg in algorithms[mlTaskDesign.backendType]"
+        ng-if="!alg.condition||alg.condition()"
+        ng-class="{'active': alg.algKey === uiState.algorithm, 'checked-algorithm-item': getAlgorithmSettings(alg).enabled}"
+        puppeteer-hook="{{ (alg.isCustom) ? alg.name : alg.algKey }}">
+	    <div ng-click="uiState.algorithm=alg.algKey" class="alg-name mx-textellipsis">
+			<i ng-if="isPluginAlgorithm(alg)" 
+				toggle="tooltip-top" 
+				container="body"
+				title="Provided by plugin {{alg.pluginDesc.label || alg.pluginDesc.id}}"
+				class="algorithm-item__icon--plugin-algo {{alg.customInfo.desc.meta.icon}}"></i>
+	    	{{alg.name}}
+	    </div>
+	    <label class="dku-toggle pull-right" ng-init="getAlgorithmSettings(alg)">
+	        <input type="checkbox" ng-model="getAlgorithmSettings(alg).enabled" ng-change="uiState.algorithm=getAlgorithmSettings(alg) ? alg.algKey : uiState.algorithm">
+	        <span />
+		</label>
+        <div ng-if="mlTaskDesign.taskType == 'PREDICTION' && displayWeightWarning(alg.algKey) && getAlgorithmSettings(alg).enabled" style="font-size: 10px; transform: translate(15px, -22px); color: #CC9922;">
+            <i class="icon-warning-sign"></i> No support for sample weights variable.
+        </div>
+	</div>
+
+	<div class="algorithm-item custom" ng-if="mlTaskDesign.backendType==='PY_MEMORY'" ng-click="addCustomPython()">
+		<span class="dku-add-new">
+			ADD custom python model
+		</span>
+	</div>
+	<div class="algorithm-item custom" ng-if="mlTaskDesign.backendType==='MLLIB'" ng-click="addCustomMLLib()">
+		<span class="dku-add-new">
+			ADD custom MLlib model
+		</span>
+	</div>
+</div>
+<div class="span9 oa h100 algorithm-detail offset0" class="dkuform-horizontal" puppeteer-hook-element-content-loaded>
+	<form class="dkuform-horizontal h100" >
+    	<div class="h100" ng-if="algorithms && uiState.algorithm" ng-include="getAlgorithmTemplate()"></div>
+    </form>
+</div>

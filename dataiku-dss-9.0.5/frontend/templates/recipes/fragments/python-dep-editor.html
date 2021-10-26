@@ -1,0 +1,40 @@
+<div class="modal modal3 custom-python-dep-editor vertical-flex">
+    <div dku-modal-header modal-title="Custom Python dependency" modal-class="has-border"/>
+    <div class="modal-body flex" >
+          <textarea id='grel-editor'
+                    ng-model="localPdep.params.code"
+                    ui-codemirror="editorOptions"
+                    ng-if="editorOptions"
+          ></textarea>
+        <div ng-if="testResults" class="test-results alert {{testResults.validationResult.maxSeverity|severityAlertClass}}" >
+            <div info-messages-list="testResults.validationResult.messages" />
+            <span ng-if="testResults.validationResult.maxSeverity != 'ERROR'">
+                <span ng-show="testResults.output">
+                    For output: {{testResults.output}}, gives:
+                </span>
+                <span ng-show="!testResults.output">
+                    Dep gives:
+                </span>
+                <span ng-show="testResults.sortedInputs.length > 2">
+                    {{testResults.sortedInputs[0]}} to
+                    {{testResults.sortedInputs[testResults.sortedInputs.length-1]}}
+                </span>
+                <span ng-show="testResults.sortedInputs.length <=2">
+                    <span ng-repeat="in in testResults.sortedInputs">
+                        {{in}}
+                    </span>
+                </span>
+            </span>
+        </div>
+    </div>
+
+    <div class="modal-footer modal-footer-std-buttons has-border">
+        <div class="pull-right">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="saveAndClose()">Save</button>
+        </div>
+        <button type="button" ng-click="test()" class="btn btn--text btn--secondary">
+            <i class="icon-play"></i> Test
+        </button>
+    </div>
+</div>

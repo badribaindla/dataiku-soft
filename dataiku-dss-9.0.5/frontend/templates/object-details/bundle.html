@@ -1,0 +1,156 @@
+<div class="row-fluid object-right-column-summary">
+    <div class="object-details">
+        <div data-block="left">
+            <div class="accordion accordion--first metadata-details" dku-foldable dku-foldable-right-panel name="details.details" open="true">
+                <h4 class="accordion-title accordion-title--first" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                    Details
+                </h4>
+                <div ng-show="foldableOpen">
+                    <div ng-if="data.state === 'BUILT'">
+                        <div class="line" ng-if="data.publishedBundleState">
+                            <h4>Publication</h4>
+                            <p style="overflow: visible">
+                                <span ng-if="data.publishedBundleState.publishedOn">
+                                    {{ data.publishedBundleState.publishedOn | date:'yyyy/MM/dd HH:mm'}}
+                                </span>
+                                <span ng-if="data.publishedBundleState.publishedBy">
+                                    by
+                                    <a href="/profile/{{data.publishedBundleState.publishedBy}}/"
+                                       title="{{ data.publishedBundleState.publishedBy }}"
+                                       class="avatar"
+                                       style="margin-left: 5px;"
+                                       toggle="tooltip"
+                                       placement="left"
+                                       animation="false">
+                                        <span user-picture="data.publishedBundleState.publishedBy" size="24" class="avatar24"></span>
+                                    </a>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="line" ng-if="data.exportManifest.exportUserInfo">
+                            <h4>Creation</h4>
+                            <p style="overflow: visible">
+                                <span ng-if="data.exportManifest.exportUserInfo.exportedOn">
+                                    {{ data.exportManifest.exportUserInfo.exportedOn | date:'yyyy/MM/dd HH:mm' }}
+                                </span>
+                                <span ng-if="data.exportManifest.exportUserInfo.exportedBy">
+                                    by
+                                    <a href="/profile/{{data.exportManifest.exportUserInfo.exportedBy}}/"
+                                       title="{{ data.exportManifest.exportUserInfo.exportedBy }}"
+                                       class="avatar"
+                                       style="margin-left: 5px;"
+                                       toggle="tooltip"
+                                       placement="left"
+                                       animation="false">
+                                        <span user-picture="data.exportManifest.exportUserInfo.exportedBy" size="24" class="avatar24"></span>
+                                    </a>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="block" ng-if="data.exportManifest.exportUserInfo.releaseNotes">
+                            <p>{{ data.exportManifest.exportUserInfo.releaseNotes }}</p>
+                        </div>
+                    </div>
+                    <div ng-if="data.state !== 'BUILT'">
+                        <div class="block">
+                            <span class="mx-center-children text-weak"><em>No details available.</em></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div data-block="right">
+            <!-- Config item counts -->
+            <div class="accordion" dku-foldable dku-foldable-right-panel name="details.config" open="true" ng-if="data.contentSummary.configContent">
+                <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                    Project config
+                </h4>
+                <ul ng-show="foldableOpen">
+                    <li ng-repeat="(configItem, num) in data.contentSummary.configContent" ng-if="num > 0" class="mx-textellipsis horizontal-flex">
+                        <span class="flex mx-textellipsis">{{ configItem | bundleProjectContent }}</span>
+                        <span class="info noflex">{{num}}</span>
+                    </li>
+                </ul>
+            </div>
+
+             <!-- Included datasets -->
+            <div class="accordion" dku-foldable dku-foldable-right-panel name="details.datasets" open="data.contentSummary.includedDatasets.length > 0" ng-if="data.contentSummary.includedDatasets">
+                <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                    Included {{'dataset' | plurify: data.contentSummary.includedDatasets.length}}
+                    <span ng-if="data.contentSummary.includedDatasets.length > 1">({{data.contentSummary.includedDatasets.length}})</span>
+                </h4>
+                <ul ng-show="foldableOpen">
+                    <li ng-repeat="dataset in data.contentSummary.includedDatasets" class="mx-textellipsis horizontal-flex">
+                        <span class="flex mx-textellipsis">{{ dataset.name }}</span>
+                        <span class="info noflex">{{ dataset.size | fileSizeOrNA }}</span>
+                    </li>
+                    <li ng-if="data.contentSummary.includedDatasets.length == 0">
+                        <span style="padding: 0;" class="info mx-center-children"><em>None</em></span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Included saved models -->
+            <div class="accordion" dku-foldable dku-foldable-right-panel name="details.savedModels" open="data.contentSummary.includedSavedModels.length > 0" ng-if="data.contentSummary.includedSavedModels">
+                <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                    Included saved {{ 'model' | plurify: data.contentSummary.includedSavedModels.length }}
+                    <span ng-if="data.contentSummary.includedSavedModels.length > 1">({{ data.contentSummary.includedSavedModels.length }})</span>
+                </h4>
+                <ul ng-show="foldableOpen">
+                    <li ng-repeat="model in data.contentSummary.includedSavedModels" class="mx-textellipsis horizontal-flex">
+                        <span class="flex mx-textellipsis">{{ model.name }}</span>
+                        <span class="info noflex">{{ model.size | fileSizeOrNA }}</span>
+                    </li>
+                    <li ng-if="data.contentSummary.includedSavedModels.length == 0">
+                        <span style="padding: 0;" class="info mx-center-children"><em>None</em></span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Included model evaluation stores -->
+            <div class="accordion" dku-foldable dku-foldable-right-panel name="details.modelEvaluationStores" open="data.contentSummary.includedModelEvaluationStores.length > 0" ng-if="$root.featureFlagEnabled('model_evaluation_stores') && data.contentSummary.includedModelEvaluationStores">
+                <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                    Included evaluation {{'store' | plurify: data.contentSummary.includedModelEvaluationStores.length}}
+                    <span ng-if="data.contentSummary.includedModelEvaluationStores.length > 1">({{data.contentSummary.includedModelEvaluationStores.length}})</span>
+                </h4>
+                <ul ng-show="foldableOpen">
+                    <li ng-repeat="store in data.contentSummary.includedModelEvaluationStores" class="mx-textellipsis horizontal-flex">
+                        <span class="flex mx-textellipsis">{{ store.name }}</span>
+                        <span class="info noflex">{{ store.size | fileSizeOrNA }}</span>
+                    </li>
+                    <li ng-if="data.contentSummary.includedModelEvaluationStores.length == 0">
+                        <span style="padding: 0;" class="info mx-center-children"><em>None</em></span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Included managed folders -->
+            <div class="accordion" dku-foldable dku-foldable-right-panel name="details.managedFolders" open="data.contentSummary.includedManagedFolders.length > 0" ng-if="data.contentSummary.includedManagedFolders">
+                <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                    Included managed {{ 'folder' | plurify: data.contentSummary.includedManagedFolders.length }}
+                    <span ng-if="data.contentSummary.includedManagedFolders.length > 1">({{ data.contentSummary.includedManagedFolders.length }})</span>
+                </h4>
+                <ul ng-show="foldableOpen">
+                    <li ng-repeat="folder in data.contentSummary.includedManagedFolders" class="mx-textellipsis horizontal-flex">
+                        <span class="flex mx-textellipsis">{{ folder.name }}</span>
+                        <span class="info noflex">{{ folder.size | fileSizeOrNA }}</span>
+                    </li>
+                    <li ng-if="data.contentSummary.includedManagedFolders.length == 0">
+                        <span style="padding: 0;" class="info mx-center-children"><em>None</em></span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="line users" ng-if="data._source.user && data._source.user.length">
+                <h4>Users</h4>
+                <div>
+                    <a ng-repeat="login in data._source.user" href="/profile/{{login}}/"
+                       title="{{ users[login] || login }}" class="avatar"
+                       toggle="tooltip" placement="left" animation="false" container=".catalog-tooltips">
+                        <span user-picture="login" size="24" class="avatar24"></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

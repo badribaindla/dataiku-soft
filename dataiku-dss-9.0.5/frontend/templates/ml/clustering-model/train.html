@@ -1,0 +1,38 @@
+<div ng-controller="CMLReportTrainController" class="model-info-page">
+    <ng-include src="'/templates/ml/train-diagnostics-steps.html'"></ng-include>
+    <div class="horizontal-flex">
+        <div class="container w100 m0">
+            <div class="span4">
+                <h2 class="settings-section-title" style="margin-top: 5px">Outliers</h2>
+                <table class="table">
+                    <tr> <th>Handling method</th> <td ng-bind="outliers.method" /> </tr>
+                    <tr ng-if="!outliers.nope"> <th>Mini-cluster size threshold</th> <td ng-bind="outliers.min_n" /> </tr>
+                    <tr ng-if="!outliers.nope"> <th>Mini-clusters cum. threshold</th>
+                        <td ng-bind="(outliers.min_cum_ratio * 100).toFixed(0) + '&nbsp;%'" /> </tr>
+                </table>
+            </div>
+
+            <div class="span4">
+                <h2 class="settings-section-title" style="margin-top: 5px">Dimensionality reduction</h2>
+                <table class="table">
+                    <tr> <th>Enabled</th> <td ng-bind="reduce.enabled ? 'Yes' : 'No'" /> </tr>
+                    <tr ng-if="reduce.enabled"> <th>Kept variance</th>
+                        <td ng-bind="(reduce.kept_variance * 100).toFixed(0) + '&nbsp;%'" /> </tr>
+                </table>
+
+                <h2 class="settings-section-title">Runtime configuration</h2>
+                <table class="table">
+                    <tr><th>Enabled Diagnostics</th><td ng-bind="modelData.coreParams.diagnosticsSettings.enabled ? 'Yes' : 'No'" /><td></td></tr>
+                </table>
+            </div>
+            <div class="span4">
+                <h2 class="settings-section-title" style="margin-top: 5px">Timings</h2>
+                <table class="table">
+                    <tr> <th>Preprocessed in</th> <td>{{mti.preprocessingTime/1000|number:1}}s</td><td></td></tr>
+                    <tr> <th>Trained in</th> <td>{{mti.trainingTime/1000|number:1}}s</td><td></td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+

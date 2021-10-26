@@ -1,0 +1,24 @@
+ <div class="vertical-flex h100" ng-if="charts.length > 0">
+    <!-- This is a quick and dirty way to ensure that the directive will be reinitialized when the tab is changed -->
+    <div class="flex" ng-switch on="charts[currentChart.index]">
+        <div class="fh" ng-switch-default ng-scope="{{ chart =  charts[currentChart.index]}}">
+            <div class="h100 chart-configuration-wrapper" chart-configuration></div>
+        </div>
+    </div>
+    <div class="noflex charts-list" ng-show="charts" ui-sortable="pageSortOptions" ng-model="charts">
+	    <a class="chart qa_charts_chart-tabs" ng-repeat="chart in charts" ng-click="currentChart.index = $index" ng-class="{'enabled': currentChart.index  === $index}">
+	        <div class="thumbnail">
+				<div ng-if="!chart.def.thumbnailData" class="no-thumb qa_charts_empty-chart" ng-inject="ChartIconUtils">
+                    <img ng-src="{{ChartIconUtils.computeChartIcon(chart.def.type, chart.def.variant, !!analysisId)}}" ng-if="chart.def.type != 'webapp'"/>
+                    <i class="{{ChartIconUtils.computeChartIcon(chart.def.type, chart.def.variant, !!analysisId, chart.def.webAppType)}}" ng-if="chart.def.type == 'webapp'"></i>
+				</div>
+				<img ng-if="chart.def.thumbnailData" ng-src="{{chart.def.thumbnailData}}" dku-better-tooltip dbt-placement="top" dbt-title="{{chart.def.name}}" />
+			</div>
+	        <i class="control icon-trash qa_charts_delete-chart" ng-click="deleteChart($index); $event.stopPropagation();" title="Delete this chart"></i>
+	        <i class="control icon-copy qa_charts_duplicate-chart" ng-click="addChart(chart); $event.stopPropagation();" title="Duplicate this chart"></i>
+	    </a>
+	    <div class="new-chart-button dibvat">
+	        <a class="btn btn--primary" style="margin-left: 8px; vertical-align: middle" id="qa_charts_add-chart-button" ng-click="addChart()"> <i class="icon-plus" />&nbsp;Chart </a>
+	    </div>
+	</div>
+</div>

@@ -1,0 +1,43 @@
+<div class="modal modal3 dku-modal">
+    <div dku-modal-header-with-totem modal-title="Add a model" modal-totem="icon-plus" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+          <div class="row-fluid control-group">
+              <label class="control-label">Model</label>
+              <div class="controls">
+                  <select required dku-bs-select="{liveSearch:true,size:'auto'}" ng-model="newSavedModel" ng-options="savedmodel as (savedmodel.name + (savedmodel.foreign ? (' (' + savedmodel.projectKey + ')') : '' )) for savedmodel in savedmodels"/>
+              </div>
+          </div>
+          
+          <!-- can't have both a version (for checks) and a partition spec atm -->
+          <div include-no-scope="/templates/scenarios/scenario-partitionspec-editor.html" ng-if="!versionLevelSavedModel && !noPartitionSelection" />
+
+          <div class="row-fluid control-group" ng-if="versionLevelSavedModel">
+              <label class="control-label">
+                  Version
+              </label>
+              <div class="controls">
+                   <input type="text" autocomplete="off" ng-trim="false" ng-model="newPartition[0]" next-on-enter="" data-min-length="0" >
+
+                   <i style="cursor: pointer" class="icon-question-sign" dku-inline-popover placement="bottom" container="body">
+                       <content title="Saved model versions">
+                          <p>Select the version of the model either by:</p>
+                          <ul>
+                            <li>specifying a version identifier directly</li>
+                            <li>using 'ACTIVE' to point to the active version</li>                            
+                            <li>using 'LATEST' to point to the most recently trained version</li>                            
+                          </ul>
+                       </content>
+                   </i>
+              </div>
+          </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="theform.$invalid" ng-click="addToList()">Add</button>
+        </div>
+
+    </form>
+
+</div>

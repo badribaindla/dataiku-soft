@@ -1,0 +1,46 @@
+<div class="suggested-new-output-dataset h100 oa" ng-show="io.newOutputTypeRadio == 'new-odb'">
+	<div class="setup-top-row setup-row">
+		<span>Add folder</span>
+	</div>
+
+	<div class="top-line">
+        <form name="forms.newOutputODBForm" class="">
+            <div class="control-group">
+                <label class="control-label">Name</label>
+                <div class="controls">
+                    <input type="text" ng-model="newOutputODB.name" required placeholder="Name" auto-focus="{{io.newOutputTypeRadio == 'new-odb'}}"/>
+                </div>
+            </div>
+            <div class="control-group" ng-if="managedFolderOptions.connections">
+                <label for="" class="control-label">Store into</label>
+                <div class="controls">
+                    <select ng-model="newOutputODB.$connection"
+                        dku-bs-select="{liveSearch:true,size:'auto'}"
+                        ng-options="item as item.connectionName group by item.connectionType for item in managedFolderOptions.connections | orderBy:'connectionType + connectionName'" />
+                </div>
+            </div>
+            <div class="control-group" ng-if="newOutputODB.$connection.fsProviderTypes && newOutputODB.$connection.fsProviderTypes.length > 1">
+                <label for="" class="control-label">Store using</label>
+                <div class="controls">
+                    <select ng-model="newOutputODB.type"
+                        dku-bs-select
+                        ng-options="t for t in newOutputODB.$connection.fsProviderTypes" />
+                </div>
+            </div>
+            <div class="control-group" ng-if="partitioningOptions.length > 1">
+                <label class="control-label">Partitioning</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="newOutputODB.partitioningOption" ng-options="x.id as x.label for x in partitioningOptions" />
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn--primary btn--large btn--full"
+                    ng-click="createAndUseManagedFolder()"
+                    ng-disabled="forms.newOutputODBForm.$invalid">
+                    Create folder
+                </button>
+            </div>
+        </form>
+	</div>
+</div>

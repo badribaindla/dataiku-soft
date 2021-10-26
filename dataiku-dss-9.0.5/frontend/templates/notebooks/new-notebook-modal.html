@@ -1,0 +1,179 @@
+<div class="modal modal3 notebook-creation-modal" ng-controller="NewNotebookModalController">
+
+    <dku-modal-header modal-class="has-border">
+        <dku-modal-title>
+            <span ng-if="uiState.step == 'choose-type'">New Notebook</span>
+            <span ng-if="uiState.step == 'sql'">New SQL notebook</span>
+            <span ng-if="uiState.step == 'impala'">New Impala notebook</span>
+            <span ng-if="uiState.step == 'hive'">New Hive notebook</span>
+            <span ng-if="uiState.step == 'sparksql'">New SparkSQL notebook</span>
+            <span ng-if="uiState.step == 'python'">New Python notebook</span>
+            <span ng-if="uiState.step == 'julia'">New Julia notebook</span>
+            <span ng-if="uiState.step == 'r'">New R notebook</span>
+            <span ng-if="uiState.step == 'customjupyter'">New Jupyter notebook</span>
+            <span ng-if="uiState.step == 'scala'">New Scala notebook</span>
+            <span ng-if="datasetSmartName"> on {{datasetSmartName}}</span>
+        </dku-modal-title>
+    </dku-modal-header>
+
+    <div class="create-notebook-modal-body">
+        <div class="notebook-types">
+            <div ng-click="canUseLanguage('sql') && (uiState.step = 'sql')" 
+                class="notebook-types__card selectable" 
+                ng-class="{ 'selectable': canUseLanguage('sql'), 'selected' : uiState.step === 'sql' }" 
+                toggle="tooltip" title="{{getDisabledReason('sql')}}">
+                <i class="icon-code_sql_recipe icon-3x"></i>
+                <h4 class="notebook-types__card-title">SQL</h4>
+            </div>
+
+            <!-- Hive -->
+            <!-- somewhat ugly trick to disable the button: condition the ng-click itself -->
+            <div ng-if="appConfig.uiCustomization.showTraditionalHadoop"
+                ng-click="appConfig.hiveEnabled && (uiState.step = 'hive')" 
+                class="notebook-types__card" 
+                ng-class="{ 'selectable' : appConfig.hiveEnabled && canUseLanguage('hive'), 'selected': uiState.step === 'hive' }" 
+                toggle="tooltip" title="{{!appConfig.hiveEnabled ? 'Hive is not enabled' : getDisabledReason('hive')}}">
+                <i class="notebook-types__card-icon icon-code_hive_recipe icon-3x"></i>
+                <h4 class="notebook-types__card-title">Hive</h4>
+            </div>
+
+            <!-- Spark -->
+            <div ng-click="appConfig.sparkEnabled && (uiState.step = 'sparksql')" class="notebook-types__card" 
+                ng-class="{ 'selectable' : appConfig.sparkEnabled && canUseLanguage('sparksql'), 'selected': uiState.step === 'sparksql' }" 
+                ng-if="appConfig.interactiveSparkEngine != null" 
+                toggle="tooltip" title="{{!appConfig.sparkEnabled ? 'Spark is not enabled' : getDisabledReason('spark')}}">
+                <i class="notebook-types__card-icon icon-code_sparksql_recipe icon-3x"></i>
+                <h4 class="notebook-types__card-title">SparkSQL</h4>
+            </div>
+
+            <!-- Impala -->
+            <div ng-if="appConfig.uiCustomization.showTraditionalHadoop"
+                ng-click="appConfig.impalaEnabled && (uiState.step = 'impala')"
+                class="notebook-types__card"
+                ng-class="{ 'selectable' : appConfig.impalaEnabled && canUseLanguage('impala'), 'selected': uiState.step === 'impala' }"
+                toggle="tooltip" title="{{!appConfig.impalaEnabled ? 'Impala is not enabled' : getDisabledReason('impala')}}">
+                <i class="notebook-types__card-icon icon-code_impala_recipe icon-3x"></i>
+                <h4 class="notebook-types__card-title">Impala</h4>
+            </div>
+
+            <!-- Python -->
+            <div ng-click="mayCreateActiveWebContent() && canUseLanguage('python') && (uiState.step = 'python')" 
+                class="notebook-types__card" 
+                ng-class="{ 'selectable': mayCreateActiveWebContent() && canUseLanguage('python'), 'selected' : uiState.step === 'python' }"
+                toggle="tooltip" title="{{!mayCreateActiveWebContent() ? 'You may not create active web content': getDisabledReason('python')}}">
+                <i class="notebook-types__card-icon icon-code_python_recipe icon-3x"></i>
+                <h4 class="notebook-types__card-title">Python</h4>
+            </div>
+
+            <!-- R -->
+            <div ng-if="appConfig.uiCustomization.showR"
+                ng-click="mayCreateActiveWebContent() && canUseLanguage('r') && (uiState.step = 'r')" 
+                class="notebook-types__card"
+                ng-class="{ 'selectable': mayCreateActiveWebContent() && canUseLanguage('r'), 'selected' : uiState.step === 'r' }"
+                toggle="tooltip" title="{{!mayCreateActiveWebContent() ? 'You may not create active web content': getDisabledReason('r')}}">
+                <i class="notebook-types__card-icon icon-code_r_recipe icon-3x"></i>
+                <h4 class="notebook-types__card-title">R</h4>
+            </div>
+
+            <!-- Scala -->
+            <div ng-if="appConfig.uiCustomization.showScala"
+                ng-click="appConfig.sparkEnabled && mayCreateActiveWebContent() && canUseLanguage('scala') && (uiState.step = 'scala')" 
+                class="notebook-types__card"
+                ng-class="{ 'selectable': appConfig.sparkEnabled && mayCreateActiveWebContent() && canUseLanguage('scala'), 'selected': uiState.step === 'scala' }"
+                toggle="tooltip" title="{{!appConfig.sparkEnabled ? 'Spark is not enabled' : (!mayCreateActiveWebContent() ? 'You may not create active web content': getDisabledReason('scala'))}}">
+                <i class="notebook-types__card-icon icon-code_spark_scala_recipe icon-3x"></i>
+                <h4 class="notebook-types__card-title">Scala</h4>
+            </div>
+
+            <!-- Julia -->
+            <div ng-if="featureFlagEnabled('julia')" 
+                ng-click="canUseLanguage('julia') && (uiState.step = 'julia')"
+                class="notebook-types__card selectable" 
+                ng-class="{ 'selectable': canUseLanguage('julia'), 'selected': uiState.step === 'julia' }"
+                toggle="tooltip" title="{{getDisabledReason('julia')}}">
+                <i class="notebook-types__card-icon icon-code_julia_recipe icon-3x"></i>
+                <h4 class="notebook-types__card-title">Julia</h4>
+            </div>
+        </div>
+        <div class="create-notebook-modal-params">
+            <form class="dkuform dkuform-modal-horizontal dkuform-modal-wrapper" name="newSQLNotebookForm" ng-if="uiState.step == 'sql' || uiState.step == 'impala' || uiState.step == 'hive' || uiState.step == 'sparksql'">
+                <div class="create-notebook-modal-params__body">
+                    <div block-api-error></div>
+                    <!-- When creating a sql notebook from a dataset (if datasetSmartName), the connection is automatically chosen by the backend so not showing the list. -->
+                    <div class="control-group" ng-if="!datasetSmartName">
+                        <label class="control-label">Connection</label>
+                        <div class="controls">
+                            <select ng-if="uiState.step == 'impala'" dku-bs-select="{liveSearch:true}" ng-model="newNotebook.connection"
+                                    ng-options="connection.name as connection.label group by connection.type for connection in connections | filter:{ type : 'Impala' }"></select>
+                            <select ng-if="uiState.step == 'hive'" dku-bs-select="{liveSearch:true}" ng-model="newNotebook.connection"
+                                    ng-options="connection.name as connection.label group by connection.type for connection in connections | filter:{ type : 'Hive' }"></select>
+                            <select ng-if="uiState.step == 'sparksql'" dku-bs-select="{liveSearch:true}" ng-model="newNotebook.connection"
+                                    ng-options="connection.name as connection.label group by connection.type for connection in connections | filter:{ type : 'SparkSQL' }"></select>
+                            <select ng-if="uiState.step != 'hive' && uiState.step != 'impala' && uiState.step != 'sparksql'" dku-bs-select="{liveSearch:true}" ng-model="newNotebook.connection"
+                                    ng-options="connection.name as connection.label group by connection.type for connection in connections | filter:{ type : '!Hive' } | filter:{ type : '!Impala' } | filter:{ type : '!SparkSQL' }"></select>
+                        </div>
+                    </div>
+
+                    <div ng-if="hiveError && ['hive', 'impala', 'sparksql'].indexOf(uiState.step) >= 0 " class="alert alert-warning" style="margin: 10px 0 0 0" ng-init="showHiveError=false;">
+                        Could not list Hive databases, an error occurred
+                        <i ng-class="{ 'icon-eye-open': !showHiveError, 'icon-eye-close': showHiveError }" ng-click="showHiveError = !showHiveError;"></i>
+                        <div ng-if="showHiveError" api-error-alert=hiveError closable="false" error-foldable="false"/>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Notebook name</label>
+                        <div class="controls">
+                            <input name="datasetName" ng-model="newNotebook.name" type="text"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-std-buttons">
+                    <button class="btn btn--text btn--primary" ng-disabled="(!newNotebook.connection && !datasetSmartName) || !newNotebook.name"
+                            ng-click="createAndRedirect()">&nbsp;Create</button>
+                </div>
+            </form>
+
+            <form class="dkuform dkuform-modal-horizontal dkuform-modal-wrapper" name="newJupyterNotebookForm" ng-if="uiState.step == 'python' || uiState.step == 'r' || uiState.step == 'scala' || uiState.step == 'julia'">
+                <div class="create-notebook-modal-params__body">
+                    <div block-api-error></div>
+
+                    <ul class="selectable-items-list selectable-items-list--no-margins">
+                        <li ng-repeat="template in availableTemplates" class="selectable-item selectable" ng-click="newNotebook.template = template" ng-class="{selected: newNotebook.template.id == template.id}">
+                            <span class="selection-indicator">
+                                <i class="icon-ok" title="active" ng-if="newNotebook.template.id == template.id"></i>
+                            </span>
+                            <span class="selectable-item__title qa-notebook-template--{{template.id}}">{{template.label}}</span>
+                        </li>
+                    </ul>
+
+                    <div class="control-group" ng-show="newNotebook.language == 'python' || newNotebook.language == 'r'"> <!-- Not yet implemented for Julia -->
+                        <label class="control-label" for="notebookEnv">Code env</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="newNotebook.codeEnv" ng-options="codeEnv[0] as codeEnv[1] for codeEnv in availableCodeEnvs" data-live-search="true"/>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-show="newNotebook.language == 'python' || newNotebook.language == 'r'"> <!-- Not yet implemented for Julia -->
+                        <label class="control-label" for="notebookContainer">Containerized exec</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="newNotebook.containerConf" ng-options="c.id as c.label for c in containerConfs"></select>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Notebook name</label>
+                        <div class="controls">
+                            <input name="datasetName" ng-model="newNotebook.name" type="text" ng-pattern="/^[^#.*/\\]+$/" required/>
+                            <span ng-show="newJupyterNotebookForm.datasetName.$error.pattern" class="help-inline">
+                            Can't contain <code>#.*/\</code>
+                        </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-std-buttons">
+                    <button class="btn btn--text btn--primary" ng-disabled="newJupyterNotebookForm.$invalid || !newNotebook.name" ng-click="createAndRedirect()">&nbsp;Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

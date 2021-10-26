@@ -1,0 +1,44 @@
+<div>
+
+
+	<div ng-show="creation" class="control-group">
+		<div>
+			<button ng-hide="notTestable" class="btn btn--secondary" ng-click="testConnection()" ng-disabled="isConnectionParamsFormInvalid()">
+				<i class="icon-refresh" />
+				&nbsp;Test
+			</button>
+			<button type="button" class="btn btn--success" ng-click="saveConnection()" ng-disabled="isConnectionParamsFormInvalid() || !isConnectionNameValid() || !isConnectionNameUnique(connection.name)">
+				<i class="icon-save"></i>
+				Create
+			</button>
+
+			<span ng-show="!isConnectionNameValid()" class="alert alert-warning" style="margin-top: 10px;margin-bottom: 0;">
+				Connection name not set, cannot save
+			</span>
+			<span ng-show="isConnectionNameValid() && !isConnectionNameUnique(connection.name)" class="alert alert-error" style="margin-top: 10px;margin-bottom: 0;">
+				Connection with name <b>{{connection.name}}</b> already exists, please choose a different one.
+			</span>
+			<span ng-show="isConnectionNameValid() && isConnectionNameUnique(connection.name) && isConnectionParamsFormInvalid()" class="alert alert-warning" style="margin-top: 10px;margin-bottom: 0;">
+				Connection parameters are invalid, cannot test nor save
+			</span>
+		</div>
+	</div>
+
+	<div ng-show="!creation" class="control-group">
+		<div class="text-left">
+			<button ng-hide="notTestable" class="btn btn--secondary" ng-click="testConnection()" ng-disabled="isConnectionParamsFormInvalid()">
+				<i class="icon-refresh"></i>
+				&nbsp;Test
+			</button>
+			<button type="button" class="btn btn--outline btn--primary" ng-show="connectionDirty()" ng-click="saveConnection()" ng-disabled="isConnectionParamsFormInvalid()">
+				<i class="icon-save"></i>&nbsp;{{isConnectionParamsFormInvalid() ? 'Cannot Save' : 'Save' }}
+			</button>
+			<button disabled class="btn btn--outline btn--primary" ng-show="!connectionDirty()">
+				<i class="icon-save"></i>&nbsp;Saved !
+			</button>
+			<span ng-show="isConnectionParamsFormInvalid()" class="alert alert-warning" style="margin-top: 10px;margin-bottom: 0;">
+				Connection parameters are invalid, cannot test nor save
+			</span>
+		</div>
+	</div>
+</div>

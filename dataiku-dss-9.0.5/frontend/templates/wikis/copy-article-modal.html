@@ -1,0 +1,43 @@
+<div class="modal modal3 dku-modal new-article-modal">
+    <div dku-modal-header-with-totem modal-title="Copy article: {{ articleMapping[article.id] }}" modal-totem="icon-file-text" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <div class="control-group">
+                <label class="control-label">Article name</label>
+                <div class="controls">
+                    <input name="articleId" ng-model="copyArticle.name" type="text" required="required" check-unique exclude="alreadyExistingArticleNames"/>
+                    <span class="help-inline">Must be unique in the project</span>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="articlesIds.length">
+                <label class="control-label">Parent article</label>
+                <div class="controls">
+                    <select dku-bs-select="{liveSearch: true}"
+                            ng-model="copyArticle.parent"
+                            ng-options="opt as articleMapping[opt] for opt in articlesIds">
+                        <option value="">None (create at root level)</option>
+                    </select>
+                    <span class="help-inline"></span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Copy File Attachments</label>
+                <div class="controls">
+                    <label class="dku-toggle" style="margin-left: 0;">
+                        <input type="checkbox" ng-model="withAttachments">
+                        <span style="display: inline-block"/>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="theform.$invalid" ng-click="ok()">Copy</button>
+        </div>
+    </form>
+</div>

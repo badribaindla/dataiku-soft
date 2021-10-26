@@ -1,0 +1,41 @@
+<div>
+    <div ng-if="!trained">
+        <table class="model-train-details-table">
+            <tr ng-if="desc.preSearchDescription.gridLength > 1">
+                <td>Hyperparameter search size</td><td>{{desc.preSearchDescription.gridLength}}</td>
+            </tr>
+            <tr ng-repeat="par in desc.preSearchDescription.importantParams">
+                <td>{{par.name | modelImportantParamName}}</td><td>{{par | gridParameter}}</td>
+            </tr>
+            <tr ng-show="desc.timeOrderingEnabled">
+                <td>Time variable</td>
+                <td>{{desc.timeVariable}}</td>
+            </tr>
+            <tr ng-show="desc.sampleWeightsEnabled">
+                <td>Sample weights variable</td>
+                <td>{{desc.sampleWeightsVariable}}</td>
+            </tr>
+        </table>
+    </div>
+    <div ng-if="trained">
+        <table class="model-train-details-table">
+            <tr ng-repeat="par in desc.postSearchDescription.importantParams">
+                <td>{{par.name | modelImportantParamName}}</td>
+                <td ng-if="par.val">{{ par.val }}</td>
+                <td ng-if="par.vals" ng-repeat="val in par.vals">{{ val }}</td>
+            </tr>
+            <tr ng-show="gridsearchData && gridsearchData.gridPoints && gridsearchData.gridPoints.length > 1">
+                <td>Size of hyperparameter search</td>
+                <td>{{gridsearchData.gridPoints.length}}</td>
+            </tr>
+            <tr ng-show="desc.timeOrderingEnabled">
+                <td>Time variable</td>
+                <td>{{desc.timeVariable}}</td>
+            </tr>
+            <tr ng-show="desc.sampleWeightsEnabled">
+                <td>Sample weights variable</td>
+                <td>{{desc.sampleWeightsVariable}}</td>
+            </tr>
+        </table>
+    </div>
+</div>

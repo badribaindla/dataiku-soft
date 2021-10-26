@@ -1,0 +1,307 @@
+<div class="paned-settings-page-pane" ng-if="generalSettings">
+    <h1>Resources control</h2>
+
+    <form class="dkuform-horizontal">
+
+        <div class="section">
+            <h2 id="sample-limit">Explore / Prepare sample limit</h2>
+
+            <div class="alert alert-info">
+                These settings control the maximum size in memory of data samples taken for explore and prepare screens. <br />
+                Note that this can be further reduced (but not increased) on a per-project basis.
+            </div>
+
+            <div class="control-group" optional-max-size-mb="generalSettings.limits.memSampleBytes.soft">
+                <div class="control-group">
+                    <label for="" class="control-label">Default limit</label>
+                    <div class="controls">
+                        <label>
+                        <input type="checkbox" ng-model="$optionalState.hasMaxSize"/>
+                        <span class="help-inline">
+                            Should a limit be applied by default on newly-created sample configurations?
+                            The user will be able to override this default limit. Equivalent to a "soft" limit.
+                        </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="$optionalState.hasMaxSize">
+                    <label for="" class="control-label">Max memory usage (MB)</label>
+                    <div class="controls">
+                        <input force-integer ng-model="$optionalState.maxSize" type="number" required />
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group" optional-max-size-mb="generalSettings.limits.memSampleBytes.hard">
+                <div class="control-group">
+                    <label for="" class="control-label">Enforce max sample size</label>
+                    <div class="controls">
+                        <label>
+                        <input type="checkbox" ng-model="$optionalState.hasMaxSize"/>
+                        <span class="help-inline">
+                            Maximum size of in-memory samples of datasets and analysis. This is a strict limit
+                            that cannot be overridden by user. Equivalent to a "hard" limit
+                        </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="$optionalState.hasMaxSize">
+                    <label for="" class="control-label">Max memory usage (MB)</label>
+                    <div class="controls">
+                        <input force-integer ng-model="$optionalState.maxSize" type="number" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 id="processed-limit">Analysis / Prepare processed limit</h2>
+
+
+        
+            <div class="alert alert-info">These settings control the maximum size in memory of data during and after processing by a prepare script (either in analysis or a preparation recipe.<br />
+            Note that this can be further reduced (but not increased) on a per-project basis.</div>
+
+            <div class="control-group" optional-max-size-mb="generalSettings.limits.shakerMemTableBytes.hard">
+                <div class="control-group">
+                    <label for="" class="control-label">Enforce max prepared size</label>
+                    <div class="controls">
+                        <label>
+                        <input type="checkbox" ng-model="$optionalState.hasMaxSize"/>
+                        <span class="help-inline">
+                            Maximum size in memory of data during and after preparation.
+                            This is a strict limit that cannot be overridden by user.
+                            Equivalent to a "hard" limit
+                        </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="$optionalState.hasMaxSize">
+                    <label for="" class="control-label">Max memory usage (MB)</label>
+                    <div class="controls">
+                        <input force-integer ng-model="$optionalState.maxSize" type="number" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 id="mail-attachment-limit">Mail attachments limits</h2>
+
+
+            <div class="alert alert-info">These settings control the maximum size of files attached by DSS to mails.</div>
+
+            <div class="control-group" optional-max-size-mb="generalSettings.limits.attachmentBytes.hard">
+                <div class="control-group">
+                    <label for="" class="control-label">Enforce max attachment size</label>
+                    <div class="controls">
+                        <label>
+                        <input type="checkbox" ng-model="$optionalState.hasMaxSize"/>
+                        <span class="help-inline">
+                            Maximum size of files attached to mails.
+                        </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="$optionalState.hasMaxSize">
+                    <label for="" class="control-label">Max size (MB)</label>
+                    <div class="controls">
+                        <input force-integer ng-model="$optionalState.maxSize" type="number" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="section">
+            <h2 id="cgroups">cgroups</h2>
+            <div class="alert alert-info">These settings control how user processes are placed into cgroups for resource control</div>
+
+            <div class="control-group">
+                <label class="control-label">Enable cgroups support</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="generalSettings.cgroupSettings.enabled" />
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Hierarchies mount root</label>
+                <div class="controls">
+                    <input type="text" ng-model="generalSettings.cgroupSettings.hierarchiesMountPoint" />
+                </div>
+            </div>
+
+            <h3>cgroups placements</h3>
+
+            <div style="margin-bottom: 20px">
+
+            <h4>In-memory machine learning</h4>
+
+            <div class="control-group">
+                <label class="control-label">Target cgroups</label>
+                <div class="controls">
+                    <ng2-values-list
+                        [(items)]="generalSettings.cgroupSettings.mlKernels.targets"
+                        value-identifier="cgroupPathTemplate"
+                        value-placeholder="cgroup path template"
+                        add-label="Add target cgroup">
+                    </ng2-values-list>
+                    <span class="help-inline">Path in which to place this kind of processes. Can use ${user} and ${projectKey}
+                </div>
+            </div>
+
+            <h4>Python + R recipes</h4>
+
+            <div class="control-group">
+                <label class="control-label">Target cgroups</label>
+                <div class="controls">
+                    <ng2-values-list
+                        [(items)]="generalSettings.cgroupSettings.pythonRRecipes.targets"
+                        value-identifier="cgroupPathTemplate"
+                        value-placeholder="cgroup path template"
+                        add-label="Add target cgroup">
+                    </ng2-values-list>
+                    <span class="help-inline">Path in which to place this kind of processes. Can use ${user} and ${projectKey}
+                </div>
+            </div>
+
+            <h4>PySpark + SparkR + Sparklyr recipes</h4>
+
+            <div class="control-group">
+                <label class="control-label">Target cgroups</label>
+                <div class="controls">
+                    <ng2-values-list
+                        [(items)]="generalSettings.cgroupSettings.pythonRSparkRecipes.targets"
+                        value-identifier="cgroupPathTemplate"
+                        value-placeholder="cgroup path template"
+                        add-label="Add target cgroup">
+                    </ng2-values-list>
+                    <span class="help-inline">Path in which to place this kind of processes. Can use ${user} and ${projectKey}
+                </div>
+            </div>
+
+            <h4>Jupyter kernels (Python, R, Scala)</h4>
+
+            <div class="control-group">
+                <label class="control-label">Target cgroups</label>
+                <div class="controls">
+                    <ng2-values-list
+                        [(items)]="generalSettings.cgroupSettings.jupyterKernels.targets"
+                        value-identifier="cgroupPathTemplate"
+                        value-placeholder="cgroup path template"
+                        add-label="Add target cgroup">
+                    </ng2-values-list>
+                    <span class="help-inline">Path in which to place this kind of processes. Can use ${user} and ${projectKey}
+                </div>
+            </div>
+
+            <h4>In-memory ML recipes (train, score)</h4>
+
+            <div class="control-group">
+                <label class="control-label">Target cgroups</label>
+                <div class="controls">
+                    <ng2-values-list
+                        [(items)]="generalSettings.cgroupSettings.mlRecipes.targets"
+                        value-identifier="cgroupPathTemplate"
+                        value-placeholder="cgroup path template"
+                        add-label="Add target cgroup">
+                    </ng2-values-list>
+                    <span class="help-inline">Path in which to place this kind of processes. Can use ${user} and ${projectKey}
+                </div>
+            </div>
+
+            <h4>Python macros</h4>
+
+            <div class="control-group">
+                <label class="control-label">Target cgroups</label>
+                <div class="controls">
+                    <ng2-values-list
+                        [(items)]="generalSettings.cgroupSettings.pythonMacros.targets"
+                        value-identifier="cgroupPathTemplate"
+                        value-placeholder="cgroup path template"
+                        add-label="Add target cgroup">
+                    </ng2-values-list>
+                    <span class="help-inline">Path in which to place this kind of processes. Can use ${user} and ${projectKey}
+                </div>
+            </div>
+
+            <h4>RMarkdown builders</h4>
+
+            <div class="control-group">
+                <label class="control-label">Target cgroups</label>
+                <div class="controls">
+                    <ng2-values-list
+                        [(items)]="generalSettings.cgroupSettings.rmarkdownBuilders.targets"
+                        value-identifier="cgroupPathTemplate"
+                        value-placeholder="cgroup path template"
+                        add-label="Add target cgroup">
+                    </ng2-values-list>
+                    <span class="help-inline">Path in which to place this kind of processes. Can use ${user} and ${projectKey}
+                </div>
+            </div>
+
+            <h4>Webapp backends</h4>
+
+            <div class="control-group">
+                <label class="control-label">Target cgroups</label>
+                <div class="controls">
+                    <ng2-values-list
+                        [(items)]="generalSettings.cgroupSettings.webappDevBackends.targets"
+                        value-identifier="cgroupPathTemplate"
+                        value-placeholder="cgroup path template"
+                        add-label="Add target cgroup">
+                    </ng2-values-list>
+                    <span class="help-inline">Path in which to place this kind of processes. Can use ${user} and ${projectKey}
+                </div>
+            </div>
+
+
+            <h4>Interactive statistics</h4>
+
+            <div class="control-group">
+                <label class="control-label">Target cgroups</label>
+                <div class="controls">
+                    <ng2-values-list
+                        [(items)]="generalSettings.cgroupSettings.eda.targets"
+                        value-identifier="cgroupPathTemplate"
+                        value-placeholder="cgroup path template"
+                        add-label="Add target cgroup">
+                    </ng2-values-list>
+                </div>
+            </div>
+
+            </div>
+
+            <h3>cgroups limits</h3>
+
+            <div add-remove ng-model="generalSettings.cgroupSettings.cgroups">
+
+                <ul style="list-style: none">
+                    <li ng-repeat="group in generalSettings.cgroupSettings.cgroups" class="repeatable-config-block">
+                          <a class="close pull-right text-danger" ng-click="remove($index)"> <i class="icon-trash" /></a>
+
+
+                        <div class="control-group">
+                            <label class="control-label">Path template</label>
+                            <div class="controls">
+                                <input type="text" ng-model="group.cgroupPathTemplate" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Limits</label>
+                            <div class="controls">
+                                <ng2-key-values-list 
+                                    [(items)]="group.limits" 
+                                    add-label="Add limit"
+                                    key-placeholder="Limit key"
+                                    value-placeholder="Limit value">
+                                </ng2-key-values-list>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <button class="btn btn--primary btn--text" ng-click="add({'cgroupPathTemplate': '', 'limits' : []})">+ Add Cgroup limit</button>
+            </div>
+        </div>
+    </form>
+</div>

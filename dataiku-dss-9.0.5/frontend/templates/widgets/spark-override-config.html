@@ -1,0 +1,53 @@
+<form class="dkuform-horizontal spark-override-config">
+	<div class="control-group">
+		<label for="" class="control-label"><h5 style="display:inline-block; margin: 0">Spark config</h5></label>
+		<div class="controls">
+			<select dku-bs-select ng-model="config.inheritConf" ng-options="x for x in rootAppConfig.sparkExecutionConfigs" />
+		</div>
+	</div>
+    <div class="control-group" ng-if="task && taskType === 'MLLib'">
+        <label class="control-label">Hive metastore</label>
+        <div class="controls">
+            <input type="checkbox" ng-model="task.sparkParams.sparkUseGlobalMetastore"/>
+            <span class="help-inline">
+                Use global Hive metastore
+            </span>
+        </div>
+    </div>
+	<div class="control-group" ng-if="task && taskType === 'MLLib'">
+		<label for="" class="control-label">Repartition non-HDFS inputs in</label>
+		<div class="controls">
+			<input type="number" step="1" min="1" ng-model="task.sparkParams.sparkRepartitionNonHDFS" />
+		</div>
+	</div>
+	<div class="control-group" ng-if="task && taskType === 'MLLib'">
+		<label for="" class="control-label">Persist intermediate RDDs on</label>
+		<div class="controls">
+			<select dku-bs-select ng-model="task.sparkParams.sparkPreparedDFStorageLevel">
+				<option value="NONE">None</option>
+				<option value="DISK_ONLY">Disk only</option>
+				<option value="DISK_ONLY_2">Disk only 2*</option>
+				<option value="MEMORY_ONLY">Memory only</option>
+				<option value="MEMORY_ONLY_2">Memory only 2*</option>
+				<option value="MEMORY_ONLY_SER">Memory only serialized</option>
+				<option value="MEMORY_ONLY_SER_2">Memory only serialized 2*</option>
+				<option value="MEMORY_AND_DISK" selected>Memory and disk</option>
+				<option value="MEMORY_AND_DISK_2">Memory and disk 2*</option>
+				<option value="MEMORY_AND_DISK_SER">Memory and disk serialized</option>
+				<option value="MEMORY_AND_DISK_SER_2">Memory and disk serialized 2*</option>
+				<option value="OFF_HEAP">Off-heap</option>
+			</select>
+			<div class="help-inline">* “2” = replicate each partition on two cluster nodes</div>
+		</div>
+	</div>
+
+	<h5>Override configuration</h5>
+	<small>Define here Spark configuration keys that should be overridden for this job</small>
+	<ng2-key-values-list
+		[(items)]="config.conf"
+		add-label="Add configuration"
+		key-placeholder="Configuration key"
+		value-placeholder="Configuration value"
+		warn-if-trimmable="true">
+	</ng2-key-values-list>
+</form>

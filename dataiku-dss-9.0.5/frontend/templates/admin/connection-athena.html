@@ -1,0 +1,132 @@
+<div ng-controller="SQLConnectionController" class="h100 vertical-flex">
+    <div class="oa vertical-flex">
+        <div class="w100 small-lr-padding">
+            <div class="generic-white-box">
+                <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                <div block-api-error />
+
+                <form name="connectionParamsForm" class="dkuform-horizontal">
+                        <div class="row-fluid">
+                            <div class="span7">
+                                <h2 class="settings-section-title">Basic params</h2>
+                                
+                                <fieldset ng-if="connection.params.useURL != true">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">AWS region</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.region" />
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Query data location</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.queryOutputLocation" />
+                                            <span class="help-inline">S3 location to put query results (optional)</span>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                <fieldset ng-if="connection.params.useURL == true">
+                                    <div class="control-group">
+                                        <label class="control-label">Connection URL</label>
+                                        <div class="controls">
+                                            <input type="text" class="input-xxlarge" ng-model="connection.params.url"
+                                            ng-required="true"
+                                            placeHolder="jdbc:oracle:thin:@HOST:PORT:DB" />
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Displayed URL</label>
+                                        <div class="controls">
+                                            <input type="text" class="input-xxlarge" ng-model="connection.params.displayedUrl"
+                                            ng-required="false"
+                                            placeHolder="jdbc:oracle:thin:@HOST:PORT:DB" />
+                                            <span class="help-inline">Visible URL for the logs</span>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset>
+                                    <div class="control-group">
+                                        <label class="control-label">Credentials mode</label>
+                                        <div class="controls">
+                                            <select dku-bs-select ng-model="connection.params.credentialsMode" ng-options="x[0] as x[1] for x in [['USER_PASSWORD', 'AWS Keypair'], ['FROM_AWS_CONNECTION', 'From S3 connection']]"></select>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset ng-if="connection.params.credentialsMode == 'FROM_AWS_CONNECTION'">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">S3 connection name</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.associatedAWSConnection" required/>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset ng-if="connection.credentialsMode == 'GLOBAL' && connection.params.credentialsMode == 'USER_PASSWORD'">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Access key</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.user" ng-required="connection.params.useURL != true"/>
+                                            <div class="help-inline" ng-show="connection.params.useURL != true">
+                                                Mandatory.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Secret key</label>
+                                        <div class="controls">
+                                            <input type="password" ng-model="connection.params.password" autocomplete="new-password" />
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <div class="control-group">
+                                    <label  class="control-label">Advanced JDBC properties</label>
+                                    <div class="controls">
+                                        <ng2-connection-properties-list [(items)]="connection.params.properties" (on-validity-change)="setAdvancedPropertiesValidity($event)"></ng2-connection-properties-list>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Use custom JDBC URL</label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="connection.params.useURL"/>
+                                            <span class="help-inline">Used to customize JDBC connection URL</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <h2 class="settings-section-title">Advanced params</h2>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Fetch size</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.fetchSize" />
+                                    </div>
+                                </div>
+                                <div include-no-scope="/templates/admin/fragments/connection-post-connect-statements.html" />
+                                <div include-no-scope="/templates/admin/fragments/connection-sql-flags.html" />
+                                <div include-no-scope="/templates/admin/fragments/connection-credentials-mode.html" />
+                            </div>
+
+                            <div class="span5">
+                                <div include-no-scope="/templates/admin/fragments/sql-naming-rule.html" />
+                                <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                            </div>
+                        </div>
+                    </form>
+            </div>
+            <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+            </div>
+        </div>
+    </div>
+
+    <div class="small-lr-padding page-top-padding vertical-flex connection-page__connection-testing-section">
+        <div class="vertical-flex h100">
+            <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html"/>
+            <div class="vertical-flex oh" include-no-scope="/templates/admin/fragments/sql-connection-test.html"/>
+            <div include-no-scope="/templates/admin/fragments/connection-sql-mass-import.html"/>
+        </div>
+    </div>
+
+</div>

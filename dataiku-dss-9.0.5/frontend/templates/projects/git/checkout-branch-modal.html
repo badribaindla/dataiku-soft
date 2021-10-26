@@ -1,0 +1,231 @@
+<div class="modal modal3 dku-modal">
+    <div dku-modal-header-with-totem modal-title="{{(phase == 'READY_TO_DUPLICATE' || phase == 'DUPLICATING') ? 'Duplicate project and ' : ''}}{{checkoutModel.createBranch ? 'Create branch' : 'Switch branch'}}" modal-totem="icon-code-fork"/>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body duplicate-project__modal">
+            <div ng-if="fatalAPIError || phase == 'SHOW_WARNINGS'">
+                <div block-api-error/>
+                <div ng-if="duplicateResponse" info-messages-raw-list="duplicateResponse" style="word-break: break-word;"/>
+            </div>
+
+            <div ng-show="phase == 'INITIAL'">
+                <div class="control-group" ng-if="checkoutModel.createBranch">
+                    <label class="control-label">Create branch from {{checkoutModel.commitId ? "commit" : ""}}</label>
+                    <div class="controls">
+                        <label ng-if="!checkoutModel.commitId">{{gitStatus.currentBranch|extractGitRefName}}</label>
+                        <label ng-if="checkoutModel.commitId">{{checkoutModel.commitId}}</label>
+                    </div>
+                </div>
+
+                <div class="control-group" ng-if="checkoutModel.createBranch">
+                    <label class="control-label">Name</label>
+                    <div class="controls">
+                        <input type="text" placeholder="Branch name" ng-model="checkoutModel.targetBranchName" ng-required="true"/>
+                    </div>
+                    <div class="alert alert-error" ng-show="checkoutModel.branchNameError" style="margin-top: 10px; margin-bottom: 0">
+                        <i class="icon-warning-sign"/>&nbsp;{{checkoutModel.branchNameErrorMessage}}
+                    </div>
+                </div>
+
+                <div class="control-group" ng-if="!checkoutModel.createBranch">
+                    <label class="control-label">Switch branch to</label>
+                    <div class="controls">
+                        <label>{{checkoutModel.targetBranchName}}</label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Edition mode</label>
+                    <div class="controls">
+                        <label ng-if="checkoutModel.alternateProjectKey">
+                            <input type="radio" name="checkoutMode" ng-model="checkoutModel.checkoutMode" value="GO_TO_ALTERNATE_PROJECT" />
+                            Go to {{checkoutModel.alternateProjectName}} project, which is already on the {{checkoutModel.targetBranchName}} branch
+                        </label>
+                        <label>
+                            <input type="radio" name="checkoutMode" ng-model="checkoutModel.checkoutMode" value="DUPLICATE_PROJECT"/>
+                            Duplicate project to work on new branch
+                        </label>
+                        <label>
+                            <input type="radio" name="checkoutMode" ng-model="checkoutModel.checkoutMode" value="USE_CURRENT_PROJECT"/>
+                            Use current project to work on new branch
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-show="phase == 'READY_TO_SWITCH'">
+                <a ng-click="moveToInitialPhase()" class="noflex duplicate-project__back"><i class="icon-arrow-left"></i>&nbsp;Back</a>
+                <div class="alert alert-warning">
+                    <p>
+                        Switching a project to an existing branch will impact all users currently working on this project.
+                        It may cause them to lose the changes they are currently working on.
+                    </p>
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 10px">
+                    <p>
+                        Switching a project to an existing branch will not have any impact on any data.
+                        This could lead to some data becoming orphan, or to some datasets pointing to stale data.
+                    </p>
+                    <p>
+                        Input datasets will remain unchanged, but you can clear all datasets that are outputs of recipes.
+                    </p>
+                    <label class="checkbox">
+                        <input type="checkbox" ng-model="checkoutModel.clearOutputDatasets">
+                        Clear output and intermediate datasets
+                    </label>
+                </div>
+
+                <div class="alert alert-warning" ng-if="hasDependencyWarnings">
+                    <p >This project currently exposes datasets to other projects. Switching to another branch might break the following dependencies:</p>
+                    <ul>
+                        <li ng-repeat="message in dependencyWarnings.messages">{{message.details}}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div ng-if="phase == 'READY_TO_DUPLICATE'">
+                <a ng-click="moveToInitialPhase()" class="noflex duplicate-project__back"><i class="icon-arrow-left"></i>&nbsp;Back</a>
+                <div class="control-group">
+                    <label for="dupProjectName" class="control-label duplicate-project__name-label">Project Name</label>
+                    <div class="controls">
+                        <input type="text"
+                               id="dupProjectName"
+                               placeholder="New project name"
+                               ng-model="checkoutModel.projectName"
+                               required auto-focus="true"
+                        />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="dupProjectKey" class="control-label duplicate-project__key-label">Project Key</label>
+                    <div class="controls">
+                        <input type="text"
+                               id="dupProjectKey"
+                               ng-model="checkoutModel.projectKey"
+                               ng-required="true"
+                               name="projectKey"
+                               ng-pattern="/^\w+$/"
+                               placeholder="New project key"
+                        />
+                        <div class="help-inline duplicate-project__help-inline" ng-show="checkoutModel.projectKey && !checkoutModel.projectKeyAlreadyUsed">
+                            The project key is used to reference datasets between projects.
+                            It cannot be changed once the project is created.
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-error" ng-show="!checkoutModel.projectKey" style="margin-top: 10px; margin-bottom: 38px">
+                    <i class="icon-warning-sign"/>&nbsp;Project key is invalid or missing.
+                </div>
+                <div class="alert alert-error" ng-show="checkoutModel.projectKey && checkoutModel.projectKeyAlreadyUsed" style="margin-top: 10px; margin-bottom: 38px">
+                    <i class="icon-warning-sign"/>&nbsp;This project key is already used.
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label duplicate-project__folder-label">Project Folder</label>
+                    <folder-path-input input-id="dupTargetProjectFolderId" browse-fn="browse" folder="dupFolder" path="dupOptions.targetProjectFolderId" can-select-fn="canSelect" display-item-fn="getProjectFolderName" class="controls" cant-write-content-verb="You cannot duplicate in this folder"></folder-path-input>
+                </div>
+
+                <div class="warning-wrapper duplicate-project__warning">
+                    <div class="alert alert-info" ng-show="!uiState.showAdvancedOptions">
+                        Only uploaded datasets and managed folders that are required to rebuild the entire flow will be copied. <a ng-click="uiState.showAdvancedOptions = true">Advanced options</a>
+                    </div>
+                    <div class="alert alert-info" ng-show="uiState.showAdvancedOptions">
+                        <a ng-click="uiState.showAdvancedOptions = false">Hide advanced options</a>
+                    </div>
+                </div>
+
+                <div ng-if="uiState.showAdvancedOptions">
+                    <h2 class="settings-section-title">Datasets & Managed folders</h2>
+                    <!-- Duplication mode selector -->
+                    <label for="dupMode" class="control-label">Select your duplication mode</label>
+                    <div id="dupMode" class="btn btn--secondary duplicate-project__mode-selector-button" custom-element-popup hide-popover-button="true" close-on-click="true">
+                        <div class="mainzone duplicate-project__mode-selector-mainzone" ng-click="togglePopover()">
+                            <span ng-show="dupOptions.duplicationMode == 'UPLOADS_ONLY'" class="duplicate-project__mode-selector-title">
+                                Uploaded files
+                            </span>
+                            <span ng-show="dupOptions.duplicationMode == 'MINIMAL'" class="duplicate-project__mode-selector-title">
+                                Required inputs
+                            </span>
+                            <span ng-show="dupOptions.duplicationMode == 'FULL'" class="duplicate-project__mode-selector-title">
+                                Full duplication
+                            </span>
+                            <i class="icon-caret-down duplicate-project__mode-selector-caret"/>
+                        </div>
+
+                        <div class="duplicate-project__mode-selector popover custom-element-popup-popover watch-modes" style="width:206px;">
+                            <div full-click class="watch-mode" ng-class="{active: dupOptions.duplicationMode == 'UPLOADS_ONLY'}">
+                                <i class="icon-ok"/>
+                                <a main-click class="title link-std duplicate-project__mode-selector-title" ng-click="setDuplicationMode('UPLOADS_ONLY')">Uploaded files</a>
+                                <div class="description duplicate-project__mode-selector-description">Duplicate data of uploaded datasets and managed folders.</div>
+                            </div>
+                            <div full-click class="watch-mode" ng-class="{active: dupOptions.duplicationMode == 'MINIMAL'}">
+                                <i class="icon-ok" />
+                                <a main-click class="title link-std duplicate-project__mode-selector-title" ng-click="setDuplicationMode('MINIMAL')">Required inputs</a>
+                                <div class="description duplicate-project__mode-selector-description">Duplicate data of required (uploaded and input) datasets and managed folders.</div>
+                            </div>
+                            <div full-click class="watch-mode" ng-class="{active: dupOptions.duplicationMode == 'FULL'}">
+                                <i class="icon-ok"/>
+                                <a main-click class="title link-std duplicate-project__mode-selector-title" ng-click="setDuplicationMode('FULL')">Full duplication</a>
+                                <div class="description duplicate-project__mode-selector-description">Duplicate data for all (input and downstream) datasets and managed folders.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end Duplication mode selector -->
+
+                    <h2 class="settings-section-title">Machine learning</h2>
+                    <label class="checkbox duplicate-project__checkbox-label">
+                        <input type="checkbox" ng-model="dupOptions.exportAnalysisModels" class="duplicate-project__checkbox-input">Duplicate all analysis models data
+                    </label>
+                    <label class="checkbox duplicate-project__checkbox-label">
+                        <input type="checkbox" ng-model="dupOptions.exportSavedModels" class="duplicate-project__checkbox-input">Duplicate all saved models data
+                    </label>
+                    <label class="checkbox duplicate-project__checkbox-label" ng-if="featureFlagEnabled('model_evaluation_stores')">
+                        <input type="checkbox" ng-model="dupOptions.exportModelEvaluationStores" class="duplicate-project__checkbox-input">Duplicate all model evaluation stores data
+                    </label>
+
+                    <div ng-show="appConfig.gitMode == 'PROJECT'">
+                        <h2 class="settings-section-title">Others</h2>
+                        <label class="checkbox duplicate-project__checkbox-label">
+                            <input type="checkbox" ng-model="dupOptions.exportInsightsData" class="duplicate-project__checkbox-input">Duplicate static insights
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-if="phase == 'DUPLICATING'">
+                <progress-bar neutral="{{percentage}}" allow-empty="true" class="progress-striped" active="true" ng-if="futureResponse != null"></progress-bar>
+                <progress-bar error="{{percentage}}" allow-empty="true" class="progress" active="false" ng-if="futureResponse == null"></progress-bar>
+                <div class="future-progress-bar">
+                    <div style="width: {{percentage}}%"></div>
+                </div>
+                <p ng-bind-html="stateLabels"></p>
+            </div>
+
+            <div ng-if="duplicateResponse" info-messages-raw-list="duplicateResponse" style="word-break: break-word;" />
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button ng-show="phase != 'SHOW_WARNINGS'" type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">
+                Cancel
+            </button>
+            <button ng-show="phase == 'INITIAL'" type="submit" class="btn btn--text btn--primary" ng-click="validateInitialPhase()" ng-disabled="theform.$invalid || checkoutModel.branchNameError">
+                {{ checkoutModel.checkoutMode === 'GO_TO_ALTERNATE_PROJECT' ?
+                    'Go to Project' :
+                    ((checkoutModel.checkoutMode === 'DUPLICATE_PROJECT' || !checkoutModel.createBranch) ?
+                        'Next' :
+                        'Create Branch')
+                }}
+            </button>
+            <button ng-show="phase == 'READY_TO_SWITCH'" type="submit" class="btn btn--text btn--primary" ng-click="switchBranch()" ng-disabled="theform.$invalid">
+                Switch Branch
+            </button>
+            <button ng-show="phase == 'READY_TO_DUPLICATE'" type="submit" class="btn btn--text btn--primary" ng-click="duplicate()" ng-disabled="theform.$invalid">
+                Duplicate and {{checkoutModel.createBranch ? 'Create' : 'Switch'}} Branch
+            </button>
+            <button ng-show="phase == 'SHOW_WARNINGS'" type="submit" class="btn btn--text btn--primary" ng-click="gotoResult()">
+                Go to new project
+            </button>
+        </div>
+    </form>
+</div>

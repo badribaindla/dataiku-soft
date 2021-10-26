@@ -1,0 +1,23 @@
+<div ng-if="readOnly">
+    <h3 style="margin-top: 0">
+        <span class="ellipsis">{{modelData.userMeta.name}}</span>
+    </h3>
+    <div from-markdown="modelData.userMeta.description" class="description"></div>
+</div>
+<div ng-if="!readOnly && !editState.editing" ng-dblclick="startEdit()">
+    <h3 style="margin-top: 0">
+        <span class="ellipsis">{{modelData.userMeta.name}}</span> <i class="icon-pencil filigran" style="margin-left: 15px" ng-click="startEdit()"></i>
+    </h3>
+    <div from-markdown="modelData.userMeta.description" class="description"></div>
+</div>
+<form ng-submit="validateEdit()" ng-if="!readOnly && editState.editing" class="dkuform-std-vertical">
+    <h3>
+        <input type="text" ng-model="editState.name" placeHolder="New name" required/>
+    </h3>
+    <textarea msd-elastic ng-model="editState.description" placeholder="Describe this..."></textarea>
+
+    <button type="submit" class="btn btn--primary"> <i class="icon-save"></i>
+        Save
+    </button>
+    <button type="button" class="btn btn--secondary" ng-click="cancelEdit()">Cancel</button>
+</form>

@@ -1,0 +1,36 @@
+<div class="modal modal3" ng-controller="RequestEETrialController">
+	<div dku-modal-header modal-title="Enterprise Features trial" modal-class="has-border" />
+	<div class="modal-body">
+		<div block-api-error />
+		<div ng-if="request.state == 'initial'">
+			<h5>This will unlock some of Dataiku Enterprise features for 2 weeks</h5>
+
+			<p>Your trial key will be sent to your email address. Please make sure that your email address is correct. Your trial will expire 15 days after request.</p>
+
+			<form class="dkuform-horizontal">
+				<div class="control-group">
+					<label for="" class="control-label">Email address</label>
+					<div class="controls">
+						<input type="text" ng-model="request.updatedEmailAddress" />
+					</div>
+				</div>
+			</form>
+		</div>
+		<div ng-if="request.state == 'granted'">
+			<p>Thanks !</p>
+
+			<p>We have sent to your email address details about how to activate your DSS Enterprise features trial</p>
+		</div>
+		<div ng-if="request.state == 'denied'">
+			<h5>Unfortunately, we could not create your DSS Enterprise features trial</h5>
+
+			<p>{{trialRequestResponse.message}}</p>
+
+			<a href="http://support.dataiku.com">Contact Dataiku support</a>
+		</div>
+	</div>
+	<div class="modal-footer modal-footer-std-buttons">
+		<button ng-if="request.state == 'initial'" ng-click="sendRequest()" class="btn btn--text btn--primary">Request</button>
+		<button ng-if="request.state != 'initial'" ng-click="dismiss()" class="btn btn--text btn--secondary">Close</button>
+	</div>
+</div>

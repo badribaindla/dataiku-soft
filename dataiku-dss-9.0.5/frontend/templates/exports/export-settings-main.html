@@ -1,0 +1,135 @@
+<div ng-scope="{{errorScope = this}}">
+    <div block-api-error />
+    <div class="alert" ng-show="exportModal.warn">
+        <i class="icon-warning-sign"></i> {{exportModal.warn}}
+    </div>
+    <div ng-if="exportParams.destinationType == 'DATASET'">
+        <section style="margin-bottom: 24px" class="alert" ng-if="topNav.top === 'FLOW'">
+            If you are trying to copy a dataset to another connection, use the Sync recipe instead. It will then appear in the flow and could be faster.
+        </section>
+        <fieldset>
+            <legend>
+                <label for="create-new-dataset" class="radio">
+                    <input type="radio" id="create-new-dataset" ng-model="exportParams.overwriteDestinationDataset" ng-value="false">
+                    Create a new dataset
+                </label>
+            </legend>
+            <div class="control-group required" ng-if="!exportParams.overwriteDestinationDataset">
+                <label class="control-label">Dataset name</label>
+                <div class="controls">
+                    <input ng-model="exportParams.destinationDatasetName" required name="datasetName" type="text" ng-pattern="/^[\w-_]+$/" custom-validation="isDatasetNameUnique">
+                    <br />
+                    <span class="help-inline" ng-show="exportModal.exportModalForm.datasetName.$invalid && exportModal.exportModalForm.datasetName.$dirty">This dataset name cannot be used</span>
+                </div>
+            </div>
+            <div class="control-group required" ng-if="!exportParams.overwriteDestinationDataset">
+                <label class="control-label">Store into</label>
+                <div class="controls">
+                    <select dku-bs-select="{size:'auto',liveSearch:true}"
+                            ng-model="exportParams.destinationDatasetConnection"
+                            ng-options="item.connection as item.label group by item.type for item in exportModal.managedDatasetConnections | orderBy:'label' ">
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>
+                <label for="overwrite-dataset" class="radio">
+                    <input type="radio" id="overwrite-dataset" ng-model="exportParams.overwriteDestinationDataset" ng-value="true">
+                    Overwrite an existing dataset
+                </label>
+            </legend>
+            <div class="control-group required" ng-if="exportParams.overwriteDestinationDataset">
+                <label class="control-label">Dataset name</label>
+                <div class="controls">
+                    <div dataset-selector="exportParams.destinationDatasetName"
+                         available-datasets="datasets">
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+
+    <div ng-if="exportParams.destinationType=='DOWNLOAD'">
+
+        <form class="dkuform-horizontal">
+            <div class="control-group required">
+                <label class="control-label">Format</label>
+                <div class="controls" ng-if="exportModal.exportableFormats">
+                    <select ng-model="exportModal.$selectedDownloadOptionId" ng-change="exportModal.handleSelectedOptionChange()" dku-bs-select ng-options="f.id as f.label for f in (exportModal.exportableFormats)" />
+                </div>
+            </div>
+        </form>
+
+        <div plugin-format-config format-type="exportParams.format.type" format-config="exportParams.format.params" ng-if="exportParams.$exportOption.optionType == 'CUSTOM_FORMAT' && exportModal.advancedMode">
+            <form class="dkuform-horizontal" name="customConfigForm2">
+                <autoconfig-form params="loadedDesc.desc.params"
+                                 model="exportParams.format.params.config"
+                                 plugin-id="pluginDesc.id"
+                                 component-id="loadedDesc.id"
+                                 error-scope="errorScope">
+                </autoconfig-form>
+            </form>
+        </div>
+
+        <div plugin-exporter-config ng-if="exportParams.$exportOption.optionType == 'CUSTOM_TO_FILE' && exportModal.advancedMode">
+            <form class="dkuform-horizontal" name="customConfigForm2">
+                <autoconfig-form params="loadedDesc.desc.params"
+                                 model="exportParams.config"
+                                 plugin-id="pluginDesc.id"
+                                 component-id="loadedDesc.id"
+                                 error-scope="errorScope">
+                </autoconfig-form>
+            </form>
+        </div>
+
+        <form class="dkuform-horizontal">
+            <div class="control-group required" ng-if="exportParams.$exportOption.optionType == 'BUILTIN_FORMAT' && exportParams.format.type=='csv'">
+                <form-template-element model="exportParams.format.params" field="exportParams.format.csvSeparatorParam"></form-template-element>
+            </div>
+            <div class="control-group required" ng-if="exportParams.$exportOption.optionType == 'BUILTIN_FORMAT' && exportParams.format.type=='csv'">
+                <label class="control-label">With header</label>
+                <div class="controls">
+                    <input
+                            type="checkbox"
+                            class="input-mini"
+                            ng-model="exportParams.format.params.parseHeaderRow"
+                            name="withHeader" />
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="!recipe && exportModal.advancedMode && (exportParams.$exportOption.optionType == 'BUILTIN_FORMAT' || exportParams.$exportOption.optionType == 'CUSTOM_FORMAT')">
+                <label class="control-label">Use a temporary file</label>
+                <div class="controls">
+                    <select ng-model="exportParams.temporaryFileBehavior">
+                        <option value="AUTO">Only if required (let DSS decide)</option>
+                        <option value="NO">Never</option>
+                        <option value="YES">Always</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div ng-if="exportParams.destinationType=='CUSTOM_MANAGED'">
+        <form class="dkuform-horizontal">
+            <div class="control-group required" >
+                <label class="control-label">Exporter</label>
+                <div class="controls">
+                    <select ng-model="exportModal.$selectedManagedOptionId" ng-change="exportModal.handleSelectedOptionChange()" dku-bs-select ng-options="f.id as f.label for f in (exportModal.managedExporters)" />
+                </div>
+            </div>
+        </form>
+        <div plugin-exporter-config>
+            <form class="dkuform-horizontal" name="customConfigForm">
+                <autoconfig-form params="loadedDesc.desc.params"
+                                 model="exporterConfig.config"
+                                 plugin-id="pluginDesc.id"
+                                 component-id="loadedDesc.id"
+                                 error-scope="errorScope">
+                </autoconfig-form>
+            </form>
+        </div>
+    </div>
+</div>

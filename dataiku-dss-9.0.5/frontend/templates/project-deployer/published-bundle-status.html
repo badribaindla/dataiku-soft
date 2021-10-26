@@ -1,0 +1,121 @@
+<div class="standard-container package-status">
+    <div block-api-error />
+
+    <div class="standard-container__wrap" ng-if="bundleDetails && projectStatus">
+        <div class="horizontal-flex package-status__header standard-container__header">
+            <div class="horizontal-flex standard-container__titles">
+                <h5 class="mx-textellipsis standard-container__title" show-tooltip-on-text-overflow text-tooltip="$stateParams.bundleId">
+                </h5>
+                <div class="vertical-flex package-status__subtitles">
+                    <div class="package-status__subtitle mx-textellipsis">
+                        <div class="horizontal-flex">
+                            from
+                            <a class="mleftright4 standard-list__external-link horizontal-flex mx-textellipsis" ng-show="originInfo.url" href="{{ originInfo.url }}" target="blank">
+                                <span show-tooltip-on-text-overflow text-tooltip="originInfo.projectKey"></span>
+                            </a>
+                            <a class="no-underline standard-list__external-link noflex" ng-show="originInfo.url" href="{{ originInfo.url }}" target="blank">
+                                <i class="smaller-font icon-external-link"></i>
+                            </a>
+                            <span ng-show="!originInfo.url">&nbsp;{{ originInfo.projectKey }} </span>
+                        </div>
+                    </div>
+                    <div class="package-status__subtitle" ng-show="publishedOn || publishedBy">
+                        Published<span ng-show="publishedOn">&nbsp;on {{ publishedOn | date:'yyyy-MM-dd' }}</span><span ng-show="publishedBy">&nbsp;by {{ publishedBy }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="package-status__stages horizontal-flex">
+                <div ng-repeat="stage in currentStages" ng-if="deploymentsPerStage.perStage[stage.id].deployments.length || (stage.id === '__OTHERS__' && deploymentsPerStage.others)">
+                    <div class="vertical-flex package-status__stage aic w100" ng-if="stage.id === '__OTHERS__' && deploymentsPerStage.others" dku-html-tooltip position="bottom" trigger-class="w100">
+                        <tooltip-content>
+                            <ul class="raw-unstyled-ul">
+                                <li ng-repeat="(otherStage, otherCount) in deploymentsPerStage.others.stageCounts" ng-if="otherStage !== '__OTHERS__'">
+                                    {{ otherStage }}: {{ otherCount }}
+                                </li>
+                                <li ng-if="deploymentsPerStage.others.stageCounts['__OTHERS__']">
+                                    Unknown stages: {{ deploymentsPerStage.others.stageCounts['__OTHERS__'] }}
+                                </li>
+                            </ul>
+                        </tooltip-content>
+                        <tooltip-trigger>
+                            <div class="package-status__stage-count" ng-style="{ color: DeployerUtils.getStageCountColor(deploymentsPerStage.others.deployments, heavyStatusByDeploymentId) };">
+                                {{ deploymentsPerStage.others.deployments.length }}
+                            </div>
+                            <div class="package-status__stage-title mleft4 mright4 minw0">Others</div>
+                        </tooltip-trigger>
+                    </div>
+                    <div class="vertical-flex package-status__stage aic" ng-if="!(stage.id === '__OTHERS__' && deploymentsPerStage.others)">
+                        <div class="package-status__stage-count" ng-style="{ color: DeployerUtils.getStageCountColor(deploymentsPerStage.perStage[stage.id].deployments, heavyStatusByDeploymentId) };">
+                            {{ deploymentsPerStage.perStage[stage.id].deployments.length }}
+                        </div>
+                        <div class="package-status__stage-title mleft4 mright4 minw0" show-tooltip-on-text-overflow text-tooltip="stage.id"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="standard-container__actions package-status__actions">
+                <button class="btn btn--text btn--primary" 
+                    disabled-if-message="DeployerUtils.getCannotDeployReason([projectStatus], infraStatusList, publishedItemType)"
+                    ng-click="deployBundle()">
+                    Deploy
+                </button>
+                <button ng-click="deleteBundle()"
+                    disabled-if="!!deploymentsPerStage.count"
+                    disabled-message="Cannot remove a bundle with deployments"
+                    class="btn btn--text btn--danger btn--icon"
+                    >
+                    <i class="icon-trash" />
+                </button>
+            </div>
+        </div>
+        <div class="horizontal-flex package-status__body">
+            <div class="package-status__stats">
+                <h5>Project configuration content</h5>
+                <div ng-if="!hasProjectConfig()" class="empty-list-cta tal mtop0">
+                    <p>No project content</p>
+                </div>
+                <div ng-if="hasProjectConfig()">
+                    <div class="package-status__stat" ng-repeat="(contentType, contentCount) in bundleDetails.configContent" ng-if="contentCount">
+                        <div class="mx-textellipsis">{{ contentType | bundleProjectContent }}</div>
+                        <div><strong>{{ contentCount }}</strong></div>
+                    </div>
+                </div>
+            </div>
+            <div class="package-status__stats">
+                <h5>Additional content</h5>
+                <div ng-if="!hasAdditionalContent()">
+                    <div class="empty-list-cta tal mtop0">
+                        <p>No additional content</p>
+                    </div>
+                </div>
+                <div ng-if="hasAdditionalContent()">
+                    <div class="package-status__stat" ng-if="bundleDetails.includedDatasets.length">
+                        <div>Datasets</div>
+                        <div><strong>{{ bundleDetails.includedDatasets.length }}</strong></div>
+                    </div>
+                    <div class="package-status__stat" ng-if="bundleDetails.includedManagedFolders.length">
+                        <div>Managed folders</div>
+                        <div><strong>{{ bundleDetails.includedManagedFolders.length }}</strong></div>
+                    </div>
+                    <div class="package-status__stat" ng-if="bundleDetails.includedSavedModels.length">
+                        <div>Saved models</div>
+                        <div><strong>{{ bundleDetails.includedSavedModels.length }}</strong></div>
+                    </div>
+                    <div class="package-status__stat" ng-if="bundleDetails.includedModelEvaluationStores.length">
+                        <div>Evaluation stores</div>
+                        <div><strong>{{ bundleDetails.includedModelEvaluationStores.length }}</strong></div>
+                    </div>
+                </div>
+            </div>
+            <div class="package-status__deployments">
+                <h5>Deployments</h5>
+                <div ng-repeat="(stage, stageDetails) in deploymentsPerStage.perStage track by stageDetails.idx" ng-if="stageDetails.deployments.length">
+                    <div class="break-all mtop16 mbot8">Stage: {{stage == '__OTHERS__' ? 'Unknown' : stage}}</div>
+                    <div project-deployments-list-widget="bundleDeployments[stage]" health-map="healthMap" status-page="'bundle'"></div>
+                </div>
+                <div ng-if="!deploymentsPerStage.count" class="empty-list-cta tal mtop0">
+                    <p>No deployments</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

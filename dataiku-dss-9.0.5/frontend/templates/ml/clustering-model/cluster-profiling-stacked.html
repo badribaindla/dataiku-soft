@@ -1,0 +1,67 @@
+ <div class="cluster-profiling-screen vertical-flex h100">
+    <div class="cluster-profiling-row cluster-profiling-global-row noflex">
+        <div class="left-area">
+            <select
+                class="feature-selector"
+                dku-bs-select="{size:'auto',liveSearch:true}"
+                ng-model="profilingUI.selectedVariable"
+                ng-options="variable.variable for variable in profilingUI.variables">
+            </select>
+        </div>
+        <div class="right-area">
+            <h3>Overall distribution</h3>
+            <bz-histogram ng-if="profilingUI.selectedVariable.global"
+                scale="profilingUI.selectedVariable.scale"
+                data="profilingUI.selectedVariable.global.brickData"
+                color="'#939598'"
+                show-scale="true"
+                whisker-data="profilingUI.selectedVariable.global"
+                categorical="profilingUI.selectedVariable.type == 'categorical'"
+                hover="hover">
+            </bz-histogram>
+            <p ng-if="!profilingUI.selectedVariable.global" class="alert alert-warning">No data</p>
+        </div>
+    </div>
+    <div class="cluster-profiling-rows flex">
+        <div class="cluster-profiling-row"
+            ng-repeat="cluster_profiling in profilingUI.selectedVariable.per_cluster">
+            <div class="left-area">
+               <h3>
+                   {{ getClusterMeta(cluster_profiling.cluster_name).name }}
+                   <i class="icon-pencil filigran" ng-click="editClusterDetails(getClusterMeta(cluster_profiling.cluster_name))"></i>
+               </h3>
+               <bz-gauge
+                    val="cluster_profiling.total_no_nan"
+                    total="profilingUI.selectedVariable.global.total_no_nan"
+                    color="getClusterMeta(cluster_profiling.cluster_name).color">
+                </bz-gauge>
+               <table>
+                <tr ng-if="cluster_profiling.mean">
+                    <td>mean</td>
+                    <td class="value">{{ cluster_profiling.mean | smartNumber }}</td>
+                </tr>
+                <tr ng-if="cluster_profiling.std">
+                    <td>std</td>
+                    <td class="value">{{ cluster_profiling.std | smartNumber  }}</td>
+                </tr>
+                <tr ng-if="cluster_profiling.median">
+                    <td>median</td>
+                    <td class="value">{{ cluster_profiling.median | smartNumber  }}</td>
+                </tr>
+               </table>
+            </div>
+            <div class="right-area">
+                <bz-histogram
+                    scale="profilingUI.selectedVariable.scale"
+                    data="cluster_profiling.brickData"
+                    whisker-data="cluster_profiling"
+                    color="getClusterMeta(cluster_profiling.cluster_name).color"
+                    categorical="profilingUI.selectedVariable.type == 'categorical'"
+                    show-scale="false"
+                    hover="hover"
+                    nb-bricks="nbBricks">
+                </bz-histogram>
+            </div>
+        </div>
+    </div>
+</div>

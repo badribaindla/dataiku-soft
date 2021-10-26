@@ -1,0 +1,27 @@
+<div class="h100 contents-file-list-line-wrapper" full-right-click full-click ng-keydown="fileListKeyDown($event, true)"  tabindex="0">
+    <div class="contents-file-list h100" fat-repeat="filteredOdbListing" as="item" row-height="35" >
+        <div ng-class="{'selected': isSelected(item), 'hovered':item.hovered}" class="contents-file-list-line" ng-right-click="!readOnly && openFileMenu(item, $event, 'CLICK', selectedItems)" ng-click="onClickOnItem($event, item, filteredOdbListing);">
+            <!-- file name -->
+            <span class="name mx-textellipsis" title="{{item.name}}" >
+                <i ng-class="getIconClass(item)"></i>
+                &nbsp;{{ item.name }}
+            </span>
+            <!-- upload progfull-right-click="" ng-keydown="fileListKeyDown($event, true)"ress -->
+            <span class="upload-progress-wrapper" ng-show="item.progress <= 100">
+                <progress class="upload-progress" value="{{ item.progress }}" max="100"></progress>
+            </span>
+            <!-- meta infos -->
+            <span class="meta-info" ng-show="!item.progress">
+                <span class="last-modified">{{ item.lastModified == 0 || item.lastModified == -1 ? "-" : (item.lastModified | friendlyDate: 'dd/MM/yyyy') }}</span>
+                <span class="item-size">{{ item.directory ? "-" : (item.size | fileSizeOrNA) }}</span>
+            </span>
+            <!-- action col -->
+            <span class="action-col" ng-show="!item.progress">
+                <a ng-if="canDownload"  ng-click="item.directory ? downloadFolder(item.fullPath) : downloadFile(item.fullPath);" ng-disabled="!projectSummary.canExportDatasetsData"><i class="icon-download"></i></a>
+                <a ng-if="!readOnly" ng-click="deleteItems([item], $event);"> <i class="icon-trash"></i></a>
+                <a ng-if="!readOnly" ng-click="openFileMenu(item, $event, 'CLICK');"><i class="icon-ellipsis-vertical"></i></a>
+            </span>
+        </div>
+    </div>
+    <div style="display:none;" ng-right-click="openCurrentFolderMenu($event)" main-right-click ng-click="clearSelectedItemsAndPreview()" main-click></div>
+</div>

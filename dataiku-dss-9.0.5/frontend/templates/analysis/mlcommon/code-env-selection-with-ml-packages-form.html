@@ -1,0 +1,22 @@
+<form class="dkuform-horizontal">
+    <div class="control-group">
+        <label for="" class="control-label">Selection behavior</label>
+        <div class="controls">
+            <select dku-bs-select="{width:250}" class="unconstrained-bs-select" ng-model="envSelection.envMode" ng-options="x[0] as x[1] for x in envModes"/>
+        </div>
+    </div>
+    <div class="control-group" ng-if="envSelection.envMode == 'EXPLICIT_ENV'">
+        <label for="" class="control-label">Environment</label>
+        <div class="controls">
+            <select dku-bs-select="{width:250}" class="unconstrained-bs-select" ng-model="envSelection.envName" ng-options="env.envName as env.envName for env in sortedCodeEnvs" options-descriptions="envDescriptions" watch-model="sortedCodeEnvs" layout="list" data-live-search="true"></select>
+        </div>
+    </div>
+    <div class="alert alert-warning dib" ng-if="!isCompatible()">
+        <div ng-if="isDeepLearning">
+            <strong>Warning:</strong> runtime isn't using a code-env with required packages to run deep learning models. Please select one or ask your administrator to create one and give you access.
+        </div>
+        <div ng-if="!isDeepLearning">
+            <strong>Warning:</strong> runtime isn't using a code-env with required packages to run visual ML models {{isSkopt ? "with bayesian search" : ""}}. Please select one or ask your administrator to create one and give you access.
+        </div>
+    </div>
+</form>

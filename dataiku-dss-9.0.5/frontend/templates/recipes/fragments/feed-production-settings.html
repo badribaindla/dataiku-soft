@@ -1,0 +1,39 @@
+<div>
+    <h2 class="recipe-settings-section2-title">Output: {{production.ref}}</h2>
+    <span ng-if="computable == null" class="text-warning"><i class="icon-warning-sign"></i>deleted</span>
+    <div ng-if="computable != null">
+        <div class="control-group">
+            <label for="" class="control-label">Store checkpoints</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="production.checkpointingType" ng-options="x.type as x.label for x in possibleTypes" options-descriptions="possibleTypesDescriptions"></select>
+            </div>
+        </div>
+        <div class="control-group" ng-if="['file'].indexOf(production.checkpointingType) >= 0">
+            <label for="" class="control-label">File</label>
+            <div class="controls">
+                <input type="text" ng-model="production.checkpointingParams.path"></input>
+                <span class="help-inline">Absolute path to a file or folder</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="['dataset', 'file', 'kafka_transaction'].indexOf(production.checkpointingType) >= 0">
+            <label for="" class="control-label">Interval</label>
+            <div class="controls">
+                <input type="number" force-integer ng-model="production.checkpointingParams.checkpointInterval"></input>
+                <span class="help-inline">Frequency of checkpoints, in milliseconds</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="['dataset', 'file'].indexOf(production.checkpointingType) >= 0">
+            <label for="" class="control-label">Max rows</label>
+            <div class="controls">
+                <input type="number" force-integer ng-model="production.checkpointingParams.checkpointMaxRows"></input>
+                <span class="help-inline">Frequency of checkpoints, in number of rows</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="['kafka_transaction'].indexOf(production.checkpointingType) >= 0">
+            <label for="" class="control-label">Checkpoint topic</label>
+            <div class="controls">
+                <input type="text" ng-model="production.checkpointingParams.checkpointTopic"></input>
+            </div>
+        </div>
+    </div>
+</div>

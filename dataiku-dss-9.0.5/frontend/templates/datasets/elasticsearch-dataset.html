@@ -1,0 +1,204 @@
+<div ng-show="dataset" class="h100">
+	<div include-no-scope="/templates/datasets/fragments/settings-save.html" />
+	<tabs class="tabs-with-margin vertical-flex">
+		<pane title="Connection">
+			<div class="container-fluid page-top-padding h100 oa">
+			<fieldset ng-show="connections && !connections.length">
+				You do not yet have any connection for {{dataset.type|datasetTypeToName}}.
+				You need to <a target="_blank" href="{{$state.href('admin.connections.list')}}">create a new connection</a>
+				before creating datasets on this connection.
+			</fieldset>
+			<fieldset ng-show="connections && connections.length">
+				<form class="dkuform-horizontal">
+					<div>
+						<div class="control-group">
+							<label for="" class="control-label">Connection</label>
+							<div class="controls">
+								<select dku-bs-select data-live-search="{{connections.length > 5}}" ng-model="dataset.params.connection" ng-options="connection for connection in connections"></select>
+								<a target="_blank" href="{{$state.href('admin.connections.list')}}">Manage connections</a>
+							</div>
+						</div>
+						<fieldset>
+							<div class="control-group">
+								<label for="" class="control-label">Index name</label>
+								<div class="controls" ng-if="dataset.managed">
+									<input type="text" required ng-model="dataset.params.index" ng-pattern="/^(?!_)[^\/\\*&quot;&lt;&gt;|,\x00\s]+$/" />
+								</div>
+								<div class="controls" ng-if="!dataset.managed">
+									<input type="text" required ng-model="dataset.params.index"/>
+									<span class="help-inline">
+										Experimental support for index patterns
+									</span>
+								</div>
+							</div>
+							<div class="control-group" ng-if="documentTypeNeeded">
+								<label for="" class="control-label" >Documents type name</label>
+								<div class="controls">
+									<input type="text" required ng-model="dataset.params.type" ng-pattern="indexDocumentTypePattern" />
+								</div>
+							</div>
+							<div class="control-group" ng-if="dataset.managed">
+								<label for="" class="control-label">Custom mapping (JSON)</label>
+								<div class="controls">
+								    <table style="background: none; width: 100%;">
+								        <tr>
+								            <td style="width: 210px;">
+								            </td>
+								            <td>
+                                    <div style="display: inline-block; vertical-align: middle;">
+                                        Default mapping (deduced from <a ng-click="select(panes[2])">schema</a>)
+                                    </div>
+								            </td>
+								        </tr>
+								        <tr>
+                                            <td style="vertical-align: top;">
+                                    <textarea ng-model="dataset.params.customMapping" cols="90" rows="8" placeholder="Empty: automatically-managed mapping" />
+                                            </td>
+                                            <td style="vertical-align: top;">
+                                        <pre style="height: 9em; overflow:auto"
+                                            ng-bind="testResult.defaultMapping || '{}'" />
+                                            </td>
+								        </tr>
+								    </table>
+								</div>
+							</div>
+						</fieldset>
+						<fieldset ng-if="dataset.managed">
+							<div class="control-group">
+								<label for="esRawCopyCols" class="control-label">
+									Columns with raw copy
+								</label>
+								<div class="controls">
+									<input type="text" ng-model="dataset.params.rawCopyColumns"
+										id="esRawCopyCols" ng-disabled="dataset.params.customMapping"
+										placeholder="comma-separated columns or *"/>
+									<span class="help-inline">
+										Will make a copy of those fields in a <code>x.x_facet</code> subfield
+										as <code>index: not_analyzed</code> (ES 1.x or 2.x)
+										or <code>type: keyword</code> (ES 5.x).
+										<code>*</code> means all string columns.
+									</span>
+								</div>
+							</div>
+						</fieldset>
+						<fieldset>
+							<div class="control-group">
+								<label for="" class="control-label">Frame size</label>
+								<div class="controls">
+									<input type="number" step="1" min="1" required ng-model="dataset.params.frameSize" />
+									<span class="help-inline">
+										Number of records fetched at once.
+										Split between shards, and must fit comfortably in RAM.
+									</span>
+								</div>
+							</div>
+						</fieldset>
+						<div class="control-group" ng-if="!dataset.managed">
+							<label for="" class="control-label">Custom Query DSL</label>
+							<div class="controls">
+                                <div style="height:210px; max-width: 600px; position: relative;">
+                                    <div class="fh codemirror sql-code-mirror ">
+                                        <textarea ng-model="dataset.params.customQueryDsl" ui-codemirror="codeMirrorSettingService.get('application/x-json')" ui-refresh="connections.length> 0 && struct.displayed"></textarea>
+                                    </div>
+                                </div>
+							</div>
+						</div>
+					</div>
+				</form>
+			</fieldset>
+			<div include-no-scope="/templates/datasets/elasticsearch-dataset-test.html" />
+			</div>
+		</pane>
+
+		<pane title="Preview">
+		<div class="container-fluid page-top-padding h100 oa">
+			<div class="scroll dataset-preview-scroll">
+				<div ng-show="testResult.previewErrorMsg" class="alert alert-error">{{testResult.previewErrorMsg}}</div>
+				<div dku-if="testResult.preview">
+                    <div simple-detection-preview-table dataset="dataset" table="testResult.preview" headers="testResult.preview.headers" 
+                                                        schema-is-user-editable="false"/>
+				</div>
+			</div>
+			<div include-no-scope="/templates/datasets/elasticsearch-dataset-test.html" />
+		</div>
+		</pane>
+
+		<pane title="Schema">
+		<div class="container-fluid page-top-padding h100 vertical-flex" style="position: relative;">
+			<div schema-consistency-status current-schema="dataset.schema" consistency="consistency" managed="dataset.managed"
+				check-consistency="checkConsistency" schema-detection="testResult.schemaDetection"
+				discard-schema-changes="discardSchemaChanges" clear-managed-dataset="delete"
+				schema-just-modified="schemaJustModified" discard-consistency-error="discardConsistencyError"
+				overwrite-schema="overwriteSchema" class="noflex" />
+            <div include-no-scope="/templates/datasets/schema-edition.html" class="flex" />
+        </div>
+		</pane>
+
+		<pane title="Partitioning">
+			<div ng-if="appConfig.communityEdition && !appConfig.licensing.ceEntrepriseTrial" class="locked-feature">
+				<div class="banner">
+					Partitioning <span about-partitioning-box skip-community-popup="true" />
+					is not available with your <span class="edition">Free Edition</span> license
+				</div>
+				<div include-no-scope="/templates/profile/community-vs-enterprise-try.html"></div>
+			</div>
+			<div class="container-fluid page-top-padding h100 oa" ng-if="!appConfig.communityEdition || appConfig.licensing.ceEntrepriseTrial">
+				<form class="dkuform-horizontal">
+					<div class="control-group">
+						<div class="controls">
+							<label class="checkbox">
+								<input ng-model="dataset.params.partitioned" type="checkbox" />
+								Partitioned
+							</label>
+						</div>
+					</div>
+					<fieldset ng-if="!dataset.managed && dataset.params.partitioned">
+						<div class="control-group">
+							<label for="esPartCols" class="control-label">Partitioning field</label>
+							<div class="controls">
+								<input type="text" ng-model="dataset.params.partitioningColumn"
+									id="esPartCols" ng-required="dataset.params.partitioned" />
+								<span class="help-inline">
+									This field should <strong>not be analyzed</strong>
+									(mapped with <code>"index":"not_analyzed"</code>)
+								</span>
+							</div>
+						</div>
+						<div include-no-scope="/templates/flow-editor/fragments/mini-1fixeddim-partitioning-widget.html" />
+					</fieldset>
+					<div class="control-group" ng-if=" dataset.managed && dataset.params.partitioned">
+						<label for="" class="control-label">Partitioning dimensions</label>
+						<div class="controls">
+							<editable-list ng-model="dataset.partitioning.dimensions" transcope="{tdp: timeDimensionPeriods}"
+									template="partitionTemplate" validate="checkPartitionDimension"
+									add-label="Add dimension" class="inline-labels">
+								<span>Name</span>
+								<div><input type="text" ng-model="it.name" placeholder="Dimension name" required></div>
+								<span>
+									<input type="radio" name="pt{{$index}}" id="pt{{$index}}v" ng-model="it.type" value="value"/>
+									<label for="pt{{$index}}v">Value</label>
+								</span>
+								<span>
+									<input type="radio" name="pt{{$index}}" id="pt{{$index}}t" ng-model="it.type" value="time"
+										ng-change="it.params = {period: 'DAY'}"/>
+									<label for="pt{{$index}}t">Time</label>
+								</span>
+								<span>Time range</span>
+								<div><select dku-bs-select ng-disabled="it.type !== 'time'" ng-required="it.type === 'time'"
+									ng-model="it.params.period" ng-options="v for v in tdp" /></div>
+							</editable-list>
+						</div>
+					</div>
+				</form>
+			</div>
+		</pane>
+
+		<pane title="Advanced">
+			<div class="h100 oa">
+				<div include-no-scope="/templates/datasets/advanced-fieldset-flow.html" />
+			    <div include-no-scope="/templates/datasets/advanced-override-table.html" />
+			    <div include-no-scope="/templates/datasets/advanced-fieldset-danger.html" />
+			</div>
+		</pane>
+	</tabs>
+</div>

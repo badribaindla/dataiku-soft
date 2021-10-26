@@ -1,0 +1,68 @@
+<div class="modal modal3">
+    <div dku-modal-header modal-title="Convert to plugin recipe" modal-class="has-border" />
+
+    <form name="conversionForm" class="dkuform-modal-horizontal dkuform-modal-wrapper ">
+
+        <div class="modal-body">
+            <div block-api-error />
+            <div>
+                Plugins turn code recipe into reusable visual recipes.
+                If you convert this recipe, you will need to specify (in JSON) a form for end users and edit the code to make use of it. <span doc-link="/plugins/writing_intro">Read our documentation</span> to know more.
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">
+                    Target plugin
+                </label>
+                <div class="controls">
+                    <label>
+                        <input type="radio" name="mode" value="NEW" ng-model="convert.mode">
+                        New plugin
+                    </label>
+                    <label>
+                        <input type="radio" name="mode" value="EXISTING" ng-model="convert.mode">
+                        Existing dev plugin
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">
+                    Plugin id
+                </label>
+                <div class="controls" ng-if="convert.mode == 'EXISTING' && (!devPlugins || devPlugins.length)">
+                    <select dku-bs-select="{liveSearch: true}"
+                        ng-model="convert.targetPluginId"
+                        ng-options="devPlugin.desc.id as (devPlugin.desc.meta.label || devPlugin.desc.id) for devPlugin in devPlugins"
+                        required
+                        />
+                </div>
+                <div class="help-inline" ng-if="convert.mode == 'EXISTING' && devPlugins.length === 0">
+                    No dev plugin installed.
+                </div>
+                <div class="controls" ng-if="convert.mode == 'NEW'">
+                    <input type="text" ng-model="convert.newPluginId" ng-pattern="convert.pattern" required />
+                    <span class="help-inline" style="width:250px; padding-left: 0;">
+                        Lowercase letters, numbers and "-"
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="targetFolder" class="control-label">
+                    New plugin recipe id
+                </label>
+                <div class="controls">
+                    <input type="text" ng-model="convert.targetFolder" id="targetFolder" ng-pattern="convert.pattern" required/>
+                    <span class="help-inline" style="width:250px; padding-left: 0;">
+                        Lowercase letters, numbers and "-"
+                    </span>
+                    <span class="help-inline" style="width:250px; padding-left: 0;">
+                        Should not start with the plugin id and must be unique across the recipe components of this plugin.
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="go()" ng-disabled="conversionForm.$invalid || !isIdValid()">Convert</button>
+        </div>
+    </form>
+</div>

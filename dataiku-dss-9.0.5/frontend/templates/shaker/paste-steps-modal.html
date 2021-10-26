@@ -1,0 +1,21 @@
+<div data-extend-template="/templates/dialogs/paste-modal-template.html">
+    <span data-block="error-message">
+        Invalid steps pasted. Please verify that the steps were copied correctly.
+    </span>
+    <div data-block="post-paste">
+        <div class="shaker-preview">
+            <p>The following <strong>{{ getNumberOfSteps(uiState.items) }}</strong> {{ 'step' | plurify: getNumberOfSteps(uiState.items) }} will be added:</p>
+            <ul>
+                <li ng-repeat="step in uiState.items" class="paste-modal__list-item">
+                    <span ng-bind-html="step.metaType === 'GROUP' ? getGroupName(step) : getStepDescription(step)"></span>
+                    <span ng-if="step.metaType === 'GROUP'">(<strong>{{ step.steps.length }}</strong> {{ 'step' | plurify: step.steps.length }})</span>
+                    <ul ng-if="step.steps && step.steps.length">
+                        <li ng-repeat="groupStep in step.steps" class="paste-modal__list-item">
+                            <span ng-bind-html="getStepDescription(groupStep)"></span>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

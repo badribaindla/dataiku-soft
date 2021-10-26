@@ -1,0 +1,46 @@
+<div class="modal modal3">
+    <div dku-modal-header-with-totem modal-title="Create ensemble model"
+         modal-totem="icon-train_recipe"/>
+
+    <form name="ensembleForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div ng-if="canEnsemble">
+            <div class="top-info-zone has-border large-padding">
+                Are you sure you want to ensemble the {{fmis.length}} selected models?
+            </div>
+            <div class="modal-body tight-body">
+                <div class="control-group">
+                    <label class="control-label">Ensembling method</label>
+                    <div ng-if="params.method" class="controls">
+                        <select dku-bs-select required ng-model="params.method" ng-options="par.method as par.name for par in availableMethods">
+                        </select>
+                    </div>
+                    <div class="mtop16">{{getSelectedMethodDescription()}}</div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="showTiesWarning()" class="modal-body tight-body">
+            <div class="alert alert-warning">
+                The number of models you selected can lead to ties.
+            </div>
+        </div>
+        <div ng-if="canEnsemble && isSampleWeightEnabled()" class="modal-body tight-body">
+            <div class="alert alert-warning">
+                The variable <strong>{{mlTaskDesign.weight.sampleWeightVariable}}</strong> is set as "Sample weights" variable.
+                <br/>
+                All metrics will take into account the sample weights variable.
+                <br/>
+                You can modify the option in "Sample weights" tab of the "Design" pane.
+            </div>
+        </div>
+        <div ng-if="!canEnsemble" class="modal-body tight-body">
+            <div class="alert alert-error">
+                These models could not be ensembled because {{reason}}.
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" ng-click="dismiss()" class="btn btn--text btn--secondary">Cancel</button>
+            <button ng-click="submit()" ng-disabled="!canEnsemble || ensembleForm.$invalid" class="btn btn--text btn--primary">Create
+            </button>
+        </div>
+    </form>
+</div>

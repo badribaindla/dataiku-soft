@@ -1,0 +1,57 @@
+<form class="container-fluid page-top-padding dkuform-horizontal">
+	<div class="control-group">
+		<label class="control-label">Type</label>
+		<div class="controls">
+			<select dku-bs-select required ng-model="dataset.params.view" ng-options="view.name as view.displayName for view in viewTypes"/>
+		</div>
+	</div>
+	<div class="control-group">
+		<label class="control-label">Scope</label>
+		<div class="controls">
+			<select dku-bs-select required ng-model="dataset.params.scope" ng-options="x[0] as x[1] for x in [['SINGLE_OBJECT', 'Single object'], ['PROJECT', 'Project-level metrics/checks'], ['PROJECT_WHOLE', 'All metrics/checks of all project objects'], ['INSTANCE', 'All metrics/checks (instance-wide)']]" />
+		</div>
+	</div>
+	<div class="control-group" ng-show="dataset.params.scope == 'SINGLE_OBJECT'">
+		<label class="control-label">Source</label>
+		<div class="controls">
+
+			<div>
+				<!-- same width as the selectors below -->
+				<div style="display: inline-block; width: 221px;">Dataset</div>
+				<div style="display: inline-block; width: 221px;">Folder</div>
+				<div style="display: inline-block; width: 221px;">Model</div>
+			</div>
+			<div>
+				<select required dku-bs-select="{liveSearch:true,size:'auto'}" ng-model="selected.dataset" ng-options="dataset as (dataset.name + (dataset.foreign ? (' (' + dataset.projectKey + ')') : '' )) for dataset in datasets"/>
+				<select required dku-bs-select="{liveSearch:true,size:'auto'}" ng-model="selected.managedFolder" ng-options="managedFolder as ((managedFolder.name || managedFolder.id) + (managedFolder.foreign ? (' (' + managedFolder.projectKey + ')') : '' )) for managedFolder in managedFolders"/>
+				<select required dku-bs-select="{liveSearch:true,size:'auto'}" ng-model="selected.savedModel" ng-options="savedModel as ((savedModel.name || savedModel.id) + (savedModel.foreign ? (' (' + savedModel.projectKey + ')') : '' )) for savedModel in savedModels"/>
+			</div>
+		</div>
+	</div>
+	<div class="control-group">
+		<label class="control-label">Restrict to partitions</label>
+		<div class="controls">
+			<input type="text" ng-model="dataset.params.partition" />
+			<span class="help-inline">Comma-separated list of partition identifiers. Leave empty to get values for all partitions.</span>
+		</div>
+	</div>
+	<div class="control-group" ng-if="testResult.knownIds || testResult.listIdsErrorMsg">
+		<label class="control-label">Restrict to {{dataset.params.view.indexOf('METRIC') >= 0 ? 'metrics' : 'checks'}}</label>
+		<div class="controls">
+			<div ng-show="testResult.listIdsErrorMsg" class="alert alert-error">{{testResult.listIdsErrorMsg}}</div>
+			<select ng-if="testResult.knownIdsAndEmpty" required dku-bs-select="{liveSearch:true,size:'auto'}" ng-model="dataset.params.filter" ng-options="mid.value as mid.name for mid in testResult.knownIdsAndEmpty"/>
+		</div>
+	</div>
+	<button style="margin-top: 20px" class="btn btn--primary" ng-click="test()"> <i class="icon-refresh" />&nbsp;
+		<span ng-show="testResult.preview || testResult.previewErrorMsg">Update</span> Preview</button>
+	<div class="control-group" ng-show="testResult.preview || testResult.previewErrorMsg">
+		<label class="control-label">Preview</label>
+		<div class="controls">
+		 	<div ng-show="testResult.previewErrorMsg" class="alert alert-error">{{testResult.previewErrorMsg}}</div>
+			<div class="oa" ng-if="testResult.preview">
+                <div simple-detection-preview-table dataset="dataset" table="testResult.preview" headers="testResult.preview.headers" 
+                                                    schema-is-user-editable="false"/>
+			</div>
+		</div>
+	</div>
+</form>

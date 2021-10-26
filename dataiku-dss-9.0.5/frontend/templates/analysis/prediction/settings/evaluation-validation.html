@@ -1,0 +1,224 @@
+<div class="design-tab-title">Train / test set for final evaluation</div>
+<div class="doctor-settings-page" ng-controller="PMLTaskCrossvalController">
+    <form class="dkuform-horizontal">
+        <div class="control-group">
+            <label class="control-label">Policy</label>
+            <div class="controls">
+                <select dku-bs-select ng-options="x[0] as x[1] for x in trainTestPolicies" options-descriptions="trainTestPoliciesDesc(analysisCoreParams.inputDatasetSmartName)" ng-model="uiSplitParams.policy" ng-change="dumpUISplitParams()"/>
+            </div>
+        </div>
+        <div class="control-group" ng-if="uiSplitParams.policy == 'SPLIT_OTHER_DATASET'">
+            <label class="control-label">Dataset</label>
+            <div class="controls">
+                <div dataset-selector="mlTaskDesign.splitParams.ssdDatasetSmartName" available-datasets="availableDatasets" required></div>
+            </div>
+        </div>
+        <div class="control-group" ng-if="uiSplitParams.policy == 'EXPLICIT_FILTERING_SINGLE_DATASET_OTHER'">
+            <label class="control-label">Dataset</label>
+            <div class="controls">
+                <div dataset-selector="mlTaskDesign.splitParams.efsdDatasetSmartName" available-datasets="availableDatasetsExceptForInputDataset" required></div>
+            </div>
+        </div>
+        <h2 class="settings-section-title" ng-if="isMLBackendType('PY_MEMORY')">Time ordering</h2>
+        <div class="row-fluid" ng-if="isMLBackendType('PY_MEMORY')">
+            <div class="span7">
+                <div class="control-group">
+                    <label class="control-label">Enabled</label>
+                    <div class="controls" >
+                        <label class="dku-toggle" style="margin-left: 0">
+                            <input type="checkbox" ng-model="mlTaskDesign.time.enabled">
+                            <span />
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="mlTaskDesign.time.enabled">
+                    <label class="control-label">Time variable</label>
+                    <div class="controls" >
+                        <select dku-bs-select="{'liveSearch':true}" ng-model="mlTaskDesign.time.timeVariable"
+                                ng-options="feature for feature in potentialTimeFeatures()"/>
+                        <div>
+                            <div class="help-inline">Rows with missing values for the time variable will be dropped</div>
+                            <div class="help-inline">Hyperparameters optimization will take into account the time variable in the splits</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="mlTaskDesign.time.enabled && mlTaskDesign.time.timeVariable">
+                    <label class="control-label">Validate on larger values</label>
+                    <div class="controls" >
+                        <input type="checkbox" ng-model="mlTaskDesign.time.ascending">
+                        <div class="help-inline">Untick this box to sort the data in descending order</div>
+                    </div>
+                </div>
+            </div>
+            <div class="span5">
+                <div class="doctor-explanation" ng-if="mlTaskDesign.time.enabled">
+                    <h5>By enabling time-based ordering, DSS checks that the train and the test sets are consistent with the time variable.</h5>
+                    <h5>Moreover, DSS guarantees that:</h5>
+                    <ul>
+                        <li>the train set is sorted according to the selected variable</li>
+                        <li>hyperparameter search is done with training sets and validation sets consistent with the ordering induced by the time variable</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div ng-if="uiSplitParams.policy == 'SPLIT_MAIN_DATASET' || uiSplitParams.policy == 'SPLIT_OTHER_DATASET'">
+        <h2 class="settings-section-title">Sampling & Splitting</h2>
+        <div class="row-fluid">
+            <div class="span7">
+                <p ng-if="isMLBackendType('PY_MEMORY')">
+                    If your dataset does not fit in your RAM, you may want to subsample the set on which splitting will be performed.
+                </p>
+                <form class="dkuform-horizontal">
+                    <div ng-if="uiSplitParams.policy == 'SPLIT_MAIN_DATASET'">
+                        <div sampling-form-with-partitions selection="mlTaskDesign.splitParams.ssdSelection" dataset-smart-name="analysisCoreParams.inputDatasetSmartName" backend-type="mlTaskDesign.backendType" ng-if="!mlTaskDesign.partitionedModel.enabled" />
+                        <p ng-if="mlTaskDesign.partitionedModel.enabled">
+                            Partitions can be selected from the "Target" tab.
+                        </p>
+                        <div sampling-form-without-partitions selection="mlTaskDesign.splitParams.ssdSelection" backend-type="mlTaskDesign.backendType" ng-if="mlTaskDesign.partitionedModel.enabled" />
+                    </div>
+                    <div ng-if="uiSplitParams.policy == 'SPLIT_OTHER_DATASET'">
+                        <div sampling-form-with-partitions selection="mlTaskDesign.splitParams.ssdSelection" dataset-smart-name="mlTaskDesign.splitParams.ssdDatasetSmartName" backend-type="mlTaskDesign.backendType" />
+                    </div>
+                    <div class="control-group required" ng-if="isMLBackendType('MLLIB')">
+                        <label class="control-label">Random seed for test sub-sampling</label>
+                        <div class="controls">
+                            <input type="number" ng-model="mlTaskDesign.splitParams.subSamplingSeed" />
+                            <div class="help-inline">
+                                Test data is sub-sampled if necessary at max. 1M records.
+                                <br /> Using a fixed random seed allows for reproducible result
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group required">
+                        <label class="control-label">Split</label>
+                        <div class="controls">
+                            <span>{{uiState.splitMethodDesc}}</span>
+                            <div class="help-inline">
+                                For more advanced splitting, use a split recipe, and then use "Explicit extracts from two datasets" policy
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group required" ng-if="isMLBackendType('PY_MEMORY') && !isTimeOrderingEnabled()">
+                        <label class="control-label">K-fold cross-test</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="mlTaskDesign.splitParams.kfold"/>
+                                <div class="help-inline">
+                                    Gives error margins on metrics, but strongly increases training time
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-group required" ng-if="!mlTaskDesign.splitParams.kfold">
+                        <label class="control-label">Train ratio</label>
+                        <div class="controls">
+                            <input type="number" ng-model="mlTaskDesign.splitParams.ssdTrainingRatio" step="0.001" min="0" max ="1"/>
+                            <div class="help-inline">
+                                Proportion of the sample that goes to the train set. The rest goes to the test set
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group required" ng-if="mlTaskDesign.splitParams.kfold">
+                        <label class="control-label">Number of folds</label>
+                        <div class="controls">
+                            <input type="number" force-integer min="2" max="1000" step="1" ng-model="mlTaskDesign.splitParams.nFolds" />
+                            <div class="help-inline">
+                                Number of folds to divide the dataset into
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group required">
+                        <label class="control-label">Random seed</label>
+                        <div class="controls">
+                            <input type="number" ng-model="mlTaskDesign.splitParams.ssdSeed" />
+                            <div class="help-inline">Using a fixed random seed allows for reproducible result</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="span5">
+                <div include-no-scope="/templates/analysis/prediction/settings/train-test-explanation.html" />
+            </div>
+        </div>
+    </div>
+    <div ng-if="uiSplitParams.policy == 'EXPLICIT_FILTERING_TWO_DATASETS' && analysisDataset">
+        <div puppeteer-hook-3 puppeteer-hook-element-content-loaded>
+            <h2 class="settings-section-title">Train set</h2>
+            <form class="dkuform-horizontal">
+                <div class="control-group required">
+                    <label class="control-label">Dataset</label>
+                    <div class="controls">
+                        <div dataset-selector="mlTaskDesign.splitParams.eftdTrain.datasetSmartName" available-datasets="availableDatasets" required></div>
+                    </div>
+                </div>
+                <div sampling-form-with-partitions selection="mlTaskDesign.splitParams.eftdTrain.selection" dataset-smart-name="mlTaskDesign.splitParams.eftdTrain.datasetSmartName" />
+                <div inline-filter-editor schema="analysisDataset.schema" filter="mlTaskDesign.splitParams.eftdTrain.filter" />
+            </form>
+        </div>
+        <div puppeteer-hook-4 puppeteer-hook-element-content-loaded>
+            <h2 class="settings-section-title">Test set</h2>
+            <form class="dkuform-horizontal">
+                <div class="control-group required">
+                    <label class="control-label">Dataset</label>
+                    <div class="controls">
+                        <div dataset-selector="mlTaskDesign.splitParams.eftdTest.datasetSmartName" available-datasets="availableDatasets" required></div>
+                    </div>
+                </div>
+                <div sampling-form-with-partitions selection="mlTaskDesign.splitParams.eftdTest.selection" dataset-smart-name="mlTaskDesign.splitParams.eftdTest.datasetSmartName" />
+                <div inline-filter-editor schema="analysisDataset.schema" filter="mlTaskDesign.splitParams.eftdTest.filter" />
+            </form>
+        </div>
+    </div>
+    <div ng-if="(uiSplitParams.policy == 'EXPLICIT_FILTERING_SINGLE_DATASET_MAIN' ||
+                uiSplitParams.policy == 'EXPLICIT_FILTERING_SINGLE_DATASET_OTHER') && analysisDataset">
+        <div puppeteer-hook-3 puppeteer-hook-element-content-loaded>
+            <h2 class="settings-section-title">Train set</h2>
+            <form class="dkuform-horizontal">
+                <div ng-if="uiSplitParams.policy == 'EXPLICIT_FILTERING_SINGLE_DATASET_MAIN'">
+                    <div sampling-form-with-partitions selection="mlTaskDesign.splitParams.efsdTrain.selection" dataset-smart-name="analysisCoreParams.inputDatasetSmartName" backend-type="mlTaskDesign.backendType" />
+                </div>
+                <div ng-if="uiSplitParams.policy == 'EXPLICIT_FILTERING_SINGLE_DATASET_OTHER'">
+                    <div sampling-form-with-partitions selection="mlTaskDesign.splitParams.efsdTrain.selection" dataset-smart-name="mlTaskDesign.splitParams.efsdDatasetSmartName" backend-type="mlTaskDesign.backendType" />
+                </div>
+                <div inline-filter-editor schema="analysisDataset.schema" filter="mlTaskDesign.splitParams.efsdTrain.filter" />
+            </form>
+        </div>
+        <div puppeteer-hook-4 puppeteer-hook-element-content-loaded>
+            <h2 class="settings-section-title">Test set</h2>
+            <form class="dkuform-horizontal">
+                <div ng-if="uiSplitParams.policy == 'EXPLICIT_FILTERING_SINGLE_DATASET_MAIN'">
+                    <div sampling-form-with-partitions selection="mlTaskDesign.splitParams.efsdTest.selection" dataset-smart-name="analysisCoreParams.inputDatasetSmartName" backend-type="mlTaskDesign.backendType" />
+                </div>
+                <div ng-if="uiSplitParams.policy == 'EXPLICIT_FILTERING_SINGLE_DATASET_OTHER'">
+                    <div sampling-form-with-partitions selection="mlTaskDesign.splitParams.efsdTest.selection" dataset-smart-name="mlTaskDesign.splitParams.efsdDatasetSmartName" backend-type="mlTaskDesign.backendType" />
+                </div>
+                <div inline-filter-editor schema="analysisDataset.schema" filter="mlTaskDesign.splitParams.efsdTest.filter" />
+            </form>
+        </div>
+    </div>
+    <div ng-if="featureFlagEnabled('model_evaluation_stores')">
+        <h2 class="settings-section-title">Metadata</h2>
+        <div class="row-fluid">
+            <div class="span7">
+                <form class="dkuform-horizontal">
+                    <div class="control-group required">
+                        <label class="control-label">Labels</label>
+                        <div class="controls">
+                            <ng2-key-values-list
+                                [(items)]="mlTaskDesign.labels"
+                                add-label="Add a label"
+                                key-placeholder="Label key"
+                                value-placeholder="Label value"
+                            ></ng2-key-values-list>
+                            <div class="help-inline">
+                                Optional. Informative labels for the model.
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+</div>

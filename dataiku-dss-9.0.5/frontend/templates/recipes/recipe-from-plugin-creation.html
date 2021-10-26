@@ -1,0 +1,44 @@
+<div class="modal modal3 modal-w800" ng-controller="RecipeFromPluginCreationController">
+
+    <dku-modal-header modal-class="has-border">
+        <dku-modal-title>
+            <span ng-if="uiState.step == 'choose-recipe'">{{recipes.length}} {{'recipe' | plurify: recipes.length}} in "{{plugin.label}}" plugin</span>
+            <span ng-if="uiState.step == 'sql'">New SQL notebook</span>
+            <span ng-if="uiState.step == 'impala'">New Impala notebook</span>
+            <span ng-if="uiState.step == 'hive'">New Hive notebook</span>
+            <span ng-if="uiState.step == 'python'">New Python notebook</span>
+            <span ng-if="uiState.step == 'r'">New R notebook</span>
+            <span ng-if="uiState.step == 'customjupyter'">New Jupyter notebook</span>
+        </dku-modal-title>
+    </dku-modal-header>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" ng-if="uiState.step == 'choose-recipe'">
+        <div class="modal-body">
+
+            <div block-api-error/>
+
+            <p from-markdown="plugin.description"/>
+            <p ng-if="plugin.url">
+                <a href="{{ plugin.url }}" target="_blank" rel="noopener noreferrer">
+                    Plugin documentation&nbsp;<i class="icon-external-link"></i>
+                </a>
+            </p>
+
+            <div ng-repeat="recipe in recipes | orderBy: 'displayOrderRank'"
+                 class="big-click-zone-inline custom-recipe-element selectable"
+                 ng-click="create(recipe, zone)"
+                 disabled-if="!recipe.activated.ok"
+                 disabled-message="{{recipe.activated.reason}}">
+                <div class="custom-recipe-icon">
+                    <i class="universe-background {{recipe.icon}} {{recipe.recipeType | recipeTypeToColor}}"></i>
+                </div>
+                <div class="custom-recipe-label">
+                    <h1 class="title">{{recipe.label}}</h1>
+                    <p ng-if="recipe.description" from-markdown="recipe.description"></p>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+</div>

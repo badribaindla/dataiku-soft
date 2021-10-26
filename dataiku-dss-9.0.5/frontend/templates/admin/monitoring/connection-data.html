@@ -1,0 +1,181 @@
+<div class="h100 oa admin-connection-data-page">
+
+    <div block-api-error></div>
+
+    <div ng-if="!projectData" class="row-fluid">
+        <div class="span7">
+            <form class="dkuform-horizontal">
+                <div class="control-group">
+                    <label for="" class="control-label">Select connection</label>
+                    <div class="controls">
+                        <select dku-bs-select="{liveSearch:true}" ng-model="uiState.connection" ng-options="x.id as x.name group by x.type for x in connections | orderBy:'type + name'" />
+                        <button ng-disabled="!uiState.connection" class="btn btn--primary" ng-click="fetchData(uiState.connection)">OK</button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- When a project is focused -->
+    <div ng-if="projectData">
+        <div>
+            <button ng-click="clearProjectData()" class="btn btn--secondary"> <i class="icon-arrow-left" />&nbsp;Back to global view
+            </button>
+        </div>
+
+        <h2 class="settings-section-title">Details of project: {{projectData.projectKey}}</h2>
+
+        <div class="std-list-search-box" style="margin-left: 1px; margin-bottom: 10px;">
+                <span class="add-on"> <i class="icon-dku-search"></i>
+                </span>
+                <input type="search" ng-model="datasetQuery" style="width: 190px;" placeholder="Filter..."/>
+        </div>
+
+        <table sort-table="-size.totalValue" class="table table-hover table-striped" style="width: auto">
+            <tr>
+                <th sort-col="datasetName">Dataset</th>
+                <th sort-col="size.totalValue">Size</th>
+                <th>Size (ratio)</th>
+                <th sort-col="records.totalValue">Nb. records</th>
+                <th>Records (ratio)</th>
+                <th>Actions</th>
+            </tr>
+            <tr ng-repeat="dataset in projectData.dataPoints|filter:datasetQuery|orderBy:sortColumn:sortDescending">
+                <td><a href="{{ $state.href('projects.project.datasets.dataset.explore', {projectKey : dataset.projectKey, datasetName :dataset.datasetName}) }}">{{dataset.datasetName}}</a></td>
+
+                <td ng-if="dataset.size.hasData">
+                    {{dataset.size.totalValue | fileSizeInMB}}
+                    <br />
+                    <small  ng-show="project.size.nbWithData>
+                        0">{{dataset.size.firstComputed|date:'yyyy/MM/dd-HH:mm'}} - {{dataset.size.lastComputed|date:'yyyy/MM/dd-HH:mm'}}
+                    </small>
+                </td>
+                <td style="width: 140px" ng-if="dataset.size.hasData">
+                    <div exact-simple-progress-bar info="dataset.size.ratioOfTotal" />
+                    <small>{{dataset.size.ratioOfTotal|percentage}}</small>
+                </td>
+                <td ng-if="!dataset.size.hasData">No data</td>
+                <td ng-if="!dataset.size.hasData">No data</td>
+
+                <td ng-if="dataset.records.hasData">
+                    {{dataset.records.totalValue | number}}
+                    <br />
+                    <small  ng-show="project.size.nbWithData>
+                        0">{{dataset.records.firstComputed|date:'yyyy/MM/dd-HH:mm'}} - {{dataset.records.lastComputed|date:'yyyy/MM/dd-HH:mm'}}
+                    </small>
+                </td>
+                <td style="width: 140px" ng-if="dataset.records.hasData">
+                    <div exact-simple-progress-bar info="dataset.records.ratioOfTotal" />
+                    <small>{{dataset.records.ratioOfTotal|percentage}}</small>
+                </td>
+                <td ng-if="!dataset.records.hasData">No data</td>
+                <td ng-if="!dataset.records.hasData">No data</td>
+
+                <td>
+                    <button class="btn btn--secondary" ng-click="updateSingleDataset(uiState.connection, dataset.projectKey, dataset.datasetName)"> <i class="icon-refresh" />&nbsp;Refresh
+                    </button>
+                    
+                    <button class="btn btn--secondary" ng-click="clearDataset(uiState.connection, dataset.projectKey, dataset.datasetName)"> <i class="icon-remove" />&nbsp;Clear Data</button>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <div ng-if="connectionData && !projectData">
+        <h2 class="settings-section-title">Global summary</h2>
+
+        <table class="table table-hover table-striped" style="width: auto">
+            <tr>
+                <td>Datasets</td>
+                <th>{{connectionData.global.nbDatasets}}</th>
+            </tr>
+            <tr>
+                <td>Size</td>
+                <th>
+                    {{connectionData.global.size.totalValue | fileSizeInMB}}
+                    <small style="font-weight: 400">
+                        ({{connectionData.global.size.nbWithData}}/{{connectionData.global.nbDatasets}} datasets have info)
+                    </small>
+                </th>
+            </tr>
+            <tr>
+                <td>Records</td>
+                <th>
+                    {{connectionData.global.records.totalValue | number}}
+                    <small style="font-weight: 400">
+                        ({{connectionData.global.records.nbWithData}}/{{connectionData.global.nbDatasets}} datasets have info)
+                    </small>
+                </th>
+            </tr>
+        </table>
+
+
+        <h2 class="settings-section-title">Project details</h2>
+
+         <div class="std-list-search-box" style="margin-left: 1px; margin-bottom: 10px;">
+                <span class="add-on"> <i class="icon-dku-search"></i>
+                </span>
+                <input type="search" ng-model="projectQuery" style="width: 190px;" placeholder="Filter..."/>
+        </div>
+
+        <table sort-table="-size.totalValue" class="table table-hover table-striped" style="width: auto">
+            <tr>
+                <th sort-col="key">Project key</th>
+                <th sort-col="nbDatasets">Datasets</th>
+                <th sort-col="size.totalValue">Size</th>
+                <th>Size (ratio)</th>
+                <th sort-col="records.totalValue">Nb. records</th>
+                <th>Records (ratio)</th>
+                <th>Actions</th>
+            </tr>
+            <tr ng-repeat="project in connectionData.byProject|filter:projectQuery|orderBy:sortColumn:sortDescending">
+                <td class="ellipsed" style="max-width: 200px" full-click>
+                    <a main ng-click="focusOnProject(uiState.connection, project.key)">{{project.key}}</a>
+                </td>
+                <td>
+                    <span class="metric">{{project.nbDatasets}}</span>
+                </td>
+                <td>
+                    <span class="metric">{{project.size.totalValue | fileSizeInMB}}</span>
+                    <br />
+                    <small>
+                        {{project.size.nbWithData}}/{{project.nbDatasets}} datasets have info
+                    </small>
+                    <br />
+                    <small  ng-show="project.size.nbWithData>
+                        0">{{project.size.firstComputed|date:'yyyy/MM/dd-HH:mm'}} - {{project.size.lastComputed|date:'yyyy/MM/dd-HH:mm'}}
+                    </small>
+                </td>
+                <td style="width: 100px">
+                    <div ng-if="project.size.nbWithData == project.nbDatasets" exact-simple-progress-bar info="project.size.ratioOfTotal" />
+                    <div ng-if="project.size.nbWithData != project.nbDatasets" exact-simple-progress-bar warning="project.size.ratioOfTotal" />
+                    <small>{{project.size.ratioOfTotal|percentage}}</small>
+                </td>
+                <td>
+                    <span class="metric">{{project.records.totalValue | number}}</span>
+                    <br />
+                    <small>
+                        {{project.records.nbWithData}}/{{project.nbDatasets}} datasets have info
+                    </small>
+                    <br />
+                    <small ng-show="project.records.nbWithData>
+                        0">{{project.records.firstComputed|date:'yyyy/MM/dd-HH:mm'}} - {{project.records.lastComputed|date:'yyyy/MM/dd-HH:mm'}}
+                    </small>
+                </td>
+                <td style="width: 100px">
+                    <div ng-if="project.records.nbWithData == project.nbDatasets" exact-simple-progress-bar info="project.records.ratioOfTotal" />
+                    <div ng-if="project.records.nbWithData != project.nbDatasets" exact-simple-progress-bar warning="project.records.ratioOfTotal" />
+                    <small>{{project.records.ratioOfTotal|percentage}}</small>
+                </td>
+                <td>
+                    <button class="btn btn--secondary" ng-click="updateForProject(uiState.connection, project.key)">
+                        <i class="icon-refresh" />
+                        &nbsp;Refresh
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,145 @@
+<form class="dkuform-horizontal" name="infraSettingsForm" global-keydown="{'ctrl-s meta-s':'saveInfra()'}">
+    <div class="h100 row-fluid" tab-model="uiState.settingsPane">
+        <div class="span2 offset0 nav-list-sidebar sidebar-admin">
+            <ul>
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('general')}" tab-name="general" label="General settings" />
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('permissions')}" tab-name="permissions" label="Permissions" />
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('connection-remapping')}" tab-name="connection-remapping" label="Default connection remapping
+                " />
+            </ul>
+            <div class="horizontal-flex" style="margin: 20px; height: auto;"> <!-- no h100 as horizontal-flex does -->
+                <div ng-if="infraIsDirty() && !isInfraSettingsFormInvalid()" class="btn-group save-button flex" style="flex-basis: 50px;">
+                    <button class="btn btn--outline btn--primary btn--full" ng-click="saveInfra()">
+                        <i class="icon-save"></i>
+                        &nbsp;Save
+                    </button>
+                </div>
+                <div ng-if="!infraIsDirty() || isInfraSettingsFormInvalid()" class="btn-group save-button flex" style="flex-basis: 50px;">
+                    <button class="btn btn--outline btn--primary btn--full" disabled >
+                        <i class="icon-save"></i>
+                        &nbsp;Saved!
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="span10 h100 offset0 boxed-next-to-sidebar" ng-switch="uiState.settingsPane">
+
+            <div ng-switch-when="general" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Lifecycle stage</label>
+                        <div class="controls">
+                            <select dku-bs-select="{width: '250px'}"
+                                ng-options="stage.id as (stage.id + ' - ' + stage.desc) for stage in appConfig.projectDeploymentStages"
+                                ng-model="infra.stage"
+                                style="width: 250px" />
+                            <span class="help-inline">All deployments created on this infrastructure will appear in this column in the Deployments screen</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">URL</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.automationNodeUrl" ng-pattern="/^https?:\/\/\S+$/" required/>
+                            <div class="alert alert--warning mtop4 mbot4" ng-if="hasUrlSuffix(infra.automationNodeUrl)">
+                                URL should be http[s]://host[:port], an URL suffix is unexpected and will likely not work
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Admin key</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.adminApiKey" required/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Trust all certificates</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="infra.trustAllSSLCertificates" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="permissions" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <table sort-table class="table table-striped table-hover permissions" >
+                        <thead>
+                            <tr>
+                                <th colspan="2">Group name</th>
+                                <th>View</th>
+                                <th>Deploy</th>
+                                <th>Admin</th>
+                                <th>&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody add-remove ng-model="infra.permissions">
+                            <tr ng-hide="infra.permissions.length">
+                                <td colspan="13" style="text-align: center; font-size: 16px; line-height: 40px; color: #666">
+                                    No group is granted access to this infrastructure
+                                </td>
+                            </tr>
+                            <tr ng-repeat="perm in infra.permissions">
+
+                                <td colspan="2">{{perm.group}}</td>
+                                <td>
+                                    <label class="checkbox" for="readDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$readDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$readDisabled" ng-model="perm.read" id="readDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkbox" for="deployDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$deployDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$deployDisabled" ng-model="perm.deploy" id="deployDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkbox" for="adminDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$adminDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$adminDisabled" ng-model="perm.admin" id="adminDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <a class="link-danger" ng-click="remove($index)"> <i class="icon-trash" /></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div ng-show="unassignedGroups.length" style="margin-bottom: 20px;">
+                        <select dku-bs-select="{liveSearch:true,width:250}"
+                            style="display: inline-block;"
+                            ng-model="newPerm.group"
+                            ng-options="g for g in unassignedGroups"
+                            data-none-selected-text="Select a group..." >
+                        </select>
+                        <button style="display: inline-block;" ng-disabled="!newPerm.group" ng-click="addPermission(infra)" class="btn btn--secondary">
+                            <span plus-icon />
+                            Grant access to group
+                        </button>
+                    </div>
+                    <div class="alert alert-info" style="border-radius: 0px"> <i class="icon-info-sign" /> To manage groups go to
+                        <a class="tab" ng-class="{'enabled': $state.includes('admin.groups')}" href="/admin/security/groups/">DSS global administration</a>.
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="connection-remapping" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <ng2-key-values-list 
+                        [(items)]="infra.defaultConnectionRemapping" 
+                        add-label="Add connection" 
+                        key-identifier="source"
+                        value-identifier="target"
+                        key-placeholder=""
+                        value-placeholder="">
+                    </ng2-key-values-list>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</form>

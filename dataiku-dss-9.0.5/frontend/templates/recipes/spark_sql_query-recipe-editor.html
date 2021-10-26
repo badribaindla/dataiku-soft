@@ -1,0 +1,102 @@
+<div ng-controller="SparkSQLQueryRecipeController" data-extend-template="/templates/layouts/code-based-recipe-editor-layout.html">
+
+
+    <div class="mainPane code-based-recipe-main-zone vertical-flex h100" data-block="recipeEditor">
+        <!-- Load behaviors -->
+        <!-- The read-params-behavior is split from the read-params UI directive because we want the
+        behavior to always execute, not only when we go to advanced tab -->
+        <div ng-if="recipe && computablesMap">
+            <div spark-datasets-read-params-behavior read-params="recipe.params.readParams" />
+        </div>
+
+        <div block-api-error />
+
+        <div code-snippet-editor
+            code="script.data"
+            sample-type="'sql'"
+            categories="['spark-sql']"
+            save-category="'spark-sql'"
+            editor-options="editorOptions"
+            resolve-code-for-preview-func="resolveCodeForPreviewFunc"
+            resolve-code-for-insertion-func = "resolveCodeForInsertionFunc"
+            />
+
+        <div class="noflex" include-no-scope="/templates/recipes/fragments/recipe-editor-statusbar.html" />
+
+        <div class="bottom-bar noflex">
+            <div class="horizontal-flex">
+                <span class="noflex">
+                    <button class="btn btn--secondary" ng-click="sqlFormat()"><i class="icon-code"/> Format code</button>
+                </span>
+                <span class="noflex" include-no-scope="/templates/recipes/fragments/code-recipe-validate-button.html" />
+                <span class="flex" include-no-scope="/templates/recipes/fragments/code-recipe-run-bottom-bar.html" />
+            </div>
+        </div>
+
+        <div class="noflex recipe-job-result" include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html" />
+    </div>
+
+
+    <div data-block="additionalTabsContent">
+         <div ng-if="topNav.tab == 'advanced'" class="dss-page oa">
+
+			<div block-api-error />
+			<div class="horizontal-centerer">
+				<div class="recipe-settings-section1 w800">
+					<h1 class="recipe-settings-section1-title">Spark configuration</h1>
+					<div spark-override-config config="recipe.params.sparkConfig" class="recipe-settings-section2" />
+                    <div spark-datasets-read-params read-params="recipe.params.readParams" />
+                    <form class="dkuform-horizontal recipe-settings-section2">
+                        <h2 class="recipe-settings-section2-title">Spark options</h2>
+                        <div class="control-group">
+                            <span class="control-label">Force output schema</span>
+                            <label class="controls">
+                                <input type="checkbox" ng-model="recipe.params.overwriteOutputSchema"/>
+                                <span class="help-inline">
+                                    Overwrite output schema with the result of the SQL query
+                                </span>
+                            </label>
+                        </div>
+                        <div class="control-group">
+                            <span class="control-label">Hive metastore</span>
+                            <label class="controls">
+                                <input type="checkbox" ng-model="recipe.params.useGlobalMetastore"/>
+                                <span class="help-inline">
+                                    Use global Hive metastore
+                                </span>
+                            </label>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Spark engine</label>
+                            <div class="controls" >
+                                <select dku-bs-select ng-model="recipe.params.executionEngine" >
+                                    <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+                                    <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+                                    <option value="DATABRICKS">Databricks</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <recipe-pipeline-config config="recipe.params" any-pipeline-type-enabled="anyPipelineTypeEnabled()"></recipe-pipeline-config>
+
+                    </form>
+                </div>
+
+                <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+
+				<div class="recipe-settings-section1 w800">
+					<h1 class="recipe-settings-section1-title">Overrides</h1>
+					<form class="dkuform-horizontal recipe-settings-section2">
+						<div class="control-group">
+							<label for="" class="control-label">Override variables</label>
+							<div class="controls">
+								<span override-table-link object-to-override="recipe" override-table-parent="recipe" />
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+    </div>
+
+</div>

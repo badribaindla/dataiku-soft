@@ -1,0 +1,1 @@
+filtered_df <- df %>% filter(col_0 < 6)

@@ -1,0 +1,82 @@
+<!-- datasets/layouts/list.html  -->
+<div class="list-page-4 flex dss-home-page list-page--flat-design" multi-build-support>
+    <div data-extend-template="/templates/layouts/list-items-2.html" class="vertical-flex h100 main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            Datasets
+        </span>
+
+        <div new-dataset-menu title="New dataset" data-block="newItem"/>
+
+        <div data-block="empty">
+            <h1>
+                No dataset in this project
+            </h1>
+            <p>Datasets are where your data is stored</p>
+            <p class="small">
+                <span academy-link page="basics-101">Follow our tutorials</span> to learn more
+            </p>
+            <div class="import-first-dataset">
+                <a disabled-if-ro="" class="btn btn--contained btn--large btn--dataset" ui-sref="projects.project.datasets.new">
+                    <span plus-icon />
+                    &nbsp;Import your first dataset
+                </a>
+            </div>
+        </div>
+
+        <div data-block="item" class="h100">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" class="qa_dataset_list-checkbox" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit h100" dataset="item">
+                <div class="illustration">
+                    <i class="{{item.type | datasetTypeToIcon}} universe-color dataset"></i>
+                </div>
+                <div class="hitContent horizontal-flex h100" >
+                    <div class="hit-content-main noflex">
+                        <h4 class="hit-content-main__title">
+                            <a ng-hide="item.type.startsWith('Doctor')"
+                                href="{{ $state.href('projects.project.datasets.dataset.explore', {projectKey : $stateParams.projectKey, datasetName :item.name}) }}"
+                                class="qa_project_datasetslist_datasetname" show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.name | boldify:selection.filterParams.userQueryResult">
+                            </a>
+                            <a ng-show="item.type.startsWith('Doctor')"
+                                href="{{ $state.href('projects.project.datasets.dataset.summary', {projectKey : $stateParams.projectKey, datasetName :item.name}) }}"
+                                show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.name | boldify:selection.filterParams.userQueryResult">
+                            </a>
+                            <span class="hit-content-main__interests">
+                                <star-interest status="item.interest.starred"
+                                               on-toggle="starObject(nextStatus, item)"
+                                ></star-interest>
+                                <watch-interest status="item.interest.watching"
+                                                on-toggle="watchObject(nextStatus, item)"
+                                ></watch-interest>
+                            </span>
+                        </h4>
+                        <div class="hit-content-main__subtitle">
+                            {{ item.type|niceType }}
+                            <span ng-show="item.status.totalSize >= 0 && sortOptions.column == 'status.totalSize'" class="size" title="Size">
+                                | {{ item.status.totalSize | fileSizeOrNA }}
+                            </span>
+                            <span ng-show="item.status.records >= 0 && sortOptions.column == 'status.records'" class="nb_records" title="Number of records">
+                                | {{ item.status.records | number }} records
+                            </span>
+                            <span ng-show="item.lastModifiedOn">
+                                | Modified {{ item.lastModifiedOn|friendlyTimeDeltaShort }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="hit-content__tags flex">
+                        <responsive-tags-list items="item.tags" tags-map="projectTagsMap" object-type="'DATASET'"></responsive-tags-list>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <standardized-side-panel page="objects_list" object-type="{{ (selection.selectedObjects.length <= 1) ? ((selection.selectedObject.type) ? 'DATASET' : '') : 'MULTI' }}" single-type="LOCAL_DATASET">
+    </standardized-side-panel>
+
+</div>

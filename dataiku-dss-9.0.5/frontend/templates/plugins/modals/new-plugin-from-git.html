@@ -1,0 +1,76 @@
+<div class="modal modal3 modal-wide">
+    <div dku-modal-header modal-title="Add plugin from a Git repository" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="cloneForm">
+        <div class="modal-body plugin-from-git-modal__body">
+            <div block-api-error></div>
+
+            <div class="control-group">
+                <label for="clonePluginUri" class="control-label">Repository URL</label>
+                <div class="controls">
+                    <input class="plugin-from-git-modal__input" type="text" ng-model="clonePlugin.uri" required placeholder="git@github.com:user/repo.git" id="qa_plugindev_new-plugin-repo"/>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="devPluginMode" class="control-label">Development mode</label>
+                <div class="controls">
+                    <label>
+                    <input id="qa_plugin_install-dev-checkbox" type="checkbox" ng-model="clonePlugin.devMode" />
+                    <span class="help-inline">
+                         Choose this if you intend to modify the plugin and push back your changes.
+                         If you do not choose this, you will be able to move the plugin to development environment later, but it will not be linked to the repository.
+                    </span>
+                    </label>
+                </div>
+            </div>
+
+            <div ng-if="clonePlugin.devMode">
+                <div class="control-group">
+                    <label class="control-label">Import method</label>
+                    <div class="controls">
+                        <label>
+                            <input type="radio" ng-model="clonePlugin.bootstrapMode" ng-value="'GIT_CLONE'"
+                                   class="exclude-from-smart-change"/>
+                            Clone the entire repository
+                            <span class="help-inline" ng-if="clonePlugin.bootstrapMode == 'GIT_CLONE'">
+                                You'll be able to push back to this repository.
+                            </span>
+                        </label>
+
+                        <label>
+                            <input type="radio" ng-model="clonePlugin.bootstrapMode" ng-value="'GIT_EXPORT'"
+                                   class="exclude-from-smart-change"/>
+                            Subfolder of the repository
+                            <span class="help-inline" ng-if="clonePlugin.bootstrapMode == 'GIT_EXPORT'">
+                                The history will not be retrieved and you won't be able to push back to the repository nor to import further updates.
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="!clonePlugin.devMode || clonePlugin.bootstrapMode == 'GIT_EXPORT'">
+                <label class="control-label">Checkout</label>
+                <div class="controls dkuform-modal-horizontal">
+                    <div class="plugin-from-git-modal__checkout-input" git-checkout-select repository="clonePlugin.uri" ng-model="clonePlugin.checkout" />
+                    <div class="help-inline">Branch, tag or hash.</div>
+                </div>
+            </div>
+
+
+            <div class="control-group" ng-if="clonePlugin.devMode && clonePlugin.bootstrapMode == 'GIT_EXPORT' || !clonePlugin.devMode">
+                <label for="clonePluginPath" class="control-label">Path in repository</label>
+                <div class="controls">
+                    <input class="plugin-from-git-modal__input" type="text" ng-model="clonePlugin.path" id="clonePluginPath" />
+                    <div class="help-inline">Leave empty to checkout the entire repository.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="cloneAndCreate()" ng-disabled="cloneForm.$invalid || clonePlugin.result.state === 'RUNNING'" id="qa_plugindev_clone-button">Clone</button>
+        </div>
+    </form>
+</div>

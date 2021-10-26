@@ -1,0 +1,39 @@
+<div ng-if="mlTaskStatus && !mlTaskStatus.fullModelIds.length" class="flex list--empty">
+    <span ng-if="!mlTaskStatus.fullModelIds.length &&  mlTaskJustCreated">
+        The design of your model has been prepared.
+        <div class="moreinfo">
+            You can train it now or <a ui-sref="^.design">review the design</a>.
+        </div>
+        <div class="moreinfo" ng-if="mlTaskDesign.taskType==='PREDICTION'">
+            Target variable : {{mlTaskDesign.targetVariable}}
+        </div>
+        <div class="moreinfo">
+            {{getEnabledModels(mlTaskDesign.modeling).length | pluralize : 'algorithm' : 'algorithms'}} -
+            {{mlTaskFeatures(mlTaskDesign.preprocessing.per_feature,['INPUT']).length | pluralize : 'feature' : 'features'}} selected
+        </div>
+        <div class="mtop10">
+            <button ng-click="trainDirectly()" class="btn btn--primary btn--large">
+                <i class="icon-play" />&nbsp; Train
+            </button>
+        </div>
+    </span>
+    <span ng-if="!mlTaskStatus.fullModelIds.length && !mlTaskJustCreated">
+        No model trained.
+        <div class="moreinfo" ng-show="appConfig.userProfile.mayVisualML" >
+            You can train models now or <a ui-sref="^.design">review the settings</a>.
+        </div>
+        <div class="moreinfo" ng-if="mlTaskDesign.taskType==='PREDICTION'">
+            Target variable : {{mlTaskDesign.targetVariable}}
+        </div>
+        <div class="moreinfo">
+            {{getEnabledModels(mlTaskDesign.modeling).length | pluralize : 'algorithm' : 'algorithms'}} -
+            {{mlTaskFeatures(mlTaskDesign.preprocessing.per_feature,['INPUT']).length | pluralize : 'feature' : 'features'}} selected
+        </div>
+        <div visual-ml-access-check class="mtop10">
+            <button ng-click="newTrainSession()" class="btn btn--primary btn--large">
+                <i class="icon-play" />&nbsp; Train
+            </button>
+        </div>
+    </span>
+    <span ng-if=" mlTaskStatus.fullModelIds.length">No model matches filters</span>
+</div>

@@ -1,0 +1,75 @@
+<div class="fh">
+    <!-- background for the plot --> 
+    <div class="gantt horizontal-flex" >
+        <div class="headers noflex">
+        </div><!-- 
+     --><div class="runtime noflex">
+        </div><!-- 
+     --><div class="cells flex" >
+        </div>
+    </div>
+</div>
+<div class="gantt horizontal-flex" >
+    <div class="headers noflex">
+        <div class="gantt-header">
+            <div class="filter-box" ng-if="scenarioId == null">
+                <div class="std-list-search-box" style="display: inline-block">
+                    <span class="add-on"><i class="icon-dku-search"></i></span>
+                    <input type="search" ng-model="uiState.scenarioQuery" style="width: 180px;" placeholder="Search scenarios" />
+                </div>
+            </div>
+        </div>
+        <div class="gantt-items">
+            <ul>
+                <li class="item" ng-repeat="item in rows" ng-if="!item.displayOnRow" ng-mouseenter="hoverOver(item.uniqueId, true)" ng-mouseleave="hoverOver(item.uniqueId, false)" ng-class="{'item-scenario' : item.target.type == 'SCENARIO' && item.depth == 0, 'item-hovered' : isHovered(item)}" >
+                    <div ng-if="item.subItems == null || item.subItems.length == 0" class="horizontal-flex">
+                        <div class="noflex"  style="width: {{15*(item.depth+1)}}px;">
+                        </div>
+                        <div class="flex">
+                            <div ng-include="'/templates/scenarios/fragments/report-item-header.html'" ng-init="inGantt= true" class="fh"></div>
+                        </div>
+                    </div>
+                    <div full-click ng-if="item.subItems.length > 0" class="horizontal-flex">
+                        <div class="noflex" style="width: {{15*(item.depth)}}px;" ng-click="item.expanded = !item.expanded" >
+                            <!-- filler -->
+                        </div>
+                        <div class="noflex" style="width: 15px;" ng-click="item.expanded = !item.expanded" main-click>
+                            <i class="icon" ng-class="{'icon-caret-down': item.expanded, 'icon-caret-right': !item.expanded}" style="font-size: 15px;"></i>
+                        </div>
+                        <div class="flex">
+                            <div ng-include="'/templates/scenarios/fragments/report-item-header.html'" ng-init="inGantt= true" class="fh"></div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div><!-- 
+ --><div class="runtime noflex">
+        <div class="gantt-header">
+            <div ><span>Runtime</span></div> 
+            <div class="mean-runtime"><span>avg</span></div><!-- 
+         --><div class="last-runtime"><span>last</span></div>
+        </div>
+        <div class="gantt-items">
+            <ul>
+                <li class="item" ng-repeat="item in rows" ng-if="!item.displayOnRow" ng-mouseenter="hoverOver(item.uniqueId, true)" ng-mouseleave="hoverOver(item.uniqueId, false)" ng-class="{'item-scenario' : item.target.type == 'SCENARIO' && item.depth == 0, 'item-hovered' : isHovered(item)}">
+                    <div class="mean-runtime"><span>{{item.meanDuration > -1 && item.target.type != 'SCENARIO_TRIGGER' ? (item.meanDuration | date:'mm:ss') : '-'}}</span></div><!--
+                 --><div class="last-runtime"><span>{{item.lastDuration > -1 && item.target.type != 'SCENARIO_TRIGGER' ? (item.lastDuration | date:'mm:ss') : '-'}}</span></div><!--
+                 --><div ng-if="item.target.type == 'SCENARIO' || item.target.type == 'SCENARIO_STEP'" class="show-actions-graph graph-runtime" style="display: inline-block;" ng-init="actionsForGraph=getActions(item)">
+                        <div contextual-menu cep-position="align-right-top" ng-click="toggleContextualMenu($event)" style="cursor:pointer; position:relative">
+                            <i class="icon-bar-chart"></i>
+                            <div class="contextualMenu fixed-contextual-menu-align-right actions-graph-popover" ng-show="contextualMenu">
+                                <actions-graph actions="actionsForGraph" average-duration="item.meanDuration" style="display: block; width: 100%; height: 100%;"></actions-graph>
+                            </div>
+                        </div>
+                    </div> 
+                </li>
+            </ul>
+        </div>
+    </div><!-- 
+ --><div class="cells flex" >
+        <div class="fh">
+            <svg class="chart" hierarchical-gantt rows="rows" columns="report.columns" report-range="reportRange" hovered="hovered" apply-hover="applyHover" can-write-project="canWriteProject()"></svg>
+        </div>
+    </div>
+</div>

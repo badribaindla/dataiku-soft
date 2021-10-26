@@ -1,0 +1,74 @@
+<div class="modal modal3">
+    <div dku-modal-header modal-title="New managed dataset" modal-class="has-border" />
+
+    <form name="newDatasetForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body" >
+            <div block-api-error />
+            <div class="control-group">
+                <label class="control-label">Name</label>
+                <div class="controls">
+                    <input type="text" ng-pattern="/^[\w-_]+$/" custom-validation="isDatasetNameUnique" ng-model="newDataset.name" required placeholder="Name" name="newDatasetName"/>
+	            	<check-hive-handles-dataset-name class='sub-field-warning' dataset-name="newDataset.name" dataset-connection-type="newDataset.settings.connection.connectionType" />
+                </div>
+	            <div class="alert alert-error" ng-show="newDatasetForm.newDatasetName.$error.customValidation" style="margin: 10px 0px 0px"> <i class="icon-warning-sign"></i>
+   		            This name is already used by another dataset
+       		    </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Store into</label>
+                <div class="controls">
+                    <select ng-model="newDataset.settings.connection"
+                 dku-bs-select="{liveSearch:true,size:'auto'}"
+            ng-options="item as item.connectionDisplayName group by item.connectionType for item in managedDatasetOptions.connections|orderBy:'connectionType + connectionName'" />
+                </div>
+            </div>
+              <div class="control-group" ng-if="newDataset.settings.connection.fsProviderTypes && newDataset.settings.connection.fsProviderTypes.length > 1">
+                <label for="" class="control-label">Store using</label>
+                <div class="controls">
+                    <select ng-model="newDataset.settings.typeOptionId"
+                        dku-bs-select
+                        ng-options="t for t in newDataset.settings.connection.fsProviderTypes" />
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="newDataset.settings.connection.canOverrideSQLCatalog">
+                <label class="control-label" ng-switch="newDataset.settings.connection.connectionType">
+                    <span ng-switch-when="BigQuery">BigQuery project</span>
+                    <span ng-switch-when="Snowflake">Database</span>
+                    <span ng-switch-default>Catalog</span>
+                </label>
+                <div class="controls">
+                    <input type="text" ng-model="newDataset.settings.specificSettings.overrideSQLCatalog" placeholder="{{newDataset.settings.connection.unoverridenSQLCatalog}}" />
+                </div>
+            </div>
+            <div class="control-group" ng-if="newDataset.settings.connection.canOverrideSQLSchema">
+                <label class="control-label" ng-switch="newDataset.settings.connection.connectionType">
+                    <span ng-switch-when="BigQuery">BigQuery dataset</span>
+                    <span ng-switch-default>Schema</span>
+                </label>
+                <div class="controls">
+                    <input type="text" ng-model="newDataset.settings.specificSettings.overrideSQLSchema" placeholder="{{newDataset.settings.connection.unoverridenSQLSchema}}" />
+                </div>
+            </div>
+            <div class="control-group" ng-if="newDataset.settings.connection.formats.length">
+                <label for="" class="control-label">Format</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="newDataset.settings.specificSettings.formatOptionId" ng-options="format.id as format.label for format in newDataset.settings.connection.formats" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Partitioning</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="newDataset.settings.partitioningOptionId" ng-options="x.id as x.label for x in partitioningOptions" />
+                </div>
+            </div>
+
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <div class="pull-right">
+                <button type="button" ng-click="dismiss()" class="btn btn--text btn--secondary">Close</button>
+                <button type="submit" class="btn btn--text btn--primary actions" ng-click="create()" ng-disabled="newDatasetForm.$invalid">Create</button>
+            </div>
+        </div>
+    </form>
+</div>

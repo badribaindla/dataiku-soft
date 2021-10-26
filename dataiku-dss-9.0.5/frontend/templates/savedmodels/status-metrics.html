@@ -1,0 +1,53 @@
+<div class="h100" ng-controller="SaveModelMetricsViewController">
+    <div class="h100 metrics vertical-flex">
+		<div block-api-error />
+        <div class="noflex w80">
+            <div style="margin: 10px  4px;">
+                <div>
+                    <div class="pull-left controls">
+                        <span>Display</span>
+
+                        <div displayed-metrics-selector type="metrics" choices="allComputedMetrics" selected="displayedMetrics" refresh-choices="refreshAllComputedMetrics"></div>
+
+                        <div ng-if="views.selected == 'versionValues'" class="list-control-widget list-customfilter-box" style="display: inline-block">
+                            <select dku-bs-select="{liveSearch:true,size:'auto', 'style':'dku-select-button'}"
+                                    ng-model="metrics.displayedState.partition"
+                                    ng-options="p for p in metricsPartitionsIds"></select>
+                            <a ng-click="refreshMetricsPartitions()">
+                                <span class="right-add-on"> <i ng-class="{'icon-refresh': true, 'icon-spin': refreshing}"></i>
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div style="clear: both;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex oa metrics-plots">
+            <div class="metrics-wrapper">
+                <div class="w80">
+                    <div class="fh">
+                        <div ng-if="views.selected === 'versionsTable' && smStatus">
+                            <table sort-table class="table table-striped table-bordered">
+                            <tr>
+                                <th sort-col="__partition__">Version</th>
+                                <th ng-repeat="displayedMetric in displayedMetrics.metrics"
+                                    sort-col="{{$index}}"
+                                >{{MetricsUtils.getMetricDisplayName(displayedMetric)}}</th>
+                            </tr>
+                            <tr ng-repeat="partition in filteredPartitions |orderBy:orderByFunc(sortColumn):sortDescending">
+                                <td>{{getDisplayNameForVersion(partition)}}</td>
+                                <td ng-repeat="displayedMetric in displayedMetrics.metrics">{{MetricsUtils.getFormattedValueForPartition(displayedMetric, partition, displayedMetricByPartitionData)}}</td>
+                            </tr>
+                        </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

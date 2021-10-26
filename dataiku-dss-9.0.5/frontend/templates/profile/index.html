@@ -1,0 +1,123 @@
+<div class="userprofile">
+
+    <div class="top-level-tabs">
+        <div class="horizontal-flex row-fluid object-nav">
+
+            <div class="flex oh object-breadcrumb">
+                <a class="item">
+                    <i class="icon icon-user universe-background profile"></i>
+                    <span class="title ellipsis"> {{profile.user.displayName}}</span>
+                </a>
+            </div>
+            <div class="noflex" ng-if="!appConfig.noLoginMode && appConfig.login==profile.user.login">
+                <a class="tab" ng-class="{enabled: topNav.tab == 'settings'}" ui-sref="profile.my.settings">
+                    My Settings
+                </a>
+                <a ng-if="appConfig.achievementsEnabled" class="tab" ng-class="{enabled: topNav.tab == 'achievements'}" ui-sref="profile.my.achievements">
+                    Achievements
+                </a>
+                <a class="tab" ng-class="{enabled: topNav.tab == 'exports'}" ui-sref="profile.my.exports">
+                    Exports
+                </a>
+                <a class="tab" ng-class="{enabled: topNav.tab == 'stars'}" ui-sref="profile.my.stars">
+                    Stars and watches
+                </a>
+                <a class="tab" ng-class="{enabled: topNav.tab == 'apikeys'}" ui-sref="profile.my.apikeys">
+                    API keys
+                </a>
+                <a class="tab" ng-class="{enabled: topNav.tab == 'credentials'}" ui-sref="profile.my.credentials">
+                    Credentials
+                </a>
+                <a class="tab" ng-class="{enabled: topNav.tab == 'account'}" ui-sref="profile.my.account">
+                    My Account
+                </a>
+
+                <div class="otherLinks">
+                    <button
+                        class="btn btn--secondary"
+                        ng-click="logout()"
+                        style="float:right; margin-right:5px;"
+                        >
+                        <i class="icon-signout" />
+                        Logout
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="dss-page row-fluid">
+        <div block-api-error />
+
+        <div class="span2 offset0 nav-list-sidebar sidebar-admin oa" ng-if="profile.user.login" tab-model="uiState.settingsPane">
+            <div class="avatar square shade" style="width:80%; margin: 5px auto" ng-if="profile.user">
+                <span ng-if="isDSSAdmin() || (!appConfig.noLoginMode && appConfig.login==profile.user.login)">
+                    <div class="avatar-overlay">Change image</div>
+                    <totem
+                        ng-show="profile.user.login"
+                        object-type="'USER'"
+                        object-id="profile.user.login"
+                        object-img-hash="profile.user.objectImgHash"
+                        size="256"
+                        editable="true"
+                    />
+                </span>
+                <span ng-if="!isDSSAdmin() && !(!appConfig.noLoginMode && appConfig.login==profile.user.login)">
+                    <totem
+                        ng-show="profile.user.login"
+                        object-type="'USER'"
+                        object-id="profile.user.login"
+                        object-img-hash="profile.user.objectImgHash"
+                        size="256"
+                        editable="false"
+                    />
+                </span>
+            </div>
+            <!-- <div style="text-align: center; color: #666; margin-top: 15px;">
+                Login: @{{profile.user.login}}
+            </div> -->
+
+            <div style="padding: 20px">
+                <div>
+                    <h2 class="page-subtitle dib">Login: </h2>
+                    <span style="font-size: 13px; color: #666666; margin-left: 5px;">
+                        @{{profile.user.login}}
+                    </span>
+                </div>
+                <div>
+                    <h2 class="page-subtitle dib">Profile: </h2>
+                    <span style="font-size: 13px; color: #666666; margin-left: 5px;">
+                        {{profile.user.userProfile || '[None]'}}
+                    </span>
+                </div>
+                <h2 class="page-subtitle">Groups:</h2>
+                <ul class="groupList">
+                    <li ng-repeat="group in profile.user.groups">
+                        <i class="icon-group" style="font-size: 0.8em;" /> {{group}}
+                    </li>
+                </ul>
+            </div>
+            
+            <div style="padding: 0 20px; text-align: center;">
+                <div ng-if="hooks.isDirty && hooks.isDirty()" class="btn-group save-button" style="display: inline-block; width: 100px; margin-top: 5px;">
+                    <button class="btn btn--outline btn--primary" id="qa_profile_save-button" style="width: 100%" ng-click="hooks.save()">
+                        <i class="icon-save"></i>
+                        &nbsp;Save
+                    </button>
+                </div>
+                <div ng-if="hooks.isDirty && !hooks.isDirty()" class="btn-group save-button" style="display: inline-block; width: 100px; margin-top: 5px;">
+                    <button class="btn btn--outline btn--primary" ng-disabled="true" style="width: 100%" >
+                        <i class="icon-save"></i>
+                        &nbsp;Saved!
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="span10 h100 offset0">
+            <div ui-view class="h100 oa" style="margin-bottom: 48px;" ng-if="profile.user" />
+        </div>
+    </div>
+</div>
+

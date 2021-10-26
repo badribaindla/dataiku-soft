@@ -1,0 +1,68 @@
+<div class="control-group">
+    <label class="control-label" dku-for="#sourceNotebookInput button">Source notebook</label>
+    <div class="controls">
+        <div object-picker="facade.notebookSmartName"
+            type="JUPYTER_NOTEBOOK"
+            object="hook.sourceObject"
+            id="sourceNotebookInput"
+            error-scope="$parent.$parent">
+        </div>
+
+        <input type="hidden" ng-model="facade.notebookSmartName" required />
+
+        <div insight-source-info/>
+    </div>
+</div>
+
+
+<div class="control-group">
+    <label class="control-label" for="loadLastInput">Always display last export</label>
+    <div class="controls">
+        <input type="checkbox" ng-model="insight.params.loadLast" ng-change="checkLoadLastAndTimestampConsistency() && insight.params.loadLast && resetTimestamp()" id="loadLastInput">
+    </div>
+</div>
+
+
+<div class="control-group" ng-if="canWriteProject()">
+    <label class="control-label" ng-show="insight.params.loadLast" for="createExportInput">
+        Create new export now
+    </label>
+    <label class="control-label" ng-show="!insight.params.loadLast" for="createExportInput">
+        Create and display new export
+    </label>
+
+    <div class="controls">
+        <input type="checkbox"
+            ng-model="facade.createExport"
+            ng-change="checkLoadLastAndTimestampConsistency() && facade.createExport && resetTimestamp()"
+            id="createExportInput">
+    </div>
+</div>
+
+
+<div class="control-group" ng-if="!insight.params.loadLast && facade.availableExports.length && !facade.createExport">
+    <label class="control-label" dku-for="#exportTimestampInput button">Export to display</label>
+    <div class="controls" id="exportTimestampInput">
+        <select
+            ng-model="insight.params.exportTimestamp"
+            ng-options="export.timestamp as formatDate(export.timestamp) for export in facade.availableExports"
+            ng-change="checkLoadLastAndTimestampConsistency()"
+            dku-bs-select
+            required>
+        </select>
+    </div>
+</div>
+
+
+<div ng-if="facade.notebookSmartName && !facade.availableExports.length && !canWriteProject()">
+    <p>No export is available for this notebook, please ask its owner to create one.</p>
+</div>
+
+
+<div class="control-group">
+    <label class="control-label" for="insightNameInput">Insight name</label>
+    <div class="controls">
+        <input type="text" ng-model="insight.name" placeholder="{{hook.defaultName}}" id="insightNameInput" />
+    </div>
+</div>
+

@@ -1,0 +1,1 @@
+Convert an `array<string>` to a `map<string,int>`, with a count of number of elements

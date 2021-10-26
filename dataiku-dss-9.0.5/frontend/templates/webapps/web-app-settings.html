@@ -1,0 +1,139 @@
+<form style="margin: 20px" class="dkuform-horizontal">
+    <div>
+        <h4> Backend </h4>
+        <div class="control-group" ng-if="app.type == 'STANDARD'">
+            <label for="" class="control-label">Enable backend</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="app.params.backendEnabled" />
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-show="backendEnabled(app)">
+            <label for="" class="control-label">Auto-start backend</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="app.params.autoStartBackend" />
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-show="backendEnabled(app)">
+            <label for="" class="control-label">Require authentication</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="app.params.forceAuthentication" />
+                    <span class="help-inline">The webapp cannot be accessed without being logged into DSS. Note that your administrator may override this setting and require authentication for all webapps</span>
+                </label>
+            </div>
+        </div>
+        <div ng-if="app.type == 'STANDARD' && backendEnabled(app)" code-env-selection-form="app.params.envSelection" env-lang="'PYTHON'" selection-label="'Code env'"></div>
+        <div ng-if="app.type == 'BOKEH'" code-env-selection-form="app.params.envSelection" env-lang="'PYTHON'" selection-label="'Code env'"></div>
+        <div ng-if="app.type == 'DASH'" code-env-selection-form="app.params.envSelection" env-lang="'PYTHON'" selection-label="'Code env'"></div>
+        <div ng-if="app.type == 'SHINY'" code-env-selection-form="app.params.envSelection" env-lang="'R'" selection-label="'Code env'"></div>
+        <div class="control-group" ng-show="backendEnabled(app)">
+            <label for="" class="control-label">Run backend as</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="app.params.runAs" ng-options="user.login as user.login for user in allUsers">
+                    <option value="">Last modifier</option>
+                </select>
+            </div>
+        </div>
+        <div class="control-group" ng-if="app.type == 'STANDARD' && backendEnabled(app)">
+            <label for="" class="control-label">Number of processes</label>
+            <div class="controls">
+               <input type="number" force-integer min="0" ng-model="app.params.nbProcesses" />
+               <span class="help-inline">Number of processes the python backend can fork to handle requests. Use 0 to allow threading in a single process.</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="app.type == 'BOKEH'">
+            <label for="" class="control-label">Number of processes</label>
+            <div class="controls">
+               <input type="number" force-integer min="0" ng-model="app.params.nbProcesses" />
+               <span class="help-inline">Number of processes the python backend can fork to handle requests. Use 0 to allow spawn as many as the machine has cores.</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="app.type == 'DASH'">
+            <label for="" class="control-label">Number of processes</label>
+            <div class="controls">
+               <input type="number" force-integer min="0" ng-model="app.params.nbProcesses" />
+               <span class="help-inline">Number of processes the python backend can fork to handle requests. Use 0 to allow threading in a single process.</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="app.type == 'DASH'">
+            <label for="" class="control-label">Serve locally</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="app.params.serveLocally" />
+                    <span class="help-inline">Let the webapp serve needed assets from local files (as opposed to using CDNs).</span>
+                </label>
+            </div>
+        </div>
+
+        <div web-app-infra="app.params.infra" web-app-type="app.type" ng-show="backendEnabled(app)"></div>
+
+        <div class="control-group"  ng-if="sharedState.backendState.exposed && sharedState.backendState.exposed.availability == 'PUBLIC'">
+            <div class="controls">
+                <span class="help-inline">Accessible on http://{{sharedState.backendState.exposed.host}}:{{sharedState.backendState.exposed.port}}/{{sharedState.backendState.exposed.path}}</span>
+            </div>
+        </div>
+        <div class="control-group"  ng-if="sharedState.backendState.exposed && sharedState.backendState.exposed.availability == 'LOCAL' && sharedState.backendState.exposed.publicUrl">
+            <div class="controls">
+                <span class="help-inline">Accessible on {{sharedState.backendState.exposed.publicUrl}}</span>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="app.type == 'STANDARD'">
+        <h4> Security </h4>
+        <a class="btn btn--secondary" ng-click="showSettingsModal()"> Configure </a>
+    </div>
+
+    <div ng-if="showFrontendTabs(app)">
+        <h4> Javascript libraries </h4>
+
+        <div class="alert-info alert">
+            Apart from the "Dataiku API" library, the ability to use these libraries directly is provided as a best-effort helper, especially if your
+            browser does not have access to Internet.
+            <br />
+
+            The selection of libraries is limited, and most of the versions are pretty old. We recommend that, as much as possible, you use libraries provided by the developers of the library you want to use (just add &lt;script&gt; and &lt;link&lt; elements in your HTML as recommended by the upstream developers)
+        </div>
+
+        <label class="checkbox">
+            <input type="checkbox" ng-model="libraries.jquery" id="qa_webapp_checkbox-jquery"/>
+            JQuery (1.10)
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" ng-model="libraries.dataiku" id="qa_webapp_checkbox-dataiku" />
+            Dataiku API
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" ng-model="libraries.bootstrap" id="qa_webapp_checkbox-bootstrap" />
+            Bootstrap (3.0)
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" ng-model="libraries.d3" id="qa_webapp_checkbox-d3" />
+            D3.js (3.3)
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" ng-model="libraries.nvd3" id="qa_webapp_checkbox-nvd3" />
+            NVD3 (1.7)
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" ng-model="libraries.leaflet" id="qa_webapp_checkbox-leaflet" />
+            Leaflet (0.7)
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" ng-model="libraries.font_awesome" id="qa_webapp_checkbox-font_awesome" />
+            Font Awesome (3.2)
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" ng-model="libraries.datamaps" id="qa_webapp_checkbox-datamaps" />
+            Datamaps (0.2.8)
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" ng-model="libraries.topojson" id="qa_webapp_checkbox-topojson" />
+            TopoJSON
+        </label>
+    </div>
+</form>

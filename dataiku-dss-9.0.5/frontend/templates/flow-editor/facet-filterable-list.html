@@ -1,0 +1,30 @@
+<div class="value-list">
+    <label class="search" ng-class="{'expanded': showInput}" ng-if="items.length > 5">
+        <i class="icon {{ showInput ? 'icon-remove' : 'icon-search' }}" ng-click="$parent.showInput = !$parent.showInput; $parent.facetValueSearch = ''"></i>
+        <input type="text" ng-model="$parent.facetValueSearch"
+               class="facet-search"
+               ng-keydown="onFacetSearchKeyDown($event);"/>
+    </label>
+    <label class="all" ng-click="model.splice(0,model.length)" ng-class="{checked: !model || !model.length}">
+        <input type="checkbox" ng-checked="!model || !model.length" ng-click="return" ng-disabled="!model || !model.length"/> All
+    </label>
+    <div class="facet-filterable-list__value-list__items">
+        <label ng-repeat="item in filteredItems = (items | filter:filterFunction(facetValueSearch)) | orderBy:orderBy " ng-if="showAllItems || $index < 3 || items.length == 4 || model.indexOf(item.key) > -1 || facetValueSearch" style="white-space: nowrap">
+            <div style="display: flex; align-items: center">
+                <input type="checkbox" checklist-model="$parent.$parent.model" checklist-value="item.key"/>
+                <div   style="overflow: hidden; width: 100%;">
+                    <ng-transclude style="display: flex; flex: 1; align-items: center;">
+                        <span class="label">{{ item.label }}</span>
+                    </ng-transclude>
+                </div>
+            </div>
+        </label>
+    </div>
+    <label ng-if="filteredItems && filteredItems.length == 0">No matching value</label>
+    <span class="more" ng-show="
+											items.length > 4
+											&& !showAllItems
+											&& !facetValueSearch" ng-click="showAllItems = true">
+											+ {{filteredItems.length - 3}} more…
+										    </span>
+</div>

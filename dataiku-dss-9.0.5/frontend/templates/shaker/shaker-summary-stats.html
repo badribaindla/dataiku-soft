@@ -1,0 +1,112 @@
+<div class="shaker-summary" ng-if="shaker.origin == 'DATASET_EXPLORE'">
+
+    <div ng-if="shaker.steps.length == 0 || isAllStepsDisabled()" class="sample-summary">
+        <h4>Viewing dataset sample <small style="margin-left: 20px; font-size: 13px">
+            <a class="mx-link-nodecoration" id="configure-sample-button" ng-click="toggleLeftPane()">Configure sample</a>
+        </small></h4>
+        <div class="info">
+            <span class="dataset-structure" ng-show="table">
+                <span><strong>{{table.initialRows}}</strong> row{{table.initialRows>1?'s':''}},</span>
+                <span><strong>{{table.initialCols}}</strong> col{{table.initialCols>1?'s':''}}</span>
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="shaker-summary" ng-if="shakerState.withSteps">
+
+    <div class="autorefresh-disabled-warning" ng-show="shaker.exploreUIParams && !shaker.exploreUIParams.autoRefresh">
+        <i title="Auto-refresh is disabled" class="icon-pause" />
+    </div>
+
+    <div ng-if="shaker.steps.length == 0 || isAllStepsDisabled()" class="sample-summary">
+        <h4>Viewing design sample</h4>
+        <div class="info">
+        	<span class="dataset-structure" ng-show="table">
+		        <span><strong>{{table.initialRows}}</strong> row{{table.initialRows>1?'s':''}},</span>
+		        <span><strong>{{table.initialCols}}</strong> col{{table.initialCols>1?'s':''}}</span>
+        	</span>
+        </div>
+    </div>
+
+	<!-- step summary -->
+    <div ng-if="shaker.steps.length > 0 && !isAllStepsDisabled() && stepBeingPreviewed" class="steps-summary">
+        <div class="eye-switch">
+            <button ng-click="stopPreview()">
+                <i class="icon-eye-open"></i>
+                <i class="icon-eye-close"></i>
+                <div class="label">Disable preview</div>
+            </button>
+        </div>
+        <div class="step-desc" style="max-width: 500px;">
+            <h4>Step preview</h4>
+            <p class="mx-textellipsis" ng-bind-html="getStepBeingPreviewedDescription()"></p>
+        </div>
+        <div class="impact-toggling">
+        	<div class="impact-toggle">
+	        	<span class="label" ng-class="{'selected' : shaker.previewMode == 'IMPACTED_ONLY'}">View {{getStepBeingPreviewedImpactVerb()}} rows</span>
+	            <label class="dku-toggle">
+	                <input
+	                    type="checkbox"
+	                    ng-model="shaker.previewMode"
+	                    ng-true-value="'ALL_ROWS'"
+	                    ng-false-value="'IMPACTED_ONLY'"
+	                    ng-change="autoSaveAutoRefresh()"
+	                    >
+	                <span/>
+	            </label>
+	            <span class="label" ng-class="{selected: shaker.previewMode == 'ALL_ROWS'}">View all rows</span>
+        	</div>
+
+             <div class="changes" ng-show="stepBeingPreviewed.$stepState.change" title="Impact of this step only">
+                    <span class="change created"
+                        title="Created"
+                        ng-show="stepBeingPreviewed.$stepState.change.createdRows">
+                        <i class="icon-plus" /> {{stepBeingPreviewed.$stepState.change.createdRows}}
+                    </span>
+                    <span class="change modified"
+                        title="Modified"
+                        ng-show="stepBeingPreviewed.$stepState.change.modifiedRows">
+                        <i class="icon-pencil" /> {{stepBeingPreviewed.$stepState.change.modifiedRows}}
+                    </span>
+                    <span class="change deleted"
+                        title="Deleted"
+                        ng-show="stepBeingPreviewed.$stepState.change.deletedRows">
+                        <i class="icon-minus" /> {{stepBeingPreviewed.$stepState.change.deletedRows}}
+                    </span>
+            </div>
+
+        </div>
+    </div>
+
+	<!-- Script output -->
+    <div ng-if="shaker.steps.length > 0 && !isAllStepsDisabled() &&  !stepBeingPreviewed" class="script-output">
+        <h4>Script output</h4>
+        <div class="info" ng-if="table">
+        	<span class="dataset-structure">
+	            <span><strong>{{table.totalRows}}</strong> row{{columns.length>1?'s':''}},</span>
+	            <span><strong>{{columns.length}}</strong> col{{columns.length>1?'s':''}}</span>
+        	</span>
+			<span class="changes" ng-show="table.scriptChange" title="Impact of the whole script (compared to design sample)">
+				(
+				<span class="change created"
+                    title="Impact of the whole script (compared to design sample): Created rows"
+                    ng-show="table.scriptChange.createdRows">
+                    <i class="icon-plus" /> {{table.scriptChange.createdRows}}
+                </span>
+				<span class="change modified"
+                    title="Impact of the whole script (compared to design sample): Modified rows"
+                    ng-show="table.scriptChange.modifiedRows">
+                    <i class="icon-pencil" /> {{table.scriptChange.modifiedRows}}
+                </span>
+				<span class="change deleted"
+                    title="Impact of the whole script (compared to design sample): Deleted rows"
+                    ng-show="table.scriptChange.deletedRows">
+                    <i class="icon-minus" /> {{table.scriptChange.deletedRows}}
+                </span>
+				)
+			</span>
+        </div>
+    </div>
+
+</div>

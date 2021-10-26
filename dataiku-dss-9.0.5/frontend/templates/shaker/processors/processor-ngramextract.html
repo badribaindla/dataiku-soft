@@ -1,0 +1,83 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-parent="processorForm">
+	<fieldset>
+	    <span class="fieldLabel">Column</span>
+	    <input
+	        type='text'
+	        bs-typeahead='step.$stepState.change.columnsBeforeStep'
+	        autocomplete='off'
+	        ng-trim="false"
+	        ng-required="param.mandatory"
+	        data-min-length='0'
+	        ng-model='step.params.inCol'
+	        class="submit-on-blur"
+	        next-on-enter/>
+	</fieldset>
+
+	<fieldset>
+		<div class="fieldLabel">Output</div>
+	    <select dku-bs-select ng-model="step.params.operation"
+	        class="submit-on-blur"
+	        next-on-enter
+	        required
+	        >
+	        <option value="TO_JSON">Convert to JSON</option>
+	        <option value="FOLD">One ngram per row</option>
+	        <option value="SPLIT">One ngram per column</option>
+	    </select>
+    </fieldset>
+
+
+    <fieldset ng-show="step.params.operation == 'TO_JSON' || step.params.operation == 'FOLD'">
+	    <span class="fieldLabel">Output column (empty for in-place)</span>
+	    <input
+	        type="text"
+	        ng-model="step.params.outCol"
+	        class="submit-on-blur"
+	        next-on-enter />
+	</fieldset>
+
+	<fieldset ng-show="step.params.operation =='SPLIT'">
+        <span class="fieldLabel">Prefix for output columns (empty = use input name)</span>
+        <input type="text" ng-model="step.params.prefix"
+        	class="submit-on-blur"
+            next-on-enter/>
+    </fieldset>
+
+	<fieldset>
+		<span class="fieldLabel">Minimum ngrams size</span>
+	    <input
+	        type='number'
+	    	ng-model="step.params.nmin"
+	        class="submit-on-blur"
+	        next-on-enter
+	        ng-required
+	        min="1"
+	        max="{{ Math.max(step.params.nmax, 1)}}"
+	        >
+	 </fieldset>
+
+	 <fieldset>
+	 	<span class="fieldLabel">Maximum ngrams size</span>
+	    <input
+	        type='number'
+	    	ng-model="step.params.nmax"
+	        class="submit-on-blur"
+	        next-on-enter
+	        ng-required
+	        min="{{step.params.nmin}}"
+	        max="10"
+	        >
+	</fieldset>
+
+	<ng-include src="'/templates/shaker/textsimplifier.html'"></ng-include>
+
+	<fieldset>
+		<label>
+	    <input type="checkbox" ng-model="step.params.sentenceSplit" class="submit-on-blur"><span class="fieldLabel">Break ngrams on sentence boundaries.</span></label>
+	</fieldset>
+
+	<fieldset>
+		<label>
+	    <input type="checkbox" ng-model="step.params.skip" class="submit-on-blur"><span class="fieldLabel">Also compute skip ngrams (non adjacent terms)</span></label>
+	</fieldset>
+</form>

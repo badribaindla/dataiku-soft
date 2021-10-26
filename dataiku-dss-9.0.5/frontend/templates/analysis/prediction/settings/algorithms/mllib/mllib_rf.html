@@ -1,0 +1,137 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Random Forest
+    </div>
+    <div data-block="algorithm-description">
+        <p>A <strong>Random Forest</strong> is made of many decision trees. Each tree in the forest predicts a record,  and each tree "votes" for the final answer of the forest.<br />
+        The forest chooses the class having the most votes.
+        </p>
+        <p>
+        A decision tree is a simple algorithm which builds a decision tree. Each node of the decision tree includes a condition on one of the input features.
+        </p>
+        <p>
+        When "growing" (ie, training) the forest:
+        </p>
+        <ul>
+            <li>for each tree, a random sample of the training set is used;</li>
+            <li>for each decision point in the tree, a random subset of the input features is considered.</li>
+        </ul>
+        <p>Random Forests generally provide good results, at the expense of "explainability" of the model.</p>
+    </div>
+    <div data-block="algorithm-params">
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.mllib_rf.num_trees"
+                         required
+                         label="Number of trees"
+                         help-inline="Number of trees in the forest."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.mllib_rf.max_depth"
+                         required
+                         label="Maximum depth of tree"
+                         help-inline="Maximum depth of each tree in the forest. Higher values generally increase the quality of the prediction, but can lead to overfitting. High values also increase the training and prediction time."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+
+        <div class="control-group required">
+            <label class="control-label">Feature subset strategy</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.mllib_rf.subset_strategy" options-descriptions="['Automatically decide based on data (all for one tree, a third for regression, square root for classification)',
+                'Selects all features',
+                'Selects a third of the features',
+                'Square root will select the square root of the number of features (classification)',
+                'Logarithm will select the base 2 logarithm of the number of features']">
+                    <option value="auto">Automatic</option>
+                    <option value="all">All features</option>
+                    <option value="onethird">One third</option>
+                    <option value="sqrt">Square root</option>
+                    <option value="log2">Logarithm</option>
+                </select>
+                <div class="help-inline">
+                    The number of features to consider for splits at each tree node.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required" ng-if="isClassification()">
+            <label class="control-label">Impurity</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.mllib_rf.impurity">
+                    <option value="gini">Gini</option>
+                    <option value="entropy">Entropy</option>
+                </select>
+                <div class="help-inline">
+                    Criterion used for information gain calculation
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Maximum number of bins</label>
+            <div class="controls">
+                <input type="number" force-integer min="2" ng-model="mlTaskDesign.modeling.mllib_rf.max_bins" />
+                <div class="help-inline">
+                    Used for discretizing continuous features and for choosing how to split on features at each node. More bins give higher granularity.
+                    <br /> Must be &ge; number of categories in any categorical feature.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Checkpoint interval</label>
+            <div class="controls">
+                <input type="number" force-integer min="1" ng-model="mlTaskDesign.modeling.mllib_rf.checkpoint_interval" />
+                <div class="help-inline">
+                    Specifies how often to checkpoint the cached node IDs. E.g. 10 means that the cache will get checkpointed every 10 iterations. This is only used if cacheNodeIds is true and if the checkpoint directory is set in the SparkContext.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Cache node IDs</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="mlTaskDesign.modeling.mllib_rf.cache_node_ids" />
+                <div class="help-inline">
+                    If false, the algorithm will pass trees to executors to match instances with nodes. If true, the algorithm will cache node IDs for each instance. Caching can speed up training of deeper trees.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Minimum information gain</label>
+            <div class="controls">
+                <input type="number" min="0" ng-model="mlTaskDesign.modeling.mllib_rf.min_info_gain" />
+                <div class="help-inline">
+                    Minimum information gain for a split to be considered at a tree node.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Minimum instance per node</label>
+            <div class="controls">
+                <input type="number" min="1" ng-model="mlTaskDesign.modeling.mllib_rf.min_instance_per_node" />
+                <div class="help-inline">
+                    Minimum number of instances each child must have after split. If a split causes the left or right child to have fewer than minInstancesPerNode, the split will be discarded as invalid.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Subsampling rate</label>
+            <div class="controls">
+                <input type="number" min="0.000001" max="1" ng-model="mlTaskDesign.modeling.mllib_rf.subsampling_rate" />
+                <div class="help-inline">
+                    Fraction of the training data used for learning each decision tree, in range (0,&nbsp;1].
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Seed</label>
+            <div class="controls">
+                <input type="number" min="1" ng-model="mlTaskDesign.modeling.mllib_rf.seed" />
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Maximum memory (MB)</label>
+            <div class="controls">
+                <input type="number" force-integer min="0" ng-model="mlTaskDesign.modeling.mllib_rf.max_memory_mb" />
+                <div class="help-inline">
+                    Allocated to histogram aggregation
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

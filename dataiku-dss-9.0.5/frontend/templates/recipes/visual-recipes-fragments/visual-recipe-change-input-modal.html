@@ -1,0 +1,37 @@
+<div ng-controller="ChangeRecipeVirtualInputController" class="modal modal3">
+    <div dku-modal-header modal-title="Replace recipe input" modal-class="has-border"/>
+    <form class="dkuform-modal-wrapper dkuform-modal-horizontal" name="newRecipeForm">
+        <div class="modal-body" style="overflow:visible;">
+            <div class="alert alert-error" ng-show="error">
+                <i class="icon-dku-error"></i>
+                {{error}}
+            </div>
+
+            <div class="control-group">
+                <label for="" class="control-label">Replace dataset {{datasetName}} with:</label>
+                <div dataset-selector="replacement.name" available-datasets="availableInputDatasets" class="qa_recipe_available-datasets-dropdown"></div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <div class="alert alert-success" ng-show="replacementImapact && !replacementImapact.warningMessages">
+                    <i class="icon-ok"/> This dataset can be used
+                </div>
+                <div class="alert" ng-show="replacementImapact && replacementImapact.warningMessages" style="max-height: 250px; overflow: auto;">
+                    <i class="icon-dku-error"/> This operation has issues:
+                    <ul>
+                        <li ng-repeat="msg in replacementImapact.warningMessages | orderBy: 'toString()'">{{msg}}</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons" global-keydown="{'enter':'joinIsValid() && addJoin();', 'esc': 'dismiss();' }">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" ng-disabled="!replacementImapact" class="btn btn--text btn--secondary" ng-click="ok(dismiss)"
+                ng-class="{'btn--primary': replacementImapact && !replacementImapact.invalid, 'btn--danger': replacementImapact && replacementImapact.invalid}">
+                Replace dataset
+            </button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,67 @@
+<div class="vertical-flex">
+    <div class="top-level-tabs">
+        <div class="horizontal-flex object-nav">
+            <div class="object-breadcrumb object-breadcrumb--tooltip-on-overflow">
+                <div class="item">
+                    <a class="object-breadcrumb__link-icon" ui-sref="projectdeployer.projects.list">
+                        <i class="icon icon-dku-project universe-background project-deployer" />
+                    </a>
+                    <div class="title">
+                        <a ui-sref="projectdeployer.projects.list"
+                            class="object-breadcrumb__link"
+                            title="Go back to project list">Projects</a>
+                        <i ng-if="projectStatus" class="object-breadcrumb__divider">/</i>
+                        <a ng-click="redirectToProject(projectStatus, $event)"
+                            class="object-breadcrumb__link object-breadcrumb__item"
+                            show-tooltip-on-text-overflow 
+                            text-tooltip="projectStatus.projectBasicInfo.name"
+                            tooltip-direction="'tooltip-bottom'"></a>
+                        <i ng-if="projectStatus" class="object-breadcrumb__divider">/</i>
+                        <div show-tooltip-on-text-overflow 
+                            class="object-breadcrumb__item"
+                            ng-if="projectStatus.packages.length <= 1"
+                            text-tooltip="$stateParams.bundleId"
+                            tooltip-direction="'tooltip-bottom'"></div>
+                        <div custom-element-popup class="object-breadcrumb__link object-breadcrumb__item" ng-if="projectStatus.packages.length > 1">
+                            <span class="object-breadcrumb__dropdown-label mainzone" ng-click="togglePopover()">
+                                <span class="object-breadcrumb__dropdown-label-text" show-tooltip-on-text-overflow text-tooltip="$stateParams.bundleId" tooltip-direction="'tooltip-bottom'"></span>
+                                <span class="caret" />
+                            </span>
+                            <div class="popover sort-box-menu object-breadcrumb__dropdown-menu">
+                                <ul>
+                                    <li ng-repeat="package in projectStatus.packages" ng-if="package.id !== $stateParams.bundleId" ui-sref="projectdeployer.projects.project.bundle.status({ publishedProjectKey: $stateParams.publishedProjectKey, bundleId: package.id})">
+                                        <span>{{ package.id }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="noflex">
+                <a class="tab" ng-class="{enabled: $state.current.name.includes('status')}" ui-sref="projectdeployer.projects.project.bundle.status" fw500-width>
+                    Status
+                </a>
+
+                <div class="otherLinks">
+                    <button class="btn btn--secondary dropdown-toggle" data-toggle="dropdown" href>
+                        Actions <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu pull-right text-left">
+                        <li>
+                            <a ng-click="deleteBundle()">
+                                <span class="text-error">
+                                    <i class="icon-trash" />&nbsp;Delete this bundle
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="dss-page fh oa">
+        <div ui-view></div>
+    </div>
+</div>

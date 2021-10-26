@@ -1,0 +1,636 @@
+<div class="summary-tab project-summary-page h100">
+    <div block-api-error />
+    <div class="row-fluid offset0 h100">
+        <div class="span9 offset0 h100 oya object-or-project-summary-column-base" style="padding-right: 5px">
+
+            <div ng-if="projectSummary" editable-project-summary  class="row-fluid offset0 title-zone">
+                <div class="span8 offset0" style="position: relative;">
+                    <div class="object-image">
+                        <totem project-name="projectSummary.name"
+                           project-key="$stateParams.projectKey"
+                           object-type="'PROJECT'"
+                           object-id="$stateParams.projectKey"
+                           object-img-hash = "object.objectImgHash"
+                           sizeX="80" sizeY="220"
+                           editable="canWriteProject()",
+                           img-color="projectSummary.imgColor",
+                           img-pattern="projectSummary.imgPattern",
+                           show-initials="projectSummary.showInitials",
+                           is-project-img="projectSummary.isProjectImg",
+                           default-img-color="projectSummary.defaultImgColor"></totem>
+                        <div class="overlay" ng-if="object.objectImgHash && isProjectAnalystRW()">Change Image</div>
+                    </div>
+
+                    <div class="object-main">
+                        <!-- Project Title -->
+                        <h3 class="object-title">
+                            <div ng-if="!state.name.editing" style="height: 46px">
+                                <span class="dib" style="max-width: calc(100% - 40px)" show-tooltip-on-text-overflow text-tooltip="projectSummary.name"></span>
+                                <a class="edit-button link-std"
+                                    ng-if="isProjectAnalystRW()"
+                                    ng-click="startFieldEdit('name', isProjectAnalystRW())"
+                                    style="position: relative; top: -15px;">
+                                    <i class="icon-pencil" title="Edit project name" toggle="tooltip" data-placement="right" container="body" />
+                                </a>
+                            </div>
+                            <form ng-if="state.name.editing" class="name-edit-zone dkuform-std-vertical m0" name="renameProjectForm">
+                                <input
+                                    type="text"
+                                    class="in-place-edit"
+                                    auto-focus="true"
+                                    dku-local-keypress="{'enter': 'validateFieldEditNotUndefined()', 'esc' : 'cancelFieldEdit()'}"
+                                    ng-model="state.name.newVal"
+                                    placeHolder="New name"
+                                    style="width: calc(100% - 115px); height: inherit; margin-bottom: 0"
+                                    required
+                                    />
+                                <span>
+                                    <button ng-disabled="renameProjectForm.$invalid" class="btn btn--text  btn--primary" ng-click="validateFieldEdit()">Save</button>
+                                    <button class="btn btn--text btn--secondary" ng-click="cancelFieldEdit()">Cancel</button>
+                                </span>
+                            </form>
+                        </h3>
+
+                        <!-- Short Description -->
+                        <div ng-if="!state.shortDesc.editing" class="shortDesc-well">
+                            <div ng-if="isProjectAnalystRW() && (object.shortDesc == null || object.shortDesc.length == 0)" ng-click="startFieldEdit('shortDesc', isProjectAnalystRW())">
+                                <span class="help-text">
+                                    Create a short description (appears on homepage)
+                                </span>
+                            </div>
+                            <div ng-if="object.shortDesc.length">
+                                <a class="edit-button link-std pull-right"
+                                    ng-if="isProjectAnalystRW()"
+                                    ng-click="startFieldEdit('shortDesc', isProjectAnalystRW())"
+                                    style="position: relative; top: -15px;"
+                                    title="Edit project short description"
+                                    toggle="tooltip">
+                                    <i class="icon-pencil" />
+                                </a>
+                                <div from-markdown="object.shortDesc" class="description markdown-std"></div>
+                            </div>
+                        </div>
+                        <form ng-if="state.shortDesc.editing" class="shortdesc-edit-zone shortDesc-well dkuform-std-vertical m0">
+                            <h3 autocompletable-textarea resizable="false" ui-keydown="{esc: 'cancelFieldEdit()', 'ctrl-s meta-s':'validateFieldEdit()', 'ctrl-enter meta-enter': 'validateFieldEdit()'}">
+                                <textarea
+                                    ng-model="state.shortDesc.newVal"
+                                    placeholder="Short description appears on homepage"
+                                    auto-focus="true"
+                                    style="width: 100%;max-width:100%"
+                                    ui-codemirror="editorOptions"
+                                    ng-if="editorOptions"
+                                    >
+                                </textarea>
+                                <div>
+                                    <button class="btn btn--text btn--primary" ng-click="validateFieldEdit()">Save</button>
+                                    <button class="btn btn--text btn--secondary" ng-click="cancelFieldEdit()">Cancel</button>
+                                </div>
+                            </h3>
+                        </form>
+
+                        <div class="project-meta-infos">
+                            <!-- Project People -->
+                            <div class="project-people" ng-show="!state.shortDesc.editing">
+                                <a ng-if="projectSummary.ownerLogin" href="/profile/{{projectSummary.ownerLogin}}/" toggle="tooltip" title="{{projectSummary.ownerDisplayName}} – Owner" container="body" class="link-std">
+                                    <!-- Size increased by one to prevent errors with border radius -->
+                                    <span user-picture="projectSummary.ownerLogin" size="25" class="avatar24" />
+                                </a>
+
+                                <span ng-if="objectTimeline.allContributors.length > 1" class="owner-separator">&nbsp;</span>
+
+                                <a ng-repeat="contributor in objectTimeline.allContributors" ng-hide="contributor.login === projectSummary.ownerLogin"  title="{{contributor.displayName}}" container="body" href="/profile/{{contributor.login}}/" class="link-std">
+                                    <!-- Size increased by one to prevent errors with border radius -->
+                                    <span user-picture="contributor.login" size="25" class="avatar24" />
+                                </a>
+                            </div>
+
+                            <!-- Git information -->
+                            <div class="project-git-info" ng-if="appConfig.gitMode == 'PROJECT'">
+                                <i class="icon-dku-git project-git-info__icon"></i>
+                                <a class="project-git-info__branch-name" ui-sref="projects.project.version-control">
+                                    {{currentBranch}}
+                                </a>
+                            </div>
+
+                            <!-- Project Tags -->
+                            <tag-edit-popover get-all-tags="getAllProjectTags('', 'allprojects')" ng-model="object.tags"
+                                responsive="true"
+                                object-type="objectType"
+                                manage-link="false"
+                                editable="isProjectAnalystRW()"
+                                class="project-tags tags-field">
+                            </tag-edit-popover>
+
+
+                            <div ng-show="!state.shortDesc.editing" style="width: 100%">
+                                <!-- Project Status -->
+                                <div custom-element-popup cep-position="align-left-top" hide-popover-button="true" close-on-click="true" on-hide-callback="cancelFieldEdit">
+                                    <div class="project-status mainzone horizontal-flex" ng-click="startFieldEdit('projectStatus', isProjectAnalystRW());togglePopover()">
+                                        <span ng-if="projectSummary.projectStatus" class="status-color" style="background-color:{{getProjectStatusColor(projectSummary.projectStatus)}};"></span>
+                                        <span ng-if="projectSummary.projectStatus" class="status-title">{{projectSummary.projectStatus}}</span>
+                                        <span ng-if="!projectSummary.projectStatus" class="help-text">No project status yet</span>
+                                    </div>
+
+                                    <div class="popover dropdown-menu custom-element-popup-popover project-status-list-popover"
+                                        project-status-selector="appConfig.projectStatusList"
+                                        is-selected-func="isProjectStatusSelected"
+                                        on-click-func="editProjectStatus">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="span4 offset0" style="padding-left: 20px">
+                    <!-- Interests -->
+                    <div class="project-interests">
+                        <span class="btn-group" style="display:inline-block">
+                            <div class="btn btn--secondary" ng-disabled="!isProjectAnalystRO()" custom-element-popup hide-popover-button="true" close-on-click="true">
+                                <div class="mainzone" ng-click="isProjectAnalystRO() && togglePopover()">
+                                    <i class="icon-eye-open interests-watch" ng-class="{ active: isWatching(objectInterest.watching) }"></i> Watch
+                                    <i class="icon-caret-down" style="margin-left: 3px;"/>
+                                </div>
+
+                                <div class="popover custom-element-popup-popover watch-modes">
+                                    <div full-click class="watch-mode" ng-class="{ active: !isWatching(objectInterest.watching) }">
+                                        <i class="icon-ok" />
+                                        <a main-click class="title link-std" ng-click="isProjectAnalystRO() && watchObject('ENO')">Don't watch</a>
+                                        <div class="description">Never notified of any activity in this project, unless specified in sub-objects</div>
+                                    </div>
+                                    <div full-click class="watch-mode" ng-class="{ active: isShallowWatching(objectInterest.watching) }">
+                                        <i class="icon-ok" />
+                                        <a main-click class="title link-std" ng-click="isProjectAnalystRO() && watchObject('SHALLOW')">Simple watch</a>
+                                        <div class="description">Notified of the general activity in this project</div>
+                                    </div>
+                                    <div full-click class="watch-mode" ng-class="{ active: isFullyWatching(objectInterest.watching) }">
+                                        <i class="icon-ok" />
+                                        <a main-click class="title link-std" ng-click="isProjectAnalystRO() && watchObject('YES')">Full watch</a>
+                                        <div class="description">Notified of every activity in this project, including sub-objects</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <a class="btn btn--secondary"
+                                ng-disabled="!isProjectAnalystRO()"
+                                ng-click="isProjectAnalystRO() && objectInterest.nbWatching && showWatchingUsers()"
+                                title="{{objectInterest.nbWatching | pluralize :'user is' :'users are'}} watching this"
+                                toggle="tooltip">
+                                {{objectInterest.nbWatching}}
+                            </a>
+                        </span>
+
+                        <star-button status="objectInterest.starred"
+                                     on-toggle="isProjectAnalystRO() && starObject(nextStatus)"
+                                     nb-starred="objectInterest.nbStarred"
+                                     on-show-users-with-star="isProjectAnalystRO() && objectInterest.nbStarred && showUsersWithStar()"
+                                     disabled="!isProjectAnalystRO()"
+                        ></star-button>
+                    </div>
+
+                    <!-- History -->
+                    <div class="recent-history" ng-if="projectRecentItems.length && isProjectAnalystRO()">
+                        <ul>
+                            <li ng-repeat="item in projectRecentItems">
+                                <a href="{{historyItemHref(item)}}" class="horizontal-flex">
+                                    <div class="flex mx-textellipsis title">
+                                        <i class="icon {{item.subtype | subTypeToIcon: item.type }} {{item.subtype |subTypeToColor: item.type}}" title="{{item.subtype}}"/>
+                                        <span class="item-name">{{item.displayName || item.id}}</span>
+                                    </div>
+
+                                    <div class="last-viewed noflex">
+                                        <date ng-if="!item.lastViewed">&nbsp;</date>
+                                        <date ng-if="item.lastViewed">{{item.lastViewed|friendlyTimeDeltaShort }}</date>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Second line if any scenario: scenarios & monitoring -->
+            <div ng-if="projectSummary && isProjectAnalystRO() && projectSummaryStatus.totalScenarios" class="row-fluid offset0" ng-controller="OutcomesSummaryController">
+                <div class="project-content-summary automation">
+                    <div class="content-section" style="width: 100%">
+                        <h1>
+                            <a ui-sref="projects.project.scenarios.list" style="color: inherit; text-decoration: none">Automation</a>
+                        </h1>
+                        <div class="horizontal-flex">
+                            <div class="content-item flex-no-shrink tac" style="width: 230px; padding-top: 1em;" full-click
+                                    ng-if="appConfig.disableAutomaticTriggers || projectSummary.disableAutomaticTriggers || !projectSummaryStatus.activeScenarios">
+                                No active scenarios yet.<br>
+                                <span ng-if="projectSummary.disableAutomaticTriggers && !appConfig.disableAutomaticTriggers">
+                                    Auto triggers are disabled on this project.
+                                </span>
+                                <span ng-if="appConfig.disableAutomaticTriggers">
+                                    Auto triggers are globally disabled.
+                                </span>
+                                <span ng-if="!projectSummary.disableAutomaticTriggers && !appConfig.disableAutomaticTriggers">
+                                    Activate one
+                                    <a ui-sref="projects.project.scenarios.list" class="link-plain" main-click>from the list</a>
+                                </span>
+                            </div>
+                            <div class="content-item" full-click ng-if="projectSummaryStatus.activeScenarios && !projectSummary.disableAutomaticTriggers && !appConfig.disableAutomaticTriggers">
+                                <div class="number">
+                                    <a main-click ui-sref="projects.project.scenarios.list">
+                                        {{projectSummaryStatus.activeScenarios || 0}} {{ projectSummaryStatus.activeScenarios < projectSummaryStatus.totalScenarios? '/' + (projectSummaryStatus.totalScenarios || 0) : '' }}
+                                    </a>
+                                </div>
+                                <div class="name scenarios" style="white-space: nowrap">Active scenarios</div>
+                            </div>
+                            <div class="content-item" full-click>
+                                <div class="number">
+                                    <a main-click ui-sref="projects.project.monitoring.scenarios">{{totalRuns || 0}}</a>
+                                </div>
+                                <div class="name scenarios">Runs</div>
+                            </div>
+                            <div class="flex-no-shrink content-item scenario-outcomes scenario-outcomes--in-project-homepage">
+                                <div class="graph-header" ng-if="columns">
+                                    <div class="graph">
+                                        <div class="cell-pane">
+                                            <div class="tick-label" ng-repeat="column in columns" style="left: {{100 * ($index + 0.5) / columns.length}}%">
+                                                <div ng-if="column.dow == 0 && column.date != hovered.date" class="date-label" >{{column.dateFormatted}}</div>
+                                                <div ng-if="column.date == hovered.date" class="hovered-date-label" >
+                                                    {{column.dateDay}}<br/>{{column.dateFormatted}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="graph-body" ng-if="columns">
+                                    <div class="graph">
+                                        <div class="cell-pane" custom-element-popup cep-position="smart" close-others="false">
+                                            <div class="cell" ng-repeat="column in columns" style="width: {{100 / columns.length}}%; height: 30px;"
+                                                    ng-class="{'weekend' : column.dow == 6 || column.dow == 0, 'hover-active' : hovered.date == column.date}"
+                                                    ng-mouseenter="hover($event, column, this)" ng-mouseleave="unhover($event, column, this)"
+                                                    ng-click="gotoRuns(column)" >
+                                                <div ng-if="column.outcome" class="line {{column.outcome}}"></div>
+                                            </div>
+                                            <ul class="popover scenario-runs-popover">
+                                                <li><strong>{{popoverColumn.dateTooltip}}</strong><span>{{popoverColumn.runs | pluralize :'run' :'runs'}}</span></li>
+                                                <li ng-repeat="scenario in popoverColumn.scenarios | limitTo: 10">
+                                                    <strong>{{scenario.name}}</strong>
+                                                    <span class="scenario-results">
+                                                        <i class="icon-remove-sign failed" ng-if="scenario.failed">{{scenario.failed}}</i>
+                                                        <i class="icon-warning-sign warning" ng-if="scenario.warning">{{scenario.warning}}</i>
+                                                        <i class="icon-check-sign success" ng-if="scenario.success">{{scenario.success}}</i>
+                                                        <i class="icon-ban-circle aborted" ng-if="scenario.aborted">{{scenario.aborted}}</i>
+                                                    </span>
+                                                </li>
+                                                <li ng-show="popoverColumn.scenarios.length &gt; 10"><strong>&hellip;</strong><span/></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Second/Third line: what's in the project -->
+            <div ng-if="projectSummary && isProjectAnalystRO()" class="row-fluid offset0">
+                <div class="project-content-summary">
+                     <div ng-if="projectSummary.projectType == 'BUNDLE_CONTAINER'" class="active-bundle-info">
+                        <div ng-if="!projectSummary.activeBundleState" class="text-error ">
+                            <i class="icon icon-bundle"></i>
+                            No bundle active yet. Activate a bundle from <a ui-sref="projects.project.bundlesautomation.list">the list</a>
+                        </div>
+                        <div ng-if="projectSummary.activeBundleState">
+                             <i class="icon icon-bundle"></i>
+                             Running bundle: <a ui-sref="projects.project.bundlesautomation.list"><strong>{{projectSummary.activeBundleState.bundleId}}</strong></a> <span class="details">- activated on {{projectSummary.activeBundleState.activatedOn}}</span>
+                        </div>
+                     </div>
+
+                     <div ng-show="projectSummary.projectType != 'BUNDLE_CONTAINER' || projectSummary.activeBundleState">
+
+                        <div class="content-section" style="width: 34%">
+                            <h1>
+                                <a ui-sref="projects.project.flow" style="color: inherit; text-decoration: none">Flow</a>
+                            </h1>
+                            <div class="content-item" full-click>
+                                <i class="icon datasets icon-other_sql" />
+                                <div class="number">
+                                    <a main-click ui-sref="projects.project.datasets.list">{{projectSummaryStatus.datasets}}</a>
+                                </div>
+                                <div class="name datasets">{{ 'Dataset' | plurify: projectSummaryStatus.datasets}}</div>
+                            </div>
+                            <div class="content-item"  full-click>
+                                <i class="icon recipes icon-code" />
+                                <div class="number">
+                                    <a main-click ui-sref="projects.project.flow">{{projectSummaryStatus.recipes}}</a>
+                                </div>
+                                <div class="name recipes">{{ 'Recipe' | plurify: projectSummaryStatus.recipes }}</div>
+                            </div>
+                            <div class="content-item" full-click>
+                                <i class="icon analysis icon-machine_learning_regression" />
+                                <div class="number">
+                                    <a main-click ui-sref="projects.project.flow">{{projectSummaryStatus.flowModels}}</a>
+                                </div>
+                                <div class="name analysis">{{ 'Model' | plurify: projectSummaryStatus.flowModels}}</div>
+                            </div>
+                            <div class="content-item" full-click ng-if="projectSummaryStatus.flowStreamingEndpoints > 0">
+                                <i class="icon streaming-endpoints icon-double-angle-right" />
+                                <div class="number">
+                                    <a main-click ui-sref="projects.project.flow">{{projectSummaryStatus.flowStreamingEndpoints}}</a>
+                                </div>
+                                <div class="name streaming-endpoints">{{ 'Endpoint' | plurify: projectSummaryStatus.flowStreamingEndpoints}}</div>
+                            </div>
+                        </div>
+                        <div class="content-section" style="width: 25%">
+                            <h1>Lab</h1>
+                            <div class="content-item" full-click>
+                                <i class="icon notebooks icon-dku-nav_notebook" />
+                                <div class="number">
+                                    <a main-click ui-sref="projects.project.notebooks.list">
+                                        {{projectSummaryStatus.jupyterNotebooks + projectSummaryStatus.sqlNotebooks}}
+                                    </a>
+                                </div>
+                                <div class="name notebooks">{{ 'Notebook' | plurify: (projectSummaryStatus.jupyterNotebooks + projectSummaryStatus.sqlNotebooks)}}</div>
+                            </div>
+                            <div class="content-item" full-click>
+                                <i class="icon analysis icon-dku-nav_analysis" />
+                                <div class="number">
+                                    <a main-click ui-sref="projects.project.analyses.list">{{projectSummaryStatus.analyses}}</a>
+                                </div>
+                                <div class="name analysis">{{ projectSummaryStatus.analyses == 1 ? 'Analysis' : 'Analyses' }}</div>
+                            </div>
+                        </div>
+                        <div class="content-section" style="width: 15%">
+                            <h1>
+                                <a ui-sref="projects.project.dashboards.list" style="color: inherit; text-decoration: none">Dashboards</a>
+                            </h1>
+                            <div class="content-item" full-click>
+                                <i class="icon dashboard icon-dku-dashboard" />
+                                <div class="number">
+                                    <a main-click ui-sref="projects.project.dashboards.list">{{projectSummaryStatus.dashboards}}</a>
+                                </div>
+                                <div class="name dashboard">{{ 'Dashboard' | plurify: projectSummaryStatus.dashboards }}</div>
+                            </div>
+                        </div>
+                        <div class="content-section" full-click style="width: 12%">
+                            <h1>Wiki</h1>
+                            <div class="content-item">
+                                <i class="icon icon-dku-wiki universe-color wiki" />
+                                <div class="number">
+                                    <a main-click ui-sref="projects.project.wiki">{{projectSummaryStatus.wikiArticles}}</a>
+                                </div>
+                                <div class="name universe-color wiki">{{ 'Article' | plurify: projectSummaryStatus.wikiArticles }}</div>
+                            </div>
+                        </div>
+                        <div class="content-section" style="width: 12%">
+                            <h1>Tasks</h1>
+                            <div class="content-item">
+                                <i class="icon todo icon-check-sign" />
+                                <div class="number">{{projectSummaryStatus.totalTasks - projectSummaryStatus.checkedTasks}}</div>
+                                <div class="name todo">{{ 'Task' | plurify: (projectSummaryStatus.totalTasks - projectSummaryStatus.checkedTasks)}}</div>
+                            </div>
+                        </div>
+                        <div ng-if="projectSummaryStatus.datasets == 0" class="import-first-dataset">
+                            <a disabled-if-ro="" class="btn btn--contained btn--large btn--dataset btn-import" ui-sref="projects.project.datasets.new">
+                                <span plus-icon />
+                                &nbsp;Import your first dataset
+                            </a>
+                        </div>
+                        <div ng-if="projectSummaryStatus.datasets > 0" class="import-first-dataset">
+                            <a class="btn btn--contained btn--large btn--flow btn-import" ui-sref="projects.project.flow">
+                                <i class="icon-dku-nav_flow" />
+                                &nbsp;Go to Flow
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Then description (left) and todo( right)-->
+            <div ng-if="projectSummary" editable-project-summary class="mtop20 mbot20">
+                <div class="row-fluid">
+                    <div class="description-field" ng-class="{span6: (projectSummary && object.checklists.checklists.length > 0 && isProjectAnalystRO()) || canWriteProject()}"
+                         ng-if="(object.description && object.description.trim().length) || canWriteProject()">
+                        <div ng-if="!state.description.editing">
+
+                            <div class="field-edit-cta"
+                                ng-if="isProjectAnalystRW() && (!object.description || !object.description.trim().length)"
+                                ng-click="startFieldEdit('description', canWriteProject())" >
+                                <i plus-icon />&nbsp;Add a description
+                            </div>
+
+                            <div ng-if="object.description.trim().length">
+                                <a class="edit-button pull-right link-std"
+                                    ng-if="isProjectAnalystRW()"
+                                    ng-click="startFieldEdit('description')"
+                                    style="margin: 0 0 0 10px;"
+                                    title="Edit full description"
+                                    toggle="tooltip">
+                                    <i class="icon-pencil" />
+                                 </a>
+                                <div from-markdown="object.description" class="description markdown-std"></div>
+                            </div>
+                        </div>
+                        <form ng-if="state.description.editing" class="desc-edit-zone dkuform-std-vertical" autocompletable-textarea>
+                            <div ng-if="editorOptions" dku-local-keypress="{'esc' : 'cancelFieldEdit()', 'ctrl-s meta-s':'validateFieldEdit()', 'ctrl-enter meta-enter': 'validateFieldEdit()'}">
+                                <textarea msd-elastic
+                                          ng-model="state.description.newVal"
+                                          placeholder="Write a description (you can use Markdown)..."
+                                          auto-focus="true"
+                                          style="max-width:100%"
+                                          ui-codemirror="editorOptions"
+                                >
+                                </textarea>
+                                <div>
+                                    <button class="btn btn--text btn--primary" ng-click="validateFieldEdit()">Save</button>
+                                    <button class="btn btn--text btn--secondary" ng-click="cancelFieldEdit()">Cancel</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="span6 checklists-field" ng-if="(projectSummary && object.checklists.checklists.length > 0 && isProjectAnalystRO()) || canWriteProject()">
+                        <div ng-repeat="x in object.checklists.checklists">
+                            <div class="checklist" style="margin-bottom: 20px">
+                                <div class="pull-right" ng-if="isProjectAnalystRW()">
+                                    <a class="link-danger" ng-click="deleteChecklist($index)" style="display:inline-block;margin: 10px;"><i class="icon-trash "/></a>
+                                </div>
+                                <h4 class="checklist-title">
+                                    <div ng-if="!x.editingTitle">
+                                        {{x.title}}
+                                        <a class="link-std edit-button" ng-click="isProjectAnalystRW() && startEditChecklistTitle(x)">
+                                            <i class="icon-pencil" />
+                                        </a>
+                                    </div>
+                                    <form ng-if="x.editingTitle" class="dkuform-std-vertical">
+                                        <div class="controls">
+                                            <input type="text" style="width: 90%"
+                                                   ng-model="state.checklistTitle.newVal"
+                                                   placeHolder="Checklist name"
+                                                   dku-local-keypress="{'enter': 'validateChecklistTitleEdit()', 'esc' : 'cancelChecklistTitleEdit()'}"
+                                                   required/>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn--text btn--primary" ng-click="validateChecklistTitleEdit()">Save</button>
+                                            <button class="btn btn--text btn--secondary" ng-click="cancelChecklistTitleEdit()">Cancel</button>
+                                        </div>
+                                    </form>
+                                </h4>
+                                <p><span ng-bind-html="x|singleChecklistState" /></p>
+                                <div object-checklist checklist="x" items-only="true" read-only="!isProjectAnalystRW()"/>
+                            </div>
+                        </div>
+
+                        <div ng-if="projectSummary && object.checklists.checklists.length == 0" class="field-edit-cta">
+                            <a class="link-std" ng-if="isProjectAnalystRW()" ng-click="addChecklist()">
+                                <span plus-icon />&nbsp;Add a todo list
+                            </a>
+                        </div>
+
+                        <div ng-if="isProjectAnalystRW() && projectSummary && object.checklists.checklists.length != 0"
+                             class="new-checklist"
+                             style="margin-top: 15px; margin-bottom: 15px">
+                            <a class="std-greylink" ng-click="addChecklist()">
+                                Add a todo list
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Custom Fields -->
+                <div class="mtop20 mbot20" ng-if="appConfig.customFieldsMap['PROJECT'].length > 0">
+                    <div class="description-field" style="padding: 0;">
+                        <div custom-fields-in-summary ng-if="object && object.customFields" custom-fields="object.customFields" object-type="'PROJECT'" save-fn="saveCustomFields"></div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Dashboards (for readers) -->
+            <div ng-if="projectSummary && !isProjectAnalystRO()" ng-controller="ProjectHomeDashboardListController" class="mtop20 mbot20 object-tile-list">
+
+                <div class="section" dku-foldable open="true" ng-show="promotedDashboards.length">
+
+                    <div class="section-title" ng-click="foldableToggle()">
+                        <span>
+                            <i class="{{foldableChevronClazz}}"></i> Personal dashboards
+                        </span>
+                    </div>
+
+                    <div class="list-content" ng-show="foldableOpen">
+                        <div ng-repeat="dashboard in promotedDashboards = (dashboards | filter: {owner: appConfig.user.login})" class="object-wrapper noflex">
+                            <div class="object" ng-class="{'listed-dashboard': dashboard.listed}" full-click>
+                                <a class="display-none" href="{{$root.StateUtils.href.dashboard(dashboard.id, dashboard.projectKey, {name: dashboard.name})}}" main-click></a>
+                                <div class="body center-children">
+                                    <div dashboard-miniature dashboard="dashboard"></div>
+                                    <i class="icon-dku-dashboard" />
+                                </div>
+                                <div class="footer">
+                                    <div class="horizontal-flex top">
+                                        <div class="title mx-textellipsis flex">
+                                            {{dashboard.name}}
+                                        </div>
+
+                                        <div class="noflex">
+                                            <i ng-if="!dashboard.interest.starred" class="icon-star-empty interests-star"/>
+                                            <i ng-if="dashboard.interest.starred" class="icon-star interests-star active" title="You have starred this item"/>
+                                        </div>
+                                    </div>
+                                    <div class="info">
+                                        {{dashboard.numPages}} slides, {{dashboard.numTiles}} insights
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="section" dku-foldable open="true" ng-show="promotedDashboards.length">
+
+                    <div class="section-title" ng-click="foldableToggle()">
+                        <span>
+                            <i class="{{foldableChevronClazz}}"></i> Public dashboards
+                        </span>
+                    </div>
+
+                    <div class="list-content" ng-show="foldableOpen">
+                        <div ng-repeat="dashboard in promotedDashboards = (dashboards | filter: {listed: true})" class="object-wrapper noflex">
+                            <div class="object" ng-class="{'listed-dashboard': dashboard.listed}" full-click>
+                                <a class="display-none" href="{{$root.StateUtils.href.dashboard(dashboard.id, dashboard.projectKey, {name: dashboard.name})}}" main-click></a>
+                                <div class="body">
+                                    <div dashboard-miniature dashboard="dashboard" class="h100 oh"></div>
+                                </div>
+                                <div class="footer">
+                                    <div class="horizontal-flex top">
+
+                                        <div class="title mx-textellipsis flex">
+                                            {{dashboard.name}}
+                                        </div>
+
+                                        <div class="noflex">
+                                            <i ng-if="!dashboard.interest.starred" class="icon-star-empty interests-star"/>
+                                            <i ng-if="dashboard.interest.starred" class="icon-star interests-star active" title="You have starred this item"/>
+                                        </div>
+                                    </div>
+                                    <div class="info">
+                                        {{dashboard.numPages}} slides, {{dashboard.numTiles}} insights
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+                        <div class="filler noflex"></div>
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+        <!-- Right column -->
+        <div class="span3 offset0 h100" ng-if="objectTimeline" style="padding-left: 10px">
+            <div class="tabbable vertical-flex h100">
+                <ul class="nav nav-tabs noflex">
+                    <li class="tab" ng-class="{active: uiState.activeTimelineTab == 'full'}" style="width: 100%; text-align: center; text-transform: uppercase">
+                        <a ng-click="uiState.activeTimelineTab = 'full'" >Timeline</a>
+                    </li>
+                </ul>
+                <div class="mtop10 flex">
+                    <div class="fh oya" ng-switch="uiState.activeTimelineTab">
+                        <div ng-switch-when="full" timeline="objectTimeline" reverse="true" context="project" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,128 @@
+<div class="fh" ng-controller="SQLQueryEndpointController">
+    <div class="span2 offset0 h100 oa nav-list-sidebar sidebar-admin modal-footer-std-buttons">
+        <ul tab-model="uiState.settingsPane">
+            <li sidebar-tab-l1-link tab-name="settings" label="Settings" />
+            <li sidebar-tab-l1-link tab-name="query" label="Query" />
+            <li sidebar-tab-l1-link tab-name="test" label="Test queries" />
+            <!-- <li sidebar-tab-l1-link tab-name="raw" label="Raw config (debug)" /> -->
+        </ul>
+    </div>
+
+    <div class="span10 offset0 h100 boxed-next-to-sidebar">
+        <div style="padding: 0;" ng-switch="uiState.settingsPane" class="h100 oa api-endpoint api-endpoint-prediction">
+            <div ng-switch-when="loading">Loading&hellip;</div>
+
+            <div ng-switch-when="settings">
+                <div class="design-tab-title noflex">Settings</div>
+                    <form class="dkuform-horizontal" style="margin: 10px">
+                        <div class="control-group">
+                            <div class="control-label">
+                                <label>Connection</label>
+                            </div>
+                            <div class="controls">
+                                <select dku-bs-select="{liveSearch:true}" ng-model="endpoint.connection" ng-options="c for c in sqlConnections"></select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="h100" ng-switch-when="query" add-remove ng-model="endpoint.queries">
+
+                    <div class="flex horizontal-flex">
+
+                        <div class="vertical-flex oa enrichments-list">
+                            <div class="search-header">
+                                <div class="std-list-search-box api-endpoint-list-search-box">
+                                    <span class="add-on"><i class="icon-dku-search"></i></span>
+                                    <input type="search" ng-model="uiState.filter" placeholder="Search" style="width: calc(100% - 34px)">
+                                </div>
+                                <div class="header-add">
+                                    <button style="margin-bottom: 1px;" class="btn btn--text btn--primary" ng-click="addSQLQuery()"><strong>+</strong> Add SQL query</button>
+                                </div>
+                            </div>
+                            <div ng-repeat="it in endpoint.queries | filter:uiState.filter" class="central-row horizontal-flex" ng-click="showSQLQuery($index)"
+                                ng-class="{focused: sqlQueryIndex===$index}" full-click>
+                                <div class="flex" style="height: 40px; overflow: hidden">
+                                    <label class="mx-textellipsis text-description">SQL query {{$index + 1}}</label>
+                                </div>
+                                <div class="noflex" style="height: 40px; overflow: hidden; text-align: right">
+                                    <i class="icon-trash" ng-click="deleteSQLQuery($index)"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex oa" style="display: inline-block; vertical-align: top; margin-top: 10px; margin-left: 10px;"
+                            ng-if="endpoint.queries.length>0 && sqlQueryIndex>=0">
+                        <div code-snippet-editor code="endpoint.queries[sqlQueryIndex].query"
+                            sample-type="sampleType"
+                            categories="customCodeSnippetCategories"
+                            save-category="customCodeSnippetCategories[0]"
+                            editor-options="editorOptions"
+                            style="height: 300px; margin-bottom: 10px; margin-right: 10px; font-size: 13px;border: 1px solid #DDD;" />
+
+                        <form class="dkuform-horizontal" style="margin-left: 10px;">
+
+                            <div class="control-group">
+                                <div class="control-label">
+                                    <label>Parameter names</label>
+                                </div>
+                                <div class="controls" style="width: 230px;">
+                                    <ng2-values-list
+                                        [(items)]="endpoint.queries[sqlQueryIndex].inputParameters"
+                                        value-identifier="name"
+                                        value-placeholder="Parameter name"
+                                        add-label="Add Parameter">
+                                    </ng2-values-list>
+                                    <div class="help-inline">
+                                        Parameters in the query (written as '?') are replaced by the values extracted from the call parameters using the names in this list (order matters)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <div class="control-label">
+                                    <label>Commit after</label>
+                                </div>
+                                <div class="controls">
+                                    <label>
+                                        <input type="checkbox" ng-model="endpoint.queries[sqlQueryIndex].postCommit" />
+                                        <span class="help-inline">Commit the transaction after running this query</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <div class="control-label">
+                                    <label>Max results to retrieve</label>
+                                </div>
+                                <div class="controls">
+                                    <label>
+                                        <input type="number" min="-1" force-integer ng-model="endpoint.queries[sqlQueryIndex].maxResults" />
+                                        <span class="help-inline">Max number of rows to fetch for this query</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-switch-when="raw" class="h100 vertical-flex">
+                <pre class="debug" ng-bind="endpoint | json" style="margin: 10px" />
+            </div>
+
+            <div ng-switch-when="test" class="h100 vertical-flex">
+                <div class="design-tab-title noflex">Test queries</div>
+
+                <div block-api-error></div>
+
+                <div endpoint-test-queries
+                    type="query"
+                    endpoint="endpoint"
+                    deploy-result="deployResult"
+                    test-queries-result="testQueriesResult"
+                    input-dataset-smart-name="inputDatasetSmartName"
+                    datasets="datasets">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

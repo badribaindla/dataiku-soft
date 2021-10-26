@@ -1,0 +1,125 @@
+
+<script id="rename-column-box" type="text/x-ng-template">
+    <div class="modal modal3" auto-size="false">
+        <div dku-modal-header modal-title="Rename column &quot;{{columnName}}&quot;"  />
+        <form ng-submit="save()" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+            <div class="modal-body tight-body">
+                <div class="control-group">
+                    <label class="control-label">New name</label>
+                    <div class="controls">
+                        <input type="text" ng-model="renameTarget" required="" placeholder="New name">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-std-buttons">
+                <div class="pull-right">
+                    <button type="button" ng-click="dismiss()" class="btn btn--text btn--secondary">Cancel</button>
+                    <button type="submit" ng-click="save()" class="btn btn--text btn--primary">OK</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
+<script id="move-column-box" type="text/x-ng-template">
+    <div class="modal modal3" auto-size="false">
+        <div dku-modal-header modal-title="Move column &quot;{{columnName}}&quot;"  />
+        <form ng-submit="save()" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+            <div class="modal-body tight-body">
+                <div class="control-group">
+                    <label class="control-label">New position</label>
+                    <div class="controls">
+                        <select ng-model="reorderAction" ng-options="action.label for action in reorderActions"/>
+                    </div>
+                </div>
+                <div class="control-group" ng-show="reorderAction.needReferenceColumn">
+                    <div class="controls">
+                        <select ng-model="referenceColumn" ng-options="columnName for columnName in referenceColumnList">
+                            <option value="">Select a column</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-std-buttons">
+                <div class="pull-right">
+                    <button type="button" ng-click="dismiss()" class="btn btn--text btn--secondary">Cancel</button>
+                    <button type="submit" ng-click="save()" class="btn btn--text btn--primary">OK</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
+<script id="fill-empty-with-value-box" type="text/x-ng-template">
+    <div class="modal modal3" auto-size="false">
+        <div dku-modal-header modal-title="Fill empty cells in {{columnName ? 'column &quot;' + columnName + '&quot;' : columns.length + ' columns'}}"  />
+        <form name="fillForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+            <div class="modal-body tight-body">
+                <div class="control-group">
+                    <label class="control-label">Fill with</label>
+                    <div class="controls">
+                        <label>
+                            <input type="radio" ng-model="source" value="constant">
+                            A constant value
+                        </label>
+                        <input style="margin-left: 18px; margin-bottom: 10px" ng-show="source == 'constant'" type="text" ng-model="valueToFill">
+                        <label>
+                            <input type="radio" ng-model="source" value="mode">
+                            Mode (most frequent value) <span ng-show="!columnName">of each column</span></label>
+                        </label>
+                        <label ng-show="isNumericOnly">
+                            <input type="radio" ng-model="source" value="average" name="source" id="fillEmptyWithAvg">
+                            Average <span ng-show="!columnName">of each column</span>
+                        </label>
+                        <label ng-show="isNumericOnly">
+                            <input type="radio" ng-model="source" value="median" name="source" id="fillEmptyWithMedian">
+                            Median <span ng-show="!columnName">of each column</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer modal-footer-std-buttons">
+                <div class="pull-right">
+                    <button type="button" ng-click="dismiss()" class="btn btn--text btn--secondary">Cancel</button>
+                    <button type="submit" ng-disabled="fillForm.$invalid" ng-click="save()" class="btn btn--text btn--primary">OK</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+
+<script id="value-range-filter-box" type="text/x-ng-template">
+    <div class="modal modal3" auto-size="false">
+        <div dku-modal-header modal-title="Delete/keep value range in {{columnName ? 'column &quot;' + columnName + '&quot;' : columns.length + ' columns'}}" />
+        <form name="filterForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+            <div class="modal-body tight-body">
+                <div class="control-group">
+                    <label class="control-label">Min (inclusive)</label>
+                    <div class="controls">
+                        <input type="number" required ng-model="min" name="min" max="{{max}}" id="valueRangeFilterMin" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Max (inclusive)</label>
+                    <div class="controls">
+                        <input type="number" required ng-model="max" name="max" min="{{min}}" id="valueRangeFilterMax"></label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Keep matched values</label>
+                    <div class="controls">
+                        <input type="checkbox" ng-model="keep" id="valueRangeFilterKeep">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer modal-footer-std-buttons">
+                <div class="pull-right">
+                    <button type="button" ng-click="dismiss()" class="btn btn--text btn--secondary">Cancel</button>
+                    <button type="submit" ng-disabled="filterForm.$invalid" ng-click="save()" class="btn btn--text btn--primary">OK</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+

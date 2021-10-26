@@ -1,0 +1,78 @@
+<div class="object-right-column-summary h100 vertical-flex" ng-if="selection.selectedObject">
+    <div item-header class="noflex"
+         href="$state.href('projects.project.lambdaservices.service.endpoints', {serviceId: selection.selectedObject.id})"
+         color="lambda_service"
+         icon="icon-cloud"
+         title="{{selection.selectedObject.name}}">
+        {{selection.selectedObject.name}}
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex oa">
+        <div class="h100" ng-switch="uiState.activeTab">
+            <div ng-switch-when="details" class="details-tab h100 oa">
+                <object-details
+                    object-type="LAMBDA_SERVICE"
+                    object-data="serviceSummary"
+                    context="right-column"
+                    hover-intent-callback="QuickView"
+                    edit-custom-fields="editCustomFields"
+                    editable="canWriteProject()">
+                </object-details>
+            </div>
+
+            <div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+                <!-- First unnamed section -->
+                <div class="icons-section icons-grey icons-main">
+                    <div simple-right-col-action-href
+                         href="{{$state.href('projects.project.lambdaservices.service.endpoints', {serviceId: selection.selectedObject.id})}}"
+                         label="Open"
+                         icon="icon-edit"
+                    />
+                    <div simple-right-col-action-click
+                         ng-show="!isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(true)"
+                         label="{{ actionLabels.WATCH }}"
+                         icon="icon-eye-open"
+                         ng-attr-title="{{ actionTooltips.WATCH }}"
+                         data-toggle="tooltip"
+                    />
+                    <div simple-right-col-action-click
+                         ng-show="isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(false)"
+                         label="{{ actionLabels.UNWATCH }}"
+                         icon="icon-eye-close"
+                         ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                         data-toggle="tooltip"
+                    />
+                    <div simple-right-col-action-click
+                         ng-show="!selection.selectedObject.interest.starred"
+                         on-click="starObjects(true)"
+                         label="{{ actionLabels.STAR }}"
+                         icon="icon-star"
+                         ng-attr-title="{{ actionTooltips.STAR }}"
+                         data-toggle="tooltip"
+                    />
+                    <div simple-right-col-action-click
+                         ng-show="selection.selectedObject.interest.starred"
+                         on-click="starObjects(false)"
+                         label="{{ actionLabels.UNSTAR }}"
+                         icon="icon-star-empty"
+                         ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                         data-toggle="tooltip"
+                    />
+                    <div simple-right-col-action-click
+                         ng-class="{'icons-danger': isProjectAnalystRW()}"
+                         on-click="isProjectAnalystRW() && deleteSelected()"
+                         label="Delete"
+                         icon="icon-trash"
+                         title="Delete this service"
+                         disabled-if-ro
+                    />
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

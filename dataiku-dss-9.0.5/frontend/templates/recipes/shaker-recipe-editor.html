@@ -1,0 +1,50 @@
+<div shaker-recipe shaker-facets shaker-with-processors shaker-explore-base shaker-on-dataset>
+    <div automation-edit-overlay />
+    <!-- Load behaviors -->
+    <!-- The read-params-behavior is split from the read-params UI directive because we want the
+    behavior to always execute, not only when we go to advanced tab -->
+    <div ng-if="recipe && computablesMap">
+        <div spark-datasets-read-params-behavior read-params="recipe.params.engineParams.spark.readParams" />
+    </div>
+
+    <div class="top-level-tabs objecttype-recipe">
+        <div class="horizontal-flex row-fluid object-nav">
+            <div class="flex oh" std-object-breadcrumb />
+            <div class="noflex">
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'summary'}" ng-click="topNav.tab='summary'" fw500-width>
+                    Summary
+                </a>
+                <a class="tab tab-script" ng-class="{'enabled': topNav.tab == 'code'}" ng-click="topNav.tab='code'" fw500-width>
+                    Script
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'io'}" ng-click="topNav.tab='io'" fw500-width>
+                    Input / Output
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'advanced'}" ng-click="topNav.tab='advanced'" fw500-width>
+                    Advanced
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'gitlog'}" ng-click="topNav.tab='gitlog'" fw500-width>
+                    History
+                </a>
+                <div class="otherLinks">
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-save-button.html"></div>
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-tabs-other-links.html"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-io-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+    <div dku-if="topNav.tab == 'code'">
+        <div include-no-scope="/templates/recipes/shaker-recipe-script.html"></div>
+    </div>
+
+    <div ng-if="topNav.tab == 'advanced'" class="container-fluid page-top-padding dss-page oa">
+        <div include-no-scope="/templates/recipes/shaker-recipe-advanced.html" />
+    </div>
+
+    <div coachmark-serie-caller serie-id="'shaker-hello'" extra-serie-ids="extraCoachmarksSerieIds" />
+</div>

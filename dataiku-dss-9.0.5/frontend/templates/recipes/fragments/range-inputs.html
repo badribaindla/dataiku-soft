@@ -1,0 +1,55 @@
+<!-- INPUTS FOR NUMBERS -->
+<!-- WHEN THERE IS A MIN INPUT 
+--><input class="range-extremity-min qa_recipe_split-range-min-input"
+       type="number"
+       id="inputMin{{rangeIndex}}"
+       ng-if="hasMinCond() && (getGenericColType() == 'num')"
+       ng-model="getMinCond().num"
+       max="{{hasMaxCond() ? getMaxCond().num : false}}"
+       ng-blur="deleteMinIfNecessary(getMinCond().num)"
+       required ng-model-options="{allowInvalid: true}">
+</input>
+<!-- WHEN MIN VALUE -->
+<div ng-if="!hasMinCond() && (getGenericColType() == 'num')"
+     class="range-extremity-min"
+     ng-class="{ 'invalid' : !hasMaxCond()}">
+    <a ng-click="createMinCondition();focusOnNewMin();" class="qa_recipe_split-range-min-cond">
+        Min
+        <i class="icon-pencil"></i>
+    </a>
+</div>
+<!-- WHEN THERE IS A MAX INPUT -->
+<input class="range-extremity-max qa_recipe_split-range-max-input"
+       type="number" 
+       ng-if="hasMaxCond() && (getGenericColType() == 'num')"
+       id="inputMax{{rangeIndex}}"
+       min="{{hasMinCond() ? getMinCond().num : false}}"
+       ng-model="getMaxCond().num" 
+       ng-blur="deleteMaxIfNecessary(getMaxCond().num)"
+       required ng-model-options="{allowInvalid: true}">
+</input>
+<!-- WHEN MAX VALUE -->
+<div ng-if="!hasMaxCond() && (getGenericColType() == 'num')"
+    class="range-extremity-max"
+    ng-class="{ 'invalid' : !hasMinCond()}">
+    <a ng-click="createMaxCondition()" class="qa_recipe_split-range-max-cond">
+        Max
+        <i class="icon-pencil"></i>
+    </a>
+</div>
+
+<!-- INPUTS FOR DATES -->
+<div daterangepicker 
+     ng-if="getGenericColType() == 'date'"
+     class="picker date-ranges qa_recipe_split-date-range"
+     opens-direction="down" 
+     start-date="getMinCond().frontDate"
+     end-date="getMaxCond().frontDate"
+     format="{{getDateFormat()}}"
+     presets-to-end-of-day="true"
+     time-picker-increment="1">
+ </div>
+
+<!-- INPUTS FOR INVALID COLUMN (NOTHING SELECTED) -->
+<div ng-if="!isValidCol" class="range-extremity-min"></div>
+<div ng-if="!isValidCol" class="range-extremity-max"></div>

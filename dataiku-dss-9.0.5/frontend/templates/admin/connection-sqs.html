@@ -1,0 +1,117 @@
+<div ng-controller="SQSConnectionController" class="h100 vertical-flex">
+    <div class="flex">
+        <div class="fh oa">
+            <div class="h100 small-lr-padding">
+                <div class="generic-white-box">
+                    <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                    <div block-api-error />
+
+                    <form name="connectionParamsForm" class="dkuform-horizontal">
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <h2 class="settings-section-title">Connection</h2>
+        
+                                    <div class="control-group">
+                                        <label class="control-label">Credentials</label>
+                                        <div class="controls">
+                                            <select dku-bs-select ng-model="connection.params.credentialsMode" 
+                                            ng-options="x[0] as x[1] for x in [['KEYPAIR', 'AWS keypair'], ['ENVIRONMENT', 'Environment'], ['STS_ASSUME_ROLE', 'STS with AssumeRole'], ['CUSTOM_PROVIDER', 'Custom']]" 
+                                            options-descriptions="['AccessId + SecretId', 'Use credentials from environment variables, or ~/.aws/credentials file, or instance profile', 'Assume a role, with master credentials coming from the environment', 'Custom provider class']"/>
+                                        </div>
+                                    </div>
+                                    <fieldset ng-if="connection.params.credentialsMode == 'KEYPAIR' && connection.credentialsMode != 'PER_USER'">
+                                        <div class="control-group"
+                                        form-template-element
+                                        model="connection.params"
+                                        field="{name:'accessKey',type:'string', label:'Access key'}" />
+            
+                                        <div class="control-group"
+                                        form-template-element
+                                        model="connection.params"
+                                        field="{name:'secretKey',type:'password', label:'Secret key'}" />
+                                    </fieldset>
+            
+                                    <div class="control-group" ng-if="connection.params.credentialsMode == 'STS_ASSUME_ROLE'">
+                                        <label class="control-label">STS role to assume</label>
+                                        <div class="controls">
+                                             <input type="text" ng-model="connection.params.stsRoleToAssume" />
+                                             <span class="help-inline">
+                                                 Variable expansion, notably per-user properties are supported here.
+                                             </span>
+                                        </div>
+                                    </div>
+            
+                                    <div class="control-group" ng-if="connection.params.credentialsMode == 'CUSTOM_PROVIDER'">
+                                        <label class="control-label">Custom provider class</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.customAWSCredentialsProviderClass" />
+                                            <span class="help-inline">
+                                                Class name of a custom DSS AWS credentials provider
+                                            </span>
+                                        </div>
+                                    </div>
+            
+                                    <div class="control-group" ng-if="connection.params.customAWSCredentialsProviderClass">
+                                        <label class="control-label">Custom provider settings</label>
+                                        <div class="controls">
+                                            <ng2-credentials-list 
+                                                [(items)]="connection.params.customAWSCredentialsProviderParams"
+                                                key-identifier="name"
+                                                key-placeholder="Provider key"
+                                                value-placeholder="Provider value"
+                                                [can-be-final]="false"
+                                                add-label="Add provider setting">
+                                            </ng2-credentials-list>
+                                        </div>
+                                    </div>
+            
+                                    <div class="control-group"
+                                        form-template-element
+                                        model="connection.params"
+                                        field="{name:'regionOrEndpoint',
+                                        type:'string',
+                                        label:'Region / Endpoint',
+                                        tooltip:'Optional AWS region (e.g. eu-west-1) or custom endpoint (e.g. http[s]://my.s3.endpoint/)'}" />
+                        
+        
+                                <h2 class="settings-section-title">Advanced</h2>
+                                <div class="control-group">
+                                    <label  class="control-label">Advanced properties</label>
+                                    <div class="controls">
+                                        <ng2-connection-properties-list [(items)]="connection.params.dkuProperties"></ng2-connection-properties-list>
+                                        <span class="help-inline">
+                                            For specific use cases
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="span6">
+                                <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                    <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="noflex small-lr-padding page-top-padding">
+      <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html" />
+      <div>
+        <div ng-show="testing" class="alert alert-info">
+            <i class="icon-spin icon-spinner" />Please wait, testing connection
+        </div>
+        <div ng-show="testResult">
+            <div ng-show="!testResult.ok" class="alert alert-error">
+                <i class="icon-dku-error" /> Connection to SQS failed: {{testResult.message}}
+            </div>
+            <div ng-show="testResult.ok" class="alert alert-success">
+                <i class="icon-success" /> Connection to SQS OK, found {{testResult.queues.length}} queues
+            </div>
+        </div>
+    </div>
+</div>

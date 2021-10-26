@@ -1,0 +1,99 @@
+<div class="tabbable h100 vertical-flex" ng-controller="WikiTaxonomyController">
+    <ul class="nav nav-tabs noflex">
+        <li class="tab" ng-class="{active: uiState.activeTaxonomyTab == 'articles'}" style="width: 50%; text-align: center;">
+            <a ng-click="uiState.activeTaxonomyTab = 'articles'">Articles</a>
+        </li>
+        <li class="tab" ng-class="{active: uiState.activeTaxonomyTab == 'timeline'}" style="width: 50%; text-align: center;">
+            <a ng-click="uiState.activeTaxonomyTab = 'timeline'">Timeline</a>
+        </li>
+    </ul>
+    <div class="mtop10 flex">
+        <div class="fh oya" ng-switch="uiState.activeTaxonomyTab">
+            <div ng-switch-when="articles" class="vertical-flex h100">
+                <div class="std-list-search-box noflex">
+                    <form class="dkuform-horizontal wiki-search-form horizontal-flex">
+                        <input type="search" class="flex" ng-model="query.queryString" placeholder="Search articles..." />
+
+                        <span class="wiki-scroll-current noflex" ng-click="scrollToNode($stateParams.articleId)" title="See current article in hierarchy">
+                            <i class="icon icon-bullseye"></i>
+                        </span>
+                    </form>                    
+                </div>
+                
+                
+                <div ng-if="!results" ng-switch="wikiScope.treeViewHook.getTaxonomyMassExpandCollapseStateFn()">
+                    <div ng-switch-when="EXPAND_ALL" class="wiki-taxonomy-folding" ng-click="wikiScope.treeViewHook.expandAllFn()">
+                        <span class="wiki-taxonomy-folding__link"><i class="icon icon-dku-expand-all wiki-taxonomy-folding__icon"></i> EXPAND ALL</span>
+                    </div>
+                    <div ng-switch-when="COLLAPSE_ALL" class="wiki-taxonomy-folding" ng-click="treeViewHook.collapseAllFn()">
+                        <span class="wiki-taxonomy-folding__link"><i class="icon icon-dku-collapse-all wiki-taxonomy-folding__icon"></i> COLLAPSE ALL</span>
+                    </div>
+                    <div ng-switch-default></div>
+                </div>
+                
+
+                <div class="wiki-taxonomy-list oa flex" ng-if="!results">
+                    <div>
+                        <div ng-if="wiki.taxonomy"
+                            tree-view="wiki.taxonomy"
+                            root-nodes="wiki.taxonomy"
+                            node-name="nodeName"
+                            on-click="onClick"
+                            node-class="nodeClass"
+                            icon-class="iconClass"
+                            icon-title="iconTitle"
+                            right-icon-class="rightIconClass"
+                            right-icon-title="rightIconTitle"
+                            show-drag-handles="isProjectAnalystRW()"
+                            scroll-to-node-fn="wikiScope.treeViewHook.scrollToNodeFn"
+                            expand-all-fn="wikiScope.treeViewHook.expandAllFn"
+                            collapse-all-fn="wikiScope.treeViewHook.collapseAllFn"
+                            get-taxonomy-mass-expand-collapse-state-fn="wikiScope.treeViewHook.getTaxonomyMassExpandCollapseStateFn"
+                            set-reduce-fn="wikiScope.treeViewHook.setReduceFn"
+                            set-unfolded-node-ids-fn="setUnfoldedNodeIdsFn"
+                            get-unfolded-node-ids-fn="getUnfoldedNodeIdsFn"
+                            get-node-ids-having-children-fn="getNodeIdsHavingChildrenFn"
+                            get-right-click-menu-template="getRightClickMenuTemplate"
+                            context-menu-fns="contextMenuFns"
+                            show-context-menu="isProjectAnalystRW()"
+                            />
+                    </div>
+                </div>
+
+                <div class="wiki-search-results oa flex" ng-if="results">
+                    <div ng-repeat="item in results.hits.hits"
+                        class="wiki-search-results-item"
+                        ng-class="{'wiki-search-results-current-item': item._source.id == $stateParams.articleId, 'wiki-search-results-item--right-clicked': item.$rightClicked}"
+                        full-click
+                        ng-right-click="openContextMenuSearch(item, $event)"
+                        >
+                        <div class="horizontal-flex">
+                            <div class="flex oh mx-textellipsis">
+                                <a ui-sref="projects.project.wiki.article.view({articleId: item._source.id})" main-click class="link-std link-std--wiki">
+                                    {{ articleMapping[item._source.id] }}
+                                </a>
+                            </div>
+                            <div class="noflex">
+                                <span class="wiki-scroll-searched" ng-click="scrollToNode(item._source.id)" title="See in hierarchy">
+                                    <i class="icon icon-bullseye"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="placeholder-block" ng-show="!results.hits.hits.length">
+                        No search results
+                    </div>
+                </div>
+
+                <div class="wiki-catalog-link noflex" ng-if="results">
+                    <a href="{{linkToCatalog()}}">Go to catalog</a>
+                </div>
+
+                <div class="noflex wiki-taxonomy-list-add">
+                    <button class="btn btn--primary btn--large btn--wiki" disabled-if-ro="" ng-click="newArticle()">+ New Article</button>
+                </div>
+            </div>
+            <div ng-switch-when="timeline" timeline="wikiTimeline" reverse="true" context="project" style="margin-left: 5px;" />
+        </div>
+    </div>
+</div>

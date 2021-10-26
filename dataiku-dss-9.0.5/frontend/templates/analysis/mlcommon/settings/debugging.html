@@ -1,0 +1,137 @@
+<div class="design-tab-title">Debugging</div>
+<div class="doctor-settings-page">
+
+    <h2 class="settings-section-title mtop0">
+        <span class="mright8" diagnostic-icon size="large"></span>Diagnostics
+        <span class="control-group mleft16 mtop0" style="display: inline-block">
+            <label class="dku-toggle">
+                <input type="checkbox" id="enableMLDiagnostics" ng-model="mlTaskDesign.diagnosticsSettings.enabled">
+                <span/>
+            </label>
+        </span>
+    </h2>
+
+    <div class="row-fluid">
+        <form class="span8 dkuform-horizontal">
+            <div>
+                <div ng-repeat="setting in mlTaskDesign.diagnosticsSettings.settings" ng-if="isMLBackendType('PY_MEMORY')">
+                    <div class="control-group">
+                        <label class="control-label" for="{{setting.type}}" ng-class="{disabled: !mlTaskDesign.diagnosticsSettings.enabled}">{{diagnosticsDefinition[setting.type].displayableType}}</label>
+                        <div class="controls">
+                            <input type="checkbox" id="{{setting.type}}" ng-model="setting.enabled" ng-disabled="!mlTaskDesign.diagnosticsSettings.enabled">
+                            <div class="help-inline" ng-class="{disabled: !mlTaskDesign.diagnosticsSettings.enabled}" style="display: inline">{{diagnosticsDefinition[setting.type].description}} <doclink page="/machine-learning/diagnostics#{{diagnosticsDefinition[setting.type].documentationAnchor }}" title="Documentation" show-icon="true"/></div>
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="!isMLBackendType('PY_MEMORY')" class="diagnostic-text__disabled">
+                    Not available for this backend
+                </div>
+            </div>
+        </form>
+        <div class="span4">
+            <div class="doctor-explanation">
+                <h5 class="doctor-explanation__title mbot8">Diagnostics</h5>
+                <p class="mbot0">
+                    ML Diagnostics are designed to identify and help troubleshoot potential problems
+                    and suggest possible improvements at different stages of training and building machine learning models.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="settings-section-title">
+        Assertions
+    </h2>
+
+    <div class="row-fluid">
+        <div class="span8 assertion-definition-section">
+            <div class="empty-list-cta" ng-if="mlTaskDesign.taskType === 'CLUSTERING'">
+                <p>
+                    Assertions are not available for clustering
+                </p>
+            </div>
+            <div ng-if="mlTaskDesign.taskType === 'PREDICTION'" class="assertion-definition-block" ng-controller="PMLTaskAssertionsController">
+                <form class="dkuform-horizontal" ng-if="postScriptFeaturesSchema">
+                    <div ng-repeat="assertion in mlTaskDesign.assertionsParams.assertions" class="assertion-definition-box">
+                        <div class="control-group">
+                            <div class="span11 mbot8">
+                                <editable-text-field ng-model="assertion.name" font-size="16">
+                                </editable-text-field>
+                            </div>
+                            <div class="span1">
+                                <button class="btn btn--text btn--danger btn-icon pull-right editable-list__delete"
+                                        ng-click="deleteAssertion($index)">
+                                    <i class="icon-trash assertion-definition-box__tash-icon"></i></button>
+                            </div>
+                        </div>
+                        <div class="padbot8">
+                            <filter-editor
+                                    filter-desc="assertion.filter"
+                                    schema="postScriptFeaturesSchema"
+                                    model-label="'On rows that satisfy'"
+                                    must-run-in-database="false"
+                                    hide-sql-filter="true">
+                            </filter-editor>
+                        </div>
+                        <div class="control-group mtop16">
+                            <div ng-if="mlTaskDesign.predictionType == 'BINARY_CLASSIFICATION' ||
+                                mlTaskDesign.predictionType == 'MULTICLASS'">
+                                <div class="control-label">Expected class</div>
+                                <div class="controls">
+                                    <select ng-model="assertion.assertionCondition.expectedClass"
+                                            dku-bs-select ng-options="clss for clss in classes"
+                                            class="assertion-definition-box__class-selection"></select>
+                                </div>
+                            </div>
+                            <div ng-if="mlTaskDesign.predictionType == 'REGRESSION'">
+                                <div class="control-label">Expected values between</div>
+                                <div class="controls">
+                                    <input type="number" ng-model="assertion.assertionCondition.expectedMinValue"
+                                        class="assertion-definition-box__min-value-selection" required/>  and
+                                    <input type="number" ng-model="assertion.assertionCondition.expectedMaxValue"
+                                        class="assertion-definition-box__max-value-selection" required/> included
+                                </div>
+                            </div>
+                            <div>
+                                <div class="control-label">With valid ratio ≥</div>
+                                <div class="controls mtop8">
+                                    <code class="assertion-definition-box__pass-ratio-percentage"
+                                        ng-bind="assertion.assertionCondition.expectedValidRatio | percentage"></code>
+                                    <span class="mleft8">
+                                        <input class="threshold-setter assertion-definition-box__pass-ratio-setter" type="range"
+                                            min="0" max="1" step="0.01" ng-model="assertion.assertionCondition.expectedValidRatio"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <div class="assertion-definition-add-button">
+                        <a type="button" class="btn btn--text btn--primary" ng-click="addNewMlAssertion()">
+                            <span class="icon-plus"></span>
+                            <span ng-if="mlTaskDesign.assertionsParams.assertions.length">Add another assertion </span>
+                            <span ng-if="!mlTaskDesign.assertionsParams.assertions.length">Add an assertion </span>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="span4">
+            <div class="doctor-explanation">
+                <h5 class="doctor-explanation__title mbot8">Assertions</h5>
+                <p>
+                    An ML assertion will help validate that the machine learning model outputs the expected class for given
+                    examples.
+                <p>
+                    Define those examples and rules then check whether models respect them after training.
+                    This does not aim at enforcing model predictions depending on some rules. It is a validation tool.
+                <p>
+                <p class="mbot0">
+                    Valid ratio will not consider rows dropped by the model.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>

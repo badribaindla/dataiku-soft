@@ -1,0 +1,128 @@
+<feature-locked feature-name="'Project Deployer capabilities'"
+    class="dss-page container-fluid"
+    ng-if="isFeatureLocked">
+</feature-locked>
+
+<div class="h100 oa" ng-if="!isFeatureLocked">
+    <div block-api-error></div>
+    <div ng-if="projectStatusList.length" class="standard-list standard-container">
+        <div class="standard-container__wrap">
+            <div class="standard-list__header horizontal-flex">
+                <div class="standard-list__title">
+                    <i class="icon-dku-project standard-list__title-icon universe-color project-deployer"></i>
+                    Projects
+                </div>
+                <div class="deployer__search-box">
+                    <input type="search" ng-model="uiState.query" placeholder="Search projects...">
+                </div>
+                <div class="standard-list__actions">
+                    <button class="btn btn--text btn--primary" ng-if="!canUploadBundles" disabled-if="true" disabled-message="You do not have the rights to upload bundles">
+                        <i class="icon-upload" />&nbsp;Upload bundles
+                    </button>
+                    <button class="btn btn--text btn--primary" ng-if="canUploadBundles" ng-click="openUploadBundleModal()">
+                        <i class="icon-upload" />&nbsp;Upload bundles
+                    </button>
+                </div>
+            </div>
+            <table sort-table class="table table-hover table-fixed standard-list__table">
+                <thead>
+                    <tr>
+                        <th style="width: 2px;"><!-- project image --></th>
+                        <th sort-col="projectBasicInfo.name" style="width: 25%;">Project</th>
+                        <th sort-col="originInfo.projectKey" style="width: 20%;">Design project</th>
+                        <th class="sortable--overflow" ng-repeat="stage in currentStages" sort-col="{{ 'deploymentCountPerStage.counts.'+ stage.id }}">
+                            <div class="sortable-content" show-tooltip-on-text-overflow text-tooltip="stage.id === '__OTHERS__' ? 'Others' : stage.id" tooltip-direction="'tooltip'"></div>
+                        </th>
+                        <th sort-col="lastPublishInfo.publishedOn" style="width: 90px;">Last published</th>
+                        <th sort-col="lastPublishInfo.publishedBy" style="width: 10%;">Published by</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="cursor-pointer standard-list__table-row standard-list__table-row--has-image" ng-repeat="project in projectStatusList | toArray | filter:filterProject | orderBy:sortColumn:sortDescending" full-click>
+                        <td class="standard-list__table-cell standard-list__table-image">
+                            <div>
+                                <totem project-name="project.projectBasicInfo.name"
+                                       project-key="project.projectBasicInfo.id"
+                                       object-type="'PUBLISHED_PROJECT'"
+                                       object-id="project.projectBasicInfo.id"
+                                       object-img-hash = "project.projectBasicInfo.imageInfo.objectImgHash"
+                                       sizeX="16"
+                                       editable="false"
+                                       img-color="project.projectBasicInfo.imageInfo.imgColor"
+                                       img-pattern="project.projectBasicInfo.imageInfo.imgPattern"
+                                       show-initials="project.projectBasicInfo.imageInfo.showInitials"
+                                       is-project-img="project.projectBasicInfo.imageInfo.isUploadedImg"
+                                       default-img-color="project.projectBasicInfo.imageInfo.defaultImgColor"/>
+                            </div>
+                        </td>
+                        <td class="standard-list__table-cell">
+                            <div class="horizontal-flex">
+                                <a class="standard-list__row-title" ui-sref="projectdeployer.projects.project.home.status({ publishedProjectKey: project.projectBasicInfo.id })" show-tooltip-on-text-overflow text-tooltip="project.projectBasicInfo.name" tooltip-direction="'tooltip'" main-click></a>
+                                &nbsp;<span class="text-weak" ng-if="project.projectBasicInfo.id !== project.projectBasicInfo.name" show-tooltip-on-text-overflow text-tooltip="'(' + project.projectBasicInfo.id + ')'" tooltip-direction="'tooltip'"></span>
+                            </div>
+                        </td>
+                        <td class="standard-list__table-cell">
+                            <div ng-show="project.originInfo">
+                                <div ng-show="!project.originInfo.url" show-tooltip-on-text-overflow text-tooltip="project.originInfo.projectKey" tooltip-direction="'tooltip'">
+                                </div>
+                                <div class="horizontal-flex" ng-show="project.originInfo.url">
+                                    <a href="{{ project.originInfo.url }}"
+                                       ng-click="$event.stopPropagation()"
+                                       class="standard-list__external-link"
+                                       target="blank"
+                                       show-tooltip-on-text-overflow 
+                                       text-tooltip="project.originInfo.projectKey"
+                                       tooltip-direction="'tooltip'">
+                                    </a>
+                                    <a href="{{ project.originInfo.url }}" ng-click="$event.stopPropagation()" class="standard-list__external-link no-underline padleft4 noflex">
+                                        <i class="smaller-font icon-external-link"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="standard-list__table-cell" ng-repeat="stage in currentStages">
+                            <div ng-if="stage.id === '__OTHERS__' && project.deploymentCountPerStage.others" dku-html-tooltip position="left">
+                                <tooltip-content>
+                                    <ul class="raw-unstyled-ul">
+                                        <li ng-repeat="(stage, count) in project.deploymentCountPerStage.others" ng-if="stage !== '__OTHERS__'">
+                                            {{ stage }}: {{ count }}
+                                        </li>
+                                        <li ng-if="project.deploymentCountPerStage.others['__OTHERS__']">
+                                            Unknown stages: {{ project.deploymentCountPerStage.others['__OTHERS__'] }}
+                                        </li>
+                                    </ul>
+                                </tooltip-content>
+                                <tooltip-trigger>{{ project.deploymentCountPerStage.counts[stage.id] }}</tooltip-trigger>
+                            </div>
+                            <span ng-class="{ 'text-disabled': !project.deploymentCountPerStage.counts[stage.id] }" ng-if="!(stage.id === '__OTHERS__' && project.deploymentCountPerStage.others)">
+                                {{ project.deploymentCountPerStage.counts[stage.id] }}
+                            </span>
+                        </td>
+                        <td class="standard-list__table-cell">
+                            <span toggle="tooltip" data-placement="right" title="{{ project.lastPublishInfo.publishedOn | date:'yyyy-MM-dd – HH:mm:ss' }}">
+                                {{ project.lastPublishInfo.publishedOn | friendlyTimeDeltaShort }}
+                            </span>
+                        </td>
+                        <td class="standard-list__table-cell">
+                            <div show-tooltip-on-text-overflow text-tooltip="project.lastPublishInfo.publishedBy" tooltip-direction="'tooltip'"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div ng-if="projectStatusList && !projectStatusList.length" class="flex empty-list-cta">
+        <h1>
+            No projects available
+        </h1>
+        <p>
+            Projects contain your bundles.<br /> Bundles are created in the <strong>Bundles</strong> component of your project.
+        </p>
+        <p>
+            <span doclink-wrapper page="deployment/deploying-bundles">Read the documentation</span> to learn more and publish your first bundle.
+        </p>
+        <button class="btn btn--large btn--primary" ng-if="canUploadBundles" ng-click="openUploadBundleModal()">
+            <i class="icon-upload" />&nbsp;Upload bundles
+        </button>
+    </div>
+</div>

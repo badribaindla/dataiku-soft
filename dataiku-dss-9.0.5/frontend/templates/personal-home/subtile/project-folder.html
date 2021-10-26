@@ -1,0 +1,53 @@
+<div class="project-folder">
+    <div class="body vertical-flex">
+        <span class="path noflex" title="{{$ctrl.folder.path}}">
+            {{$ctrl.folder.path}}
+        </span>
+        <span class="title noflex horizontal-flex">
+            <h3 class="flex">
+                <i class="icon-folder-close fl"></i>
+                <a class="link-std" href="{{$ctrl.$state.href('project-list', {folderId : $ctrl.folder.id})}}" main-click>
+                    <div show-tooltip-on-text-overflow text-tooltip="$ctrl.folder.name"></div>
+                </a>
+            </h3> 
+            <div class="icon-folder-link"><i class="no-flex icon-angle-right"/></div>
+        </span>
+        <div class="flex description" ng-if="$ctrl.folder.nbProjects > 0 || $ctrl.folder.nbFolders > 0">
+            <p>
+                <span ng-if="$ctrl.folder.nbProjects > 0">
+                    <span ng-if="isFiltering()() && $ctrl.folder.nbFilteredProjects != $ctrl.folder.nbProjects">{{$ctrl.folder.nbFilteredProjects}} / </span>
+                    {{$ctrl.folder.nbProjects}} {{'project' | plurify: $ctrl.folder.nbProjects}}
+                </span>
+                <span ng-if="$ctrl.folder.nbFolders > 0 && $ctrl.folder.nbProjects > 0">, </span>
+                <span ng-if="$ctrl.folder.nbFolders > 0">
+                <span ng-if="isFiltering()() && $ctrl.folder.nbFilteredFolders != $ctrl.folder.nbFolders">{{$ctrl.folder.nbFilteredFolders}} / </span>
+                    {{$ctrl.folder.nbFolders}} {{'folder' | plurify: $ctrl.folder.nbFolders}}
+                </span>
+            </p>
+        </div>
+        <div class="project-folder-cells" class="flex">
+            <div class="empty-folder centered-grey-lg-text" ng-if="$ctrl.folder.nbProjects == 0 && $ctrl.folder.nbFolders == 0">Folder is empty</div>
+            <div ng-repeat="itemInFolder in $ctrl.folder.filteredItems" class="project-folder-cell">
+                <totem ng-if="itemInFolder.itemType === 'project'" project-name="itemInFolder.name"
+                    project-key="itemInFolder.projectKey"
+                    object-type="'PROJECT'"
+                    object-id="itemInFolder.projectKey"
+                    object-img-hash = "itemInFolder.objectImgHash"
+                    sizeX="33" sizeY="84"
+                    editable="false",
+                    img-color="itemInFolder.imgColor",
+                    img-pattern="itemInFolder.imgPattern",
+                    show-initials="itemInFolder.showInitials",
+                    is-project-img="itemInFolder.isProjectImg",
+                    default-img-color="itemInFolder.defaultImgColor"/>
+                <div ng-if="itemInFolder.itemType === 'folder'" class="project-sub-folder" title="{{itemInFolder.name}}">
+                    <i class="icon-folder-close text-prompt" />
+                </div>
+            </div>
+            <div ng-if="$ctrl.folder.nbExtraItems > 0" class="overflowCount project-folder-cell">
+                +{{$ctrl.folder.nbExtraItems}}
+            </div>
+            <div ng-if="$ctrl.folder.nbExtraItems === 0 && $ctrl.folder.filteredProjects.length === 0" class="project-folder-cell" />
+        </div>
+    </div>
+</div>

@@ -1,0 +1,345 @@
+<div ng-controller="PMLReportDriftController" class="row-fluid data-drift">
+    <drift-references-selector
+        cur="currentMEReference"
+        ref="driftState.selectedReference"
+        compatible-references="compatibleReferences"
+        drift-params="dataDriftParams"
+        action="computeDataDrift"
+        fn-label="inputDriftLabel"
+        ref-labels="driftState.refLabels">
+    </drift-references-selector>
+
+    <hr ng-if-start="driftState.dataDriftResult">
+
+    <h1 class="dku-medium-title-sb m0">
+        Global drift score
+        <span dku-html-tooltip ng-if="isDriftDetected()">
+            <tooltip-trigger>
+                <i class="icon-exclamation-sign text-warning"></i>
+            </tooltip-trigger>
+            <tooltip-content>
+                Pvalue < significance level ({{ 1 - driftState.dataDriftParamsOfResult.confidenceLevel | nicePrecision: 2 }})
+            </tooltip-content>
+        </span>
+    </h1>
+
+    <span class="dku-text text-weak">
+        <span dku-html-tooltip>
+        <tooltip-trigger>
+            Sample:
+            &nbsp;
+            <b>{{ driftState.dataDriftResult.driftModelResult.referenceSampleSize + driftState.dataDriftResult.driftModelResult.currentSampleSize }}</b> rows
+            &nbsp;
+            <i class="icon-info-sign"></i>
+        </tooltip-trigger>
+        <tooltip-content>
+            The drift model was trained and evaluated on:
+            <br>
+            <b>{{ driftState.dataDriftResult.driftModelResult.referenceSampleSize }}</b> rows drawn from reference data
+            <br>
+            <b>{{ driftState.dataDriftResult.driftModelResult.currentSampleSize }}</b> rows drawn from current data
+        </tooltip-content>
+        </span>
+    </span>
+
+    <div class="row-fluid">
+        <div class="span6">
+            <h2 class="dku-small-title">Drift model</h2>
+
+            <div class="drift-score-podium">
+                <div class="drift-score-podium__container">
+                    <div class="drift-score-podium__section">
+                        <div class="dku-text-sb"
+                             toggle="tooltip"
+                             title="{{ driftState.dataDriftParamsOfResult.confidenceLevel | percentage }} confidence interval">
+                            Lower
+                        </div>
+                        <div class="dku-grand-title">
+                            {{ driftState.dataDriftResult.driftModelResult.driftModelAccuracy.lower | number:2 }}
+                        </div>
+                    </div>
+                    <div class="drift-score-podium__chevron">
+                        <i class="icon-angle-left"></i>
+                    </div>
+                    <div class="drift-score-podium__section">
+                        <div class="dku-text-sb" toggle="tooltip" title="Drift model's accuracy">
+                            Accuracy
+                        </div>
+                        <div class="dku-huge-title">
+                            {{ driftState.dataDriftResult.driftModelResult.driftModelAccuracy.value | number:2 }}
+                        </div>
+                    </div>
+                    <div class="drift-score-podium__chevron">
+                        <i class="icon-angle-left"></i>
+                    </div>
+                    <div class="drift-score-podium__section">
+                        <div class="dku-text-sb"
+                             toggle="tooltip"
+                             title="{{ driftState.dataDriftParamsOfResult.confidenceLevel | percentage }} confidence interval">
+                            Upper
+                        </div>
+                        <div class="dku-grand-title">
+                            {{ driftState.dataDriftResult.driftModelResult.driftModelAccuracy.upper | number:2 }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="span6">
+            <div class="doctor-explanation">
+                <h1>Lower is better</h1>
+                <p>
+                    In order to detect data drift, we train a random forest classifier (the drift model)  to discriminate the new data set from the test set.
+                    If this classifier has accuracy > 0.5, it implies that test data and new data can be distinguished and that you are observing data drift.
+                    You may consider retraining your model in that situation.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="row-fluid">
+        <div class="span6">
+            <h2 class="dku-small-title">Binomial test</h2>
+
+            <table class="drift-score-table">
+                <tr>
+                    <th>Hypothesis tested</th>
+                    <td>No drift (accuracy <= 0.5)</td>
+                </tr>
+                <tr>
+                    <th>Significance level</th>
+                    <td>{{ 1 - driftState.dataDriftParamsOfResult.confidenceLevel | nicePrecision:3 }}</td>
+                </tr>
+                <tr>
+                    <th>p-value</th>
+                    <td>{{ driftState.dataDriftResult.driftModelResult.driftModelAccuracy.pvalue | nicePrecision:5 }}</td>
+                </tr>
+                <tr>
+                    <th>Conclusion</th>
+                    <td>
+                        <span ng-if="isDriftDetected()">
+                            <i 
+                                class="icon-exclamation-sign text-warning"
+                                toggle="tooltip" 
+                                title="Pvalue < significance level ({{ 1 - driftState.dataDriftParamsOfResult.confidenceLevel | nicePrecision: 2 }})"></i>
+                            Drift detected
+                        </span>
+                        <span ng-if="!isDriftDetected()">
+                            Inconclusive
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="span6">
+            <div class="doctor-explanation">
+                <h1>Binomial test explanations</h1>
+                <p>
+                    The hypothesis tested is that there is no drift, in which case the expected drift model accuracy is 0.5 (datasets undistinguishable).
+                    The observed accuracy might deviate from this expectation and the Binomial test evaluates whether this deviation is statistically significant,
+                    modelling the number of correct predictions as a random variable drawn from a Binomial distribution.
+                </p>
+                <p>
+                    The p-value is the probability to observe this particular accuracy (or larger) under the hypothesis of absent drift.
+                    If this probability is lower than the significance level (i.e. 5%), it’s then unlikely to be in the situation of absent drift:
+                    the hypothesis of no drift is rejected, triggering a drift detection.
+                </p>
+                <p>
+                    The significance level indicates the rate of falsely-detected drifts we are ready to accept from the test.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="univariate-drift">
+        <div class="univariate-drift-header">
+            <h1 class="dku-medium-title-sb m0">
+                Univariate data drift
+                <span ng-if="driftingColumns().length > 0" dku-html-tooltip>
+                    <tooltip-trigger>
+                        &nbsp;
+                        <i class="icon-exclamation-sign text-warning"></i>
+                    </tooltip-trigger>
+                    <tooltip-content>
+                        Drift detected for:
+                        <ul>
+                            <li ng-repeat="columnName in driftingColumns()">{{columnName}}</li>
+                        </ul>
+                    </tooltip-content>
+                </span>
+            </h1>
+
+            <div class="univariate-drift__color-codes">
+                <span class="univariate-drift__color-span" ng-style="{'background-color': colors[0]}"></span>
+                <label>Current</label>
+                <span class="univariate-drift__color-span" ng-style="{'background-color': colors[1]}"></span>
+                <label>Reference</label>
+            </div>
+        </div>
+
+        <span class="dku-text text-weak">
+            <span dku-html-tooltip>
+                <tooltip-trigger>
+                    Sample:
+                    &nbsp;
+                    <b>{{ driftState.dataDriftResult.referenceSampleSize + driftState.dataDriftResult.currentSampleSize }}</b> rows
+                    &nbsp;
+                    <i class="icon-info-sign"></i>
+                </tooltip-trigger>
+                <tooltip-content>
+                    Reference data: <b>{{ driftState.dataDriftResult.referenceSampleSize }}</b> rows
+                    <br>
+                    Current data: <b>{{ driftState.dataDriftResult.currentSampleSize }}</b> rows
+                </tooltip-content>
+            </span>
+        </span>
+
+        <br>
+
+        <div class="univariate-drift-features">
+            <table sort-table class="table table-hover univariate-drift-features__table" sort-column="name" >
+                <thead>
+                    <tr>
+                        <th sort-col="name" colspan="2">Feature</th>
+                        <th sort-col="actualHandling">Type</th>
+                        <th>Distribution</th>
+                        <th sort-col="ksTestPvalue" class="text-center nowrap">KS test</th>
+                        <th sort-col="chiSquareTestPvalue" class="text-center nowrap">Chi-square test</th>
+                        <th sort-col="populationStabilityIndex" class="text-center nowrap">Population stability index</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="columnReport in driftState.dataDriftResult.perColumnReport | orderBy:sortValue(sortColumn):sortDescending">
+                        <td>
+                            <label class="dku-toggle" ng-init="columnReport.checked = !!driftState.dataDriftResult.univariateDriftResult.columns[columnReport.name]">
+                                <input type="checkbox"
+                                       ng-model="columnReport.checked"
+                                       ng-change="changeColumnEnabled(columnReport.name, columnReport.checked)">
+                                <span></span>
+                            </label>
+                        </td>
+                        <td ng-if-start="univariateDrift = driftState.dataDriftResult.univariateDriftResult.columns[columnReport.name]"
+                            class="dku-text">
+                            {{ columnReport.name }}
+                        </td>
+                        <td>
+                            <ul class="btn-group">
+                                <button class="btn btn--secondary btn-icon"
+                                        ng-class="{
+                                            'btn--active' : univariateDrift.type === 'CATEGORICAL',
+                                            'pointer-events-none': univariateDrift.type === 'CATEGORICAL'
+                                        }"
+                                        ng-click="changeColumnHandling(columnReport.name, 'CATEGORICAL')">
+                                  <i class="icon-dku-charts_text_type"></i>
+                                </button>
+                                <button class="btn btn--secondary btn-icon"
+                                        ng-class="{
+                                            'btn--active' : univariateDrift.type === 'NUMERICAL',
+                                            'pointer-events-none': univariateDrift.type === 'NUMERICAL'
+                                        }"
+                                        ng-click="changeColumnHandling(columnReport.name, 'NUMERICAL')">
+                                    <i class="icon-dku-hexa_view"></i>
+                                </button>
+                            </ul>
+                        </td>
+                        <td>
+                            <div class="univariate-drift-features__graph">
+                                <svg
+                                    univariate-data-distribution-chart
+                                    data="univariateDrift.histogram" colors="colors">
+                                </svg>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-center">
+                                <i 
+                                    ng-if="isPvalueRejected(univariateDrift.ksTestPvalue)" 
+                                    class="icon-exclamation-sign text-warning"
+                                    toggle="tooltip" 
+                                    title="Pvalue < significance level ({{ 1 - driftState.dataDriftParamsOfResult.confidenceLevel | nicePrecision: 2 }}): distribution of values is significantly different compared to reference data"
+                                    ></i>
+                                <span>{{univariateDrift.ksTestPvalue | nicePrecision: 2 | ifEmpty: '-' }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div  class="text-center">
+                                <i ng-if="isPvalueRejected(univariateDrift.chiSquareTestPvalue)" 
+                                    class="icon-exclamation-sign text-warning"
+                                    toggle="tooltip" 
+                                    title="Pvalue < significance level ({{ 1 - driftState.dataDriftParamsOfResult.confidenceLevel | nicePrecision: 2 }}): distribution of values is significantly different compared to reference data"
+                                    ></i>
+                                <span>{{univariateDrift.chiSquareTestPvalue | nicePrecision: 2 | ifEmpty: '-' }}</span>
+                            </div>
+                        </td>
+                        <td ng-if-end>
+                            <div class="text-center">
+                                <i ng-if="isPSIAboveThreshold(univariateDrift.populationStabilityIndex)" 
+                                    class="icon-exclamation-sign text-warning"
+                                    toggle="tooltip" 
+                                    title="PSI > PSI threshold ({{ 1 - driftState.dataDriftParamsOfResult.psiThreshold | nicePrecision: 2 }}): distribution of values is significantly different compared to reference data"
+                                    ></i>
+                                <span>{{univariateDrift.populationStabilityIndex | nicePrecision: 2 | ifEmpty: '-' }}</span>
+                            </div>
+                        </td>
+                        <td ng-if-start="!driftState.dataDriftResult.univariateDriftResult.columns[columnReport.name]">
+                            <div class="dku-text text-disabled">
+                                {{ columnReport.name }}
+                            </div>
+                            <div class="dku-tiny-text text-disabled">
+                                <span ng-if="columnReport.defaultHandling != 'IGNORED'">
+                                    Rejected
+                                </span>
+                                <span ng-if="columnReport.defaultHandling == 'IGNORED'">
+                                    Rejected at feature processing step
+                                </span>
+                            </div>
+                        </td>
+                        <td ng-if-end colspan="6">
+                            <div class="alert alert-error text-center" ng-if="columnReport.errorMessage">
+                                <i class="icon-info-sign"></i>
+                                {{ columnReport.errorMessage }}
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="feature-drift-importance" ng-if-end>
+        <div class="feature-drift-importance-header">
+            <h1 class="dku-medium-title-sb">Feature drift importance</h1>
+        </div>
+        <div class="row-fluid">
+            <div class="span8 feature-drift-importance-body">
+                <ng2-lazy-echart [options]="driftVersusImportanceChart" ng-if="driftVersusImportanceChart"></ng2-lazy-echart>
+                <p class="alert alert-warning" ng-if="!driftVersusImportanceChart">
+                    <i class="icon-warning-sign text-warning"></i>
+                    Not available for this model
+                </p>
+            </div>
+            <div class="span4">
+                <div class="doctor-explanation">
+                    <p>The scatter plot shows feature importance for the original model versus feature
+                        importance for the (data classifying) drift model.</p>
+                    <p><b>This graph should be examined alongside with the drift score.</b></p>
+                    <p>For a highly drifted dataset (drift score ~1), if the features most responsible
+                        for the data drift are of low importance in the original model (bottom right quadrant),
+                        you can expect the behavior of the model to remain the same.
+                    </p>
+                    <p>Features in the top right quadrant of the scatter plot are highly drifted (i.e. they are
+                        powerful in distinguished test data from new observations), but also of high importance
+                        for the original model. In this situation, you can expect the performance of the model
+                        to degrade as your model does not apply to your new observations.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

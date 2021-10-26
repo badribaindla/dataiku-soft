@@ -1,0 +1,55 @@
+<div ng-controller="SlackChannelController">
+	<form name="descriptionForm" class="dkuform-horizontal">
+		<div class="control-group">
+			<label for="" class="control-label">Id</label>
+			<div class="controls" ng-if="channel.$creation">
+                <input type="text" ng-model="channel.id" />
+                <span class="help-inline">Must be unique.</span>
+            </div>
+            <div class="controls" ng-if="!channel.$creation">
+                {{channel.id}}
+            </div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Channel</label>
+			<div class="controls">
+				<input type="text" ng-model="channel.configuration.channel"></input>
+				<span class="help-inline">Id of a Slack channel</span>
+			</div>
+		</div>
+        <div class="control-group">
+            <label class="control-label">Mode</label>
+            <div class="controls" ng-if="channel.configuration" ng-init="channel.configuration.mode = channel.configuration.mode || 'WEBHOOK';">
+                <select ng-model="channel.configuration.mode">
+                    <option value="WEBHOOK">Use incoming webhook</option>
+                    <option value="API">Use API</option>
+                </select>
+            </div>
+        </div>
+        <div class="control-group" ng-if="channel.configuration.mode == 'API'">
+            <label class="control-label">Authorization token</label>
+            <div class="controls">
+                <input type="text" ng-model="channel.configuration.authorizationToken"></input>
+                <span class="help-inline">Authentication token of a user or an integration</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="channel.configuration.mode == 'WEBHOOK'">
+            <label class="control-label">Webhook URL</label>
+            <div class="controls">
+                <input name="webhookUrl" type="url" ng-model="channel.configuration.webhookUrl" class="webhook-url" required></input>
+                <div ng-if="descriptionForm.$invalid && descriptionForm.webhookUrl.$touched">
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!descriptionForm.$error.required">Please fill this field.</div>
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!descriptionForm.$error.url">Please enter a valid URL.</div>
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Use Proxy</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="channel.configuration.useProxy"></input>
+                <span class="help-inline">Use DSS's proxy settings to connect</span>
+            </div>
+        </div>
+
+	</form>
+</div>

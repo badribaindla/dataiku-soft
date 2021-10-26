@@ -1,0 +1,132 @@
+<div class="distinct-recipe visual-recipe-with-steps" ng-show="topNav.tab == 'settings'" close-tooltips-on-exit>
+    <div class="main-recipe-content dss-page vertical-flex">
+        <div block-api-error />
+        <div class="flex" style="position: relative;">
+            <div class="leftPane vertical-flex">
+                <div class="steps flex">
+                    <div recipe-step="inputs" class="inputs"/>
+                    <div recipe-step="preFilter" step-label="Pre-filter"/>
+                    <div recipe-step="group" step-label="Distinct"/>
+                    <div recipe-step="postFilter" step-label="Post-filter"/>
+                    <div recipe-step="output" step-label="Output"/>
+                    <div ng-if="recipeStatus.topLevelMessages.anyMessage" recipe-step="topLevelMessages" step-label="Warnings" />
+                </div>
+                <div class="run noflex" ng-if="params">
+                    <div include-no-scope="/templates/recipes/visual-recipes-fragments/visual-recipe-run.html"/>
+                    <div engine-selector-button
+                        recipe-status="recipeStatus"
+                        recipe-params="params"
+                        update-status="hooks.updateRecipeStatus"
+                        can-change-engine="canChangeEngine"
+                        />
+                </div>
+            </div>
+
+            <div class="mainPane fh oa" ng-if="params && computablesMap">
+                <div ng-show="uiState.currentStep == 'group'" class="padded-step-settings main-step vertical-flex" close-tooltips-on-exit>
+
+                    <div class="recipe-settings-section1 pad16">
+                            <h1 class="recipe-settings-section1-title pad0">Operation mode</h1>
+
+                            <div class="selectable-items-list mtop16" style="width: 400px;">
+                                <div class="mleft0 mtop0 selectable-item selectable" ng-class="{selected: uiState.distinctAllColumns}" ng-click="uiState.distinctAllColumns = true">
+                                    <div class="selection-indicator">
+                                        <i class="icon-ok" title="active" ng-show="uiState.distinctAllColumns"></i>
+                                    </div>
+                                    <p style="margin: 0px 10px 0px 10px; font-weight: bold;">Remove duplicates (on all columns)</p>
+                                </div>
+                                <div class="mleft0 mbot0 selectable-item selectable" ng-class="{selected: !uiState.distinctAllColumns}" ng-click="uiState.distinctAllColumns = false; removeAllDistinctColumns();">
+                                    <div class="selection-indicator">
+                                        <i class="icon-ok" title="active" ng-show="!uiState.distinctAllColumns"></i>
+                                    </div>
+                                    <p style="margin: 0px 10px 0px 10px; font-weight: bold;">Find distinct values of a subset of all columns</p>
+                                </div>
+                            </div>
+                    </div>
+
+                    <div class="recipe-settings-section1 pad16 mtop16">
+                            <h1 class="recipe-settings-section1-title pad0">Settings</h1>
+
+                            <div class="twoPanesColumnSelection horizontal-flex" ng-show="!uiState.distinctAllColumns">
+                                <div class="pane discard vertical-flex flex">
+                                    <h5 class="noflex">Available columns ({{ (uiState.columnStatus | filter:{ignore:true}).length }})</h5>
+                                    <div class="colsearch noflex horizontal-flex">
+                                        <input class="flex" type="text" placeholder="Search" ng-model="uiState.discardColumnFilter" />
+                                        <span class="colsearch-icon noflex"><i class="icon-dku-search"/></span>
+                                    </div>
+                                    <ul class="collist flex oa">
+                                        <li class="collist-item horizontal-flex qa_recipe_available-column" ng-repeat="col in uiState.columnStatus | filter:{ignore:true,name:uiState.discardColumnFilter} track by $index" ng-click="selectLine($event, col, true)" class="horizontal-flex" ng-style="{'background-color': col.$selected ? 'lightblue' : ''}">
+                                            <span class="colname flex" title="{{ col.name }}">{{col.name}}</span>
+                                            <span class="coltype noflex">{{col.type}}</span>
+                                            <a class="colaction noflex" ng-click="addDistinctColumns(col); $event.stopPropagation();">&rarr;</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="actions vertical-flex noflex">
+                                    <button type="button" class="btn btn--secondary btn--icon" ng-click="addAllDistinctColumns()" id="qa_recipe_add-all-columns-button" ng-disabled="(uiState.columnStatus | filter:{ignore:true}).length == 0"><i class="icon-double-angle-right"/></button>
+                                    <button type="button" class="btn btn--secondary btn--icon" ng-click="addDistinctColumns()" id="qa_recipe_add-single-column-button" ng-disabled="(uiState.columnStatus | filter:{ignore:true,$selected:true}).length == 0" style="margin-bottom: 5px;"><i class="icon-angle-right"/></button>
+                                    <button type="button" class="btn btn--secondary btn--icon" ng-click="removeDistinctColumns()" id="qa_recipe_remove-single-column-button" ng-disabled="(uiState.columnStatus | filter:{ignore:false,$selected:true}).length == 0" style="margin-top: 5px;"><i class="icon-angle-left"/></button>
+                                    <button type="button" class="btn btn--secondary btn--icon" ng-click="removeAllDistinctColumns()" id="qa_recipe_remove-all-columns-button" ng-disabled="(uiState.columnStatus | filter:{ignore:false}).length == 0"><i class="icon-double-angle-left"/></button>
+                                </div>
+                                <div class="pane retrieve vertical-flex flex">
+                                    <h5 class="noflex">Selected columns ({{ (uiState.columnStatus | filter:{ignore:false}).length }})</h5>
+                                    <div class="colsearch noflex horizontal-flex">
+                                        <input class="flex" type="text" placeholder="Search" ng-model="uiState.distinctColumnFilter" />
+                                        <span class="colsearch-icon noflex"><i class="icon-dku-search"/></span>
+                                    </div>
+                                    <ul class="collist flex oa">
+                                        <li class="collist-item horizontal-flex qa_recipe_retrieved-column" ng-repeat="col in uiState.columnStatus | filter:{ignore:false,name:uiState.distinctColumnFilter} track by $index" ng-click="selectLine($event, col, false)" class="horizontal-flex" ng-style="{'background-color': col.$selected ? 'lightblue' : ''}">
+                                            <span class="colname flex" title="{{ col.name }}">{{col.name}}</span>
+                                            <span class="coltype noflex">{{col.type}}</span>
+                                            <a class="colaction noflex" ng-click="removeDistinctColumns(col); $event.stopPropagation();">&times;</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="mtop8">
+                                <label>
+                                    <input type="checkbox" ng-model="params.globalCount" />
+                                    Compute count of original rows for each deduplicated output row
+                                </label>
+                            </div>
+                    </div>
+
+                    <div class="recipe-settings-section1" ng-show="recipeStatus.group.anyMessage" class="mtop16">
+                        <div info-messages-raw-list-with-alert="recipeStatus.group" class="pad16"></div>
+                    </div>
+                </div>
+
+                <div ng-if="uiState.currentStep == 'preFilter'"
+                    class="padded-step-settings h100 oa"
+                    ng-scope="{{filterDesc=params.preFilter; dataset=recipe.inputs['main'].items[0].ref; schema=computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema; distinctOptionDisabled=true}}">
+                    <div ng-include="'/templates/recipes/visual-recipes-fragments/inline-filter.html'"/>
+                    <div class="text-error" ng-show="InfoMessagesUtils.getMessageAtLine(recipeStatus.preFilter, 1)">
+                        Database error: {{InfoMessagesUtils.getMessageAtLine(recipeStatus.preFilter, 1).message}}
+                    </div>
+                    <div ng-show="params.preFilter.enabled && params.preFilter.uiData.mode == 'CUSTOM'" grel-reference-and-examples></div>
+                </div>
+
+                <div ng-if="uiState.currentStep == 'postFilter'"
+                    class="padded-step-settings h100 oa"
+                    ng-scope="{{
+                        filterDesc=params.postFilter;
+                        schema=recipeStatus.outputSchemaBeforeOverride;
+                        distinctOptionDisabled=true
+                    }}">
+                    <div ng-include="'/templates/recipes/visual-recipes-fragments/inline-filter.html'"/>
+                    <div class="text-error" ng-show="InfoMessagesUtils.getMessageAtLine(recipeStatus.postFilter, 1)">
+                        Database error: {{InfoMessagesUtils.getMessageAtLine(recipeStatus.postFilter, 1).message}}
+                    </div>
+                    <div ng-show="params.postFilter.enabled && params.postFilter.uiData.mode == 'CUSTOM'" grel-reference-and-examples></div>
+                </div>
+
+                <div ng-show="uiState.currentStep == 'output'" class="h100 fh">
+                    <div data-extend-template="/templates/recipes/visual-recipes-fragments/run-summary.html" class="h100"/>
+                </div>
+
+                <div data-extend-template="/templates/recipes/visual-recipes-fragments/visual-sql-top-level-messages.html" />
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,173 @@
+<div class="standard-container standard-container--full api-deployer-deployment-status-page fh">
+    <div block-api-error />
+
+    <div class="horizontal-flex">
+        <div class="m0a" ng-if="lightStatus && lightStatus.neverEverDeployed">
+            <div class="w800 mx-elevated-box">
+                <div class="pad24 tac">
+                    <h4 class="font-weight-normal">Ready to deploy</h4>
+
+                    <button class="btn btn--primary btn--large" ng-click="updateOnly(false, 'FULL')">
+                        Deploy
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="lightStatus && !lightStatus.neverEverDeployed" class="h100 w100">
+            <div class="horizontal-flex">
+                <div class="standard-container__side mright16 vertical-flex">
+                    <div api-deployment-card
+                         class="standard-container__wrap"
+                         light-status="lightStatus"
+                         heavy-status="heavyStatus">
+                    </div>
+                    <div class="noflex mtop10" style="font-size: 16px;">Endpoints ({{heavyStatus.endpoints.length}})</div>
+                    <div class="flex generic-shadow-box vertical-flex mtop10" style="padding: 0;">
+                        <div class="noflex" style="border-bottom: solid 1px #ddd; padding: 8px 16px;">
+                            <div class="std-list-search-box">
+                                <span class="add-on">
+                                    <i class="icon-dku-search"></i>
+                                </span>
+                                <input type="search" ng-model="uiState.endpointsSearchQuery" style="width: 214px;" placeholder="Filter..." />
+                            </div>
+                        </div>
+                        <div class="flex oa">
+                            <div class="api-deployer-deployment-endpoint-line horizontal-flex" ng-class="{active: currentEndpoint.id == endpoint.id}" ng-repeat="endpoint in heavyStatus.endpoints" ng-click="setCurrentEndpoint(endpoint)" ng-show="!uiState.endpointsSearchQuery || endpoint.id.includes(uiState.endpointsSearchQuery)" full-click>
+                                <div class="noflex " style="font-size: 28px; padding-top: 6px;">
+                                    <i class="api-deployer-deployment-endpoint-icon {{endpoint.type |endpointTypeToIcon}}" />
+                                </div>
+                                <div class="flex" style="margin-left: 8px;">
+                                    <div class="api-deployer-deployment-endpoint-name">{{endpoint.id}}</div>
+                                    <div class="api-deployer-deployment-endpoint-sub">{{endpoint.type |endpointTypeToName}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex vertical-flex" style="margin-left: 20px;">
+                    <div class="generic-shadow-box mbot20 noflex" ng-if="lightStatus.deploymentBasicInfo.enabled && heavyStatus && heavyStatus.health != 'HEALTHY'">
+                        <div info-messages-raw-list-with-alert="heavyStatus.healthMessages" show-reduce-action="true" />
+                    </div>
+                    <div class="generic-shadow-box mbot20 noflex" ng-if="lightStatus && !lightStatus.deploymentBasicInfo.enabled">
+                        <h5 style="text-align: center">This deployment is disabled</h5>
+                        <p style="text-align: center; margin: 0"><a ui-sref="^.settings">Go to settings to enable it</a></p>
+                    </div>
+                    <div class="generic-shadow-box main-zone flex vertical-flex" style="padding: 0;" ng-if="currentEndpoint" ng-controller="APIDeployerDeploymentStatusEndpointStatusController">
+                        <h1 style="padding-left: 12px; margin: 0" class="endpoint-name noflex">
+                            <i class="{{endpoint.type |endpointTypeToIcon}}" />
+                            <span style="margin-left: 6px;">{{endpoint.id}}</span>
+                            <span class="endpoint-type" style="margin-left: 6px;">{{endpoint.type |endpointTypeToName}}</span>
+                        </h1>
+
+                        <ul class="noflex nav nav-tabs" style="padding-top:  0">
+                            <li ng-class="{active: epUIState.activeTab == 'summary'}">
+                                <a ng-click="epUIState.activeTab = 'summary'">Summary</a>
+                            </li>
+                            <li ng-class="{active: epUIState.activeTab == 'code'}">
+                                <a ng-click="epUIState.activeTab = 'code'">Sample code</a>
+                            </li>
+                            <li ng-class="{active: epUIState.activeTab == 'test'}">
+                                <a ng-click="epUIState.activeTab = 'test'">Run and test</a>
+                            </li>
+                        </ul>
+
+                        <div class="flex">
+                            <div ng-if="epUIState.activeTab == 'summary'" class="fh">
+                                <div class="h100 oa" style="padding: 20px">
+                                <table class="endpoint-url-info">
+                                    <tr ng-if="serviceURLs.length == 0">
+                                        <th>Endpoint URL</th>
+                                        <td>Unavailable <a class="link-std" ng-click="refreshLightAndHeavy()">Refresh</a></td>
+                                    </tr>
+                                    <tr ng-if="serviceURLs.length == 1">
+                                        <th>Endpoint URL</th>
+                                        <td>
+                                            <code style="color: #333;">{{serviceURLs[0]}}</code>
+                                            <span copy-clipboard-button="serviceURLs[0]" />
+                                            <span ng-show="lightStatus.infraBasicInfo.type == 'K8S' && heavyStatus.publicURLIsClusterOnly" class="text-warning">
+                                                This URL is only valid within the cluster
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr ng-if="serviceURLs.length > 1">
+                                        <th>Endpoint URLs</th>
+                                        <td>
+                                        <div class="multiple-urls" ng-repeat="url in serviceURLs">
+                                                <code style="color: #333;">{{url}}</code>
+                                                <span copy-clipboard-button="url" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-if="apiKeyToUse">
+                                        <th></th>
+                                        <td></td>
+                                    </tr>
+                                    <tr ng-if="apiKeyToUse">
+                                        <th>API Key</th>
+                                        <td>
+                                            <code style="color: #333;">{{apiKeyToUse}}</code>
+                                            <span copy-clipboard-button="apiKeyToUse" />
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div ng-if="!lightStatus.deploymentBasicInfo.enabled" class="empty-list-cta">
+                                    <h1>
+                                        Charts are not available - Deployment is disabled
+                                    </h1>
+                                </div>
+                                <div ng-if="lightStatus.deploymentBasicInfo.enabled && !lightStatus.infraBasicInfo.carbonAPIEnabled" class="empty-list-cta">
+                                    <h1>
+                                        Charts are not available - Enable monitoring in <a href="{{ $state.href('apideployer.infras.infra.settings', {infraId: lightStatus.infraBasicInfo.id}) }}">infrastructure settings</a>
+                                    </h1>
+                                </div>
+                                <div ng-if="lightStatus.deploymentBasicInfo.enabled && lightStatus.infraBasicInfo.carbonAPIEnabled">
+                                    <div class="pull-right">
+                                        <span>Time range:</span>
+                                        <select dku-bs-select="{width: 150}" ng-options="obj.id as obj.label for obj in chartsTimeRanges" ng-model="epUIState.chartsTimeRange"/>
+                                    </div>
+                                    <h2>Queries per second</h2>
+                                    <div class="api-deployer-deployment-graphs">
+                                        <div ng-show="!endpoint.succeededToLoadQueries">
+                                            <i class="icon-spinner icon-spin" ng-if="!endpoint.failedToLoadQueries" />
+                                            <i class="icon-dku-warning icon-error-color" title="{{endpoint.failedToLoadQueries.message}}" toggle="tooltip" ng-if="endpoint.failedToLoadQueries" />
+                                        </div>
+                                        <svg id="deployment-graph-queries" ng-show="endpoint.succeededToLoadQueries"></svg>
+                                    </div>
+                                    <h2>Processing time (95th percentile)</h2>
+                                    <div class="api-deployer-deployment-graphs">
+                                        <div ng-show="!endpoint.succeededToLoadTiming">
+                                            <i class="icon-spinner icon-spin" ng-if="!endpoint.failedToLoadTiming" />
+                                            <i class="icon-dku-warning icon-error-color" title="{{endpoint.failedToLoadTiming.message}}" toggle="tooltip" ng-if="endpoint.failedToLoadTiming" />
+                                        </div>
+                                        <svg id="deployment-graph-processingtime" ng-show="endpoint.succeededToLoadTiming"></svg>
+                                    </div>
+                                </div>
+
+                                </div>
+                            </div>
+
+                            <div ng-if="epUIState.activeTab == 'code'" class="fh" style="padding: 20px">
+                                <div class="vertical-flex h100">
+                                    <div class="noflex">
+                                        <p>Use the code snippets below to execute the model in various languages. Copy the appropriate snippet for development use.</p>
+                                        <p> Choose language: <select dku-bs-select ng-model="epUIState.sampleCodeLang" ng-options="x[0] as x[1] for x in sampleCodeOptions" /></p>
+                                        <div from-markdown="sampleCode.instructions"></div>
+                                    </div>
+                                    <div class="flex">
+                                        <div class="fh code-sample-wrapper" style="width: 100%; border: 1px #ddd solid">
+                                            <textarea ui-codemirror="codeMirrorSettingService.get(sampleCode.mode)" style="border: 1px #ddd solid;"  ng-model="sampleCode.code" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div ng-if="epUIState.activeTab == 'test'" class="fh" include-no-scope="/templates/api-deployer/deployment-endpoint-test-queries.html"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

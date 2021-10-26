@@ -1,0 +1,34 @@
+<div class="modal modal3">
+<div dku-modal-header modal-title="Charts engine selection" modal-class="has-border" />
+
+<div class="modal-body">
+	<div ng-show="warningType == 'dangerous-notsqlable'">
+		<p>
+			Your charts use <strong>{{wl.productShortName}} charts engine</strong>.
+		</p>
+
+		<p ng-show="sqlability.dataset && !sqlability.sampling">
+			Live in-database processing is NOT available because it's only available for FULL sampling.
+		</p>
+		<p ng-show="sqlability.dataset && sqlability.sampling && !sqlability.nosteps">
+			Live in-database processing is NOT available because your script has steps that cannot be processed in database.
+		</p>
+		<p ng-show="sqlability.dataset && sqlability.sampling && sqlability.nosteps && !sqlability.chartsDef">
+			Live in-database processing is NOT available because it's not compatible with hexagonal binning.
+		</p>
+		<p class="text-warning">Your sample settings could generate a huge volume of data, take a long time to process, and not fit on your disk.</p>
+		<p>
+			If you know that your data fits on disk, you can ignore this warning and proceed.
+		</p>
+	</div>
+</div>
+
+<div class="modal-footer modal-footer-std-buttons">
+	<div class="text-right">
+		<div ng-show="warningType == 'dangerous-notsqlable'">
+			<button type="button" class="btn btn--text btn--secondary" ng-click="revert()">Revert changes</button>
+			<button type="submit" class="btn btn--text btn--danger" ng-click="ignore()">Continue with {{wl.productShortName}} engine</button>
+		</div>
+	</div>
+</div>
+</div>

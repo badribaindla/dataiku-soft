@@ -1,0 +1,97 @@
+<div ng-controller="ReportersViewController" class="h100 list-page-4">
+
+    <div data-extend-template="/templates/layouts/list-items-3.html" class="vertical-flex scenario-triggers">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            Reporters
+        </span>
+
+        <div data-block="table-header" class="main-list-zone row-fluid">
+            <div class="span12 offset0 h30">
+                <ul class="list-items noflex">
+                    <li data-block="header-item" class="list-item" style="display:block">
+                        <label style="visibility: hidden">
+                            <span style="display:none;" main-click></span>
+                            <input type="checkbox" ng-model="item.$selected" />
+                        </label>
+                        <div class="hit h14">
+                            <div class="chunk">
+                                <strong>Project</strong>
+                            </div>
+                            <div class="chunk">
+                                <strong>Scenario</strong>
+                            </div>
+                            <div class="chunk">
+                                 <strong>Reporter</strong>
+                            </div>
+                            <div class="chunk" style="width: 20%">
+                                <strong>Properties</strong>
+                            </div>
+                            <div class="active-indicator chunk">
+                                <strong>Active</strong>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    
+        <div data-block="empty">
+            <h1>
+                No scenario with reporters in this instance
+            </h1>
+            <p>
+                Scenarios let you automate and schedule<br /> dataset builds, model trainings, and many other tasks
+            </p>
+            <p class="small">
+                <span doclink-wrapper page="scenarios/index">Read the documentation</span> to learn more
+            </p>
+        </div>
+    
+        <div data-block="item">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit" dataset="item" ng-class="{'scenario-inactive' : !item.active}">
+                <div class="chunk">
+                    <a class="db w100 mx-link-nodecoration mx-textellipsis"
+                        ui-sref="projects.project.monitoring.scenarios({projectKey: item.projectKey})" 
+                        show-tooltip-on-text-overflow
+                        text-tooltip="item.projectKey | boldify:selection.filterParams.userQueryResult"></a>
+                </div>
+                <div class="chunk">
+                    <a class="db w100 mx-link-nodecoration mx-textellipsis"
+                        ui-sref="projects.project.scenarios.scenario.settings({projectKey: item.projectKey, scenarioId: item.id})"
+                        show-tooltip-on-text-overflow
+                        text-tooltip="item.name || item.id | boldify:selection.filterParams.userQueryResult"></a>
+                    <span ng-if="!item.autoTriggers" class="text-disabled">(Auto triggers disabled)</span>
+                </div>
+                <div class="chunk">
+                    <span ng-bind-html="item.reporterType | boldify:selection.filterParams.userQueryResult"></span>
+                    <a  class="db w100 mx-link-nodecoration mx-textellipsis"
+                        show-tooltip-on-text-overflow
+                        text-tooltip="'('+item.reporter.name+')'" 
+                        ui-sref="projects.project.scenarios.scenario.settings({projectKey: item.projectKey, scenarioId: item.id})"
+                        ng-if="item.reporter.name && item.reporter.reporterType === 'REPORTER'"></a>
+                    <a class="db w100 mx-link-nodecoration mx-textellipsis"
+                        show-tooltip-on-text-overflow
+                        text-tooltip="'('+item.reporter.name+')'" 
+                        ui-sref="projects.project.scenarios.scenario.steps({projectKey: item.projectKey, scenarioId: item.id})"
+                        ng-if="item.reporter.name && item.reporter.reporterType === 'STEP'"></a>
+                </div>
+                <div show-tooltip-on-text-overflow
+                    text-tooltip="item.reporterProps | boldify:selection.filterParams.userQueryResult"
+                    class="chunk mx-textellipsis"
+                    style="width: 20%"></div>
+                <div class="active-indicator chunk" style="width: 22%;">
+                    <label class="dku-toggle list-item__toggle" style="margin-left: 0;">
+                        <input type="checkbox" ng-model="item.reporter.active" ng-change="toggleActive(item)"></input>
+                        <span style="display: inline-block; position: relative;" ></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

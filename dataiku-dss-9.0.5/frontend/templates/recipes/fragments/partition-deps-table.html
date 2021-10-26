@@ -1,0 +1,121 @@
+<div class="partitionDeps">
+    <div class="partition-dep" ng-repeat="partitionDep in input.deps">
+        <div block-api-error />
+        <div ng-if="partitionDep.func == 'time_range'">
+            <span class="partition-name">{{partitionDep.idim}}</span>
+            <select dku-bs-select ng-model="partitionDep.func" ng-options="opt[0] as opt[1] for opt in PartitionDeps.depFunctions"></select>
+
+            <div class="dib" style="margin-left: 60px">
+                <form class="dkuform-horizontal-tight-pdeps">
+                    <!-- Reference -->
+                    <div class="control-group">
+                        <label class="control-label">Reference time</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="partitionDep.$$output" ng-options="x as x.label for x in outputDimensionsWithNow" />
+                        </div>
+                    </div>
+                    <!-- From -->
+                    <div class="control-group">
+                        <label for="" class="control-label">Starting time</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="partitionDep.params.fromMode" ng-options="x[0] as x[1] for x in PartitionDeps.timeRangeFromModes"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="controls">
+                            <span ng-show="partitionDep.params.fromMode == 'FIXED_DATE'">
+                                <input type="text" class="fixed-date" ng-model="partitionDep.params.fromDate" />
+                            </span>
+                            <span ng-show="partitionDep.params.fromMode == 'RELATIVE_OFFSET'" class="mini-bs-select">
+                                <input class="dib" type="number" force-integer ng-model="partitionDep.params.fromOffset"/>
+                                <select class="dib " dku-bs-select ng-model="partitionDep.params.fromGranularity" ng-options="x[0] as x[1] for x in PartitionDeps.timeRangeGranularities"/>
+                                <span class="help-inline">(prior to reference time. A negative value refers to a partition posterior to reference time)</span>
+                            </span>
+                        </div>
+                    </div>
+                    <!-- To -->
+                    <div class="control-group">
+                        <label for="" class="control-label">End time</label>
+                        <div class="controls mini-bs-select">
+                            <input class="dib" type="number" force-integer ng-model="partitionDep.params.toOffset" />
+                            <select class="dib" dku-bs-select ng-if="partitionDep.params.toOffset != 0 || partitionDep.$$output.odim" ng-model="partitionDep.params.toGranularity" ng-options="x[0] as x[1] for x in PartitionDeps.timeRangeGranularities"></select>
+                            <span class="help-inline">(prior to reference time. A negative value refers to a partition posterior to reference time)</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+            <div ng-if="partitionDep.func == 'values'" class="dkuform-modal-horizontal">
+                <span class="partition-name">{{partitionDep.idim}}</span>
+                <select dku-bs-select ng-model="partitionDep.func" ng-options="opt[0] as opt[1] for opt in PartitionDeps.depFunctions"></select>
+                <input type="text" ng-model="partitionDep.values" comma-separated-view ng-required="partitionDep.func == 'values'"ng-disabled="partitionDep.func != 'values'" placeholder="Comma-separated values"/>
+                <div style="display: inline-block;">
+                    (&nbsp;<label for="expandVars" class="expand-variables" style="display: inline-block;"><input id="expandVars" type="checkbox" ng-model="partitionDep.expandVariables"/>expand variables</label>&nbsp;)
+                </div>
+            </div>
+            <div ng-if="partitionDep.func == 'sliding_days'" class="dkuform-modal-horizontal">
+                <span class="partition-name">{{partitionDep.idim}}</span>
+                <select dku-bs-select ng-model="partitionDep.func" ng-options="opt[0] as opt[1] for opt in PartitionDeps.depFunctions"></select>
+                relative to
+                <select dku-bs-select ng-model="partitionDep.$$output" ng-options="x as x.label for x in outputDimensions" />
+                <div style="padding-left: 50px">
+                    From:
+                    <input type="number" force-integer ng-model="partitionDep.params.firstDay"  placeholder="First day (ex: -14)"/>
+                    days to:
+                    <input type="number" force-integer ng-model="partitionDep.params.lastDay" placeholder="Last day (ex: -1)"/>
+                    days
+                </div>
+            </div>
+            <div ng-if="partitionDep.func == 'all_available' || partitionDep.func == 'latest_available'" class="dkuform-modal-horizontal">
+                <span class="partition-name">{{partitionDep.idim}}</span>
+                <select dku-bs-select ng-model="partitionDep.func" ng-options="opt[0] as opt[1] for opt in PartitionDeps.depFunctions"></select>
+
+            </div>
+            <div ng-if="['all_available', 'latest_available', 'time_range', 'values', 'sliding_days'].indexOf(partitionDep.func)== -1" class="dkuform-modal-horizontal">
+                <span class="partition-name">{{partitionDep.idim}}</span>
+                <select dku-bs-select ng-model="partitionDep.func" ng-options="opt[0] as opt[1] for opt in PartitionDeps.depFunctions"></select>
+                <select dku-bs-select ng-model="partitionDep.$$output" ng-options="x as x.label for x in outputDimensions" />
+                <span ng-if="partitionDep.func=='custom_python'">
+                    <custom-python-dependency-editor pdep-index="input.deps.indexOf(partitionDep)" recipe="recipe" input="input"></custom-python-dependency-editor>
+                </span>
+            </div>
+
+            <div ng-show="!partitionDep.$$testResult" style="margin: 5px 0px 0px 60px">
+                <button class="btn btn--secondary" ng-click="testPDep(input.ref, partitionDep)">Test</button>
+            </div>
+
+            <div ng-show="partitionDep.$$testResult" style="margin: 5px 0px 0px 60px">
+                <button class="btn btn--secondary" ng-click="testPDep(input.ref, partitionDep)">Test</button>
+                <span ng-if="partitionDep.$$testResult.validationResult.maxSeverity == 'ERROR'" class="text-error">
+                    Could not test:
+                    <div info-messages-list="partitionDep.$$testResult.validationResult.messages" />
+                </span>
+                <span ng-if="partitionDep.$$testResult.validationResult.maxSeverity != 'ERROR'">
+                    <span ng-show="partitionDep.$$testResult.output">For output: {{partitionDep.$$testResult.output}}, gives:</span>
+                    <span ng-show="!partitionDep.$$testResult.output">Dep gives:</span>
+                    <span ng-show="partitionDep.$$testResult.sortedInputs.length >2 && partitionDep.$$testResult.sortedInputs[0] < partitionDep.$$testResult.sortedInputs[partitionDep.$$testResult.sortedInputs.length-1]">
+                        <code>{{partitionDep.$$testResult.sortedInputs[0]}}</code> to
+                        <code>{{partitionDep.$$testResult.sortedInputs[partitionDep.$$testResult.sortedInputs.length-1]}}</code>
+                        ({{partitionDep.$$testResult.sortedInputs.length}} parts.)
+                    </span>
+                    <span ng-show="partitionDep.$$testResult.sortedInputs.length >2 && partitionDep.$$testResult.sortedInputs[0] >= partitionDep.$$testResult.sortedInputs[partitionDep.$$testResult.sortedInputs.length-1]">
+                        <code>{{partitionDep.$$testResult.sortedInputs[partitionDep.$$testResult.sortedInputs.length-1]}}</code> to
+                        <code>{{partitionDep.$$testResult.sortedInputs[0]}}</code>
+                        ({{partitionDep.$$testResult.sortedInputs.length}} parts.)
+                    </span>
+                    <span ng-show="partitionDep.$$testResult.sortedInputs.length == 2">
+                         <code>{{partitionDep.$$testResult.sortedInputs[0]}}</code>,
+                         <code>{{partitionDep.$$testResult.sortedInputs[1]}}</code>
+                     </span>
+                     <span ng-show="partitionDep.$$testResult.sortedInputs.length == 1">
+                        <code>{{partitionDep.$$testResult.sortedInputs[0]}}</code>
+                     </span>
+                     <span ng-show="partitionDep.$$testResult.sortedInputs.length == 0">
+                        nothing !
+                     </span>
+
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

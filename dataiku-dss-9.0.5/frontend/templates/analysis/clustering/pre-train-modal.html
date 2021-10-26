@@ -1,0 +1,91 @@
+<div class="modal modal3 pre-train-status-modal" ng-controller="CMLTaskPreTrainModal" auto-size="false">
+	<div dku-modal-header-with-totem modal-title="Training models" modal-totem="icon-beaker" />
+	<div class="modal-body">
+		<div block-api-error />
+		<div ng-if="!preTrainStatus" class="modal-centered-vh">
+			  <i class="icon-spin icon-spinner" />&nbsp;Please wait
+		</div>
+
+		<div ng-if="preTrainStatus">
+			<div class="modal-accent-font">
+				<strong>{{preTrainStatus.nbModelsPreGS | pluralize :'model' :'models'}}</strong> will be trained
+				on <strong>{{preTrainStatus.nbInputFeatures}}</strong> features.<br />
+				An estimated total of <strong>{{preTrainStatus.estimatedTotalFits}} clusterers</strong> will be evaluated.
+			</div>
+
+			<h2 class="settings-section-title">
+				Session Name &amp; Description
+			</h2>
+			<div class="dkuform-horizontal">
+				<div class="control-group">
+		            <label class="control-label">Name</label>
+		            <div class="controls">
+		                <input type="text" style="width: 100%" ng-model="uiState.userSessionName" placeholder="Optional, appended to model names" />
+		            </div>
+		        </div>
+		        <div class="control-group">
+		            <label class="control-label">Description</label>
+		            <div class="controls">
+		                <textarea style="width: 100%; height: 42px" ng-model="uiState.userSessionDescription" placeholder="Optional, set as model description"></textarea>
+		            </div>
+		        </div>
+	        </div>
+
+			<h2 class="settings-section-title">Sampled subset</h2>
+			<div ng-if="!splitStatus.splitAvailable">
+				A new subset for clustering will be generated according to your settings.
+			</div>
+			<div ng-if="splitStatus.splitAvailable && !splitStatus.allDatasetsAreManaged">
+				Re-using sampled subset computed on {{splitStatus.generationDate|date:'yyyy/MM/dd-HH:mm'}}.
+				<div class="train-test-sets">
+					<div class="train-test-set">
+						<h4>Sampled set</h4>
+						{{splitStatus.fullRows}} rows
+					</div>
+				</div>
+				<br />
+				Note that the input may have been modified since.
+				<label>
+					<input type="checkbox" ng-model="uiState.forceRefresh">
+					Drop existing set, recompute new one
+				</label>
+			</div>
+			<div ng-if="splitStatus.splitAvailable && splitStatus.allDatasetsAreManaged">
+				Sampled set ({{splitStatus.fullRows}} rows) computed on
+				{{splitStatus.generationDate|date:'yyyy/MM/dd-HH:mm'}} will be used.
+				<div class="alert alert-warning" ng-if="splitStatus.anyDatasetModifiedSince">
+					Dataset {{splitStatus.modifiedDataset}} was updated since
+					(on {{splitStatus.datasetModificationDate|date:'yyyy/MM/dd-HH:mm'}})
+				</div>
+				<label>
+					<input type="checkbox" ng-model="uiState.forceRefresh">
+					Drop existing set, recompute new one
+				</label>
+			</div>
+
+			<div ng-if="preTrainStatus.messages.length">
+				<h2 class="settings-section-title">Messages</h2>
+				<label ng-if="uiState.anyWarning && !uiState.anyError">
+					<input type="checkbox" ng-model="uiState.confirmRun">&nbsp;Ignore warning, run anyway
+				</label>
+				<ul>
+					<li ng-repeat="message in preTrainStatus.messages">
+						<div class="alert {{message|infoMessageAlertClass}} pre-warning"><h4>{{message.title}}</h4>{{message.details}}</div>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+	</div>
+	<div class="modal-footer modal-footer-std-buttons has-border">
+		<div class="pull-right">
+			<button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">
+				<i class="icon-remove" />&nbsp;Cancel
+			</button>
+			<button type="submit" class="btn btn--text btn--primary" ng-click="train()"
+					ng-disabled="uiState.anyError || (uiState.anyWarning && !uiState.confirmRun)">
+				<i class="icon-play" />&nbsp;Train
+			</button>
+		</div>
+	</div>
+</div>

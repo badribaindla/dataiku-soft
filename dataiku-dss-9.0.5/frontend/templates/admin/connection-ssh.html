@@ -1,0 +1,58 @@
+<div ng-controller="SSHConnectionController" class="h100 vertical-flex">
+    <div class="flex">
+        <div class="fh oa">
+            <div class="h100 small-lr-padding">
+                <div class="generic-white-box">
+                    <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                    <div block-api-error />
+
+                    <form name="connectionParamsForm" class="dkuform-horizontal">
+
+                        <h2 class="settings-section-title">Connection</h2>
+                        <div class="control-group"
+                        form-template-element
+                        model="connection.params"
+                        field="{name:'host', type:'string', mandatory:true, label:'Host'}" />
+                        <div class="control-group"
+                        form-template-element
+                        model="connection.params"
+                        field="{name:'user', type:'string', mandatory:true, label:'User'}" />
+                        <div class="control-group"
+                        form-template-element
+                        model="connection.params"
+                        field="{name:'port', type:'int', mandatory:false, label:'Port'}" />
+
+                        <div class="control-group">
+                            <label for="" class="control-label">Use public key authentication</label>
+                            <div class="controls">
+                                <label>
+                                    <input type="checkbox" ng-model="connection.params.usePublicKey" />
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group"
+                        form-template-element
+                        ng-show="! connection.params.usePublicKey"
+                        model="connection.params"
+                        field="{name:'password', type:'password', label:'Password'}" />
+                        <div class="control-group"
+                        form-template-element
+                        ng-show="connection.params.usePublicKey"
+                        model="connection.params"
+                        field="{name:'passphrase', type:'password', label:'Key passphrase'}" />
+                        <div class="control-group" form-template-element
+                        model="connection.params"
+                        field="{name:'chroot', type:'string', label:'Path from', tooltip:'Optional. Limit accesses on this connection to the contents of this folder'}" />
+
+                        <div include-no-scope="/templates/admin/fragments/fs-naming-rule.html" />
+                        <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                    </form>
+                </div>
+                <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                    <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="noflex small-lr-padding page-top-padding" include-no-scope="/templates/admin/fragments/connection-name-test-save-with-results.html" />
+</div>

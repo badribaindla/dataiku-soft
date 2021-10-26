@@ -1,0 +1,58 @@
+<form>
+    <div class="control-group">
+        <label class="control-label">
+            Input columns to include
+        </label>
+        <div class="controls">
+            <label>
+            <input type="checkbox" ng-model="desc.filterInputColumns"/>
+            <div class="help-inline">
+                avoid copying the whole input dataset to the output
+            </div>
+            </label>
+        </div>
+    </div>
+</form>
+
+
+<div ng-if="desc.filterInputColumns" class="managed-folder-view" style="position:relative">
+    <div class="preview-zone droparea-style-v2 h100" ng-if="!columns.length" style="position: relative; height: 200px;">
+        <div class="preview-cta">
+            <i class="icon-warning-sign" /> &nbsp; Input schema is empty.
+        </div>
+    </div>
+
+    <div class="preview-zone droparea-style-v2 h100" ng-if="columns.length">
+        <div style="padding: 12px">
+            <input type="checkbox" class="noflex" style="margin: 0 10px"
+                ng-model="selectionState.all"
+                dku-indeterminate="selectionState.any && !selectionState.all"
+                ng-change="updateSelectAllColumns(selectionState.all)"
+            >
+            Keep {{desc.keptInputColumns.length == columns.length ? 'all '+columns.length : desc.keptInputColumns.length + ' / ' + columns.length}} columns
+
+            <div class="std-list-search-box list-control-widget">
+                <span class="add-on">
+                    <i class="icon-dku-search"></i>
+                </span>
+                <input type="search" ng-model="uiState.query" placeholder="Filter columns..." ng-change="updateColumnsFilter(uiState.query)" style="width: 180px">
+            </div>
+        </div>
+        <ul class="files oa" style="height: 200px"> <!-- TODO @ml larger height when many columns -->
+            <li ng-repeat="column in filteredColumns track by $index" ng-click="stopEvent($event)">
+                <div class="file horizontal-flex" ng-class="{'selected': column.$selected }">
+                    <label class="path flex mx-textellipsis link-std" title="{{column.name}}">
+                        <input type="checkbox" class="noflex" style="margin: 0 10px" ng-model="column.$selected" ng-change="updateFilteredColumnsSelection()">
+                        {{ column.name }}
+                    </label>
+                    <span class="info noflex" style="width:50px">
+                        {{ column.type }}
+                    </span>
+                </div>
+            </li>
+            <li ng-if="columns.length && !filteredColumns.length" style="height: 40px;">
+                <div class="preview-cta">No matching column</div>
+            </li>
+        </ul>
+    </div>
+</div>

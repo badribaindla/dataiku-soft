@@ -1,0 +1,42 @@
+<div class="h100 runnable-page">
+    <div class="h100 oa horizontal-centerer">
+        <div class="recipe-settings-section1 w800">
+            <h1 class="recipe-settings-section1-title">Security</h1>
+            <form class="dkuform-horizontal recipe-settings-section2">
+                <div class="control-group">
+                    <label class="control-label">Run as</label>
+                    <div class="controls" ng-if="allUsers">
+                          <select dku-bs-select="{liveSearch:true}" ng-model="insight.params.runAsUser" ng-options="user.login as user.login for user in allUsers">
+                              <option value="">Current user</option>
+                          </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="recipe-settings-section1 w800" ng-if="!hasSettings">
+            <h1 class="recipe-settings-section1-title">No parameters</h1>
+        </div>
+        <div class="recipe-settings-section1 w800" ng-if="hasSettings">
+            <h1 class="recipe-settings-section1-title">Parameters</h1>
+            <form>
+                <div plugin-settings-alert plugin-desc="pluginDesc" component-type="recipe" has-settings="pluginDesc.hasSettings" app-config="appConfig" />
+                
+                <div custom-params-form ng-if="(desc.params && desc.params.length > 0) || (desc.paramsTemplate && desc.paramsTemplate.length > 0)"
+                        desc="desc"
+                        plugin-desc="pluginDesc"
+                        component-id="runnable.id"
+                        config="insight.params.config" ></div>
+                        
+                <div class="dkuform-horizontal" style="padding: 0 10px;">
+                    <div class="control-group">
+                        <label class="control-label">Reset settings to default</label>
+                        <div class="controls">
+                            <button type="button" class="btn btn--secondary" ng-click="resetSettings()">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

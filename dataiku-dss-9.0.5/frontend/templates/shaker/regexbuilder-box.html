@@ -1,0 +1,156 @@
+<div class="modal modal3 regex-builder-modal vertical-flex" auto-size="false">
+
+    <dku-modal-header ng-if="columnName" modal-class="has-border">
+        <dku-modal-title>Smart Pattern for <strong>{{columnName}}</strong>
+        </dku-modal-title>
+    </dku-modal-header>
+    <dku-modal-header ng-if="!columnName && onColumnNames" modal-class="has-border">
+        <dku-modal-title>Smart Pattern for <strong>columns</strong>
+        </dku-modal-title>
+    </dku-modal-header>
+
+    <div class="modal-body">
+        <div class="regex-builder-main-panel">
+            <div block-api-error></div>
+            <div class="regex-builder-pattern-list__title-row regex-builder-modal__title-text">
+                <span>Patterns</span>
+                <span ng-if="patterns.length || customPattern.regex"
+                    class="regex-builder-pattern-list__title-row-right">Match rate</span>
+            </div>
+            <div ng-if="selections.length === 0 && patterns.length === 0"
+                class="regex-builder-modal__help-text">
+                Select string from input sample to generate pattern
+            </div>
+            <div ng-if="selections.length > 0 && patterns.length === 0"
+                class="regex-builder-modal__help-text">
+                No pattern could be generated
+            </div>
+            <ul class="selectable-items-list selectable-items-list--no-margins regex-builder-pattern-list">
+                <li ng-repeat="pattern in patterns" ng-click="selectPattern(pattern)"
+                    class="selectable-item selectable regex-builder-pattern-item"
+                    ng-class="{ 'selected': selectedPattern === pattern }">
+                    <span class="selection-indicator">
+                        <i class="icon-ok" title="active" ng-if="selectedPattern === pattern"></i>
+                    </span>
+                    <span class="selectable-item__title">{{pattern.regex}}</span>
+                    <progress-bar class="regex-builder-pattern-item__progress-bar" success="{{pattern.nbOK}}"
+                        error="{{pattern.nbNOK}}" />
+                </li>
+            </ul>
+            <ul class="selectable-items-list selectable-items-list--no-margins">
+                <li class="selectable-item selectable regex-builder-pattern-item"
+                    ng-click="selectPattern(customPattern)"
+                    ng-class="{ 'selected': selectedPattern === customPattern, 'regex-builder-pattern-item--error': customRegexError && customPattern.regex == customPattern.oldRegex }">
+                    <span class="selection-indicator">
+                        <i class="icon-ok" title="active" ng-if="selectedPattern === customPattern"></i>
+                    </span>
+                    <input type="text" class="regex-builder-pattern-item__regex-input" ng-model="customPattern.regex"
+                        ng-model-options="{ debounce: 1000 }"
+                        ng-trim="false" ng-change="onCustomRegexChange()"
+                        ng-keyup="$event.keyCode === 13 && onCustomRegexChange()"
+                        placeholder="Or write your own regex here..." />
+                    <span dku-html-tooltip ng-if="customRegexError && customPattern.regex === customPattern.oldRegex">
+                        <tooltip-trigger>
+                            <i class="text-error icon-warning-sign"></i>
+                        </tooltip-trigger>
+                        <tooltip-content>
+                            {{customRegexError}}
+                        </tooltip-content>
+                    </span>
+                    <progress-bar
+                        ng-show="!customRegexError && customPattern.regex !== '' && customPattern.nbOK > -1 && customPattern.nbNOK > -1 && customPattern.regex === customPattern.oldRegex"
+                        class="regex-builder-pattern-item__progress-bar" success="{{customPattern.nbOK}}"
+                        error="{{customPattern.nbNOK}}" />
+                </li>
+            </ul>
+
+            <div class="regex-builder-input-sample-list__title-row">
+                <span ng-if="!onColumnNames" class="regex-builder-modal__title-text">Input sample</span>
+                <span ng-if="onColumnNames" class="regex-builder-modal__title-text">Column names</span>
+                <label class="regex-builder-input-sample-list__wrap-line-label">
+                    <input type="checkbox" ng-model="wrapLines"
+                        class="regex-builder-input-sample-list__wrap-line-checkbox">
+                    Wrap Lines
+                </label>
+            </div>
+            <ul class="regex-builder-input-sample-list">
+                <li ng-repeat="sentence in sentences track by $index" class="regex-builder-input-sample-item">
+                    <overlap-underline-highlight class="regex-builder-input-sample-item__sentence"
+                        ng-class="{ 'regex-builder-input-sample-item__sentence--wrapped': wrapLines === false }"
+                        ng-mouseup="onSelection($event, sentence)" sentence="sentence"
+                        light-green-offsets="selectedPattern.extractions[$index]"
+                        dark-green-offsets="selectionPositions[$index]" error-offsets="selectedPattern.errors[$index]"
+                        is-crossed="isUsedAsExclusion(sentence)" />
+                    <span class="regex-builder-input-sample-item__action">
+                        <button
+                            ng-if="(!selectedPattern.errors || selectedPattern.errors[$index].length === 0) && selectedPattern.extractions[$index].length > 0"
+                            ng-click="addExcludedSentence(sentence)" class="btn btn--text btn--primary"
+                            title="Nothing should be extracted from this input.">
+                            Exclude
+                        </button>
+                        <button ng-if=" selectedPattern.errors[$index].length> 0" ng-click="ignoreErrors(sentence)"
+                            class="btn btn--text btn--primary"
+                            title="The result is not what is expected. Ignoring the mismatch will remove this selection or exclusion.">
+                            Ignore mismatch
+                        </button>
+                    </span>
+                </li>
+                <li ng-if="!sentences || sentences.length === 0" class="regex-builder-input-sample-item">
+                    Input sample
+                </li>
+            </ul>
+        </div>
+        <div class="regex-builder-modal__selections-panel">
+            <div class="regex-builder-modal__selections-panel-top-row">
+                <span ng-pluralize class="regex-builder-modal__title-text" count="selections.length + excludedSentences.length" when="{ '0': 'No selection',
+                    'one': '{} selection',
+                    'other': '{} selections' }"></span>
+            </div>
+            <ul class="regex-builder-user-selection-list">
+                <li ng-repeat="selection in selections track by $index" class="regex-builder-selection__item">
+                    <div dku-html-tooltip tooltip-class="user-selections__tooltip" style="min-width: 0px;">
+                        <tooltip-trigger class="horizontal-flex">
+                            <span class="regex-builder-modal__selected-text">{{selection.selection}}</span>
+                        </tooltip-trigger>
+                        <tooltip-content>
+                            {{selection.before}}<span class="user-selections__tooltip-selected-text">{{selection.selection}}</span>{{selection.after}}
+                        </tooltip-content>
+                    </div>
+                    <button class="btn btn--danger btn--text" ng-click="removeSelection($index)" style="border:none;">
+                        <i class="icon-trash"></i>
+                    </button>
+                </li>
+                <li ng-repeat="excluded in excludedSentences track by $index" class="regex-builder-selection__item">
+                    <div dku-html-tooltip tooltip-class="user-selections__tooltip" style="min-width: 0px;">
+                        <tooltip-trigger class="horizontal-flex">
+                            <span class="regex-builder-modal__excluded-text">{{excluded}}</span>
+                        </tooltip-trigger>
+                        <tooltip-content>
+                            {{excluded}}
+                        </tooltip-content>
+                    </div>
+                    <button class="btn btn--danger btn--text btn--icon" ng-click="removeExcludedSentence($index)"
+                        style="border:none;">
+                        <i class="icon-trash"></i>
+                    </button>
+                </li>
+            </ul>
+            <div ng-if="selections.length <= 2" class="regex-builder-modal-selection-panel-helper">
+                <img class="regex-builder-modal-selection-panel-helper__img"
+                    src="/static/dataiku/images/SHAKER-smart-regex-highlight-text.svg">
+                <br>
+                <span class="regex-builder-modal-selection-panel-helper__text">
+                    Highlight sample data to add selection
+                </span>
+            </div>
+        </div>
+
+    </div>
+    <div class="modal-footer modal-footer-std-buttons">
+        <div class="pull-right">
+            <button ng-click="cancel()" class="btn btn--text btn--secondary">Cancel</button>
+            <button ng-click="save()" class="btn btn--text btn--primary">OK</button>
+        </div>
+    </div>
+
+</div>

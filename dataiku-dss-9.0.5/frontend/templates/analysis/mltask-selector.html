@@ -1,0 +1,28 @@
+<div custom-element-popup class="subnav-selector backend-selector">
+	<div class="mainzone" full-click>
+		<a class="trigger subnav-page-header-name horizontal-flex aie" main-click ng-click="togglePopover()">
+			<i class="{{mlTasksContext.activeMLTask.backendType | backendTypeToIcon}}" />
+			<div class="mx-textellipsis mleftright4">{{mlTasksContext.activeMLTask.name}}</div>
+			<small ng-if="mlTasksContext.activeMLTask.predictionType == 'REGRESSION'" class="noflex subnav-page-header-name__detail">(Regression)</small>
+			<small ng-if="mlTasksContext.activeMLTask.predictionType == 'BINARY_CLASSIFICATION'" class="noflex subnav-page-header-name__detail">(Binary classification)</small>
+			<small ng-if="mlTasksContext.activeMLTask.predictionType == 'MULTICLASS'" class="noflex subnav-page-header-name__detail">(Multiclass classification)</small>
+			&nbsp;
+			<i class="icon-caret-down" />
+		</a>
+	</div>
+	<ul class="popover custom-element-popup-popover-light subnav-selector-popover dropdown-menu">
+		<li><a ng-click="createNewMLTask()"><i class="icon-file-alt icon-fixed-width-small"/>Create new modeling task</a></li>
+		<li><a ng-click="renameMLTask()"><i class="icon-pencil icon-fixed-width-small"/>Rename</a></li>
+		<li><a ng-click="duplicateMLTask()" ng-if="mlTasksContext.activeMLTask.backendType !== 'VERTICA'"><i class="icon-copy icon-fixed-width-small"></i>Duplicate</a></li>
+		<li><a ng-click="deleteMLTask()" class="text-error"><i class="icon-trash icon-fixed-width-small"/>Delete</a></li>
+
+		<li class="divider"></li>
+		<li ng-repeat="task in mlTasksContext.analysisMLTasks">
+			<a ui-sref="projects.project.analyses.analysis.ml.{{task.taskType === 'CLUSTERING' ? 'clust' : 'pred'}}mltask.list.results({'mlTaskId': task.mlTaskId})">
+				<i class="icon-ok mleft4" ng-class="{'visibility-hidden': task.mlTaskId != mlTasksContext.activeMLTask.mlTaskId}" />
+				<i class="{{task.backendType | backendTypeToIcon}}" />
+				{{task.name}}
+			</a>
+		</li>
+	</ul>
+</div>

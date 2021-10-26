@@ -1,0 +1,36 @@
+#!/bin/bash -e
+
+BINDIR=$(cd "$(dirname "$0")" && pwd -P)
+
+export DIP_HOME=$(dirname "$BINDIR")
+
+# Load basic environment
+source "$BINDIR"/env-default.sh
+if [ -z "$DKUINSTALLDIR" ]; then
+  echo >&2 "FATAL: DKUINSTALLDIR is not defined. Please check $BINDIR/env-default.sh"
+  exit 1
+fi
+source "$DKUINSTALLDIR/scripts/_startup.inc.sh"
+
+bkdl_set_global_env
+bkdl_set_java_env
+bkdl_set_py_env
+bkdl_set_R_env
+bkdl_set_julia_env
+bkdl_load_env_files
+
+bkdl_env_sanity_check
+
+# Final environment setup
+export DKUBIN="$BINDIR"/dku
+export PYTHONPATH="$DIP_HOME/lib/python:$DKUINSTALLDIR/python"
+bkdl_set_R_libs
+
+exec "$DKUJAVABIN" \
+  -Ddku.jek \
+  $DKU_JAVA_OPTS \
+  $DKU_JEK_JAVA_OPTS \
+  -XX:OnOutOfMemoryError="kill -9 %p" \
+  -Djava.library.path="$DKU_JEK_JAVA_LIBRARY_PATH:$DKU_HADOOP_JAVA_LIBRARY_PATH" \
+  -cp "$(bkdl_get_cp)" \
+  com.dataiku.dip.dataflow.kernel.slave.DSSJobKernelMain "$@"

@@ -1,0 +1,51 @@
+<div class="modal modal3">
+    <form class="dkuform-modal-horizontal" global-keydown="{'esc': 'cancel();' }">
+        <input type="hidden" autofocus="true" />
+        <dku-modal-header-with-totem modal-title={{title}} modal-close="cancel" modal-totem={{totem}}></dku-modal-header-with-totem>
+        <div block-api-error/>
+        <div class="modal-body tight-body" >
+            <div class="control-group">
+                <label class="control-label pull-right">Project</label>
+                <div class="controls">
+                    <select dku-bs-select="{'liveSearch':true, 'noneSelectedText':'No project selected'}"
+                            ng-model="selectedProjectKey"
+                            ng-change="selectProject()"
+                            ng-options="project.projectKey as project.name for project in projects"/>
+                </div>
+            </div>
+            <div class="control-group" ng-show="selectedProjectKey">
+                <label class="control-label">Analysis</label>
+                <div class="controls">
+                    <select dku-bs-select="{'liveSearch':true, 'noneSelectedText':'No analysis selected'}"
+                            ng-model="selectedAnalysisId"
+                            ng-change="selectAnalysis()"
+                            ng-options="analysis.id as analysis.name for analysis in analyses"/>
+                </div>
+            </div>
+            <div class="control-group" ng-show="selectedAnalysisId">
+                <label class="control-label">Model</label>
+                <div class="controls">
+                    <select dku-bs-select="{'liveSearch':true, 'noneSelectedText':'No model selected'}"
+                            ng-model="selectedTask"
+                            ng-options="task as task.name disable when task.isNotSelectable for task in tasks"
+                            options-annotations="descriptions"
+                    />
+                </div>
+            </div>
+            <br/>
+            <div class="alert alert-info" ng-if="infoMessages.length" ng-switch="infoMessages.length">
+                <span ng-switch-when="1">{{infoMessages[0]}}</span>
+                <ul ng-switch-default style="margin-bottom: 0">
+                    <li ng-repeat="msg in infoMessages">{{msg}}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <div class="pull-right">
+                <button type="button" class="btn btn--text btn--secondary" ng-click="cancel();">Cancel</button>
+                <button type="button" class="btn btn--text btn--primary" ng-click="confirm();" ng-disabled="!selectedTask">Confirm</button>
+            </div>
+        </div>
+    </form>
+
+</div>

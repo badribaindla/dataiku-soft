@@ -1,0 +1,29 @@
+<ul class="unstyled train-progress">
+<!--    DO NOT DELETE THIS "track by $index"-->
+<!--    Without it, the diagnostic popover stays forever when the mouse is on the icon-->
+<!--    The "track by" allows the popover to work normally: disappearing on mouseleave, but not sure why-->
+    <li ng-repeat="item in allProgress track by $index" ng-switch="item.type">
+        <div ng-switch-when="DONE">
+            <i class="icon-ok train-progress__icon"></i>
+            {{item.name}} ({{ item.time / 1000 | number: 1 }}s)
+            <span ng-if="groupedDiagnostics[item.name]" diagnostics-modal diagnostics="trainDiagnostics.diagnostics" state="{{item.name}}" display-popup="true" max-length="180" icon-size="small"></span>
+        </div>
+        <div ng-switch-when="CURRENT">
+            <div class="train-progress__icon"><i class="icon-spin icon-spinner"></i></div>
+            <div class="train-progress__message">
+                <span ng-bind-html="item.message"></span>
+                <span ng-if="displaySearchProgress(item)">
+                    {{getSearchProgress()}}
+                </span>
+                <span ng-if="displaySearchTimeProgress(item)">
+                    <br>{{getSearchTimeProgress()}}
+                </span>
+                <span ng-if="groupedDiagnostics[item.message]" diagnostics-modal diagnostics="trainDiagnostics.diagnostics" state="{{item.message}}" display-popup="true" max-length="180" icon-size="small"></span>
+            </div>
+        </div>
+        <div ng-switch-when="TODO" style="opacity:.6">
+            <div class="train-progress__icon"><i class="icon-circle-blank"></i></div>
+            <div class="train-progress__message"><span>{{item.str}}</span></div>
+        </div>
+    </li>
+</ul>

@@ -1,0 +1,72 @@
+<div class="control-group">
+    <label class="control-label" dku-for="#sourceReportInput button">Source report</label>
+    <div class="controls">
+        <div object-picker="facade.reportSmartId"
+            type="REPORT"
+            object="hook.sourceObject"
+            id="sourceReportInput"
+            error-scope="$parent.$parent">
+        </div>
+
+        <input type="hidden" ng-model="facade.reportSmartId" required />
+
+        <div insight-source-info/>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="loadLastInput">Always display last snapshot</label>
+    <div class="controls">
+        <input type="checkbox" ng-model="insight.params.loadLast" ng-change="checkLoadLastAndTimestampConsistency() && insight.params.loadLast && resetTimestamp()" id="loadLastInput">
+    </div>
+</div>
+
+
+<div class="control-group" ng-if="canWriteProject()">
+    <label class="control-label" ng-show="insight.params.loadLast" for="createSnapshotInput">
+        New snapshot
+    </label>
+    <label class="control-label" ng-show="!insight.params.loadLast" for="createSnapshotInput">
+        Create and display new snapshot
+    </label>
+
+    <div class="controls">
+        <input type="checkbox"
+            ng-model="facade.createSnapshot"
+            ng-change="checkLoadLastAndTimestampConsistency() && facade.createSnapshot && resetTimestamp()"
+            id="createSnapshotInput">
+    </div>
+</div>
+
+
+<div class="control-group" ng-if="!insight.params.loadLast && facade.availableSnapshots.length && !facade.createSnapshot">
+    <label class="control-label" dku-for="#snapshotTimestampInput button">Snapshot to display</label>
+    <div class="controls" id="snapshotTimestampInput">
+        <select dku-bs-select
+            ng-model="facade.snapshot"
+            ng-options="s as formatDate(s.timestamp) for s in facade.availableSnapshots"
+            ng-change="checkLoadLastAndTimestampConsistency()"
+            >
+        </select>
+    </div>
+</div>
+
+<div class="control-group" ng-if="!insight.params.loadLast && !facade.availableSnapshots.length && !facade.createSnapshot">
+    <div class="alert">
+        No snapshot available
+    </div>
+</div>
+
+
+<div ng-if="facade.reportSmartId && !facade.availableSnapshots.length && !canWriteProject()">
+    <p>No snapshot is available for this RMarkdown report, please ask its owner to create one.</p>
+</div>
+
+
+<div class="control-group">
+    <label class="control-label" for="insightNameInput">Insight name</label>
+    <div class="controls">
+        <input type="text" ng-model="insight.name" placeholder="{{hook.defaultName}}" id="insightNameInput" />
+    </div>
+</div>
+

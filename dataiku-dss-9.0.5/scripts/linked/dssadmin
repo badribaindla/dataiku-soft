@@ -1,0 +1,384 @@
+#! /bin/bash -e
+#
+# Must be called from DIP_HOME/bin
+#
+# Performs various maintenance/administrative tasks on DSS
+# Preconditions :
+#  - DIP_HOME/bin/env-default.sh must contain the DKUINSTALLDIR
+#  - Python environment must be functional
+#  - Java environment must be functional
+
+me=$(basename "$0")
+BINDIR=$(cd "$(dirname "$0")" && pwd -P)
+export DIP_HOME=$(dirname "$BINDIR")
+
+
+Usage() {
+	echo >&2 "Usage: $me ACTION [ARGUMENT ...]
+Actions:
+	install-hadoop-integration [-keytab KEYTAB_FILE_LOCATION -principal KERBEROS_PRINCIPAL]
+	install-spark-integration [-sparkHome SPARK_HOME] [-pysparkPython PYSPARK_PYTHON]
+	update-spark-hadoop-jars [-sparkHome SPARK_HOME]
+	install-h2o-integration [-sparklingWaterDir SPARKLING_WATER_DIR]
+	install-R-integration [-noDeps] [-repo REPO_URL | -pkgDir DIR]
+	install-julia-integration [-juliaBin DKUJULIABIN] [-juliaDepot DKUDEPOTPATH]
+	build-base-image [use $me build-base-image -h for options]
+	build-container-exec-code-env-images [--all] [--dry-run]
+	install-monitoring-integration -graphiteServer HOSTNAME:PORT [-prefix PREFIX] [-pkg LOCAL_COLLECTD_PACKAGE]
+	install-event-server
+	regenerate-config
+	install-impersonation [-pythonBin PYTHONBIN] [-noInstallSudoSnippet] DSS_USER
+	run-diagnosis [OPTIONS] OUTPUT_FILE
+	install-graphics-export [-noDeps]
+	compact-internal-databases
+	copy-databases-to-external
+	encrypt-password PASSWORD
+	jupyter-nbextensions ACTION (list, enable, disable, available) [extension/main]
+"
+	exit 1
+}
+
+# Log output to installation log file unless specified
+if [ "$1" = "-noLog" ]; then
+	logFile=
+	shift
+else
+	logFile="$DIP_HOME"/run/install.log
+fi
+
+if [ $# -eq 0 ]; then
+	Usage
+fi
+cmdLine="$0 $@"
+ACTION="$1"
+shift
+
+if [ $(id -u) -eq 0 -a "$ACTION" != "install-impersonation" ]; then
+	echo >&2 "*** $me: running DSS under superuser account is not supported."
+	exit 1
+fi
+
+# Load basic environment
+source "$BINDIR"/env-default.sh
+if [ -z "$DKUINSTALLDIR" ]
+then
+	echo >&2 "FATAL: DKUINSTALLDIR is not defined. Please check $DIR/env-default.sh"
+	exit 1
+fi
+
+source "$DKUINSTALLDIR/scripts/_startup.inc.sh"
+
+bkdl_set_global_env
+bkdl_set_py_env
+
+##############################################
+# Actions definitions
+##############################################
+
+# Regenerate the env-default.sh
+function generate_env_default() {
+    echo "[+] Generating default env file"
+    cp -p "$BINDIR"/env-default.sh "$BINDIR"/env-default.sh.BAK
+    "$DKUPYTHONBIN" "$DKUINSTALLDIR"/scripts/dkuinstall/envfiles.py -save
+    rm -f "$BINDIR"/env-default.sh.BAK
+}
+
+function generate_supervisor_config() {
+	echo "[+] Generating supervisor configuration"
+	# Load Hadoop specific environment if any
+	if [ -f "$BINDIR"/env-hadoop.sh ]; then
+  		source "$BINDIR"/env-hadoop.sh
+	fi
+	mkdir -p "$DIP_HOME"/install-support
+	"$DKUPYTHONBIN" "$DKUINSTALLDIR"/scripts/dkuinstall/supervisor_config.py \
+		>"$DIP_HOME"/install-support/supervisord.conf
+	if [ -z "$DKU_DSSADMIN_NO_CHMOD_SUPERVISORD" ]
+	then
+		chmod 600 "$DIP_HOME"/install-support/supervisord.conf
+	fi
+}
+
+function generate_nginx_config() {
+	echo "[+] Generating nginx configuration"
+	mkdir -p "$DIP_HOME"/install-support
+	mkdir -p "$DIP_HOME"/run/nginx
+	"$DKUPYTHONBIN" "$DKUINSTALLDIR"/scripts/dkuinstall/nginx_config.py >"$DIP_HOME"/install-support/nginx.conf
+}
+
+function generate_collectd_config() {
+  collectd_enabled=$("$DKUPYTHONBIN" "$DKUINSTALLDIR"/scripts/dkuinstall/install_config.py -getbool collectd enabled)
+  if [ "$collectd_enabled" -eq 1 ]; then
+    echo "[+] Generating collectd configuration"
+    "$DKUPYTHONBIN" "$DKUINSTALLDIR"/scripts/dkuinstall/collectd_config.py >"$DIP_HOME"/install-support/collectd.conf
+  fi
+}
+
+function regenerate_config () {
+	generate_env_default
+	source "$BINDIR"/env-default.sh
+	generate_supervisor_config
+	generate_nginx_config
+  generate_collectd_config
+}
+
+function build_base_image() {
+    if [ -f "$BINDIR"/env-hadoop.sh ]; then
+        source "$BINDIR"/env-hadoop.sh
+    fi
+    if [ -f "$BINDIR"/env-spark.sh ]; then
+        source "$BINDIR"/env-spark.sh
+    fi
+
+    if [ -z "$logFile" ]; then
+        "$DKUPYTHONBIN" "$DKUINSTALLDIR/resources/container-exec/build-images.py" "$@"
+    else
+        logBanner
+        set -o pipefail
+        "$DKUPYTHONBIN" "$DKUINSTALLDIR/resources/container-exec/build-images.py" "$@" 2>&1 | tee -a "$logFile"
+    fi
+}
+
+
+function build_mad_kubernetes_base_image() {
+    echo "[!!]"
+    echo "[!!] This command is deprecated, use $me build-base-image. Additional options are not supported anymore"
+    echo "[!!]"
+    build_base_image --type api-deployer
+}
+
+function build_container_exec_base_image() {
+    echo "[!!]"
+    echo "[!!] This command is deprecated, use $me build-base-image. Additional options are not supported anymore"
+    echo "[!!]"
+    build_base_image --type container-exec
+}
+
+function build_container_exec_base_spark_image() {
+    echo "[!!]"
+    echo "[!!] This command is deprecated, use $me build-base-image. Additional options are not supported anymore"
+    echo "[!!]"
+    build_base_image --type spark
+}
+
+function update_spark_hadoop_jars() {
+    if [ -f "$BINDIR"/env-hadoop.sh ]; then
+        source "$BINDIR"/env-hadoop.sh
+    fi
+    if [ -f "$BINDIR"/env-spark.sh ]; then
+        source "$BINDIR"/env-spark.sh
+    fi
+    # This one is complex, so it's in a separate file
+    if [ -z "$logFile" ]; then
+        "$DKUINSTALLDIR"/scripts/_update-spark-hadoop-jars.sh "$@"
+    else
+        logBanner
+        set -o pipefail
+        "$DKUINSTALLDIR"/scripts/_update-spark-hadoop-jars.sh "$@" 2>&1 | tee -a "$logFile"
+    fi
+}
+
+function build_container_exec_code_env_images() {
+    export PYTHONPATH="$DIP_HOME/lib/python:$DKUINSTALLDIR/python"
+
+    if [ -z "$logFile" ]; then
+        "$DKUPYTHONBIN" -m dataiku.dsscli code-env-rebuild-images "$@"
+    else
+        logBanner
+        set -o pipefail
+        "$DKUPYTHONBIN" -m dataiku.dsscli code-env-rebuild-images "$@" 2>&1 | tee -a "$logFile"
+    fi
+}
+
+function install_hadoop_integration() {
+    if [ -z "$logFile" ]; then
+        "$DKUINSTALLDIR"/scripts/_install-hadoop-integration.sh "$@"
+    else
+        logBanner
+        set -o pipefail
+        "$DKUINSTALLDIR"/scripts/_install-hadoop-integration.sh "$@" 2>&1 | tee -a "$logFile"
+    fi
+	
+  	# regenerate supervisor conf in case hproxy has been (de)activated
+  	generate_supervisor_config
+}
+
+function logBanner() {
+	echo "[+] Saving installation log to $logFile"
+	cat >>"$logFile" <<EOF
+*********************************************************
+Data Science Studio admin tool: $(date +%Y/%m/%d-%H:%M:%S)
+Command line: $cmdLine
+DIP_HOME: $DIP_HOME
+
+EOF
+}
+
+##############################################
+# Main
+##############################################
+
+case "$ACTION" in
+	install-hadoop-integration)
+		install_hadoop_integration "$@"
+		;;
+
+    install-spark-integration)
+        # This one is complex, so it's in a separate file
+        if [ -z "$logFile" ]; then
+            "$DKUINSTALLDIR"/scripts/_install-spark-integration.sh "$@"
+        else
+            logBanner
+            set -o pipefail
+            "$DKUINSTALLDIR"/scripts/_install-spark-integration.sh "$@" 2>&1 | tee -a "$logFile"
+        fi
+        ;;
+
+    update-spark-hadoop-jars)
+        update_spark_hadoop_jars "$@"
+        ;;
+
+	install-h2o-integration)
+		# This one is complex, so it's in a separate file
+		if [ -z "$logFile" ]; then
+			"$DKUINSTALLDIR"/scripts/_install-h2o-integration.sh "$@"
+		else
+			logBanner
+			set -o pipefail
+			"$DKUINSTALLDIR"/scripts/_install-h2o-integration.sh "$@" 2>&1 | tee -a "$logFile"
+		fi
+		;;
+
+	install-R-integration)
+		# This one is complex, so it's in a separate file
+		if [ -z "$logFile" ]; then
+			"$DKUINSTALLDIR"/scripts/_install-R-integration.sh "$@"
+		else
+			logBanner
+			set -o pipefail
+			"$DKUINSTALLDIR"/scripts/_install-R-integration.sh "$@" 2>&1 | tee -a "$logFile"
+		fi
+    ;;
+
+	install-julia-integration)
+		# This one is complex, so it's in a separate file
+		if [ -z "$logFile" ]; then
+			"$DKUINSTALLDIR"/scripts/_install-julia-integration.sh "$@"
+		else
+			logBanner
+			set -o pipefail
+			"$DKUINSTALLDIR"/scripts/_install-julia-integration.sh "$@" 2>&1 | tee -a "$logFile"
+		fi
+    ;;
+
+	install-monitoring-integration)
+		# This one is complex, so it's in a separate file
+		if [ -z "$logFile" ]; then
+			"$DKUINSTALLDIR"/scripts/_install-monitoring-integration.sh "$@"
+			regenerate_config
+		else
+			logBanner
+			set -o pipefail
+			"$DKUINSTALLDIR"/scripts/_install-monitoring-integration.sh "$@" 2>&1 | tee -a "$logFile"
+      regenerate_config 2>&1 | tee -a "$logFile"
+		fi
+		;;
+
+	install-event-server)
+		if [ -z "$logFile" ]; then
+			"$DKUINSTALLDIR"/scripts/_install-event-server.sh "$@"
+			regenerate_config
+		else
+			logBanner
+			set -o pipefail
+			"$DKUINSTALLDIR"/scripts/_install-event-server.sh "$@" 2>&1 | tee -a "$logFile"
+			regenerate_config 2>&1 | tee -a "$logFile"
+		fi
+		;;
+
+	install-impersonation)
+		# This one is complex, so it's in a separate file
+		if [ -z "$logFile" ]; then
+			"$DKUINSTALLDIR"/scripts/_install-impersonation.sh "$@"
+		else
+			# Use a dedicated log file, as it is run as root
+			logFile="$DIP_HOME"/run/install-impersonation.log
+			logBanner
+			set -o pipefail
+			"$DKUINSTALLDIR"/scripts/_install-impersonation.sh "$@" 2>&1 | tee -a "$logFile"
+		fi
+		;;
+
+	regenerate-config)
+		if [ -z "$logFile" ]; then
+			regenerate_config
+		else
+			logBanner
+			set -o pipefail
+			regenerate_config 2>&1 | tee -a "$logFile"
+		fi
+		;;
+
+    build-base-image)
+        build_base_image "$@"
+        ;;
+
+	build-mad-kubernetes-base-image)
+		build_mad_kubernetes_base_image "$@"
+		;;
+
+    build-container-exec-base-image)
+        build_container_exec_base_image "$@"
+        ;;
+
+    build-container-exec-base-spark-image)
+        build_container_exec_base_spark_image "$@"
+        ;;
+
+	build-container-exec-code-env-images)
+	    build_container_exec_code_env_images "$@"
+	    ;;
+
+	run-diagnosis)
+		"$DKUINSTALLDIR/scripts/_run_diagnosis.sh" "$@"
+		;;
+
+	install-graphics-export)
+		# This one is complex, so it's in a separate file
+		if [ -z "$logFile" ]; then
+			"$DKUINSTALLDIR"/scripts/_install-graphics-export.sh "$@"
+		else
+			logBanner
+			set -o pipefail
+			"$DKUINSTALLDIR"/scripts/_install-graphics-export.sh "$@" 2>&1 | tee -a "$logFile"
+		fi
+		;;
+
+	compact-internal-databases)
+		if [ -z "$logFile" ]; then
+            "$DKUINSTALLDIR"/scripts/_compact-internal-databases.sh "$@"
+        else
+            logBanner
+            set -o pipefail
+            "$DKUINSTALLDIR"/scripts/_compact-internal-databases.sh "$@" 2>&1 | tee -a "$logFile"
+        fi
+        ;;
+
+    copy-databases-to-external)
+		logBanner
+		set -o pipefail
+		"$DIP_HOME"/bin/dku __import_h2_to_external 2>&1 | tee -a "$logFile"
+		;;
+
+	encrypt-password)
+		"$DIP_HOME"/bin/dku encrypt-password $1 2>/dev/null
+		;;
+
+	jupyter-nbextensions)
+		"$DKUPYTHONBIN" "$DKUINSTALLDIR"/scripts/_jupyter-nbextensions.py "$@"
+		;;
+
+	*)
+		echo "[-] Unsupported action $ACTION" >&2
+		Usage
+		;;
+esac

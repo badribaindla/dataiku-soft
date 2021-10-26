@@ -1,0 +1,64 @@
+<div ng-repeat="dim in flowItemPartitioning.dimensions" class="row-fluid control-group">
+    <label class="control-label">
+        Partitioning: <i>{{dim.name}}</i>
+        <span ng-show="dim.type == 'time'">({{getPlaceholder(dim)}})</span>
+    </label>
+
+    <div class="controls">
+        <input type="text"
+            autocomplete="off"
+            ng-trim="false"
+            ng-model="newPartition[$index]"
+            next-on-enter=""
+            data-min-length="0"
+            ng-required="needsPartitions"
+            placeholder="{{needsPartitions ? '' : 'All partitions'}}"
+            >
+
+        <i ng-show="dim.type == 'time'" style="cursor: pointer" class="icon-question-sign" dku-inline-popover placement="bottom" container="body">
+            <content title="Select time partitions">
+                <p>
+                    For time partitioning, in addition to the format indicated, you can also select ranges or use special keywords.
+                    To select all partitions between two dates, use the character <b>/</b> between the two dates to separate the beginning from the end.
+                </p>
+                <p ng-show="!needsPartitions">To select all partitions, leave the field empty.</p>
+                <p>
+                    You can use the special keyword <b>CURRENT_DAY</b> if your partitioning maps to days:
+                    it will be respectively replaced by the current date when the scheduler will run the task.
+                    Similarly, you can use <b>PREVIOUS_DAY</b>.
+
+                    For time partitioning on months, hours, and years, <b>CURRENT_MONTH</b>, <b>PREVIOUS_MONTH</b>, <b>CURRENT_HOUR</b>, <b>PREVIOUS_HOUR</b>, <b>CURRENT_YEAR</b>, <b>PREVIOUS_YEAR</b> can be used in the same fashion.
+                </p>
+                <p>
+                    Although, you cannot use these keywords with the <b>/</b> notation for date ranges.
+                </p>
+                Examples :
+                <ul>
+                    <li>
+                        <b>2014-03-01/2014-04-15</b> for a daily scheduled task will build every partition between 1st March 2014 and 15th April 2014 every day.
+                    </li>
+                    <li>
+                        <b>PREVIOUS_MONTH</b> for a monthly scheduled task will build the partition corresponding to the previous month.
+                    </li>
+                </ul>
+            </content>
+        </i>
+
+        <i ng-show="dim.type == 'value'" style="cursor: pointer" class="icon-question-sign" dku-inline-popover placement="bottom" container="body">
+            <content title="Select discrete partitions">
+                <p>
+                    Directly enter the value of the partitioning dimension to build.
+                </p>
+                <p>
+                    You can select several partitions at once by enumerating the values using <b>/</b> as a separator.
+                    <span ng-show="!needsPartitions">To select all partitions, leave the field empty.</span>
+                </p>
+                <p>
+                    Example : if you have a discrete partitioning dimension representing a country,
+                    you can use <b>france/germany/poland</b> to select all the partitions of these 3 countries.
+                </p>
+            </content>
+        </i>
+
+    </div>
+</div>

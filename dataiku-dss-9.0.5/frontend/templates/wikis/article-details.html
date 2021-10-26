@@ -1,0 +1,82 @@
+<section>
+    <h2 class="wiki-article-details-section-title" ng-if="articleContents && articleContents.length > 0">Table of Contents</h2>
+    <div class="wiki-article-details-section-content noflex" ng-if="articleContents && articleContents.length > 0">
+        <div ng-repeat="header in articleContents" class="wiki-article-details-section-content__anchor" style="margin-left: {{header.depth * 10}}px;">
+            {{header.indexes}}&nbsp;<a href="{{anchorLink(header.anchor)}}" target="_self" title="{{header.label}}" toggle="tooltip">{{header.label}}</a>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2 class="wiki-article-details-section-title">Contributors</h2>
+    <div class="wiki-article-details-section-content noflex">
+        <div class="object-details">
+            <div class="wiki-article-details-section-content__timeline">
+                <span ng-repeat="user in timeline.allContributors track by user.login">
+                    <a href="/profile/{{user.login}}/" class="link-std flex" title="{{user.displayName}}" toggle="tooltip-left">
+                        <span user-picture="user.login" size="20"></span>
+                    </a>
+                </span>
+            </div>
+            <div class="line line--no-hmargins" ng-if="articleEditionTags.createdBy || articleEditionTags.createdOn">
+                <h4>Creation</h4>
+                <p class="wiki-article-details-section-content__edition-event">
+                    <span ng-if="articleEditionTags.createdOn"
+                          title="{{articleEditionTags.createdOn| friendlyDateTime}}"
+                          toggle="tooltip"
+                          data-container="body"
+                          placement="left">
+                        {{articleEditionTags.createdOn | friendlyTimeDeltaShort}}
+                    </span>
+                    <span ng-if="articleEditionTags.createdBy">
+                        by
+                        <a  href="/profile/{{articleEditionTags.createdBy.login}}/"
+                            title="{{ articleEditionTags.createdBy.displayName || articleEditionTags.createdBy.login }}"
+                            class="wiki-article-details-section-content__avatar-link avatar"
+                            toggle="tooltip"
+                            placement="left"
+                            animation="false">
+                            <span user-picture="articleEditionTags.createdBy.login" size="24" class="avatar24"></span>
+                        </a>
+                    </span>
+                </p>
+            </div>
+            <div class="line line--no-hmargins" ng-if="articleEditionTags.lastModifiedBy || articleEditionTags.lastModifiedOn">
+                <h4>Last modification</h4>
+                <p class="wiki-article-details-section-content__edition-event">
+                    <span ng-if="articleEditionTags.lastModifiedOn"
+                          title="{{articleEditionTags.lastModifiedOn| friendlyDateTime}}"
+                          toggle="tooltip"
+                          data-container="body"
+                          placement="left">
+                        {{articleEditionTags.lastModifiedOn | friendlyTimeDeltaShort}}
+                    </span>
+                    <span ng-if="articleEditionTags.lastModifiedBy">
+                        by
+                        <a  href="/profile/{{articleEditionTags.lastModifiedBy.login}}/"
+                            title="{{ articleEditionTags.lastModifiedBy.displayName || articleEditionTags.lastModifiedBy.login }}"
+                            class="wiki-article-details-section-content__avatar-link avatar"
+                            toggle="tooltip"
+                            placement="left"
+                            animation="false">
+                            <span user-picture="articleEditionTags.lastModifiedBy.login" size="24" class="avatar24"></span>
+                        </a>
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2 class="wiki-article-details-section-title" ng-if="isProjectAnalystRW() || article.tags.length">Tags</h2>
+    <div class="wiki-article-details-section-content noflex" ng-if="isProjectAnalystRW() || article.tags.length">
+        <tag-edit-popover ng-model="article.tags"
+                          get-all-tags="getAllTagsForProject()"
+                          editable="isProjectAnalystRW()"
+                          object-type="'ARTICLE'"
+                          no-tag-icon="true"
+                          class="tags-field">
+        </tag-edit-popover>
+    </div>
+</section>

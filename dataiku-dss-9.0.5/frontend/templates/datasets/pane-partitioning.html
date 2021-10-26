@@ -1,0 +1,148 @@
+<div>
+<div block-api-error />
+<div ng-if="appConfig.communityEdition && !appConfig.licensing.ceEntrepriseTrial"
+        class="locked-feature">
+    <div class="banner">
+        Partitioning <span about-partitioning-box skip-community-popup="true" />
+        is not available with your <span class="edition">Free Edition</span> license
+    </div>
+    <div include-no-scope="/templates/profile/community-vs-enterprise-try.html"></div>
+</div>
+
+<div class="editPartitioning h100 oa"
+        ng-if="!appConfig.communityEdition || appConfig.licensing.ceEntrepriseTrial">
+    <debug data="detectedScheme"></debug>
+
+    <div>
+        <div ng-hide="uiState.partitioningActivated">
+            <p>Partitioning is not yet activated for this dataset</p>
+            <button type="button" class="btn btn--secondary" ng-click="uiState.partitioningActivated=true;">Activate partitioning</button>
+        </div>
+        
+        <div ng-show="uiState.partitioningActivated" add-remove ng-model="dataset.partitioning.dimensions">
+            <!-- Suggested partition -->
+            <form class="alert alert-info form-inline" ng-show="detectedScheme.filePathPattern && !isPartitioned()" >
+                <h4 style="margin-bottom: 1em;">Suggested partitioning</h4>
+                <label>
+                    Pattern :
+                    <input type="text" required disabled ng-model="detectedScheme.filePathPattern" /> 
+                </label>
+                <br />
+                <div ng-repeat="dimension in detectedScheme.dimensions">
+                    <i class="icon-2x" ng-class="{'icon-calendar': dimension.type=='time', 'icon-code-fork icon-rotate-90': dimension.type=='value'}"></i>
+                    <label>
+                        Name :
+                    </label>
+                    <input type="text" required disabled ng-model="dimension.name">
+
+                    <label ng-repeat="(key, value) in dimension.params">
+                        {{ key }} :
+                        <input type="text" disabled ng-model="value" />
+                    </label>
+                </div>
+                <button type="button" class="btn btn--primary" ng-click="concat(detectedScheme.dimensions); dataset.partitioning.filePathPattern = detectedScheme.filePathPattern">Use suggested partitioning</button>
+            </form>
+
+            <form class="form-inline" ng-if="dataset == null || dataset.type != 'HTTP'">
+                <label>
+                    Pattern :
+                    <input type="text" ng-model="dataset.partitioning.filePathPattern" />
+                    <br/>
+                   <!-- Dimensions to insert in pattern: <span  ng-repeat="pattern in $patterns">
+                         <span ng-show="!pattern.used" ng-click="dataset.partitioning.filePathPattern = dataset.partitioning.filePathPattern + pattern.pattern" class="label" ng-class="{'label-important': !pattern.used,'label-success': pattern.used}">
+                            {{ pattern.name }}
+                        </span>
+                     
+                    </span> -->
+                </label>
+            </form>
+        
+            <h4>
+                <ng-pluralize   count="dataset.partitioning.dimensions.length" 
+                                when="{ '0': 'No dimension yet', 
+                                        'one': 'Dimension', 
+                                        'other': 'Dimensions'}"></ng-pluralize>
+            </h4>
+            <ul class="dimensions">
+                <!-- Existing partitions -->
+                <li ng-repeat="dimension in dataset.partitioning.dimensions">
+                    <form class="form-inline">
+                        <i ng-class="{'icon-calendar': dimension.type=='time', 'icon-code-fork icon-rotate-90': dimension.type=='value'}"></i>
+                        <label>
+                            Name :
+                        </label>
+                        <input type="text" required ng-model="dimension.name">
+
+                        <label ng-show="dimension.type == 'time'">
+                            Period:
+                            <select ng-disabled="dimension.type != 'time'" ng-model="dimension.params.period" ng-options="p for p in ['HOUR','DAY','MONTH','YEAR']"></select>
+                        </label>
+                        <a ng-click="remove($index);"><i class="icon-trash"></i></a>
+
+                        <div ng-show="hasPatternsToInsert(dimension)">
+                        <!--<div>-->
+                            Click to insert in pattern:
+                        <span  ng-repeat="pattern in dimension.$patterns">
+                         <a ng-show="!pattern.used" ng-click="insertPattern(pattern)" class="label" ng-class="{'label-important': !pattern.used,'label-success': pattern.used}">
+                            {{ pattern.name }}
+                        </a>  </span>
+                        </div>
+                        </br>
+                    </form>
+                </li>
+            </ul>
+        
+            <div>
+                <button type="button" class="btn btn--secondary" ng-click="add({name:'date', type: 'time', params:{period: 'YEAR'}})" ng-disabled="hasTimeDimension()">
+                    <i class="icon-calendar icon-stack-base"></i>
+                    Add time dimension
+                </button>
+                <button type="button" class="btn btn--secondary" ng-click="add({name:'dimension_'+(dataset.partitioning.dimensions.length+1), type: 'value', params:{}})">
+                    <i class="icon-code-fork icon-rotate-90 icon-stack-base"></i>
+                    Add discrete dimension
+                </button>
+               
+            </div>
+            <small ng-show="hasTimeDimension()">There can only be one time dimension.</small>
+
+            <div style="margin-top: 10px" ng-if="dataset == null || dataset.type != 'HTTP'"> <!-- since the partition list is fixed and set by the user, this test button makes little sense for http -->
+                <button type="button" class="btn btn--secondary" ng-disabled="!isPartitioned()" ng-click="runTestPartitioning()"><i class="icon-refresh" />&nbsp;List partitions</button>
+            </div>
+            
+            <debug data="testPartitioning"></debug>
+            <div ng-show="testPartitioning.configuredSchemeContent">
+                <h4>Partitioning preview</h4>
+                <p>Detected <strong>{{ (testPartitioning.configuredSchemeContent|toArray).length}}</strong> partitions</p>
+                <ul>
+                    <li ng-repeat="(name,partition) in testPartitioning.configuredSchemeContent">
+                        <strong>{{ name }}</strong>
+                        <a ng-click="toggle = !toggle">
+                            <ng-pluralize count="partition.nbFiles"  
+                                          when="{ '0': '0 files', 
+                                                'one': '1 file', 
+                                                'other': '{} files'}"></ng-pluralize>
+                        </a>
+                        <small>{{ partition.totalSize|filesize }}</small>
+                        <ul ng-show="toggle" style="font-size: 12px; line-height: 1.2;">
+                            <li ng-repeat="file in partition.filePaths">
+                                {{ file }}
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <div ng-show="testPartitioning.unmatchedFilesPaths.length>0">
+	                <p> 
+		                <span class="icon icon-warning-sign">&nbsp;</span>
+		                Found <strong>{{testPartitioning.unmatchedFilesPaths.length}}</strong> unmatched file{{(testPartitioning.unmatchedFilesPaths.length>1)?'s':''}}:
+	                </p>
+	                <ul>
+	                    <li ng-repeat="file in testPartitioning.unmatchedFilesPaths | limitTo:50">
+	                        {{file}}
+	                    </li>
+	                </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>

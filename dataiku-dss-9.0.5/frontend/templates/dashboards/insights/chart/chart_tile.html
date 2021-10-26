@@ -1,0 +1,27 @@
+<div data-extend-template="/templates/dashboards/insight-tile-template.html" class="h100">
+    <div data-block="content" class="h100">
+        <div class="charts-container h100">
+            <div ng-if="chart.def.animationDimension.length" class="animation-controls">
+                <ng-include src="'/templates/simple_report/animation-controls.html'"></ng-include>
+            </div>
+            <div class="h100 graphWrapper oh" ng-show="!unconfigured && !chartSpecific.backendStarting" pivot-chart-result />
+            <div class="h100 center-children" ng-show="chartSpecific.backendStarting">
+                Backend starting...
+            </div>
+        </div>
+    </div>
+
+    <div data-block="unconfigured" class="fh h100">
+        <p class="centered-info">
+            <span class="unconfigured-message">
+                Unconfigured chart
+            </span>
+            <a ng-if="DashboardUtils.canEditInsight(insight, canModerateDashboards) && DashboardUtils.hasEditTab(insight)"
+                href="{{$root.StateUtils.href.insight(insight.id, insight.projectKey, {name: insight.name, tab: 'edit'})}}"
+                class="btn btn--secondary btn-configure-chart"
+                >
+                Configure
+            </a>
+        </p>
+    </div>
+</div>

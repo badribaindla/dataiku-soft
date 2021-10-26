@@ -1,0 +1,179 @@
+<div ng-controller="PartPMLReportSummaryController" class="model-info-page summary-page vertical-flex h100">
+    <div class="partitioned-model--padding subpop-border-bottom" ng-if="partitionsPerf">
+        <div class="edit-name-desc" include-no-scope="/templates/ml/common/edit-name-desc.html" />
+        <span>
+            {{getNumModalities()}} partitioned models for <span ng-bind-html="dimensionsList()"></span>
+        </span>
+        <div class="partitioned-model__summary-header">
+            <div class="std-list-search-box dib partitioned-model__search--wide"
+                 filtered-multi-select-rows
+                 ng-model="partitionsPerf.modalities">
+                <span class="add-on">
+                    <i class="icon-dku-search"></i>
+                </span>
+                <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Search...">
+            </div>
+
+            <!-- Displayed Metrics -->
+
+            <div custom-element-popup class="subpopulation-displayed-metrics sort-box list-control-widget list-control-dropdown">
+                    <span class="mainzone" ng-click="togglePopover()">
+                        Displayed metrics
+                        <span class="caret"></span>
+                    </span>
+                <div class="popover sort-box-menu checkable-items">
+                    <ul>
+                        <li ng-repeat="m in uiState.display.metrics"
+                            ng-class="{'selected' : m.displayed, 'target': m.fieldName === uiState.display.modelMetric.fieldName}"
+                            ng-if="metricExists(m)"
+                            ng-click="toggleMetricDisplay(m)">
+                            <span>{{m.shortName || m.name || m.fieldName}}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="subpopulation-results h100" ng-class="{'subpopulation-modalities__wrapper--with-sample-weights': areMetricsWeighted()}" ng-if="partitionsPerf">
+        <div class="subpop-table-header">
+
+            <!-- MODALITY COLUMN -->
+
+            <div class="subpop-table-header__column subpop-table__information subpop-table__information--big"
+                 ng-click="sortByMetric('modality')"
+                 title="Modality">
+                <div class="contains-sort-by-column-icon">
+                    <span>Partition</span>
+                    <sort-by-column-icon is-sort-col="isSortMetric('modality')" ascending="selection.orderReversed" icon-on-right="true"></sort-by-column-icon>
+                </div>
+            </div>
+
+            <!-- MODALITY COLUMN -->
+
+            <div class="subpop-table-header__column subpop-table__information subpop-table__information--small"
+                 ng-click="sortByMetric('snippet.status')"
+                 title="Status">
+                <div class="contains-sort-by-column-icon">
+                    <span>Status</span>
+                    <sort-by-column-icon is-sort-col="isSortMetric('snippet.status')" ascending="selection.orderReversed" icon-on-right="true"></sort-by-column-icon>
+                </div>
+            </div>
+
+            <div class="subpop-table-header__column subpop-table__information"
+                 ng-click="sortByMetric('snippet.trainInfo.endTime')"
+                 title="Train date">
+                <div class="contains-sort-by-column-icon">
+                    <span>Train date</span>
+                    <sort-by-column-icon is-sort-col="isSortMetric('snippet.trainInfo.endTime')" ascending="selection.orderReversed" icon-on-right="true"></sort-by-column-icon>
+                </div>
+            </div>
+
+            <div class="subpop-table-header__column subpop-table__information subpop-table__information--small"
+                 ng-click="sortByMetric('weightedPercentage')"
+                 title="Distribution per partition">
+                <div class="contains-sort-by-column-icon">
+                    <span>Distrib.</span>
+                    <sort-by-column-icon is-sort-col="isSortMetric('weightedPercentage')" ascending="selection.orderReversed" icon-on-right="true"></sort-by-column-icon>
+                </div>
+            </div>
+
+            <!-- HIGHLIGHTED METRICS ONLY FOR BINARY CLASSIF -->
+
+            <div class="subpop-table-header__column subpop-table--highlited"
+                 ng-click="sortByMetric('actual')"
+                 ng-if="isBinaryClassification()"
+                 title="Actually {{modelData.classes[1]}}">
+                <div class="subpop-table__highlited-column-wrapper contains-sort-by-column-icon">
+                    <sort-by-column-icon is-sort-col="isSortMetric('actual')" ascending="selection.orderReversed"></sort-by-column-icon>
+                    <div class="subpop-table__highlited-column-content">
+                        <!-- Adding &nbsp; to have approximately same length as "Predicted <class>" column header to have
+                             the wrapping for the same length of class -->
+                        <span>Actually&nbsp;&nbsp; <span class="subpop-table--model-class-font">{{modelData.classes[1] | gentleTruncate : 12}}</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subpop-table-header__column subpop-table--highlited"
+                 ng-click="sortByMetric('predicted')"
+                 ng-if="isBinaryClassification()"
+                 title="Predicted {{modelData.classes[1]}}">
+                <div class="subpop-table__highlited-column-wrapper contains-sort-by-column-icon">
+                    <sort-by-column-icon is-sort-col="isSortMetric('predicted')" ascending="selection.orderReversed"></sort-by-column-icon>
+                    <div class="subpop-table__highlited-column-content">
+                        <span>Predicted <span class="subpop-table--model-class-font">{{modelData.classes[1] | gentleTruncate : 12}}</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OTHER METRICS -->
+
+            <div class="subpop-table-metric subpop-table-header__model-metric-column contains-sort-by-column-icon"
+                 title="Metric: {{getMetricLongName(uiState.display.modelMetric)}}"
+                 ng-click="sortByMetric(uiState.display.modelMetric.fieldName)">
+                <sort-by-column-icon is-sort-col="isSortMetric(uiState.display.modelMetric.fieldName)" ascending="selection.orderReversed"></sort-by-column-icon>
+                <div class="subpop-table-header__model-metric-column-content">
+                    <span>Metric:<br/>{{getMetricName(uiState.display.modelMetric)}}</span>
+                </div>
+            </div>
+
+            <div class="subpop-table-metric subpop-table-header__column contains-sort-by-column-icon"
+                 ng-repeat="m in uiState.display.metrics"
+                 ng-if="m.displayed && !m.isModelMetric"
+                 title="{{getMetricLongName(m)}}"
+                 ng-click="sortByMetric(m.fieldName)">
+                <div class="mx-textellipsis">
+                    <sort-by-column-icon is-sort-col="isSortMetric(m.fieldName)" ascending="selection.orderReversed"></sort-by-column-icon>
+                    <span>{{getMetricName(m)}}</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="subpopulation-value subpopulation-value--alldataset"
+             ng-class="{'subpopulation-value--scrolling': isScrolling}">
+                <partition-summary-value
+                        class="subpopulation-value"
+                        data="partitionsPerf.allDatasetModality"
+                        all-dataset-perf="partitionsPerf.allDatasetPerf"
+                        threshold="modelData.userMeta.activeClassifierThreshold"
+                        display="uiState.display"
+                        classes="modelData.classes"
+                        colors="colorsRep"
+                        partition-states="partitionsPerf.partitionStates">
+                </partition-summary-value>
+        </div>        
+
+        <div class="subpopulation-modalities__wrapper" 
+             ng-show="selection.allObjects.length && selection.filteredObjects.length"
+             on-scroll="setAllDatasetScrolled">
+            <div class="subpopulation-value" ng-repeat="v in selection.filteredObjects">
+                <partition-summary-value
+                        class="subpopulation-value"
+                        data="v"
+                        all-dataset-perf="partitionsPerf.allDatasetPerf"
+                        threshold="modelData.userMeta.activeClassifierThreshold"
+                        display="uiState.display"
+                        classes="modelData.classes"
+                        colors="colorsRep"
+                        partition-states="partitionsPerf.partitionStates">
+                </partition-summary-value>
+            </div>
+        </div>
+
+        <div class="subpopulation-summary__wrapper"
+             ng-show="selection.allObjects.length && !selection.filteredObjects.length">
+            <div class="alert alert-info" data-block="all-filtered-out">
+                <h4>No items match your filter</h4>
+                <div style="margin: 10px 0">
+                    <a class="btn btn--secondary" ng-click="selection.filterQuery.userQuery = undefined;">
+                        Clear filters
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+</div>

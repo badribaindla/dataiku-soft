@@ -1,0 +1,25 @@
+<div class="control-group" ng-if="!connMeta || (connMeta && !connMeta.constrainedBucket)" ng-disabled="!connMeta">
+    <label class="control-label">{{bucketLabel}}</label>
+    <div class="controls" ng-if="!connMeta">
+        <input type="text" ng-model="config[bucketProperty]" ng-required="connMeta != null" />
+    </div>
+    <div class="controls" ng-if="connMeta">
+        <div ng-if="selectorUiState.mode != 'CUSTOM'">
+            <select ng-model="config[bucketProperty]" ng-options="choice for choice in selectorUiState.buckets" ></select>
+            <button type="button" class="btn btn--secondary" ng-click="selectorUiState.mode = 'CUSTOM';">Enter custom</button>
+        </div>
+        <div ng-if="selectorUiState.mode == 'CUSTOM'">
+            <input type="text" ng-model="config[bucketProperty]" ng-required="false" />
+            <span ng-show="connMeta.bucketExists == 'true'" class="text-success">
+                <i class="icon-ok" />
+            </span>
+            <span ng-show="connMeta.bucketExists == 'false'" class="text-error" >
+                <i class="icon-remove" />
+            </span>
+
+            <span ng-if="selectorUiState.couldListBuckets == 'false'" class="help-inline">Could not list buckets: {{selectorUiState.bucketsListError}}</span>
+            <button type="button" ng-if="selectorUiState.couldListBuckets == null" class="btn btn--secondary" ng-click="fetchBucketList()" ng-disabled="selectorUiState.fetchingBucketList">Fetch list</button>
+            <button type="button" ng-if="selectorUiState.couldListBuckets == 'true'" class="btn btn--secondary" ng-click="selectorUiState.mode = 'SELECT';" >Select from list</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,27 @@
+<div class="modal modal3">
+    <div dku-modal-header modal-title="Project export" modal-class="has-border" />
+    <form class="dkuform-modal-wrapper">
+        <div class="modal-body">
+            <div ng-include ="'/templates/projects/export-data-options.html'"></div>
+            <a ng-show="!uiState.showAdvancedOptions" ng-click="uiState.showAdvancedOptions = true">Advanced options</a>
+
+            <div ng-show="uiState.showAdvancedOptions && appConfig.gitMode == 'PROJECT'">
+                <h2 class="settings-section-title">Other</h2>
+                <label class="checkbox">
+                    <input type="checkbox" ng-model="exportOptions.exportGitRepository">Export Git repository</label>
+            </div>
+            <div ng-show="uiState.showAdvancedOptions">
+                <h2 class="settings-section-title">Required plugins</h2>
+                 <label class="checkbox">
+                    <input type="checkbox" ng-model="exportOptions.useManualPluginsInfo">Customize</label>
+                <div class="common-styles-only" style="min-height: 60px;" ng-show="exportOptions.useManualPluginsInfo">
+                    <textarea style="width: 100%; min-height: 60px" json-array-pretty-view  ng-model="exportOptions.manualPluginsInfo" />
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons" >
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="export()">Export</button>
+        </div>
+    </form>
+</div>

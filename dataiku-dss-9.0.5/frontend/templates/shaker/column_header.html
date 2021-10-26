@@ -1,0 +1,107 @@
+<div data-column-name="{{column.name}}" data-column-index="{{columnIndex}}" ng-class="{'fat-draggable__item': isDraggable, 'fat-resizable__item': isResizable }">
+
+    <!-- Column name and comment -->
+    <div class="name dropdown-trigger" full-click ng-right-click="toggleHeaderMenu()" ng-class="{'fat-draggable__handler': isDraggable, 'has-comment': shakerState.hasAnyComment, 'has-customfields': shakeState.hasAnyCustomFields}">
+        <i class="icon-dku-handle" ng-if="isDraggable"></i>
+        <span class="fat-resizable__handler" ng-if="isResizable"></span>
+        <div class="pull-right">
+            <span class="caret"/>
+        </div>
+        <div class="ellipsed" ng-hide="shaker.$headerOptions && !shaker.$headerOptions.showName">
+            <a ng-click="addSort(header.name); $event.stopPropagation();" class="sort-link">
+                <i class="icon-sort-by-attributes sort-indication" ng-if="sortDirection(header.name) == true"></i>
+                <i class="icon-sort-by-attributes-alt sort-indication" ng-if="sortDirection(header.name) == false"></i>
+            </a>
+            <span dku-if="hasAnyFilterOnColumn(column.name)" class="filtered">
+                <a class="filter-icon" title="Remove active filter" ng-click="removeAllFiltersOnColumn(column.name)"> <i class="icon-filter">&nbsp;</i>
+                </a>
+            </span>
+            <a ng-click="toggleHeaderMenu()" href main-click>
+                {{ column.name }}
+            </a>
+        </div>
+        <div ng-show="shakerState.hasAnyComment && (!shaker.$headerOptions || shaker.$headerOptions.showDescription)" class="column-comment">
+            {{column.comment}}
+        </div>
+        <div ng-show="shakerState.hasAnyCustomFields && (!shake.$headerOptions || shaker.$headerOptions.showCustomFields)" class="column-customfields" dku-html-tooltip tooltip-class="custom-fields-tooltip generic-shadow-box">
+            <tooltip-trigger>
+                <span ng-repeat="cf in column.customFieldsPreview" style="color: {{cf.value.color || 'black'}};"><i ng-if="cf.value.icon" class="{{cf.value.icon}}" style="{{!$last ? 'margin-right: 4px;' : ''}}" />{{cf.value.label || cf.value.value}}</span>
+            </tooltip-trigger>
+            <tooltip-content custom-fields-popup custom-fields="column.customFields" custom-fields-map="customFieldsMap"></tooltip-content>
+        </div>
+    </div>
+
+    <!-- Storage type (recipe and dataset) -->
+
+    <div ng-if="recipeOutputSchema">
+        <div class="dropdown-trigger storage-type invalid" full-click ng-if="recipeOutputSchema.columns[column.name].storableAs && !recipeOutputSchema.columns[column.name].storableAs[recipeOutputSchema.columns[column.name].column.type]" title = "Some values cannot be stored with this type">
+            <div class="pull-right">
+                <span class="caret"/>
+            </div>
+            <a main-click ng-click="toggleStorageTypeMenu()">{{ recipeOutputSchema.columns[column.name].column.type}}</a>
+        </div>
+        <div class="dropdown-trigger storage-type" full-click ng-if="!recipeOutputSchema.columns[column.name].storableAs || recipeOutputSchema.columns[column.name].storableAs[recipeOutputSchema.columns[column.name].column.type]" title="Storage type in output dataset" >
+            <div class="pull-right">
+                <span class="caret"/>
+            </div>
+            <a main-click ng-click="toggleStorageTypeMenu()">{{ recipeOutputSchema.columns[column.name].column.type}}</a>
+        </div>
+    </div>
+
+    <div ng-if="shaker.origin == 'DATASET_EXPLORE'" title="Storage type in dataset" >
+        <div class="dropdown-trigger storage-type" full-click ng-if="shakerState.writeAccess" ng-hide="shaker.$headerOptions && !shaker.$headerOptions.showStorageType">
+            <div class="pull-right">
+                <span class="caret"/>
+            </div>
+            <a main-click ng-click="toggleStorageTypeMenu()">{{column.datasetSchemaColumn.type}}</a>
+        </div>
+        <!-- No write access: no dropdown -->
+         <div class="dropdown-trigger storage-type noclick" full-click ng-if="!shakerState.writeAccess" >
+            <a main-click>{{column.datasetSchemaColumn.type}}</a>
+        </div>
+    </div>
+
+    <!-- Meaning -->
+    <div class="dropdown-trigger meaning" full-click title="Meaning ({{column.meaningOrigin == 'USER' ? 'forced by user' : 'inferred from data'}})" ng-if="shakerState.writeAccess"
+         ng-hide="shaker.$headerOptions && !shaker.$headerOptions.showMeaning">
+        <div class="pull-right">
+            <span class="caret"/>
+        </div>
+        <a main-click ng-click="toggleMeaningMenu()">
+            {{column.meaningLabel}}&nbsp;
+            <i ng-show="column.meaningOrigin == 'USER'" class="icon-lock" />
+        </a>
+    </div>
+    <div class="dropdown-trigger meaning noclick" title="Meaning ({{column.meaningOrigin == 'USER' ? 'forced by user' : 'inferred from data'}})" ng-if="!shakerState.writeAccess">
+        <a>
+            {{column.meaningLabel}}&nbsp;
+            <i ng-show="column.meaningOrigin == 'USER'" class="icon-lock" />
+        </a>
+    </div>
+
+    <!-- Progress bar -->
+    <div ng-hide="shaker.$headerOptions && !shaker.$headerOptions.showProgressBar">
+
+    <div ng-show="column.progressBarType == 'MEANING_VALIDITY'">
+        <progress-bar class="progress-validity" success="{{column.okPercentage}}" warning="{{column.emptyPercentage}}"
+error="{{column.nokPercentage}}"
+title="OK: {{column.okPercentage/100|smartPercentage:0}} - NOK: {{column.nokPercentage/100|smartPercentage:0}} - Empty: {{column.emptyPercentage/100|smartPercentage:0}}"></progress-bar>
+    </div>
+    <div ng-show="column.progressBarType == 'MEANING_VALIDITY_MUTED'" style="opacity: 0.3; pointer-events: none;">
+        <progress-bar class="progress-validity" success="{{column.okPercentage}}" warning="{{column.emptyPercentage}}"
+error="{{column.nokPercentage}}"
+title="OK: {{column.okPercentage/100|smartPercentage:0}} - NOK: {{column.nokPercentage/100|smartPercentage:0}} - Empty: {{column.emptyPercentage/100|smartPercentage:0}}"></progress-bar>
+    </div>
+
+    <div ng-show="column.progressBarType == 'VALUE_COLORING_ANUM'" class="progress-validity">
+        <div class="progress" ng-click="toggleColorMenu()">
+            <div ng-repeat="bar in column.progressBarChunks" class="bar {{bar.cls}}" title="{{bar.value}}" style="width: {{bar.ratio*100}}%" />
+        </div>
+    </div>
+    <div ng-show="column.progressBarType == 'VALUE_COLORING_NUM'" class="progress-validity">
+        <div class="progress" ng-click="toggleColorMenu()">
+            <div ng-repeat="bar in column.progressBarChunks" class="bar {{bar.cls}}" title="{{bar.lower}} - {{bar.upper}}" style="width: {{bar.ratio*100}}%" />
+        </div>
+    </div>
+</div>
+   </div>

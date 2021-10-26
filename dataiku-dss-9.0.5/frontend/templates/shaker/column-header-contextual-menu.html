@@ -1,0 +1,136 @@
+<div class="column-header-menu">
+
+    <!-- First section only for shaker with steps -->
+    <div class="section" ng-if="shakerState.withSteps && shakerState.writeAccess">
+        <div class="section-content">
+            <ul class="nav dropdown">
+                <li>
+                    <a ng-click="deleteColumn()" > <i class="icon-trash"></i>
+                        Delete
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="renameColumn()" > <i class="icon-edit"></i>
+                        Rename
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="moveColumn()" > <i class="icon-reorder"></i>
+                        Move
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Analysis + Edit column. Displayed details depend on mode -->
+    <div class="section">
+        <div class="section-content">
+            <ul class="nav dropdown">
+                <li>
+                    <a ng-click="analyseColumn(column)" >
+                        <i class="icon-bar-chart"></i>
+                        Analyze...
+                    </a>
+                </li>
+                <li ng-if="shaker.origin  == 'DATASET_EXPLORE' && shakerState.writeAccess && !inInsight">
+                    <a ng-click="editThisColumnDetails()">
+                        <i class="icon-cog" />
+                        Edit column schema...
+                    </a>
+                </li>
+                <li ng-if="shaker.origin  == 'ANALYSIS' && shakerState.writeAccess && !inInsight">
+                    <a ng-click="editThisColumnDetails()">
+                        <i class="icon-cog" />
+                        Edit column metadata...
+                    </a>
+                </li>
+                <li ng-if="shaker.origin  == 'PREPARE_RECIPE' && shakerState.writeAccess && !inInsight">
+                    <a ng-click="editThisColumnDetails()">
+                        <i class="icon-cog" />
+                        Edit column details...
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Column suggestions -->
+    <div ng-repeat="(category, suggs) in suggestions"  ng-if="shakerState.withSteps && shakerState.writeAccess" class="section">
+        <div class="section-content">
+            <ul class="nav dropdown">
+                <!--<li class="nav-header suggestion-category">{{category}}</li>-->
+                <li ng-repeat="sugg in suggs" class="suggestion">
+                    <a ng-click="executeSuggestion(sugg)">
+                        <i class="{{sugg.icon}}"></i>
+                        <span ng-bind-html="sugg.text"></span>
+                    </a>
+                </li>
+                <!--<div ng-repeat-end class="divider" />-->
+            </ul>
+        </div>
+    </div>
+    <div ng-if="shakerWritable && hasMoreSuggestions()" class="section">
+        <div class="section-content">
+            <ul class="nav dropdown">
+                <li class="dropdown-submenu">
+                    <a href="" >More actions</a>
+                    <ul class="dropdown-menu">
+                        <li class="nav-header suggestion-category" ng-repeat-start="(category, suggs) in moreSuggestions">{{category}}</li>
+                        <li ng-repeat-end ng-repeat="sugg in suggs">
+                            <a ng-click="executeSuggestion(sugg)">
+                                <i class="{{sugg.icon}}"></i>
+                                <span ng-bind-html="sugg.text"></span>
+                            </a>
+                        </li>
+                        <li ng-repeat-end class="ng-hide"></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+
+    <!-- Last section: only possible if write access because it saves (annoying ...) -->
+    <div class="section" ng-if="shakerState.writeAccess || shakerState.filtersExplicitlyAllowed">
+        <div class="section-content">
+            <ul class="nav dropdown">
+                <li>
+                    <a ng-click="createColumnFilter()">
+                        <i class="icon-filter"/>&nbsp;Filter
+                    </a>
+                </li>
+                <li ng-if="sortDirection(header.name) == null">
+                    <a ng-click="toggleSort(header.name)">
+                        <i class="icon-sort-by-attributes" ></i>
+                        &nbsp;Sort
+                    </a>
+                </li>
+                <li ng-if="sortDirection(header.name) != null" >
+                    <a ng-click="clearSort(header.name)">
+                        <i class="icon-sort-by-attributes" ></i>
+                        &nbsp;Remove sort
+                    </a>
+                </li>
+                <li ng-show="shakerState.writeAccess">
+                    <a ng-click="setDisplayModeIndividualToggleOne(header.name)">
+                        <i class="icon-sun"/>&nbsp;Color column by value
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section" ng-if="(shaker.origin === 'ANALYSIS' || shaker.origin === 'DATASET_EXPLORE') && shakerState.writeAccess">
+        <div class="section-content">
+            <ul class="nav dropdown">
+                 <li>
+                    <a ng-click="createPredictionModelOnColumn(column.name, inputDatasetName)" >
+                        <i class="icon-dku-lab"></i>
+                        Create Prediction model...
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

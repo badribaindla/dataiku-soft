@@ -1,0 +1,58 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Logistic Regression
+    </div>
+    <div data-block="algorithm-description">
+        <p>Despite its name,
+            <strong>Logistic Regression</strong> is a classification algorithm, using a linear model (i.e., it computes the target feature as a linear combination of input features).
+        </p>
+        <p> Logistic Regression minimizes a specific cost function (called
+            <em>logit</em> or
+            <em>sigmoid</em> function), which makes it appropriate for classification.
+            <br /> A simple Logistic regression algorithm is prone to overfitting and sensitive to errors in the input dataset. To address these issues, it is possible to use a
+            <em>penalty</em> (or
+            <em>regularization term</em>) to the weights.
+            <br /> This implementation can use either 'L1' or 'L2' regularization terms.
+        </p>
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group" ng-if="isMulticlass()">
+            <label class="control-label">Modeling method</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.logistic_regression.multi_class" options-descriptions="['Builds a separate binary logistic regression model for each class. The predicted probabilities may not sum to one.',
+                'Builds a multinomial logistic model and infers an actual probability distribution.']">
+                    <option value="ovr">One-versus-rest</option>
+                    <option value="multinomial">Multinomial</option>
+                </select>
+                <div class="help-inline">
+                    The modeling used to predict the response.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Regularization</label>
+            <div class="controls">
+                <div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.logistic_regression.penalty.values.l1.enabled" /> Try with L1 regularization
+                    </label>
+                    <div class="alert alert-warning" ng-if="isMulticlass()" ng-show="mlTaskDesign.modeling.logistic_regression.multi_class == 'multinomial'">
+                        Using L1 regularization on a multinomial logistic regression model may increase the training time.
+                    </div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.logistic_regression.penalty.values.l2.enabled" /> Try with L2 regularization
+                    </label>
+                </div>
+            </div>
+        </div>
+        <ml-hp-numerical
+                decimal
+                ng-model="mlTaskDesign.modeling.logistic_regression.C"
+                label="C"
+                help-inline="Penalty parameter C of the error term.
+                    <br /> A low value of C will generate a smoother decision boundary (higher bias) while a high value aims at correctly classifying all training examples, at the risk of overfitting (high variance).
+                    <br /> (C corresponds to the inverse of a regularization parameter)."
+                strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+    </div>
+</div>

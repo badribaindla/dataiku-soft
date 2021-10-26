@@ -1,0 +1,83 @@
+<span ng-switch="current.type">
+
+    <span ng-switch-when="array">
+        <div class="indent-me" ng-repeat="current in [current.arrayContent]">
+            <div class="element {{(!isPrimitiveType(current.type))?'clickable':''}} {{current.show?'shown':''}}"
+                 ng-click="current.show=!current.show">
+                <div class="pull-right chevron" ng-show="!isPrimitiveType(current.type)">
+                    <i class="icon-chevron-right"></i>
+                </div>
+                <i class="{{getIconForType(current.type)}}"></i>
+                <span class="special-attribute {{(!isPrimitiveType(current.type))?'clickable':''}}">Element type</span>:
+                <span ng-include="'/templates/datasets/type-editor/simple.html'"></span>
+            </div>
+            <span ng-if="current.show" ng-include="'/templates/datasets/type-editor/element.html'"></span>
+        </div>
+    </span>
+
+    <span ng-switch-when="map">
+        <div class="indent-me">
+
+            <div ng-repeat="current in [current.mapKeys]">
+                <div class="element {{(!isPrimitiveType(current.type))?'clickable':''}} {{current.show?'shown':''}}"
+                     ng-click="current.show=!current.show">
+                    <div class="pull-right chevron" ng-show="!isPrimitiveType(current.type)">
+                        <i class="icon-chevron-right"></i>
+                    </div>
+                    <i class="{{getIconForType(current.type)}}"></i>
+                    <span class="special-attribute {{(!isPrimitiveType(current.type))?'clickable':''}}">Keys</span>:
+                    <span ng-include="'/templates/datasets/type-editor/simple.html'"></span>
+                </div>
+                <span ng-if="current.show" ng-include="'/templates/datasets/type-editor/element.html'"></span>
+            </div>
+
+            <div ng-repeat="current in [current.mapValues]">
+
+                <div class="element {{(!isPrimitiveType(current.type))?'clickable':''}} {{current.show?'shown':''}}"
+                     ng-click="current.show=!current.show">
+                    <div class="pull-right chevron" ng-show="!isPrimitiveType(current.type)">
+                        <i class="icon-chevron-right"></i>
+                    </div>
+                    <i class="{{getIconForType(current.type)}}"></i>
+                    <span class="special-attribute {{(!isPrimitiveType(current.type))?'clickable':''}}">Values</span>:
+                    <span ng-include="'/templates/datasets/type-editor/simple.html'"></span>
+                </div>
+                <span ng-if="current.show" ng-include="'/templates/datasets/type-editor/element.html'"></span>
+            </div>
+        </div>
+
+    </span>
+    <span ng-switch-when="object">
+        <div class="indent-me" ng-repeat="parentObjectFields in [current.objectFields]">
+            <span ng-repeat="current in parentObjectFields">
+                <div>
+                    <div class="element {{(!isPrimitiveType(current.type))?'clickable':''}} {{current.show?'shown':''}}"
+                         ng-click="current.show=!current.show">
+                        <div class="pull-right chevron" ng-show="!isPrimitiveType(current.type)">
+                            <i class="icon-chevron-right"></i>
+                        </div>
+                        <i class="{{getIconForType(current.type)}}"></i>
+                        <span ng-if="!current.renaming" class="editable-type"
+                              ng-click="toggleRenaming(current,$event)">{{current.name}}</span>
+                        <span ng-if="current.renaming">
+                            <input type="text" auto-focus="{{current.renaming}}"
+                                   ng-model="current.name"
+                                   ng-click="$event.stopPropagation()"
+                                   ng-keydown="($event.which == 13 || $event.which==27)?disableEditing():null" />
+                        </span>
+                        :
+                        <span ng-include="'/templates/datasets/type-editor/simple.html'"></span>
+                        <span class="delete-me" ng-click="parentObjectFields.splice(parentObjectFields.indexOf(current),1)">
+                            <i class="icon-remove text-error"></i>
+                        </span>
+                    </div>
+                </div>
+                <span ng-if="current.show" ng-include="'/templates/datasets/type-editor/element.html'"></span>
+            </span>
+            <div class="add-attribute" ng-click="current.objectFields.push({})">
+                    <i class="icon-plus" style="color:#22AA55"></i>
+                    &nbsp;Add attribute
+            </div>
+        </div>
+    </span>
+</span>

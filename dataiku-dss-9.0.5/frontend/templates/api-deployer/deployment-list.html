@@ -1,0 +1,53 @@
+<div class="deployer__deployment-list">
+    <div ng-if="!deployments.length" class="empty-list-cta">
+        <p>No deployments</p>
+    </div>
+    <div ng-if="deployments.length" class="oh">
+        <div ng-repeat="deployment in deployments"
+             class="standard-widget deployment-card deployer__deployment-list-card"
+             ng-click="redirect(deployment)"
+             ng-class="{'standard-widget--disabled': healthMap[deployment.id].currentState === 'DISABLED',
+                'standard-widget--warning': healthMap[deployment.id].currentState === 'WARNING' || healthMap[deployment.id].currentState === 'UNKNOWN' || healthMap[deployment.id].currentState === 'OUT_OF_SYNC',
+                'standard-widget--error': healthMap[deployment.id].currentState === 'LOADING_FAILED' || healthMap[deployment.id].currentState === 'ERROR' || healthMap[deployment.id].currentState === 'UNHEALTHY'}">
+            <div class="standard-container__header standard-container__header--with-totem deployment-card__header simple-columns"
+                 style="padding-left: 4px; border-left: 8px {{TaggingService.getDefaultColor(deployment.publishedServiceId)}} solid">
+                <div class="standard-container__titles vertical-flex">
+                    <div class="deployment-card__header-title horizontal-flex">
+                        <div class="mx-textellipsis flex-no-grow">
+                            {{ deployment.publishedServiceId }}
+                        </div>
+                        <div class="no-flex">
+                            &nbsp;{{ (statusPage === 'infra') ? 'using' : 'on'}}
+                        </div>
+                        <div class="mx-textellipsis flex-no-grow" ng-if="statusPage === 'infra'">
+                            &nbsp;{{ deployment | deploymentToGenerationList }}
+                        </div>
+                        <div class="mx-textellipsis flex-no-grow" ng-if="statusPage === 'service'">
+                            &nbsp;{{ deployment.infraId }}
+                        </div>
+                    </div>
+                    <div class="deployment-card__header-title text-weak horizontal-flex">
+                        <div class="flex-no-grow mright8" show-tooltip-on-text-overflow
+                             text-tooltip="deployment.id"
+                             tooltip-direction="'tooltip-top'"
+                             observe-resize="false">
+                        </div>
+                        |<div class="flex-no-shrink mleft8">
+                            Updated
+                            <span class="flex-no-shrink"
+                                  toggle="tooltip"
+                                  data-placement="top"
+                                  container="body"
+                                  title="{{ deployment.versionTag.lastModifiedOn | date:'yyyy-MM-dd – HH:mm:ss' }}">
+                                {{ deployment.versionTag.lastModifiedOn | friendlyTimeDeltaShort }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="status-icon">
+                    <i class="{{healthMap[deployment.id].currentState |deploymentHealthToIcon}}" title="{{healthMap[deployment.id].message}}" data-container="body" toggle="tooltip"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,41 @@
+<div class="modal modal3 dku-modal">
+    <div dku-modal-header-with-totem modal-title="Delete branches" modal-totem="icon-trash"/>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+            <div block-api-error/>
+
+            Select the branches you want to delete.
+            <div class="git-branch-list--overflow-container">
+                <div class="git-branch-list--container">
+                    <label ng-repeat="branch in gitBranches">
+                        <div class="horizontal-flex git-branch--check-container">
+                            <input type="checkbox" checklist-model="selectedGitBranches" checklist-value="branch" ng-disabled="branch === gitStatus.currentBranch">
+                            <div class="horizontal-flex git-branch--main-container">
+                                {{branch}}
+                                <div class="git-branch--tag" ng-if="branch === gitStatus.currentBranch">CURRENT</div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <label style="padding-top: 10px">
+                <div class="horizontal-flex" style="align-items: center;">
+                    <input type="checkbox" ng-model="deleteOptions.forceDelete"> Delete branches even if they have not been merged.
+                </div>
+            </label>
+            <label style="padding-top: 5px" ng-if="gitStatus.remotes.length">
+                <div class="horizontal-flex" style="align-items: center;">
+                    <input type="checkbox" ng-model="deleteOptions.remoteDelete"> Also delete branches on the remote repository.
+                </div>
+            </label>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="deleteBranches()" ng-disabled="selectedGitBranches.length === 0">
+                {{ (selectedGitBranches.length < 2) ? 'Delete Branch' : ('Delete ' + selectedGitBranches.length + ' Branches')}}
+            </button>
+        </div>
+    </form>
+</div>

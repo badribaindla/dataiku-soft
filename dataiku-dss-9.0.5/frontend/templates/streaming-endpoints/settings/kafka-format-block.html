@@ -1,0 +1,42 @@
+<div>
+    <div class="control-group">
+        <label class="control-label">{{part}} format</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="formatType" >
+                <option value="json">JSON</option>
+                <option value="single">Single value</option>
+                <option value="avro">Kafka Avro</option>
+            </select>
+        </div>
+    </div>
+    <div class="control-group" ng-if="(formatType == 'json' || formatType == 'avro') && formatParams != null && formatParams.columnNames != null">
+        <label class="control-label">Column names</label>
+        <div class="controls">
+            <ng2-values-list 
+               [(items)]="formatParams.columnNames"
+               add-label="Add a column" 
+               value-placeholder="A column name">
+            </ng2-values-list>
+            <span class="help-inline">Leave empty to use all columns from the JSON data</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="formatType == 'single'">
+        <label class="control-label">Column type</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="formatParams.columnType" >
+                <option value="STRING">String</option>
+                <option value="DOUBLE">Double</option>
+                <option value="LONG">Long</option>
+                <option value="INTEGER">Integer</option>
+                <option value="BYTEARRAY">Binary</option>
+            </select>
+            <span class="help-inline">Data type of the key in the Kafka, may be different from the data type in the schema</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="formatType == 'single' && formatParams.columnType != 'NONE'">
+        <label class="control-label">Column name</label>
+        <div class="controls">
+            <input type="text" ng-model="formatParams.columnName" />
+        </div>
+    </div>
+</div>

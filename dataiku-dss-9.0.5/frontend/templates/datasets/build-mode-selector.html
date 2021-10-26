@@ -1,0 +1,53 @@
+<div class="build-mode-selector">
+    <!-- BUILD MODE ILLUSTRATIONS -->
+    <div class="text-align-center">
+        <div class="build-mode-selector__mode-btn selectable" ng-click="chooseNonRecursive()" ng-class="{'build-mode-selector__mode-btn--active' : build.mode == 'NON_RECURSIVE_FORCED_BUILD'}">
+            <div>
+                <i ng-class="{'icon-ok':  build.mode == 'NON_RECURSIVE_FORCED_BUILD'}"></i>
+                Non recursive
+            </div>
+            <div class="build-mode-selector__mode-btn-subtitle">
+                Build only this {{targetType || 'dataset'}}
+            </div>
+        </div>
+        <div class="build-mode-selector__mode-btn selectable" ng-click="chooseRecursive()" ng-class="{'build-mode-selector__mode-btn--active' : build.mode != 'NON_RECURSIVE_FORCED_BUILD'}">
+            <div>
+                <i ng-class="{'icon-ok':  build.mode != 'NON_RECURSIVE_FORCED_BUILD'}"></i>
+                Recursive
+            </div>
+            <div class="build-mode-selector__mode-btn-subtitle">
+                Also build upstream datasets
+            </div>
+        </div>
+    </div>
+    <div class="build-mode-selector__illustration">
+        <img ng-repeat="x in buildModes"
+             ng-src="{{x[3]}}"
+             ng-show="descriptionDisplayed.mode == x[0]">
+    </div>
+    <!-- BUILD MODE OPTIONS -->
+    <div class="horizontal-flex control-group" ng-show="build.mode != 'NON_RECURSIVE_FORCED_BUILD'">
+        <div class="build-mode-selector__pane-selection flex">
+            <!--<select dku-bs-select ng-model="build.mode" style="height: inherit; margin: 0;" ng-options="x[0] as x[1] for x in buildModes"/> -->
+            <label class="build-mode-selector__submode-radio radio"
+                   ng-repeat="x in recursiveBuildModes"
+                   ng-mouseover="descriptionDisplayed.mode =  x[0];"
+                   ng-mouseleave="descriptionDisplayed.mode = build.mode">
+
+                <input type="radio"
+                       ng-model="build.mode"
+                       ng-value="x[0]"
+                       ng-change="descriptionDisplayed.mode = x[0]"/>
+
+                {{x[1]}}
+
+            </label>
+        </div>
+        <!-- Build mode description -->
+        <div class="build-mode-selector__pane-description flex ">
+            <p class="build-mode-selector__submode-description" ng-repeat="x in recursiveBuildModes" ng-show="descriptionDisplayed.mode == x[0]">
+                {{x[2]}}
+            </p>
+        </div>
+    </div>
+</div>

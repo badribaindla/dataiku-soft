@@ -1,0 +1,85 @@
+<div style="position: relative;">
+	<table sort-table class="table table-hover items-table" ng-if="items.length > 0 && datasetByLoc != null && modelByLoc != null && folderByLoc != null">
+		<thead class="items-header">
+			<tr>
+				<th>Item</th>
+				<th class="item-partitions">Partitions</th>
+				<th class="item-remove"></th>
+			</tr>
+		</thead>
+		<tbody class="items-body">
+			<tr ng-repeat="item in items" full-click>
+				<td class="item-name">
+					<span ng-if="item.type == 'DATASET' && (type && type == 'check_dataset')" ng-init="computable = datasetByLoc[getItemLoc(item)]">
+						<i class="{{computable.type |typeToIcon}}" />
+						<a href="/projects/{{computable.projectKey}}/datasets/{{computable.name}}/status/checks" class="link-object" main-click>
+						    {{computable.name}}{{computable.foreign ? (' (' + computable.projectKey + ')') : ''}}
+						</a>
+					</span>
+					<span ng-if="item.type == 'DATASET' && (type && type == 'compute_metrics')" ng-init="computable = datasetByLoc[getItemLoc(item)]">
+						<i class="{{computable.type |typeToIcon}}" />
+						<a href="/projects/{{computable.projectKey}}/datasets/{{computable.name}}/status" class="link-object" main-click>
+						    {{computable.name}}{{computable.foreign ? (' (' + computable.projectKey + ')') : ''}}
+						</a>
+					</span>
+					<span ng-if="item.type == 'DATASET' && !(type && ((type == 'check_dataset') || (type== 'compute_metrics')))" ng-init="computable = datasetByLoc[getItemLoc(item)]">
+                        <i class="{{computable.type |typeToIcon}}" />
+                        <a ui-sref="projects.project.flow({ id: 'dataset_' + computable.projectKey + '.' + computable.name })" class="link-object" main-click>
+                            {{computable.name}}{{computable.foreign ? (' (' + computable.projectKey + ')') : ''}}
+                        </a>
+					</span>
+					<span ng-if="item.type == 'SAVED_MODEL'" ng-init="computable = modelByLoc[getItemLoc(item)]">
+                        <i class="icon-machine_learning_regression" />
+                        <a ui-sref="projects.project.flow({ id: 'savedmodel_' + computable.projectKey + '.' + computable.id })" class="link-object" main-click>
+                            {{computable.name}}{{computable.foreign ? (' (' + computable.projectKey + ')') : ''}}
+                        </a>
+					</span>
+                    <span ng-if="item.type == 'MANAGED_FOLDER'" ng-init="computable = folderByLoc[getItemLoc(item)]">
+                        <i class="icon-box" />
+                        <a ui-sref="projects.project.flow({ id: 'managedfolder_' + computable.projectKey + '.' + computable.id })" class="link-object" main-click>
+                            {{computable.name}}{{computable.foreign ? (' (' + computable.projectKey + ')') : ''}}
+                        </a>
+                    </span>
+                    <span ng-if="item.type == 'MODEL_EVALUATION_STORE'" ng-init="computable = evaluationStoreByLoc[getItemLoc(item)]">
+                        <i class="icon-model-evaluation-store" />
+                        <a ui-sref="projects.project.flow({ id: 'modelevaluationstore_' + computable.projectKey + '.' + computable.id })" class="link-object" main-click>
+                            {{computable.name}}{{computable.foreign ? (' (' + computable.projectKey + ')') : ''}}
+                        </a>
+                    </span>
+				</td>
+
+				<td class="item-partitions">
+					<span ng-show="!partitioning[getItemLoc(item)].dimensions.length" class="placeholder">N/A</span>
+					<span ng-show="partitioning[getItemLoc(item)].dimensions.length">
+						<span ng-show="item.partitionsSpec">{{item.partitionsSpec}}</span>
+						<span ng-show="!item.partitionsSpec && needsPartitions" class="error-text-color">
+							<i class="icon-warning-sign"/>&nbsp;Select partitions
+						</span>
+						<span ng-show="!item.partitionsSpec && !needsPartitions" class="placeholder">All partitions</span>
+						<a ng-click="editPartitionSpec(item)" class="link-std" style="margin-left: 5px;">
+							<i class="icon-pencil" />
+						</a>
+					</span>
+				</td>
+
+				<td class="align-right item-remove">
+					<i ng-click="removeItem($index)" class="icon-trash" />
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="items-buttons text-center">
+		<button ng-if="canDataset" class="btn btn--primary" ng-click="addItem('DATASET')">
+			Add dataset {{actionVerb}} 
+		</button>
+		<button ng-if="canManagedFolder" class="btn btn--primary" ng-click="addItem('MANAGED_FOLDER')">
+			Add Folder {{actionVerb}}
+		</button>
+        <button ng-if="canSavedModel" class="btn btn--primary" ng-click="addItem('SAVED_MODEL')">
+            Add Model {{actionVerb}}
+        </button>
+        <button ng-if="canModelEvaluationStore" class="btn btn--primary" ng-click="addItem('MODEL_EVALUATION_STORE')">
+            Add Evaluation store {{actionVerb}}
+        </button>
+	</div>
+</div>

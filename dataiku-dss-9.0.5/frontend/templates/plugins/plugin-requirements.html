@@ -1,0 +1,97 @@
+<div class="plugin-requirements-block">
+    <div ng-if="pluginDesc.frontendRequirements.codeEnvLanguage" class="plugin-requirements-block__code-env">
+        <h6 class="plugin-requirements-block__title">This plugin requires a dedicated code environment.</h6>
+        <div plugin-code-env plugin-desc="pluginDesc" settings="settings" ng-if="appConfig.admin" on-valid="checkValidity" on-invalid="onInvalid"></div>
+        <div ng-if="!appConfig.admin">
+            You don't have the permissions to alter the settings of the plugin.
+        </div>
+    </div>
+    <h6 class="plugin-requirements-block__title" ng-if="pluginDesc.frontendRequirements.pythonPackages.length || pluginDesc.frontendRequirements.rPackages.length || pluginDesc.frontendRequirements.installScriptCommand">
+        This plugin requires some dependencies.
+    </h6>
+
+
+    <div ng-show="pluginDesc.frontendRequirements.pythonPackages.length" class="mbot8">
+        <ul>
+            <li ng-repeat="requirement in pluginDesc.frontendRequirements.pythonPackages">
+                {{requirement.name}} ({{requirement.version}})
+            </li>
+        </ul>
+        <h6 class="plugin-requirements-block__title">Install command line:</h6>
+        <pre>{{pluginDesc.frontendRequirements.pythonInstallCommand}}</pre>
+        <button ng-if="!installingFuture" class="btn btn--primary" ng-click="installRequirements('PYTHON')">
+            Install dependencies
+        </button>
+        <span ng-if="installingFuture && !pluginDesc.frontendRequirements.pythonInstalled">
+            <i class="dku-loader icon-spin w24 h24 pull-left"></i>Installing...
+        </span>
+        <span ng-if="!installingFuture && pluginDesc.frontendRequirements.pythonInstalled" class="text-success">
+            <i class="icon-ok-sign mright8"></i>All dependencies have been successfully installed.
+        </span>
+        <button ng-if="installingFuture" class="btn btn--danger" ng-click="abort()">
+            Abort
+        </button>
+    </div>
+
+
+    <div ng-show="pluginDesc.frontendRequirements.rPackages.length" class="mbot8">
+        <ul>
+            <li ng-repeat="requirement in pluginDesc.frontendRequirements.rPackages">{{requirement.name}} ({{requirement.version}})</li>
+        </ul>
+        <h6 class="plugin-requirements-block__title">Install command line:</h6>
+        <pre>{{pluginDesc.frontendRequirements.rInstallCommand}}</pre>
+        <button ng-if="!installingFuture" class="btn btn--primary" ng-click="installRequirements('R')">
+            Install dependencies
+        </button>
+        <span ng-if="installingFuture && !pluginDesc.frontendRequirements.rInstalled">
+            <i class="dku-loader icon-spin w24 h24 pull-left"></i>Installing...
+        </span>
+        <span ng-if="!installingFuture && pluginDesc.frontendRequirements.rInstalled" class="text-success">
+            <i class="icon-ok-sign mright8"></i>All dependencies have been successfully installed.
+        </span>
+        <button ng-if="installingFuture" class="btn btn--danger" ng-click="abort()">
+            Abort
+        </button>
+    </div>
+
+    <div ng-show="pluginDesc.frontendRequirements.installScriptCommand" class="mbot8">
+        <ul>
+            <li ng-repeat="requirement in pluginDesc.frontendRequirements.customPackages">
+                {{requirement.name}} <span ng-if="requirement.version">({{requirement.version}})</span>
+            </li>
+        </ul>
+        <h6 class="plugin-requirements-block__title">An installation script is provided :</h6>
+        <pre>{{pluginDesc.frontendRequirements.installScriptCommand}}</pre>
+        <button ng-if="!installingFuture" class="btn btn--primary" ng-click="installRequirements('CUSTOM_SCRIPT')">
+            Run install script
+        </button>
+        <span ng-if="installingFuture && !pluginDesc.frontendRequirements.customInstalled">
+            <i class="dku-loader icon-spin w24 h24 pull-left"></i>Installing...
+        </span>
+        <span ng-if="!installingFuture && pluginDesc.frontendRequirements.customInstalled" class="text-success">
+            <i class="icon-ok-sign mright8"></i>All dependencies have been successfully installed.
+        </span>
+        <button ng-if="installingFuture" class="btn btn--danger" ng-click="abort()">
+            Abort
+        </button>
+    </div>
+
+    <div ng-show="pluginDesc.frontendRequirements.manualProcedure" class="mbot8">
+        To manually install these dependencies:
+        <p ng-bind-html="pluginDesc.frontendRequirements.manualProcedure" />
+    </div>
+
+    <div ng-if="failure" class="alert alert-error">
+        <div> <i class="icon-dku-error"></i>&nbsp;Failed to install dependencies</div>
+        <span class="script-exception">{{failure.message}}</span>
+    </div>
+
+    <div ng-if="installationResult && !installationResult.success" class="alert alert-error">
+        <div> <i class="icon-dku-error"></i>&nbsp;Failed to install dependencies</div>
+        <span ng-if="installationResult.exception" class="script-exception">{{installationResult.exception.message}}</span>
+        <pre ng-if="!installationResult.exception" class="script-output" smart-log-tail="installationLog"></pre>
+    </div>
+    <div ng-if="!installationResult && installationLog" class="alert alert-info">
+        <pre ng-if="!installationResult.exception" class="script-output" smart-log-tail="installationLog"></pre>
+    </div>
+</div>

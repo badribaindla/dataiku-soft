@@ -1,0 +1,87 @@
+<div ng-controller="VariableCoefficientController" ng-init="coeffs = modelData.iperf.lmCoefficients">
+    <div class="alert alert-warning" ng-show="coeffs.unavailableReason">
+        Coefficients are not available: {{coeffs.unavailableReason}}
+    </div>
+
+    <form class="variable-coefs-filters dkuform-std-vertical">
+        <div class="std-list-sort-box-large list-control-widget std-list-search-box" style="display: inline-block; margin-left: 20px">
+            <sort-order-button value="sort.reverse" class="order" sob-opt="{'buttonClass':'add-on'}"></sort-order-button>
+            <select dku-bs-select="{titlePrefix:'Sort'}"
+                ng-model="sort.by"
+                ng-options="v as l for (v, l) in sorts" />
+        </div>
+
+        <label class="workaround-chrome-disappear">
+            <div class="std-list-search-box list-control-widget">
+                <span class="add-on"><i class="icon-dku-search"></i></span>
+                <input type="search" ng-model="coefFilter" placeholder="Filter">
+            </div>
+        </label>
+        <button style="margin-left: 50px" class="btn btn--secondary" ng-click="exportCoefficients()">Export</button>
+        <label ng-if="coeffs.rescaledCoefs">
+            <input type="checkbox" ng-model="displayOptions.showRawCoefs" />
+            Display coefficients for the unscaled variables
+        </label>
+         <label ng-if="coeffs.pvalue || coeffs.tstat">
+            <input type="checkbox" ng-model="uiState.advanced" />
+            More stats
+        </label>
+
+        <span class="pages-wrapper" ng-if="pagination.maxPage > 1">
+            <span class="page-details" ng-show="pagination.size">
+                {{ pagination.from + 1 }}-{{ pagination.to + 1 }} of {{ pagination.size }}
+            </span>
+            <span class="pages">
+                <span ng-class="{disabled: pagination.page === 1}">
+                    <a href ng-click="pagination.prev()" class="icon-chevron-left"></a></span>
+                <span ng-repeat="i in pagination.controls track by $index"
+                        ng-class="{active: pagination.page === i}">
+                    <a ng-if="i !== null" href ng-click="pagination.go(i)" ng-bind="i" />
+                    <span ng-if="i === null">…</span>
+                </span>
+                <span ng-class="{disabled: pagination.page === pagination.maxPage}">
+                    <a href ng-click="pagination.next()" class="icon-chevron-right"></a>
+                </span>
+            </span>
+        </span>
+    </form>
+    <div class="alert alert-warning" ng-show="!coeffs.unavailableReason && !coefs.length">
+        0 coefficients found! It looks like this model didn't really work.
+    </div>
+
+    <div class="alert alert-warning" ng-show="uiState.advanced">
+        p-value on regression coefficients is only properly defined for unregularized regressions. However, all regressions implemented in DSS are regularized.<br />
+        These values may not be meaningful.
+    </div>
+
+    <table class="table variable-coefs workaround-chrome-disappear">
+        <tr>
+            <th>Variable</th>
+            <th colspan="2">Coefficient</th>
+            <th ng-if="uiState.advanced && coeffs.stderr">Std. Err</th>
+            <th ng-if="uiState.advanced && coeffs.tstat">T stat</th>
+            <th ng-if="uiState.advanced && coeffs.pvalue">p-value</th>
+            <th ng-if="uiState.advanced && coeffs.pvalue">Confidence</th>
+        </tr>
+        <tr ng-repeat="c in coefs">
+            <td ng-bind-html="c.full | mlFeature : true" />
+            <td ng-bind="getCoef(c) | number: 4" />
+            <td class="coef-bar"><span class="negative" ng-if="getCoef(c) < 0"
+                    style="width: {{getAbs(c) * baseWidth()}}px; margin-left: {{50-getAbs(c) * baseWidth()}}px" />
+                <span class="positive" ng-if="getCoef(c) > 0" style="width: {{getAbs(c) * baseWidth()}}px" />
+            </td>
+            <td ng-if="uiState.advanced && coeffs.stderr" ng-bind="getStderr(c) | number: 4" />
+            <td ng-if="uiState.advanced && coeffs.tstat" ng-bind="c.tstat | number : 4"/>
+            <td ng-if="uiState.advanced && coeffs.pvalue" ng-bind="displayPossibleSmall(c.pvalue)"/>
+            <td ng-if="uiState.advanced && coeffs.pvalue" ng-bind="c.pvalue | mlScoreAssess : 'pvalue'" />
+        </tr>
+        <tr>
+            <td>Intercept</td>
+            <td colspan="2" ng-bind="getIntercept() | number: 4" />
+            <td ng-if="uiState.advanced && coeffs.interceptStderr" ng-bind="getInterceptStderr() | number:4">
+            <td ng-if="uiState.advanced && coeffs.interceptTstat" ng-bind="getInterceptTstat() | number:4">
+            <td ng-if="uiState.advanced && coeffs.interceptPvalue" ng-bind="displayPossibleSmall(getInterceptPvalue())">
+            <td ng-if="uiState.advanced && coeffs.interceptPvalue" ng-bind="getInterceptPvalue() | mlScoreAssess : 'pvalue'" />
+        </tr>
+    </table>
+</div>

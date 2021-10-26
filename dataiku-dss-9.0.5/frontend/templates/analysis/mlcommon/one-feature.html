@@ -1,0 +1,102 @@
+<a class="mx-textellipsis" style="cursor: auto;">
+    <i class="icon-remove" ng-if="feature.role==='REJECT'" />
+    <i class="icon-ok" ng-if="feature.role==='INPUT'" />
+    <i class="icon-dku-weight" ng-if="feature.role==='WEIGHT'" />
+    <i class="icon-eye-open" ng-if="feature.role==='PROFILING'" />
+    <i class="icon-bullseye" ng-if="feature.role==='TARGET'" />
+    <span>{{feature._name}}</span>
+</a>
+<div class="sub-feature" style="display: none">
+    <div class="sub-feature-content">
+        <!-- CATEGORY -->
+        <div ng-if="feature.type == 'CATEGORY'">
+            <li style="font-weight: bold"><i class="icon-font"></i>Categorical Feature</li>
+            <li ng-show="feature.category_handling=='DUMMIFY'">Dummy encoded</li>
+            <li ng-show="feature.category_handling=='DUMMIFY'">
+                <span ng-if="feature.dummy_drop=='DROP'">Drop dummies</span>
+                <span ng-if="feature.dummy_drop=='AUTO'">Auto drop dummies</span>
+            </li>
+            <li ng-show="feature.category_handling=='DUMMIFY'">
+                <span ng-if="feature.dummy_clip=='MAX_NB_CATEGORIES'">Clipping to {{feature.max_nb_categories}} max categories</span>
+                <span ng-if="feature.dummy_clip=='CUMULATIVE_PROPORTION'">Clipping to proportion {{feature.cumulative_proportion}}</span>
+                <span ng-if="feature.dummy_clip=='MIN_SAMPLES'">Clipping to {{feature.min_samples}} min samples</span>
+            </li>
+            <li ng-show="feature.category_handling=='FLAG_PRESENCE'">0/1 flagged</li>
+            <li ng-show="feature.category_handling=='IMPACT'">Impact Coded</li>
+            <li ng-show="feature.category_handling=='HASHING'">Hashed</li>
+
+            <li ng-if="feature.category_handling != 'FLAG_PRESENCE'">
+                <span ng-if="feature.missing_handling == 'IMPUTE'" >
+                    Impute missing with
+                    <span ng-if="feature.missing_impute_with == 'MEAN'">mean</span>
+                    <span ng-if="feature.missing_impute_with == 'MEDIAN'">median</span>
+                    <span ng-if="feature.missing_impute_with == 'CONSTANT'">'{{feature.impute_constant_value}}'</span>
+                </span>
+                <span ng-if="feature.missing_handling == 'DROP_ROW'">Drop missing</span>
+            </li>
+        </div>
+
+        <!-- NUMERIC -->
+        <div ng-if="feature.type == 'NUMERIC'">
+            <li style="font-weight: bold"><span>#</span>Numerical Feature</li>
+            <li ng-if="isMLBackendType('PY_MEMORY')">
+                <span ng-if="feature.numerical_handling == 'REGULAR'">
+                    <span ng-if="feature.rescaling == 'NONE'">No Rescaling</span>
+                    <span ng-if="feature.rescaling == 'MINMAX'">MinMax</span>
+                    <span ng-if="feature.rescaling == 'AVGSTD'">AvgStd</span>
+                    <span ng-if="feature.generate_derivative">with derived feats</span>
+                </span>
+
+                <span ng-if="feature.numerical_handling == 'BINARIZE'">
+                    Binarized based on
+                    <span ng-if="feature.binarize_threshold_mode == 'MEAN'">mean</span>
+                    <span ng-if="feature.binarize_threshold_mode == 'MEDIAN'">median</span>
+                    <span ng-if="feature.binarize_threshold_mode == 'CONSTANT'">'{{feature.binarize_constant_threshold}}'</span>
+                </span>
+
+                <span ng-if="feature.numerical_handling == 'QUANTILE_BIN'">
+                    Quantized in {{feature.quantile_bin_nb_bins}}
+                </span>
+
+                <span ng-if="feature.numerical_handling == 'QUANTILE_BIN'">
+                    0/1 flagged
+                </span>
+            </li>
+            <li ng-if="feature.category_handling != 'FLAG_PRESENCE'">
+                <span ng-if="feature.missing_handling == 'IMPUTE'" >
+                    Impute missing with
+                    <span ng-if="feature.missing_impute_with == 'MEAN'">mean</span>
+                    <span ng-if="feature.missing_impute_with == 'MEDIAN'">median</span>
+                    <span ng-if="feature.missing_impute_with == 'CONSTANT'">'{{feature.impute_constant_value}}'</span>
+                </span>
+                <span ng-if="feature.missing_handling == 'DROP_ROW'">Drop missing</span>
+            </li>
+        </div>
+
+        <!-- TEXT -->
+        <div ng-if="feature.type == 'TEXT'">
+            <li style="font-weight: bold"><i class="icon-italic"></i>Text</li>
+            <li ng-if="feature.text_handling == 'TOKENIZE_HASHING'">Tokenized</li>
+            <li ng-if="feature.text_handling == 'TOKENIZE_HASHING_SVD'">SVD {{feature.hashSVDSVDComponents}} components
+            </li>
+            <li ng-if="feature.text_handling == 'TOKENIZE_COUNTS'">
+                Count vectorization {{feature.minRowsRatio}}% - {{feature.maxRowsRatio}}%
+            </li>
+            <li ng-if="feature.text_handling == 'TOKENIZE_COUNTS'">
+                Ngrams {{feature.ngramMinSize}} - {{feature.ngramMaxSize}}
+            </li>
+            <li ng-if="feature.text_handling == 'TOKENIZE_COUNTS'">
+                Max words {{feature.maxWords}}
+            </li>
+            <li ng-if="feature.text_handling == 'TOKENIZE_TFIDF'">
+                TF/IDF {{feature.minRowsRatio}}% - {{feature.maxRowsRatio}}%
+            </li>
+            <li ng-if="feature.text_handling == 'TOKENIZE_TFIDF'">
+                Ngrams {{feature.ngramMinSize}} - {{feature.ngramMaxSize}}
+            </li>
+            <li ng-if="feature.text_handling == 'TOKENIZE_TFIDF'">
+                Max words {{feature.maxWords}}
+            </li>
+        </div>
+    </div>
+</div>

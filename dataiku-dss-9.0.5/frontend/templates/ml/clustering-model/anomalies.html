@@ -1,0 +1,122 @@
+<div ng-controller="AnomalyController" class="anomalies">
+    <div ng-if="!data" style="text-align: center">
+        No data to show
+    </div>
+    <div ng-if="data" class="">
+        <div style="justify-content: space-between; align-items: center" class="horizontal-flex">
+            <div>Displaying the <strong>{{data.data.length}}</strong> top anomalies out of {{data.total_anomalies}}.</div>
+            <div ng-if="isExtra" style="text-align: center">
+                <button ng-if="!displayExtra" class="btn btn--secondary" ng-click="setDisplayExtra(true);">
+                    See display-only features</button>
+                <button ng-if="displayExtra" class="btn btn--secondary" ng-click="setDisplayExtra(false);">
+                    Hide display-only features</button>
+            </div>
+            <heat-gradient></heat-gradient>
+            <div ng-if="isMore()" style="text-align: center">
+                <span>Displaying the <strong>{{pagination.length}}</strong> most important features.</span>
+                <button class="btn btn--secondary" ng-click="seeMore()" >
+                    See more features</button>
+            </div>
+        </div>
+        <div class="container horizontal-flex" puppeteer-hook>
+            <div class="scores-section">
+                <div class="data-header score" style="text-align: center"><strong>Anomaly strength</strong></div>
+                <div class="data-body">
+                    <div class="cell score" ng-repeat="s in data.scores track by $index"
+                         style="">
+                        <div class="horizontal-flex" style="justify-content: center; color: #d38200">
+                            <i class="icon icon-warning-sign" style="width: 12px; height: 12px; font-size: 12px"
+                               ng-repeat="n in nIcons($index) track by $index"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div><!-- For anomaly score -->
+                <div class="horizontal-flex data-header">
+                    <div class="feature-container cell-dimensions">
+                        <div class="data-header score" style="text-align: center; width: 70px" title="Anomaly score<"><strong>Anomaly score</strong></div>
+                    </div>
+                </div>
+                <div class="data-body">
+                    <div ng-repeat="score in data.scores track by $index" class="horizontal-flex">
+                        <div class="cell cell-dimensions"
+                             style="text-align: center; width:70px">
+                            {{score | number : 4}}
+                        </div>
+                    </div>
+                </div>
+                <div style="margin: 30px 0px 10px 0px; font-size: 16px; color: white;">_</div>
+                <div class="data-body">
+                    <div ng-repeat="score in data.regular_scores track by $index" class="horizontal-flex">
+                        <div class="cell cell-dimensions"
+                             style="text-align: center; width:70px">
+                            {{score | number : 4}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="isExtra && displayExtra" class="data-section"><!-- For view-only features -->
+                <div class="horizontal-flex data-header">
+                    <div ng-repeat="col in data.extra_profiling_columns" class="feature-container cell-dimensions">
+                        <div class="feature-name" title="{{col}}"><strong>{{col}}</strong></div>
+                    </div>
+                </div>
+                <div class="data-body">
+                    <div ng-repeat="d in data.extra_profiling_data" class="horizontal-flex">
+                        <div class="cell cell-dimensions" ng-repeat="col in data.extra_profiling_columns"
+                             title="{{d[$index]}}"
+                             dbt-placement="right"
+                             style="background-color: rgb(240,240,240)">
+                            {{d[$index]}}
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="data.extra_profiling_regular_data">
+                    <div style="margin: 30px 0px 10px 0px; font-size: 16px; visibility: hidden;">.</div>
+                    <div class="data-body">
+                        <div ng-repeat="d in data.extra_profiling_regular_data" class="horizontal-flex">
+                            <div class="cell cell-dimensions" ng-repeat="col in data.extra_profiling_columns"
+                                 style="background-color: rgb(240,240,240)"
+                                 title="{{d[$index]}}"
+                                 dbt-placement="right">
+                                {{cleanValue(d[$index])}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="data-section"> <!-- For features used in the algorithm -->
+                <div class="horizontal-flex data-header">
+                    <div ng-repeat="i in pagination" class="feature-container cell-dimensions">
+                        <div class="feature-name" title="{{data.columns[i] | mlFeature}}"><strong>{{data.columns[i] | mlFeature}}</strong></div>
+                    </div>
+                </div>
+                <div class="data-body">
+                    <div ng-repeat="d in data.data" class="horizontal-flex">
+                        <div class="cell cell-dimensions" ng-repeat="i in pagination" ng-init="x = d[i]"
+                             style="background-color: {{getCellColor($index, x)}}"
+                             color-contrast="{{getCellColor(i, x)}}"
+                             dku-better-tooltip dbt-placement="right" dbt-title="{{tooltipHtml(i, x)}}"
+                             dbt-class="title-tooltip">
+                            {{cleanValue(x)}}
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="data.regular_data">
+                    <div style="margin: 30px 0px 10px 0px; font-size: 16px"> Regular Samples (for comparison)</div>
+                    <div class="data-body">
+                        <div ng-repeat="d in data.regular_data" class="horizontal-flex">
+                            <div class="cell cell-dimensions" ng-repeat="i in pagination" ng-init="x = d[i]"
+                                 style="background-color: {{getCellColor($index, x)}}"
+                                 color-contrast="{{getCellColor(i, x)}}"
+                                 dku-better-tooltip dbt-placement="right" dbt-title="{{tooltipHtml(i, x)}}"
+                                 dbt-class="title-tooltip">
+                                {{cleanValue(x)}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,40 @@
+<div>
+    <div ng-show="testing" class="alert alert-info">
+        <i class="icon-spinner icon-spin icon-large"></i>
+        Please wait, testing connection...
+    </div>
+    <div ng-show="testResult">
+        <div ng-show="!testResult.connectionOK && !dataset.params.connection" class="alert alert-error">
+            <span>No connection selected</span>
+        </div>
+        <div ng-show="!testResult.connectionOK" class="alert alert-error">
+            <span>Failed to connect: {{testResult.connectionErrorMsg}}</span>
+            <button class="btn btn--secondary" ng-click="test(true)">Retry</button>
+        </div>
+        <div ng-show="testResult.connectionOK">
+            <div ng-show="testResult.testedConnectionOnly">
+                <div ng-show="!testResult.tableExists && !dataset.params.table" class="alert alert-error">
+                    Connection OK. No table selected.
+                </div>
+                <div ng-show="!testResult.tableExists && dataset.params.table" class="alert alert-info">
+                    Connection OK. Table does not exist.
+                    <button class="btn btn--primary" ng-click="test(false)">Test again</button>
+                </div>
+                <div ng-show="testResult.tableExists" class="alert alert-info">
+                    Connection OK. Table exists.
+                    <button class="btn btn--primary" ng-click="test(false)">Test table</button>
+                </div>
+            </div>
+            <div ng-show="!testResult.testedConnectionOnly">
+                <div ng-show="!testResult.preview" class="alert alert-error">
+                    Connection OK. Table exists, but preview failed : {{testResult.previewErrorMsg}}
+                    <button class="btn btn--primary" ng-click="test(false)">Test again</button>
+                </div>
+                <div ng-show="testResult.preview" class="alert alert-success">
+                    Connection OK. Table exists.
+                    <button class="btn btn--primary" ng-click="test(false)">Test again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

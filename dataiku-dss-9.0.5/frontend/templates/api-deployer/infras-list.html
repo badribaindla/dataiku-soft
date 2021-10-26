@@ -1,0 +1,74 @@
+<feature-locked feature-name="'API Deployer capabilities'"
+    class="dss-page container-fluid"
+    ng-if="isFeatureLocked">
+</feature-locked>
+
+<div class="h100 oa" ng-if="!isFeatureLocked">
+    <div block-api-error></div>
+    <div ng-if="infraStatusList.length" class="standard-container standard-list">
+        <div class="standard-container__wrap">
+            <div class="standard-list__header horizontal-flex">
+                <div class="standard-list__title">
+                    <i class="icon-infra standard-list__title-icon universe-color api-deployer"></i>
+                    Infrastructures
+                </div>
+                <div class="deployer__search-box">
+                    <input type="search" ng-model="uiState.query" placeholder="Search infras...">
+                </div>
+                <div class="standard-list__actions">
+                    <button class="btn btn--primary"
+                            disabled-if="!canCreateInfras()"
+                            disabled-message="You don't have the right to create infrastructures"
+                            ng-click="startCreateInfra()">
+                        <span plus-icon></span> New infrastructure
+                    </button>
+                </div>
+            </div>
+            <table sort-table class="table standard-list__table table-hover table-fixed">
+                <thead>
+                    <tr>
+                        <th class="standard-list__table-cell" sort-col="infraBasicInfo.id" style="width: 35%">ID</th>
+                        <th sort-col="infraBasicInfo.type"style="width: 8%">Type</th>
+                        <th sort-col="infraBasicInfo.stage"style="width: 20%">Stage</th>
+                        <th sort-col="[deployments.length, enabledDeploymentCount]" >Deployments (Enabled / Total)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr full-click class="standard-list__table-row" ng-repeat="infraStatus in infraStatusList | toArray |filter:uiState.query | orderBy:sortColumn:sortDescending">
+                        <td class="standard-list__table-cell">
+                            <div class="horizontal-flex">
+                                <i class="icon-infra standard-list__row-icon universe-color api-deployer"></i>
+                                <a class="standard-list__row-title"
+                                   ui-sref="apideployer.infras.infra.status({infraId: infraStatus.infraBasicInfo.id})"
+                                   show-tooltip-on-text-overflow
+                                   text-tooltip="infraStatus.infraBasicInfo.id"
+                                   tooltip-direction="'tooltip'"
+                                   main-click></a>
+                            </div>
+                        </td>
+                        <td>{{infraStatus.infraBasicInfo.type | infraTypeToName}}</td>
+                        <td>
+                            <div show-tooltip-on-text-overflow text-tooltip="infraStatus.infraBasicInfo.stage" tooltip-direction="'tooltip'"></div>
+                        </td>
+                        <td>{{infraStatus.enabledDeploymentCount}} / {{infraStatus.deployments.length}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div ng-if="infraStatusList && !infraStatusList.length" class="flex empty-list-cta">
+        <h1>
+            No deployment infrastructures available
+        </h1>
+        <p>Infrastructures are where your APIs can be deployed.</p>
+        <p ng-if="!canCreateInfras()">Your Administrator needs to create an infrastructure first.</p>
+        <div ng-if="canCreateInfras()">
+            <a class="btn btn--primary btn--large" ng-click="startCreateInfra()">
+                <span plus-icon />
+                &nbsp;New infrastructure
+            </a>
+        </div>
+    </div>
+</div>
+

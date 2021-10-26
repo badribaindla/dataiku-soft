@@ -1,0 +1,31 @@
+<div ng-controller="TearDownClusterStepController">
+	<div ng-include ="'/templates/scenarios/fragments/step-header.html'" style="display: inline-block;"></div>
+
+    <div class="alert alert-info">
+        <p>This step stops and destroys a managed DSS cluster.</p>
+    
+        <p>The cluster will only be stopped and destroyed if it had been previously started by a "Create cluster" 
+        step (either in this scenario or in another scenario, depending on the "Destroy cluster" setting)</p>
+
+        <p style="margin-bottom: 0">If your cluster is not created by a scenario, you can use the "Stop cluster" step to stop the cluster and release the associated cloud resources without destroying the DSS cluster reference</p>
+    </div>
+    
+	<form name="setupForm" class="dkuform-horizontal" >
+        <div class="control-group">
+            <label class="control-label">Destroy cluster</label>
+            <div class="controls">
+                <select required dku-bs-select ng-model="step.params.mode" ng-options="mode.id as mode.label for mode in clusterShutdownModes"></select>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Cluster</label>
+            <div class="controls">
+                <input type="text" ng-model="step.params.clusterId" bs-typeahead="clusterIds" />
+                <span class="help-inline">Identifier of the cluster to destroy. Must be an existing DSS managed cluster id. Variable expansion is supported</span>
+            </div>
+        </div>
+	</form>
+    
+    <div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+
+</div>

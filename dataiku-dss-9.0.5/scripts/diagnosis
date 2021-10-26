@@ -1,0 +1,197 @@
+#!/bin/bash
+
+echo "START DIAGNOSIS"
+
+function dku_exec {
+    # prints the command given in 1st arg in stdout and in the file given as 2nd arg
+    # then executes the commans and prints the output in stdout and in the default diagnosis file
+    printf "\n\n----------------------------------------------------------\n\n\n" | tee -a $MAIN_DIAGNOSIS_FILE
+    echo ">" $1 | tee -a $MAIN_DIAGNOSIS_FILE
+    $1 2>&1 | tee -a $MAIN_DIAGNOSIS_FILE
+}
+
+function dku_exec2 {
+    # executes the command given in 1st arg and prints its output in the file given as 2nd arg
+    printf "\n\n----------------------------------------------------------\n\n\n"
+    echo "> " $1 | tee $2
+    $1 >> $2 2>&1
+    echo "output written to "$2
+    TEMP_FILES+=" "$2
+}
+
+if [ "$(uname)" == "Darwin" ]; then
+    OS="OSX"
+else
+    OS="Linux"
+fi
+
+
+#MAIN_DIAGNOSIS_FILE="dku_diagnosis_"+$(date '+%d-%m-%Y_%Hh%Mm%Ss')+".zip"
+MAIN_DIAGNOSIS_FILE="dku_diagnosis.txt"
+
+# list of temporary files
+TEMP_FILES=$MAIN_DIAGNOSIS_FILE
+
+# list of existing files that will be saved
+SAVED_FILES=""
+
+CURRENT_DATE=$(date '+%d_%m_%Y_%Hh%Mm%Ss')
+$CURRENT_DATE > $MAIN_DIAGNOSIS_FILE
+
+
+
+# Locate binaries
+
+NGINX_BINARY=$("$DKUPYTHONBIN" "$DKUINSTALLDIR"/scripts/dkuinstall/install_config.py -get server nginx_binary)
+if [ -z "$NGINX_BINARY" -o "$NGINX_BINARY" = "None" ]; then
+  NGINX_BINARY="nginx"
+  for d in "$DKUINSTALLDIR"/tools/sbin /usr/sbin /opt/local/sbin /usr/local/sbin /usr/local/bin; do
+    if [ -x "$d/nginx" ]; then
+      NGINX_BINARY="$d/nginx"
+      break
+    fi
+  done
+  if ! command -v "$NGINX_BINARY" >/dev/null; then
+    echo >&2 "nginx binary \"$NGINX_BINARY\" not found" | tee -a $MAIN_DIAGNOSIS_FILE
+  fi
+fi
+
+if [ -z "$DKUJAVABIN" ]; then
+  echo >&2 "DKUJAVABIN is not defined." | tee -a $MAIN_DIAGNOSIS_FILE
+  DKUJAVABIN="java"
+fi
+
+PIP_BINARY="pip"
+if [ -z "$DKUPYTHONBIN" ]; then
+  echo >&2 "DKUPYTHONBIN is not defined." | tee -a $MAIN_DIAGNOSIS_FILE
+  DKUPYTHONBIN="python"
+else
+    PIP_BINARY="$(dirname $DKUPYTHONBIN)/pip"
+fi
+
+
+if [ -z "$DKUJULIABIN" ]; then
+  echo >&2 "DKUJULIABIN is not defined." | tee -a $MAIN_DIAGNOSIS_FILE
+  DKUJULIABIN="julia"
+fi
+
+
+#
+# Env
+#
+dku_exec "uname -a"
+dku_exec "cat /etc/hosts"
+dku_exec "printenv"
+dku_exec "java -version"
+dku_exec "javac -version"
+dku_exec "$NGINX_BINARY -V"
+dku_exec "$PIP_BINARY -V"
+
+if [ $OS == "OSX" ]; then
+    dku_exec "sw_vers"
+    dku_exec "hostname"
+    dku_exec2 "sysctl -a" sysctl.txt
+else
+    dku_exec "cat /etc/debian_version"
+    dku_exec "lsb_release"
+    dku_exec "hostname --fqdn"
+fi
+
+#
+# installed programs/packages
+#
+
+dku_exec2 "dpkg --list" dpkg.txt
+dku_exec2 "yum list installed" yum.txt
+dku_exec2 "brew list --versions" brew.txt
+dku_exec2 "port list" port.txt
+dku_exec2 "$PIP_BINARY list" pip.txt
+echo "installed.packages()" > installed_packages.r
+dku_exec "R CMD BATCH installed_packages.r r.txt"
+TEMP_FILES+=" r.txt"
+rm installed_packages.r
+
+#
+# Ressources status
+#
+
+dku_exec "ulimit -a"
+
+if [ $OS neq "OSX" ]; then
+    #dku_exec2 "system_profiler SPApplicationsDataType SPDeveloperToolsDataType SPDiagnosticsDataType SPDisplaysDataType SPHardwareDataType SPInstallHistoryDataType SPNetworkLocationDataType SPMemoryDataType SPNetworkDataType SPStartupItemDataType" system_profiler.txt
+    :
+else
+    dku_exec "free -m"
+    dku_exec "cat /proc/cpuinfo"
+    dku_exec "cat /proc/meminfo"
+    dku_exec "cat /proc/sys/vm/overcommit_memory"
+    dku_exec "cat /proc/sys/vm/overcommit_ratio"
+    dku_exec "cat /proc/sys/vm/swappiness"
+    dku_exec "mstat 3"
+fi
+
+#
+# Processes
+#
+
+dku_exec2 "ps aux" ps.txt
+
+
+#
+# DSS status
+#
+
+SAVED_FILES+=" $DIP_HOME/config/license.json"
+SAVED_FILES+=" dss-version.json"
+SAVED_FILES+=" $DIP_HOME/bin/env-*"
+SAVED_FILES+=" run/*"
+dku_exec2 "ls -la $DIP_HOME/bin" ls_bin.txt
+
+dku_exec "$DIP_HOME/bin/dss status"
+
+
+#
+# options
+#
+printf "\n\n"
+while getopts ":c" opt; do
+  case $opt in
+    c)
+        #include configdir
+        echo "-c option: save $DIP_HOME/config/"
+        SAVED_FILES+=" $DIP_HOME/config/"
+        ;;
+    i)
+        if [ $OS == "OSX" ]; then
+            dku_exec "iostat -c 5 -w 5"
+        else
+            dku_exec "iostat -x 3 -c 3"
+        fi
+        ;;
+    v)
+        if [ $OS == "OSX" ]; then
+            dku_exec "vm_stat -c 5 5"
+        else
+            :
+        fi
+
+        ;;
+    \?)
+        echo "Invalid option: -$OPTARG"
+        ;;
+  esac
+done
+printf "\n\n"
+
+#
+# zip data
+#
+ARCHIVE="$DIP_HOME/dku_diagnosis_$CURRENT_DATE.zip"
+zip -r $ARCHIVE $TEMP_FILES $SAVED_FILES
+
+
+# cleanup
+rm $TEMP_FILES
+
+
+echo "DIAGNOSIS DONE."

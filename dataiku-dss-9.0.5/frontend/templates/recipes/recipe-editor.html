@@ -1,0 +1,23 @@
+<div class="main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+    <div class="recipe-editor-page vertical-flex no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width" global-keydown="{'ctrl-s meta-s':'saveRecipeIfPossible()'}" navigator-object>
+        <debug data="recipe"/>
+
+        <div ng-if="!recipe.type">
+            <div block-api-error /> <!-- Mostly here for 404 issues. Don't use it when there is a recipe.type to avoid double rainbow phenomenon -->
+        </div>
+
+        <div ng-if="recipe.type.indexOf('CustomCode') == 0">
+            <div include-no-scope="/templates/recipes/custom-code-recipe-editor.html" class="vertical-flex" />
+        </div>
+
+        <div ng-if="recipe.type.indexOf('App') == 0">
+            <div include-no-scope="/templates/recipes/app-recipe-editor.html" class="vertical-flex" />
+        </div>
+        <div ng-if="recipe.type.indexOf('CustomCode') < 0 && recipe.type.indexOf('App_') < 0">
+            <ng-include ng-if="recipe.type" src="'/templates/recipes/' + recipe.type + '-recipe-editor.html'" class="vertical-flex"></ng-include>
+        </div>
+    </div>
+</div>
+
+<standardized-side-panel page="object" object-type="RECIPE" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" close-on-click-outside="true">
+</standardized-side-panel>

@@ -1,0 +1,1 @@
+select category, id, RANK() OVER (PARTITION BY category ORDER BY sale_date asc) from table;

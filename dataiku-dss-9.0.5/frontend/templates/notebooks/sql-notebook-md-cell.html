@@ -1,0 +1,46 @@
+<div class="cell-header folded" ng-show="!cell.$localState.unfolded" ng-click="toggleCell()" ui-keydown="{'right':'toggleCell()'}">
+    <span class="cell-title">
+        <i class="icon-caret-right"/>
+        {{cell.name || 'Comment'}}
+    </span>
+</div>
+
+<form class="dkuform-std-vertical" style="margin:0">
+    <div class="cell-header unfolded" ng-if="cell.$localState.unfolded" ng-click="toggleCell()">
+        <div class="cell-tools pull-right" stop-propagation>
+            <a ng-click="duplicateCell($index)" class="cell-tool link-std">
+                <i class="icon-copy" />
+            </a>
+
+            <a ng-click="removeCell($index)" class="cell-tool link-std">
+                <i class="icon-trash" />
+            </a>
+        </div>
+
+        <span class="cell-title">
+            <i class="icon-caret-down"/>
+            <input type="text" ng-model="cell.name" placeholder="Click to name this comment..." class="in-place-edit" stop-propagation/>
+        </span>
+    </div>
+
+    <div class="cell-body" ng-show="cell.$localState.unfolded">
+        <div class="cell-code secondary-scroll" style="position:relative">
+            <div ng-if="cell.$tmpState.mdCellEditModeOn" ui-keydown="{'ctrl-enter meta-enter':'ok()', 'esc': 'cell.$tmpState.mdCellEditModeOn = false'}">
+                <textarea ng-model="cell.$localState.tmpCode"></textarea>
+                <div class="actions">
+                    <a class="btn btn--success" ng-click="ok()"> Done </a>
+                    <a class="btn btn--secondary" ng-click="cell.$tmpState.mdCellEditModeOn = false"> Cancel </a>
+                </div>
+            </div>
+        </div>
+        <div class="rendered"
+            from-markdown="cell.code"
+            ng-click="cell.$tmpState.mdCellEditModeOn = true"
+            ng-if="!cell.$tmpState.mdCellEditModeOn && cell.code.trim()"
+            title="click to edit">
+        </div>
+        <div class="rendered" full-click ng-if="!cell.$tmpState.mdCellEditModeOn && !cell.code.trim()">
+            <a ng-click="cell.$tmpState.mdCellEditModeOn = true" main-click>Click to create a comment (plain text or Markdown)</a>
+        </div>
+    </div>
+</form>

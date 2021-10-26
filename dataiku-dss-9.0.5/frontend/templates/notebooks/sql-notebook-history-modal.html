@@ -1,0 +1,46 @@
+<div class="modal modal3 dku-modal sql-notebook sql-notebook-history-modal">
+    <div dku-modal-header-with-totem modal-title="Cell history" modal-totem="icon-time" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+
+    <div class="modal-body" style="padding: 0">
+        <div ng-show="cell.type == 'QUERY' && notebookTmpState.history && (!notebookTmpState.history[cell.id] || !notebookTmpState.history[cell.id].length)">
+            <h4 style="text-align: center; color: #999; padding: 20px; margin-bottom: 0;">This cell history is empty </h4>
+        </div>
+
+        <div class="main-list selectable-list">
+            <div ng-repeat="hQuery in notebookTmpState.history[cell.id] track by hQuery.id" class="hQuery">
+                <div class="item selectable-item" ng-class="{selected: cell.$localState.query.id == hQuery.id}" ng-click="loadQuery(cell, hQuery, true);dismiss()">
+                    <div class="status">
+                        <i ng-if="hQuery.state == 'RUNNING'" class="icon-spinner icon-spin" />
+                        <i ng-if="hQuery.state == 'FAILED' || hQuery.state == 'ABORTED'" class="text-error icon-remove" />
+                        <i ng-if="hQuery.state == 'DONE'" class="text-success icon-ok" />
+                    </div>
+                    <div class="sql">{{hQuery.sql.trim()}}</div>
+                    <div class="actions">
+                        <div class="pull-left">
+                            <span class="date">{{hQuery.runOn|date:'yyyy/MM/dd HH:mm'}}</span>
+                            <span ng-show="hQuery.runIn"> - in {{hQuery.runIn/1000|friendlyDurationSec}}</span>
+                        </div>
+                        <a ng-click="createCellWithQuery(hQuery, getSelectedCellIndex() + 1)" title="Create a new cell with this query" stop-propagation>
+                            <i class="icon-file-alt" />
+                        </a>
+                        <a ng-click="removeQuery(hQuery)" title="Remove from history" stop-propagation>
+                            <i times-icon />
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer modal-footer-std-buttons">
+        <button type="submit" class="btn btn--text btn--danger" ng-click="clearHistory(cell.id)" ng-show="notebookTmpState.history[cell.id].length">
+            <i class="icon-trash" />&nbsp; Clear history
+        </button>
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()"> Close</button>
+    </div>
+
+    </form>
+
+</div>

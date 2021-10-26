@@ -1,0 +1,47 @@
+<div class="scenario">
+    <div class="future-icon">
+        <div class="h100 center-children">
+            <i class="icon-play universe-color scenario" />
+        </div>
+    </div>
+
+    <div class="future-body">
+        <div class="abort" ng-show="!scenario.aborted && scenario.alive"
+            ng-click="scenario.confirming = true;"
+            ng-mouseenter="scenario.hoverClose = true" ng-mouseleave="scenario.hoverClose = false" ng-class="{hovered : scenario.hoverClose}">
+            <span>Abort</span>
+            <del>&times;</del>
+        </div>
+        <div class="aborted" ng-if="scenario.aborted">
+            <span ng-if="scenario.alive">aborting</span>
+            <span ng-if="!scenario.alive">finished</span>
+        </div>
+        <div class="name mx-textellipsis">{{scenario.jobDisplayName}}</div>
+        <div class="details">
+            <span class="target" ng-repeat="target in scenario.payload.targets">
+                <span class="separator" ng-if="$index > 0">|</span>
+                <span dss-object-link item="target" class="target"/>
+                <span ng-if="target.projectKey">in
+                    <span ng-if="$stateParams.projectKey != target.projectKey">
+                        project <a href="{{StateUtils.href.project(target.projectKey)}}">{{target.projectKey}}</a>
+                    </span>
+                    <span ng-if="$stateParams.projectKey == target.projectKey">current project</span>
+                </span>
+            </span>
+            <span class="duration" ng-if="scenario.alive">
+                <span class="separator">|</span>
+                Started {{scenario.startTime | friendlyTimeDelta}}
+            </span>
+            <span ng-if="owner">
+                <span class="separator">|</span>
+                <span class="owner">Started by @{{scenario.owner}}</span>
+            </span>
+        </div>
+        <div class="state" future-progress-bar="scenario.progress">
+            <div ng-if="scenario.alive && bar.perpetual" class="perpetual-bar"><div class="done"></div></div>
+            <div ng-if="scenario.alive && !bar.perpetual" class="usual-bar"><div class="done" style="width: {{bar.percentage}}%;"></div></div>
+            <div ng-if="!scenario.alive" class="no-bar"></div>
+        </div>
+    </div>
+    <div future-abort-confirmation="scenario" abort-msg="'Abort the scenario?'" abort-fn="abortFuture(scenario.jobId)" ></div>
+</div>

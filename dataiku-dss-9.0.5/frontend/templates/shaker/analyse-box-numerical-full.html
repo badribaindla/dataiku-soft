@@ -1,0 +1,130 @@
+    <div ng-if="analysis.fullSampleAnalysis && !(analysis.fullSampleAnalysis.numeric)">
+        The column is stored as {{column.datasetSchemaColumn.type}}, which doesn't permit numerical analyses.
+    </div>
+    <div ng-if="analysis.fullSampleAnalysis && analysis.fullSampleAnalysis.numeric">
+        <div class="row-fluid">
+            <div class="span3">
+                <div ng-include="'/templates/shaker/analyse-summary-full.html'"></div>
+                <a class="small-link-button" ng-click="$state.go('projects.project.datasets.dataset.status.metrics', {}); dismiss();">
+                    View variations over time...
+                </a>
+            </div>
+            <div class="span9">
+                <div ng-if="hasNumeric('histogram')">
+                    <histogram data="getFullCHistogram()" is-date="isDate" />
+                </div>
+                <div class="center-children" ng-if="!hasNumeric('histogram')">
+                    <div style="text-align: center;">
+                        <div><span class="not-computed">Not computed</span></div>
+                        <div><a class="small-link-button" ng-click="uiState.configureFullSampleStatistics()">Click to configure <i class="icon-cog"></i></a></div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 15px;" ng-if="getFullBoxplot()">
+                    <box-plot data="getFullBoxplot()" />
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span3 summary">
+                <strong>
+                    Statistics
+		            <span colspan="1" ng-if="categoricalsNeedRecompute(['countDistinct','mode']) || numericsNeedRecompute(['min','max','mean','stddev','median','iqr'])">
+		                <i class="icon-warning-sign out-of-date-warning" title="Values out of date, needs recompute"></i>
+		            </span>
+                </strong>
+                <table>
+                    <tr >
+                        <th>Min     </th>
+                        <td colspan="2" ng-if="hasNumeric('min')" ng-bind="numData(analysis.fullSampleAnalysis.numeric.min.value, false, false)" />
+                        <td colspan="2" ng-if="!hasNumeric('min')" >
+                            <span class="not-computed">Not computed</span>
+                        </td>
+                    </tr>
+                    <tr >
+                        <th>Max     </th>
+                        <td colspan="2" ng-if="hasNumeric('max')" ng-bind="numData(analysis.fullSampleAnalysis.numeric.max.value, false, false)" />
+                        <td colspan="2" ng-if="!hasNumeric('max')" >
+                            <span class="not-computed">Not computed</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Mean    </th>
+                        <td colspan="2" ng-if="hasNumeric('mean')" ng-bind="numData(analysis.fullSampleAnalysis.numeric.mean.value, false, false)" />
+                        <td colspan="2" ng-if="!hasNumeric('mean')" >
+                            <span class="not-computed">Not computed</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Median    </th>
+                        <td colspan="2" ng-if="hasNumeric('median')" ng-bind="numData(analysis.fullSampleAnalysis.numeric.median.value, false, false)" />
+                        <td colspan="2" ng-if="!hasNumeric('median')" >
+                            <span class="not-computed">Not computed</span>
+                        </td>
+                    </tr>
+                    <tr>
+	                    <th>StdDev  </th>
+                        <td colspan="2" ng-if="hasNumeric('stddev')" ng-bind="numData(analysis.fullSampleAnalysis.numeric.stddev.value, true, false)" />
+                        <td colspan="2" ng-if="!hasNumeric('stddev')" >
+                            <span class="not-computed">Not computed</span>
+                        </td>
+                    </tr>
+                    <tr ng-if="!isDate">
+                        <th>Mode    </th>
+                        <td colspan="2" ng-if="hasCategorical('mode')" ng-bind="analysis.fullSampleAnalysis.categorical.mode.value" />
+                        <td colspan="2" ng-if="!hasCategorical('mode')" >
+                            <span class="not-computed">Not computed</span>
+                        </td>
+                    </tr>
+                    <tr ng-if="isDate">
+                        <th>Mode    </th>
+                        <td colspan="2" ng-if="hasCategorical('mode')" ng-bind="(analysis.fullSampleAnalysis.categorical.mode.value | utcDate:'YYYY-MM-DD HH:mm:ss')" />
+                        <td colspan="2" ng-if="!hasCategorical('mode')" >
+                            <span class="not-computed">Not computed</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Distinct</th>
+                        <td colspan="2" ng-if="hasCategorical('countDistinct')" ng-bind="analysis.fullSampleAnalysis.categorical.countDistinct.value" />
+                        <td colspan="2" ng-if="!hasCategorical('countDistinct')" >
+                            <span class="not-computed">Not computed</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>IQR</th>
+                        <td colspan="2" ng-if="hasNumeric('iqr')" ng-bind="numData(analysis.fullSampleAnalysis.numeric.iqr.value, true, false)" />
+                        <td colspan="2" ng-if="!hasNumeric('iqr')" >
+                            <span class="not-computed">Not computed</span>
+                        </td>
+                    </tr>
+                    <tr ng-if="!isDate">
+                        <th>Sum</th>
+                        <td colspan="2" ng-if="hasNumeric('sum')" ng-bind="numData(analysis.fullSampleAnalysis.numeric.sum.value, true, false)" />
+                        <td colspan="2" ng-if="!hasNumeric('sum')" >
+                            <span class="not-computed">Not computed</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="span3 summary">
+                <strong>
+                    Top values
+		            <span class="pull-right" colspan="1" ng-if="categoricalsNeedRecompute(['top10WithCounts'])">
+		                <i class="icon-warning-sign out-of-date-warning" title="Values out of date, needs recompute"></i>
+		            </span>
+                </strong>
+                <table ng-if="hasCategorical('top10WithCounts')">
+                    <tr ng-repeat="point in getFullTop10WithCounts() | limitTo : 7">
+                        <th colspan="2" title="{{point.value}}" class="mx-textellipsis" ng-bind-html="point.value ? sanitize(point.value) : '<em>No value</em>'"></th>
+                        <td class="lining-nums secondary">{{point.count}}</td>
+                        <td class="lining-nums secondary">{{point.percent | number:1}} %</td>
+                    </tr>
+                </table>
+                <span class="center-children" ng-if="!hasCategorical('top10WithCounts')">
+                    <div style="text-align: center;">
+                        <div><span class="not-computed">Not computed</span></div>
+                        <div><a class="small-link-button" ng-click="uiState.configureFullSampleStatistics()">Click to configure <i class="icon-cog"></i></a></div>
+                    </div>
+                </span>
+            </div>
+    </div>
+    </div>

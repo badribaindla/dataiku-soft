@@ -1,0 +1,211 @@
+<div ng-show="apiErrorAlert.errorType" class="alert alert-error api-error-alert qa_generic_api-error">
+    <div ng-show="options.closable" class="actions pull-right"><a ng-click="reset()" style="text-decoration: none" class="qa_generic_api-reset-error"><i times-icon /></a></div>
+    <div ng-show="options.errorFoldable" class="actions pull-right">
+        <a ng-click="open = !open">
+            <i class="{{open ? 'icon-chevron-up' : 'icon-chevron-down'}}" />
+        </a>
+    </div>
+
+    <div class="api-error-alert__contents" ng-show="!open && apiErrorAlert.code">
+        <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;{{apiErrorAlert.title}}</h4>
+    </div>
+
+    <div class="api-error-alert__contents" ng-show="!open && !apiErrorAlert.code">
+        <h4>Error occurred</h4>
+    </div>
+
+    <div class="api-error-alert__contents" ng-show="open">
+        <div ng-show="apiErrorAlert.code">
+            <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;{{apiErrorAlert.title}}</h4>
+             <h5 class="api-error-alert__subtitle summary-of-error">
+                <span ng-show="apiErrorAlert.detailedMessageHTML" ng-bind-html="apiErrorAlert.detailedMessageHTML" />
+                <span ng-show="!apiErrorAlert.detailedMessageHTML">{{apiErrorAlert|detailedMessageOrMessage}}</span>
+            </h5>
+
+            <div style="display: flex; flex-direction: row; align-items: center">
+                <div class="noflex" style="flex-basis: 75%; padding-right: 25px">
+                    <div error-fixability error="apiErrorAlert" class="fixability" />
+                </div>
+                <div class="noflex" style="flex-basis: 25%;">
+                    <p style="font-weight: 500; text-align: center; margin: 0">
+                        <a target="_blank" rel="noopener noreferrer" href="{{$root.versionDocRoot}}troubleshooting/errors/{{apiErrorAlert.code}}.html">
+                            More information on this error in {{$root.wl.productShortName || 'DSS'}} documentation
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <p style="margin-bottom: 0"><span class="tech-details">Additional technical details: 
+                <span ng-show="apiErrorAlert.httpCode > 0">HTTP code: {{apiErrorAlert.httpCode}},</span>
+                <span>Code: {{apiErrorAlert.code}}, </span>
+                <span>type: {{apiErrorAlert.errorType}}</span>
+            </p>
+        </div>
+
+        <div ng-show="apiErrorAlert.httpCode == 502 && !apiErrorAlert.code">
+            <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Could not connect to {{$root.wl.productShortName || 'DSS'}} server</h4>
+            <h5>Please ask your administrator to check if the {{$root.wl.productShortName || 'DSS'}} server backend is running.</h5>
+            <p class="api-error-alert__description">{{apiErrorAlert|detailedMessageOrMessage}}<br />
+            <span class="tech-details">HTTP code: {{apiErrorAlert.httpCode}}, type: {{apiErrorAlert.errorType}}</span></p>
+        </div>
+
+        <ng-switch on="apiErrorAlert.errorType" ng-hide="apiErrorAlert.code || apiErrorAlert.httpCode == 502">
+            <div ng-switch-when="XHRNetworkError">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Network error</h4>
+                <h5 class="api-error-alert__subtitle">
+                    An attempt to communicate with {{$root.wl.productShortName || 'DSS'}} failed. Please check your network connectivity.
+                </h5>
+                <p>{{apiErrorAlert|detailedMessageOrMessage}}</p>
+            </div>
+            <div ng-switch-when="HTTPError413">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Request too large</h4>
+                <h5 class="api-error-alert__subtitle">
+                    The network request was rejected because it was too large. This is probably caused by a proxy between your browser and {{$root.wl.productShortName || 'DSS'}} that rejects too large uploads. Please contact your network administrator.
+                </h5>
+                <span class="tech-details">HTTP code: {{apiErrorAlert.httpCode}} - Response body: {{apiErrorAlert|detailedMessageOrMessage}}</span>
+            </div>
+            
+            <div ng-switch-when="com.dataiku.dip.exceptions.DSSIllegalArgumentException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;An internal error occurred</h4>
+                <h5 ng-if="$root.appConfig.admin">
+                    Please report this issue to {{$root.wl.productLongName}} Support
+                </h5>
+                <h5 ng-if="!$root.appConfig.admin">
+                    Please ask your {{$root.wl.productShortName}} administrator to report this issue to {{$root.wl.productLongName}} Support
+                </h5>
+                <p style="margin-bottom: 0">Technical details follow:</p>
+                <ul style="margin-bottom: 0">
+                    <li>{{apiErrorAlert|detailedMessageOrMessage}}</li>
+                    <li>HTTP code: {{apiErrorAlert.httpCode}}, type: {{apiErrorAlert.errorType}}</li>
+                </ul>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.exceptions.DSSInternalErrorException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;An internal error occurred</h4>
+                <h5 ng-if="$root.appConfig.admin">
+                    Please report this issue to {{$root.wl.productLongName}} Support
+                </h5>
+                <h5 ng-if="!$root.appConfig.admin">
+                    Please ask your {{$root.wl.productShortName}} administrator to report this issue to {{$root.wl.productLongName}} Support
+                </h5>
+                <p style="margin-bottom: 0">Technical details follow:</p>
+                <ul style="margin-bottom: 0">
+                    <li>{{apiErrorAlert|detailedMessageOrMessage}}</li>
+                    <li>HTTP code: {{apiErrorAlert.httpCode}}, type: {{apiErrorAlert.errorType}}</li>
+                </ul>
+            </div>
+
+            <div ng-switch-when="java.lang.IllegalArgumentException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Invalid argument</h4>
+                <h5 class="api-error-alert__subtitle">An invalid argument has been encountered : {{apiErrorAlert|detailedMessageOrMessage}}</h5>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.exceptions.UnauthorizedException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Not authorized</h4>
+                <h5 class="api-error-alert__subtitle">{{apiErrorAlert|detailedMessageOrMessage}}</h5>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.exceptions.DataStoreIOException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />{{apiErrorAlert.message}}</h4>
+                <h5 class="api-error-alert__subtitle">{{apiErrorAlert.detailedMessage}}</h5>
+                <span class="tech-details">HTTP code: {{apiErrorAlert.httpCode}}, type: {{apiErrorAlert.errorType}}</span></p>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.exceptions.IllegalConfigurationException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Configuration issue<h4>
+                <h5 class="api-error-alert__subtitle">{{apiErrorAlert.detailedMessage}}</h5>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.server.services.licensing.LicenseEnforcementService$LicenseLimitException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Limit reached !</h4>
+                <h5 class="api-error-alert__subtitle">{{apiErrorAlert|detailedMessageOrMessage}}</h5>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.server.services.licensing.LicenseEnforcementService$LicenseFeatureException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Unavailable feature</h4>
+                <h5 class="api-error-alert__subtitle">{{apiErrorAlert|detailedMessageOrMessage}}</h5>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.pivot.UnsupportedOperation">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Unsupported operation</h4>
+                <h5 class="api-error-alert__subtitle">{{apiErrorAlert|detailedMessageOrMessage}}</h5>
+            </div>
+             <div ng-switch-when="ApplicativeException">
+                <h4 ng-if="apiErrorAlert.title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;{{apiErrorAlert.title}}</h4>
+                <h5 ng-if="apiErrorAlert|detailedMessageOrMessage" style="margin-bottom: 0; word-break: break-word;">{{apiErrorAlert|detailedMessageOrMessage}}</h5>
+            </div>
+            <div ng-switch-when="ExpectedException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;An error occurred</h4>
+                <h5 class="api-error-alert__subtitle">{{apiErrorAlert|detailedMessageOrMessage}}</h5>
+            </div>
+            <div ng-switch-when="java.lang.SecurityException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Access denied</h4>
+                <h5 class="api-error-alert__subtitle">{{apiErrorAlert|detailedMessageOrMessage}}</h5>
+            </div>
+            <div ng-switch-when="SecurityException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Access denied</h4>
+                <h5 class="api-error-alert__subtitle">{{apiErrorAlert|detailedMessageOrMessage}}</h5>
+            </div>
+            <div ng-switch-when="java.util.zip.ZipException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Zip error</h4>
+                <h5 class="api-error-alert__subtitle">There is a problem with the zip file : {{apiErrorAlert|detailedMessageOrMessage}}</h5>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.shaker.SampleBuilder$SampleBuildException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Could not build data sample</h4>
+                <p class="api-error-alert__description">{{apiErrorAlert|detailedMessageOrMessage}}<br />
+                <span class="tech-details">Type: {{apiErrorAlert.errorType}}</span></p>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.io.CustomPythonKernelException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Python plugin code failed</h4>
+                <p class="api-error-alert__description">{{apiErrorAlert.message}}<br />
+                <pre smart-log-tail="apiErrorAlert.logTail" style="max-height: 100px;"/>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.exceptions.ExternalProcessFailedException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;External process failed</h4>
+                <p class="api-error-alert__description">{{apiErrorAlert.message}}<br />
+                <pre smart-log-tail="apiErrorAlert.logTail" style="max-height: 100px;"/>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.io.SocketBlockLinkIOException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Communication to external code failed</h4>
+                <p class="api-error-alert__description">{{apiErrorAlert.message}}<br />
+                <pre smart-log-tail="apiErrorAlert.logTail" style="max-height: 100px;"/>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.io.SocketBlockLinkKernelException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;External code failed</h4>
+                <p class="api-error-alert__description">{{apiErrorAlert.message}}<br />
+                <pre smart-log-tail="apiErrorAlert.logTail" style="max-height: 100px;"/>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.server.controllers.NotFoundException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Not found</h4>
+                <p class="api-error-alert__description">{{apiErrorAlert.message}}<br />
+            </div>
+            <div ng-switch-when="com.dataiku.dip.scheduler.runnables.DSSRunnableKernelException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Macro code failed</h4>
+                <p class="api-error-alert__description">{{apiErrorAlert.message}}<br />
+            </div>
+            <div ng-switch-when="com.dataiku.dip.exceptions.SourceDatasetNotReadyException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;{{apiErrorAlert|detailedMessageOrMessage}}</h4>
+            </div>
+            <div ng-switch-when="com.dataiku.dip.datasets.fs.HTTPSourceException">
+                <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Source responded with HTTP error</h4>
+                <p class="api-error-alert__description">{{apiErrorAlert.message}}<br />
+            </div>
+
+            <div ng-switch-default>
+                <div ng-if="options.canBeUnexpected">
+                    <h4 class="api-error-alert__title"><i class="icon-dku-error api-error-alert__icon" />&nbsp;Oops: an unexpected error occurred</h4>
+                    <h5 class="api-error-alert__subtitle">
+                        <span ng-show="apiErrorAlert.detailedMessageHTML" ng-bind-html="apiErrorAlert.detailedMessageHTML" />
+                        <span ng-show="!apiErrorAlert.detailedMessageHTML">{{apiErrorAlert|detailedMessageOrMessage}}</span>
+                    </h5>
+
+                    <p class="api-error-alert__description">
+                        Please see our <a ng-click="$root.showHelpModal();">options for getting help</a>
+                    </p>
+                    <span class="tech-details">HTTP code: {{apiErrorAlert.httpCode}}, type: {{apiErrorAlert.errorType}}</span>
+                </div>
+
+                <!-- Default formatting -->
+                <div ng-if="!options.canBeUnexpected">
+                    <h4>{{apiErrorAlert|detailedMessageOrMessage}}</h4>
+                    <span class="tech-details">
+                        <span ng-show="apiErrorAlert.httpCode > 0">HTTP code: {{apiErrorAlert.httpCode}},</span>
+                        Type: {{apiErrorAlert.errorType}}</span>
+                </div>
+            </div>
+        </ng-switch>
+    </div>
+</div>

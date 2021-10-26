@@ -1,0 +1,123 @@
+<div class="design-tab-title">Metric</div>
+<div class="doctor-settings-page">
+    <div ng-if="isSampleWeightEnabled() && mlTaskDesign.weight.sampleWeightVariable">
+        <h2 class="settings-section-title mtop0">Sample weights</h2>
+        <div class="alert alert-warning">
+            All metrics will be weighted by the variable <strong>{{mlTaskDesign.weight.sampleWeightVariable}}</strong>, both for hyperparameters optimization and final evaluation of the model. </p>
+            You can revert to using unweighted metrics by disabling the <a ng-click="uiState.settingsPane='sample-weights'"> sample weights </a> option.
+        </div>
+    </div>
+    <form class="dkuform-horizontal dkuform-horizontal-wider">
+        <h2 class="settings-section-title mtop0">
+            Optimization and evaluation
+        </h2>
+        <div class="control-group" ng-if="isBinaryClassification()">
+            <label for="" class="control-label" toggle="tooltip-bottom" title="Metric used to find the best model during hyperparameter optimization & KFold cross-test">Optimize model hyperparameters for</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.metrics.evaluationMetric" ng-options="metric[0] as metric[1] for metric in bcEvaluationMetrics | filter: isValidMetric" />
+                <span class="help-inline">See <doclink page="/machine-learning/supervised/settings#model-optimization" title="the documentation" /></span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="isMulticlass()">
+            <label for="" class="control-label" toggle="tooltip-bottom" title="Metric used to find the best model during hyperparameter optimization & KFold cross-test">Optimize model hyperparameters for</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.metrics.evaluationMetric" ng-options="metric[0] as metric[1] for metric in mcEvaluationMetrics | filter: isValidMetric" />
+                <span class="help-inline">See <doclink page="/machine-learning/supervised/settings#model-optimization" title="the documentation" /></span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="isRegression()">
+            <label for="" class="control-label" toggle="tooltip-bottom" title="Metric used to find the best model during hyperparameter optimization & KFold cross-test">Optimize model hyperparameters for</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.metrics.evaluationMetric" ng-options="metric[0] as metric[1] for metric in regressionEvaluationMetrics | filter: isValidMetric" />
+                <span class="help-inline">See <doclink page="/machine-learning/supervised/settings#model-optimization" title="the documentation" /></span>
+            </div>
+        </div>
+        <div ng-if="mlTaskDesign.modeling.metrics.evaluationMetric == 'CUSTOM'">
+            <div class="control-group">
+                <label for="" class="control-label">Evaluator Python code</label>
+                <div class="controls code-snippet-editor-parent">
+                    <div code-snippet-editor code="mlTaskDesign.modeling.metrics.customEvaluationMetricCode" sample-type="'python'" categories="['py-scoringfunc']" save-category="'py-scoringfunc'" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Greater is better</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="mlTaskDesign.modeling.metrics.customEvaluationMetricGIB" />
+                </div>
+            </div>
+            <div class="control-group" ng-if="isClassification()">
+                <label for="" class="control-label">Needs probabilities</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="mlTaskDesign.modeling.metrics.customEvaluationMetricNeedsProba" />
+                </div>
+            </div>
+        </div>
+        <div class="control-group" ng-if="isBinaryClassification()">
+            <label for="" class="control-label" toggle="tooltip-bottom" title="Metric used to find the best threshold after building model">Optimize threshold for</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.metrics.thresholdOptimizationMetric" ng-options="metric[0] as metric[1] for metric in thresholdOptimizationMetrics" />
+                <span class="help-inline">See <doclink page="/machine-learning/supervised/settings#threshold-optimization" title="the documentation" /></span>
+            </div>
+        </div>
+    </form>
+    <div ng-if="isBinaryClassification()">
+        <h2 class="settings-section-title mtop0">Lift</h2>
+        <div class="span6 offset0">
+            <div class="doctor-explanation">
+                The cumulative lift of a model is the additional proportion of positive records found by a model on a given proportion of the test set, compared to a random model.
+                <br />
+                {{wl.productShortName}} computes the cumulative lift for a given proportion that you need to specify.
+            </div>
+            <form class="dkuform-horizontal" style="margin-top: 30px">
+                <div class="control-group">
+                    <label for="" class="control-label">
+                        Compute lift at
+                    </label>
+                    <div class="controls">
+                        <input type="number" ng-model="mlTaskDesign.modeling.metrics.liftPoint" style="width: 60px" convert-percentage /> %
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="span6 offset0">
+            <img src="/static/dataiku/images/lift.png" style="margin: 0 auto; display: block" />
+        </div>
+    </div>
+
+    <div ng-if="isBinaryClassification()">
+        <!-- class="alert alert-info">-->
+        <h2 class="settings-section-title">
+            Cost matrix
+        </h2> The cost matrix evaluates a "gain" brought by this model based on the following hypothesis
+        <form class="cost-matrix-form">
+            <ul>
+                <li>
+                    If the model predicts that <b>{{mlTaskDesign.targetVariable}}</b> is true
+                    <ul>
+                        <li>
+                            <span class="explain">and it is indeed true, the gain is</span>
+                            <input type="number" style="width:60px;" size="5" ng-model="mlTaskDesign.modeling.metrics.costMatrixWeights.tpGain" />
+                        </li>
+                        <li>
+                            <span class="explain">but it is not true, the gain is</span>
+                            <input style="width:60px;" type="number" size="5" ng-model="mlTaskDesign.modeling.metrics.costMatrixWeights.fpGain" />
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    If the model predicts that <b>{{mlTaskDesign.targetVariable}}</b> is false
+                    <ul>
+                        <li>
+                            <span class="explain">and it is indeed false the gain is</span>
+                            <input style="width:60px;" type="number" size="5" ng-model="mlTaskDesign.modeling.metrics.costMatrixWeights.tnGain" />
+                        </li>
+                        <li>
+                            <span class="explain">but it is actually true, the gain is</span>
+                            <input style="width:60px;" type="number" size="5" ng-model="mlTaskDesign.modeling.metrics.costMatrixWeights.fnGain" />
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </form>
+    </div>
+</div>

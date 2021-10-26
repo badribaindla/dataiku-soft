@@ -1,0 +1,247 @@
+<div ng-controller="EvaluationRecipeEditor">
+    <div class="top-level-tabs objecttype-recipe">
+        <div class="horizontal-flex row-fluid object-nav">
+            <div class="flex oh" std-object-breadcrumb />
+            <div class="noflex">
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab == 'summary'}" ng-click="topNav.tab='summary'">
+                    Summary
+                </a>
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab == 'settings'}" ng-click="topNav.tab='settings'">
+                    Settings
+                </a>
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab == 'io'}" ng-click="topNav.tab='io'">
+                    Input / Output
+                </a>
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab  == 'advanced'}" ng-click="topNav.tab ='advanced'">
+                    Advanced
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'gitlog'}" ng-click="topNav.tab='gitlog'">
+                    History
+                </a>
+                <div class="otherLinks">
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-save-button.html" />
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-tabs-other-links.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-io-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+    <div class="summary-tab dss-page" ng-if="topNav.tab == 'settings' && computablesMap">
+        <div ng-if="isMLBackendType('VERTICA')" class="noflex alert alert-warning">
+            <strong>Vertica ML backend is no longer supported:</strong>
+            <br />
+            Cannot run recipe.
+        </div>
+        <div block-api-error></div>
+
+        <div class="h100 vertical-flex">
+            <div class="flex">
+                <div class="fh">
+                    <div class="h100 oa">
+                        <div class="horizontal-centerer">
+                            <div style="background-color: #ffffff">
+                                <div ng-show="recipeStatus.allMessagesForFrontend.anyMessage" style="padding: 10px">
+                                    <div info-messages-raw-list-with-alert="recipeStatus.allMessagesForFrontend" />
+                                </div>
+                            </div>
+
+                            <div class="recipe-settings-section1 w800" ng-if="desc.backendType != 'VERTICA'">
+                               <h1 class="recipe-settings-section1-title">
+                                   Sampling
+                               </h1>
+                               <div class="recipe-settings-section2">
+                                   <form class="dkuform-horizontal">
+                                       <div sampling-form-without-partitions selection="desc.selection" />
+                                   </form>
+                               </div>
+                            </div>
+
+                            <div class="recipe-settings-section1 w800" ng-if="!isPartitionedModel()">
+                                <h1 class="recipe-settings-section1-title">Model</h1>
+                                <form class="dkuform-horizontal recipe-settings-section2">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Version</label>
+                                        <div class="controls">
+                                            <ng2-typeahead [(value)]="desc.modelVersionId" [suggestions]="modelVersions"
+                                                [display-fn]="versionDisplayFn" [value-fn]="versionValueFn"
+                                                no-match-tooltip="No model version matches current input"
+                                                autocomplete-panel-width="600" placeholder="Leave empty to select active version"></ng2-typeahead>
+                                        </div>
+                                    </div>
+                                </form>
+                             </div>
+
+                            <div class="recipe-settings-section1 w800" ng-if="isBinaryClassification() && isProbaAware() && model.miniTask.backendType != 'VERTICA'">
+                                <h1 class="recipe-settings-section1-title">Threshold</h1>
+                                <div class="recipe-settings-section2" ng-if="isPartitionedModel()">
+                                    Partitioned model: using optimal threshold from each partition
+                                </div>
+                                <form class="dkuform-horizontal recipe-settings-section2" ng-if="!isPartitionedModel()">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Threshold</label>
+                                        <div class="controls">
+                                            <label>
+                                                <input type="radio" ng-value="zeFalse" ng-model="desc.overrideModelSpecifiedThreshold">
+                                                Use threshold from the current version of the model ({{modelDetails.userMeta.activeClassifierThreshold | number: 3}})
+                                            </label>
+                                            <label>
+                                                <input type="radio" ng-value="zeTrue" ng-model="desc.overrideModelSpecifiedThreshold">
+                                                Override the threshold from the model
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" ng-show="desc.overrideModelSpecifiedThreshold">
+                                        <label for="" class="control-label">Override with</label>
+                                        <div class="controls">
+                                            <input type="number" ng-model="desc.forcedClassifierThreshold" />
+                                        </div>
+                                    </div>
+                                </form>
+                             </div>
+
+                             <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Output</h1>
+                                <div class="recipe-settings-section2">
+                                    <form class="dkuform-horizontal">
+                                        <div ng-if="recipe.outputs.evaluationStore.items.length > 0">
+                                            <div class="control-group">
+                                                <label for="" class="control-label">Evaluation id</label>
+                                                <div class="controls">
+                                                    <input type="text" ng-model="desc.runId"/>
+                                                    <span class="help-inline">If empty, defaults to "run_yyyy_mm_dd_hh_mi_ss". Limited to a-z, 0-9 and _</span>
+                                                </div>
+                                            </div>
+                                            <div class="control-group">
+                                                <label class="control-label">Evaluation labels</label>
+                                                <div class="controls">
+                                                    <ng2-key-values-list 
+                                                                        [(items)]="desc.labels" 
+                                                                        [icon-fn]="setIcon"
+                                                                        add-label="Add label" 
+                                                                        key-placeholder="Label key" 
+                                                                        value-placeholder="Label value">
+                                                                    </ng2-key-values-list>
+                                                    <span class="help-inline">Can contain variables in ${} notation, which are expanded when the recipe is run</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="control-group" ng-if="recipe.outputs.evaluationStore.items.length > 0 && (recipe.outputs.metrics || {items:[]}).items.length == 0">
+                                            <label class="control-label">
+                                                Don't compute perf
+                                            </label>
+                                            <div class="controls">
+                                                <label>
+                                                <input type="checkbox" ng-model="desc.dontComputePerformance" />
+                                                <div class="help-inline">
+                                                    If the ground truth is not available, it's still possible to build the model evaluation with only data statistics.
+                                                </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div ng-if="isProbaAware()">
+                                            <div class="control-group">
+                                                <label class="control-label">
+                                                    Output probabilities
+                                                </label>
+                                                <div class="controls">
+                                                    <label>
+                                                    <input type="checkbox" ng-model="desc.outputProbabilities" ng-disabled="desc.outputProbaPercentiles"/>
+                                                    <div class="help-inline">
+                                                        output probabilities for each class in addition to the prediction
+                                                    </div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="control-group" ng-if="model.miniTask.backendType != 'VERTICA' && selectedEngine() != 'SQL' && isBinaryClassification()">
+                                                <label class="control-label">
+                                                    Output percentile
+                                                </label>
+                                                <div class="controls">
+                                                    <label>
+                                                    <input type="checkbox" ng-model="desc.outputProbaPercentiles" ng-change="desc.outputProbabilities = true"/>
+                                                    <div class="help-inline">
+                                                        percentile, among test set, of the proba of class 1
+                                                    </div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div ng-if="computablesMap">
+                                            <div scoring-columns-filter ng-if="preparedInputSchema"/>
+                                        </div>
+                                        <div ng-if="modelDetails">
+                                            <div outputs-filter/>
+                                            <div metrics-filter/>
+                                        </div>
+                                        <div class="doctor-explanation" ng-if="modelDetails.coreParams.weight.weightMethod==='SAMPLE_WEIGHT'">
+                                            Note: metrics are computed with the variable <strong>{{modelDetails.coreParams.weight.sampleWeightVariable}}</strong> as sample weight.
+                                        </div>
+                                    </form>
+                                </div>
+                             </div>
+
+                            <div class="recipe-settings-section1 w800" ng-if="isBinaryClassification() === false && isProbaAware() === false">
+                                <p class="recipe-settings-section2">No settings are available for regression scoring</p>
+                            </div>
+
+                            <div class="recipe-settings-section1 w800" ng-if="willUseSpark()">
+                                <h1 class="recipe-settings-section1-title">Spark</h1>
+                                <div class="recipe-settings-section2">
+                                    <div spark-override-config config="desc.sparkParams.sparkConf" task="desc" task-type="MLLib" />
+                                    <form class="dkuform-horizontal">
+	                                    <div class="control-group">
+	                                        <label class="control-label">Spark engine</label>
+	                                        <div class="controls" >
+	                                            <select dku-bs-select ng-model="desc.sparkParams.sparkExecutionEngine" >
+	                                                <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+	                                                <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+	                                                <option value="DATABRICKS">Databricks</option>
+	                                            </select>
+	                                        </div>
+	                                    </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="recipe-settings-section1 w800" ng-if="mayUseContainer()">
+                                <h1 class="recipe-settings-section1-title">Container configuration</h1>
+                                <div class="recipe-settings-section2"
+                                     container-selection-form="recipe.params.containerSelection"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="noflex job-result-pane" ng-if="valCtx.preRunValidationError || startedJob.jobId">
+                <div class="recipe-settings-floating-result">
+                    <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recipe-settings-floating-run">
+            <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-partitions.html"></div>
+            <div include-no-scope="/templates/recipes/fragments/run-job-buttons.html"></div>
+            <div class="engine-selection-widget"
+                ng-class="{
+                    'text-success': recipeStatus.selectedEngine.statusWarnLevel == 'OK',
+                    'text-error': recipeStatus.selectedEngine.statusWarnLevel == 'ERROR',
+                    'text-warning': recipeStatus.selectedEngine.statusWarnLevel == 'WARN'
+                }"
+                visible-if="recipeStatus">
+                <div ng-show="recipeStatus.selectedEngine.statusMessage">
+                    {{recipeStatus.selectedEngine.statusMessage}}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div ng-if="model.miniTask.backendType !== 'KERAS'" include-no-scope="/templates/recipes/fragments/limits-advanced-tab.html" />
+    <div ng-if="model.miniTask.backendType === 'KERAS'" include-no-scope="/templates/recipes/fragments/keras-scoring-evaluation-prediction-advanced-tab.html" />
+</div>

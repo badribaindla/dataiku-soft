@@ -1,0 +1,53 @@
+<div class="app-tiles__wrapper" ng-controller="AppTilesController">
+    <div block-api-error />
+    <div class="app-tiles__section" ng-repeat="section in projectSummary.appManifest.homepageSections">
+        <div class="app-tiles__section-header" ng-if="section.sectionTitle || section.sectionText">
+           <h4 class="app-tiles__section-title">{{section.sectionTitle}}</h4>
+           <div class="app-tiles__section-text" ng-if="section.sectionText">
+               <span from-markdown="section.sectionText"/>
+           </div>
+        </div>
+        
+        <div ng-repeat="tile in section.tiles">
+            <div class="app-tiles__tile-separator" ng-if="$index > 0"></div>
+            <div class="app-tiles__tile horizontal-flex">
+                <div class="app-tiles__tile-prompt noflex" ng-if="!overtakePromptMargin(tile)">{{tile.prompt || (tile.type | niceTileType)}}</div>
+                
+                <div class="app-tiles__tile-body flex" ng-if="!overtakePromptMargin(tile)" ng-switch="tile.type">
+                    <div ng-switch-when="UPLOAD_DATASET_SET_FILE" upload-dataset-set-file-app-tile-view tile="tile" />
+                    <div ng-switch-when="MANAGED_FOLDER_ADD_FILE" folder-set-file-app-tile-view tile="tile" />
+                    <div ng-switch-when="INLINE_DATASET_EDIT" edit-inline-dataset-app-tile-view tile="tile" />
+                    <div ng-switch-when="DATASET_EDIT_SETTINGS" edit-any-dataset-app-tile-view tile="tile" />
+                    <div ng-switch-when="STREAMING_ENDPOINT_EDIT_SETTINGS" edit-any-streaming-endpoint-app-tile-view tile="tile" ng-if="appConfig.streamingEnabled" />
+                    <div ng-switch-when="FILES_BASED_DATASET_BROWSE_AND_PREVIEW" edit-fs-dataset-app-tile-view tile="tile" />
+                    <div ng-switch-when="CONNECTION_EXPLORER_TO_REPLACE_THE_SETTINGS_OF_A_DATASET_WITH_A_NEW_TABLE_REFERENCE" edit-sql-dataset-app-tile-view tile="tile" />
+                    <div ng-switch-when="DASHBOARD_LINK" dashboard-link-app-tile-view tile="tile" />
+                    <div ng-switch-when="MANAGED_FOLDER_LINK" folder-link-app-tile-view tile="tile" />
+                    <div ng-switch-when="SCENARIO_RUN" run-scenario-app-tile-view tile="tile" />
+                    <div ng-switch-when="PROJECT_VARIABLES_EDIT" edit-project-variables-app-tile-view tile="tile" shared-config="projectLocalVariables"/>
+                    <div ng-switch-when="PERFORM_SCHEMA_PROPAGATION" propagate-schema-app-tile-view tile="tile" />
+                    <div ng-switch-when="DOWNLOAD_DATASET" download-dataset-app-tile-view tile="tile" />
+                    <div ng-switch-when="DOWNLOAD_DASHBOARD_EXPORT" download-dashboard-app-tile-view tile="tile" />
+                    <div ng-switch-when="DOWNLOAD_MANAGED_FOLDER_FILE" download-folder-app-tile-view tile="tile" />
+                    <div ng-switch-when="DOWNLOAD_RMARKDOWN" download-report-app-tile-view tile="tile" />
+                    <div ng-switch-when="VARIABLE_DISPLAY" variable-display-app-tile-view tile="tile" />
+                    <div ng-switch-when="GUESS_TRAIN_DEPLOY" guess-train-deploy-app-tile-view tile="tile" />
+                    <div ng-switch-when="MANAGED_FOLDER_BROWSE" edit-folder-app-tile-view tile="tile" />
+    
+                    <div ng-switch-default>
+                        <pre class="debug">{{ tile | json }}</pre>
+                    </div>
+                </div>
+                
+                <div class="app-tiles__tile-body--no-prompt flex" ng-if="overtakePromptMargin(tile)" ng-switch="tile.type">
+                    <div ng-switch-when="PROJECT_VARIABLES_EDIT" edit-project-variables-app-tile-view tile="tile" shared-config="projectLocalVariables"/>
+    
+                    <div ng-switch-default>
+                        <pre class="debug">{{ tile | json }}</pre>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>

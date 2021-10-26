@@ -1,0 +1,129 @@
+<div class="flex" ng-if="editOutputs === undefined || editOutputs.length == 0" style="flex-grow: 0;" ng-class="{'oa' : !longRoleList}">
+	<legend class="settings-section-title" ng-if="role.label">
+       {{role.header || role.label}}
+        <span ng-if="role.description" dku-md-popover="{{role.description}}" dku-md-title="{{role.label || role.name}}" popover-clazz="processor-help-popover" >
+            <sup style="font-size: 12px;"><i class="icon-question-sign" /></sup>
+        </span>
+    </legend>
+
+	<div ng-class="{'bounded-list' : longRoleList}" ng-if="computablesMap">
+	    <ul class="chosen" add-remove ng-model="recipe.outputs[role.name].items" ng-if="recipe.outputs[role.name].items.length > 0" >
+		    <li ng-repeat="output in recipe.outputs[role.name].items" ng-init="computable = computablesMap[output.ref]">
+                <div ng-if="computable.type == 'MISSING'" class="clickable-row">
+                    <div class="horizontal-flex" >
+                        <div class="illustration noflex">
+                            <i class="icon-warning-sign text-warning" />
+                        </div>
+                        <div class="flex oxh output-name">
+                            <a >(missing) {{computable.name}}</a>
+                        </div>
+                        <a href="" class="action noflex" ng-click="remove($index)">
+                            <i class="icon-trash btn-close" />
+                        </a>
+                    </div>
+                </div>
+                <div ng-if="computable.type == 'SAVED_MODEL'" class="clickable-row">
+                    <div class="horizontal-flex" >
+                        <div class="illustration noflex">
+                            <i class="icon-machine_learning_regression" />
+                        </div>
+                        <div class="flex oxh output-name">
+                            <a ui-sref="projects.project.savedmodels.savedmodel.versions({projectKey: computable.projectKey, smId: computable.model.id})">
+                                {{computable.model.name}}{{computable.localProject ? '' : (' (from project ' + computable.projectKey + ')')}}
+                            </a>
+                            <div partitioned-by-info ref="output.ref" />
+                        </div>
+                        <a href="" class="action noflex" ng-click="remove($index)" ng-show="role.editableInEditor && (role.arity != 'UNARY' || role.required == false)">
+                            <i class="icon-trash btn-close" />
+                        </a>
+                    </div>
+                </div>
+                <div ng-if="computable.type == 'MANAGED_FOLDER'" >
+                    <div class="horizontal-flex" >
+                        <div class="illustration noflex">
+                            <i class="icon-box" />
+                        </div>
+                        <div class="flex oxh output-name">
+                            <a href="{{$state.href('projects.project.managedfolders.managedfolder.view', {projectKey: $stateParams.projectKey, odbId: computable.box.id})}}">
+                                {{computable.box.name}}{{computable.localProject ? '' : (' (from project ' + computable.projectKey + ')')}}
+                            </a>
+                            <div partitioned-by-info ref="output.ref" />
+                        </div>
+                        <a href="" class="action noflex" ng-click="remove($index)" ng-show="role.editableInEditor && (role.arity != 'UNARY' || role.required == false)">
+                            <i class="icon-trash btn-close" />
+                        </a>
+                    </div>
+                </div>
+                 <div ng-if="computable.type == 'MODEL_EVALUATION_STORE'" >
+                    <div class="horizontal-flex" >
+                        <div class="illustration noflex">
+                            <i class="icon-model-evaluation-store" />
+                        </div>
+                        <div class="flex oxh output-name">
+                            <a href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.evaluations', {projectKey: $stateParams.projectKey, mesId: computable.mes.id})}}">
+                                {{computable.mes.name}}{{computable.localProject ? '' : (' (from project ' + computable.projectKey + ')')}}
+                            </a>
+                            <div partitioned-by-info ref="output.ref" />
+                        </div>
+                        <a href="" class="action noflex" ng-click="remove($index)" ng-show="role.editableInEditor && (role.arity != 'UNARY' || role.required == false)">
+                            <i class="icon-trash btn-close" />
+                        </a>
+                    </div>
+                </div>
+                <div ng-if="computable.type == 'DATASET'" class="clickable-row">
+			    	<div class="horizontal-flex">
+						<div class="illustration noflex">
+							<i class="{{computablesMap[output.ref].dataset.type | datasetTypeToIcon}}" />
+						</div>
+						<div class="flex oxh output-name">
+			            	<div>
+				           		<a href="{{$state.href('projects.project.datasets.dataset.explore', {projectKey: $stateParams.projectKey, datasetName: output.ref}) }}"
+                        	       title="{{ output.ref }}"
+                                   ng-if="computable.localProject">
+				   	            	{{computable.dataset.name}}
+			   			        </a>
+				           		<a href="{{$state.href('projects.project.foreigndatasets.dataset.explore', {projectKey: $stateParams.projectKey, datasetFullName: output.ref})}}"
+                        	       title="{{ output.ref }}"
+                                   ng-if="!computable.localProject">
+				   	            	{{computable.dataset.name + ' (from project ' + computable.projectKey + ')'}}
+			   			        </a>
+							</div>
+							<div partitioned-by-info ref="output.ref" />
+							<div ng-show="canAppend(computablesMap[output.ref])">
+								<label>
+			   		    	    	<input style="margin: 0" type="checkbox" ng-model="output.appendMode" /> Append instead of overwrite
+			   		    	    </label>
+			   		    	 </div>
+				        </div>
+			   		    <a href="" class="action noflex" ng-click="remove($index)" ng-show="role.editableInEditor && (role.arity != 'UNARY' || role.required == false)">
+			   		    	<i class="icon-trash btn-close" />
+			   		    </a>
+			    	</div>
+                </div>
+                <div ng-if="computable.type == 'STREAMING_ENDPOINT'" class="clickable-row">
+                    <div class="horizontal-flex">
+                        <div class="illustration noflex">
+                            <i class="{{computablesMap[output.ref].streamingEndpoint.type | datasetTypeToIcon}}" />
+                        </div>
+                        <div class="flex oxh output-name">
+                            <div>
+                                <a href="{{$state.href('projects.project.streaming-endpoints.streaming-endpoint.explore', {projectKey: $stateParams.projectKey, streamingEndpointId: output.ref}) }}"
+                                   title="{{ output.ref }}"
+                                   ng-if="computable.localProject">
+                                    {{computable.streamingEndpoint.id}}
+                                </a>
+                            </div>
+                        </div>
+                        <a href="" class="action noflex" ng-click="remove($index)" ng-show="role.editableInEditor && (role.arity != 'UNARY' || role.required == false)">
+                            <i class="icon-trash btn-close" />
+                        </a>
+                    </div>
+                </div>
+		   	</li>
+		</ul>
+	</div>
+
+    <div ng-if="!role.label && role.description" class="role-description" style="margin: 0 15px;">
+       {{role.description}}
+    </div>
+</div>

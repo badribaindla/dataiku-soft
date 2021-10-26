@@ -1,0 +1,61 @@
+<div ng-controller="SetUpClusterStepController">
+	<div ng-include ="'/templates/scenarios/fragments/step-header.html'" style="display: inline-block;"></div>
+	<div class="alert alert-info">
+        <p>This step creates and starts a managed DSS cluster and makes it the active cluster for the duration of the scenario.</p>
+    
+        <p>The newly created cluster id is stored as a variable. When using this step, you generally need to have '${theVariable}' as the project cluster. Please see documentation for more information</p>
+
+        <p style="margin-bottom:0">If the variable already contains a cluster that was started by the scenario, the previous cluster will be stopped</p>
+    </div>
+
+	<form name="setupForm" class="dkuform-horizontal" >
+        <div class="control-group">
+            <label class="control-label">Target variable</label>
+            <div class="controls">
+                <input type="text" ng-model="step.params.variableName" />
+                <span class="help-inline">Name of a scenario-scope variable that will receive the identifier of the newly-setup cluster. If empty, __current_cluster__ will be used</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="survivesCheckbox" class="control-label">Survives scenario run</label>
+            <div class="controls">
+                <label>
+                    <input id="survivesCheckbox" type="checkbox" ng-model="step.params.surviveScenarioRun" />
+                    <span class="help-inline">
+                        Do not automatically shut down the cluster when the scenario ends
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-if="step.params.surviveScenarioRun">
+            <label for="projectLevelVariablesCheckbox" class="control-label">Store into project variables</label>
+            <div class="controls">
+                <label>
+                    <input id="projectLevelVariablesCheckbox" type="checkbox" ng-model="step.params.storeAsProjectVariable" />
+                    <span class="help-inline">
+                        Store the cluster identifier in a project-scope variable (rather than the default scenario-step variable). Recommended when "Survives scenario run" is set (else you'll lose the cluster identifier)
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Name</label>
+            <div class="controls">
+                <input type="text" ng-model="step.params.clusterName" />
+                <span class="help-inline">If empty, a random name will be generated</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Type</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="step.params.clusterType" ng-options="c.id as c.label group by c.architecture for c in clusterTypes | orderBy:'architecture + label'"/>
+            </div>
+        </div>
+    </form>
+    <form name="paramsForm" class="dkuform-horizontal" ng-if="step.params.clusterType && step.params.clusterType.length > 0">
+        <div cluster-params-form cluster-type="step.params.clusterType" params="step.params.clusterParams" />
+	</form>
+
+    <div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+
+</div>

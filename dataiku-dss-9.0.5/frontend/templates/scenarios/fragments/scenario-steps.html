@@ -1,0 +1,234 @@
+<div class="h100" ng-controller="ScenarioStepsController">
+    <div block-api-error />
+	<div class="horizontal-flex h100" listen-keydown="{'delete': 'deleteSelectedSteps()' }">
+		<div class="noflex h100 scenario-steps"  filtered-multi-select-rows  keep-focus-on="true" double-select-unselects="true"
+         ng-model="scenario.params.steps" id="qa_scenario_wrapper" tabindex="0" paste-region copy-callback="keydownCopy" paste-callback="openPasteModalFromKeydown">
+            <div class="vertical-flex h100" new-custom-python-step-menu>
+                <div class="noflex">
+                    <div class="dropdown mass-action-btn scenario-steps__mass-action_btn" ng-if="scenario.params.steps.length > 0">
+                        <input type="checkbox"
+                                class="scenario-steps__selector"
+                                ng-model="selection.all"
+                                dku-indeterminate="selection.some"
+                                ng-change="updateMassSelectionCheckbox()">
+                        <a data-toggle="dropdown"
+                            class="dropdown-toggle unselectable"
+                            id="qa_scenario_mass-actions-btn"
+                            ng-class="{disabled: selection.selectedObjects.length == 0, collapsed: selection.none}">
+                            <span ng-hide='selection.none'>ACTIONS</span>
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" scenario-steps-actions-list></ul>
+                    </div>
+                </div>
+
+                <!-- step list -->
+                <div class="oa flex" ng-if="scenario.params.steps.length > 0" ui-tree>
+                    <ul ui-tree-nodes ng-model="scenario.params.steps" class="step-list">
+                        <li ui-tree-node ng-repeat="step in scenario.params.steps track by $id(step)" class="scenario-step"
+                            ng-class="{'active' : step == currentStep, 'disabled' : step.runConditionType == 'DISABLED', 'selected': step.$selected }" id="qa_scenario_step-item-{{ $index + 1 }}"
+                            full-click ng-right-click="openMenu($event, step, true)">
+                            <a class="scenario-step__sort-handle" ui-tree-handle>
+                                <i class="icon-dku-handle"></i>
+                            </a>
+                            <span class="qa_scenario_step-selector">
+                                <input type="checkbox" class="scenario-step__selector" ng-model="step.$selected" ng-click="checkBoxChanged(step, $event)">
+                            </span>
+                            <div class="label" ng-click="editStep(step)" main-click>
+                                <div class="label-text ellipsed">
+                                    <span class="type">{{getDisplayType(step)}}</span>
+                                    <span class="name">{{getDisplayName(step)}}</span>
+                                </div>
+                                <span>
+                                    <i class="icon {{getRunConditionIndicatorIcon(step)}}" style="font-size: 13px;"></i>
+                                </span>
+                            </div>
+                            <i class="icon-warning-sign text-error dibvam" ng-if="step.unavailable"></i>
+                            <a class="scenario-step__more close scenario-step__menu-icon" ng-click="openMenu($event, step, true)">
+                                <i class="icon-dku-more"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a>
+                                        Save with custom commit message
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                <div class="oa flex step-list" ng-if="scenario.params.steps.length === 0">
+                    <h4 class="scenario-steps__no-step-text" >No step yet in your scenario.</h4>
+                </div>
+
+				<!-- add step button -->
+				<div class="add-step noflex" style="margin-bottom: 10px;" custom-element-popup cep-position="smart" close-on-click="true">
+					<button ng-click="togglePopover()" class="mainzone btn btn--primary dropdown-toggle" style="width: 60%; font-size: 14px">Add step
+						<i class="icon-caret-up" style="position:absolute; right: 10px; top: 15%; font-size: 17px" />
+					</button>
+					<ul class="popover custom-element-popup-popover dropdown-menu oa" style="max-height: 53vh;">
+						<li full-click>
+							<a ng-click="addStep({'type': 'build_flowitem', 'params' : {refreshHiveMetastore:true}})" main-click>Build / Train</a>
+						</li>
+						<li full-click>
+							<a ng-click="addStep({'type': 'clear_items', 'params' : {}})" main-click>Clear</a>
+						</li>
+						<li full-click>
+							<a ng-click="addStep({'type': 'check_dataset', 'params' : {}})" main-click>Run checks</a>
+						</li>
+						<li full-click>
+							<a ng-click="addStep({'type': 'check_consistency', 'params' : {}})" main-click>Check project consistency</a>
+						</li>
+						<li full-click>
+							<a ng-click="addStep({'type': 'compute_metrics', 'params' : {}})" main-click>Compute metrics</a>
+						</li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'sync_hive', 'params' : {}})" main-click>Sync Hive table</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'update_from_hive', 'params' : {}})" main-click>Update from Hive table</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'schema_propagation', 'params':{}})" main-click>Propagate schema</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'reload_schema', 'params':{}})" main-click>Reload schema</a>
+                        </li>
+
+                        <li class="divider" />
+                        <li class="nav-header">Exports</li>
+                        <li full-click ng-if="appConfig.graphicsExportsEnabled">
+                            <a ng-click="addStep({'type': 'create_dashboard_export', 'params' : {}})" main-click>Export dashboard</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'create_jupyter_export', 'params' : {}})" main-click>Export notebook</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'create_rmarkdown_report_export', 'params' : {}})" main-click>Export RMarkdown report</a>
+                        </li>
+                        <li full-click ng-if="appConfig.graphicsExportsEnabled">
+                            <a ng-click="addStep({'type': 'create_wiki_export', 'params' : { exportType: 'WHOLE_WIKI', exportFormat: { paperSize: 'A4'} }})" main-click>Export wiki</a>
+                        </li>
+                        <li full-click ng-if="appConfig.graphicsExportsEnabled">
+                            <a ng-click="addStep({'type': 'create_saved_model_documentation_export', 'params' : {'withTimestamp': true, 'defaultTemplate': true}})"
+                                main-click>Export saved model documentation</a>
+                        </li>
+                        <li full-click ng-if="appConfig.graphicsExportsEnabled">
+                            <a ng-click="addStep({'type': 'create_analysis_model_documentation_export', 'params' : {'withTimestamp': true, 'defaultTemplate': true}})"
+                                main-click>Export analysis model documentation</a>
+                        </li>
+                        <li class="divider" />
+                        <li class="nav-header">Code</li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'exec_sql', 'params' : {}})" main-click>Execute SQL</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'custom_python', 'params' : {}})" main-click>Execute Python code</a>
+                        </li>
+                        <li class="divider" />
+                        <li class="nav-header">Cluster</li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'set_up_cluster', 'params' : {}})" main-click>Create a cluster</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'tear_down_cluster', 'params' : {}})" main-click>Destroy a cluster</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'start_cluster', 'params' : {}})" main-click>Start/Attach a cluster</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'stop_cluster', 'params' : {}})" main-click>Stop/Detach a cluster</a>
+                        </li>
+						<li class="divider" />
+
+                        <li class="nav-header">Variables</li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'define_vars', 'params' : {}})" main-click>Define scenario variables</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'set_project_vars', 'params' : {}})" main-click>Set project variables</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'set_global_vars', 'params' : {}})" main-click>Set DSS global variables</a>
+                        </li>
+
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'run_global_vars_update', 'params' : {}})" main-click>Run global DSS variables update code</a>
+                        </li>
+
+                        <li class="divider" />
+                        <li class="nav-header">Deployer</li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'prepare_lambda_package', 'params' : {}})" main-click>Create API service version</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'update_apideployer_deployment', 'params' : {}})" main-click>Update API deployment</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'prepare_bundle', 'params' : {}})" main-click>Create bundle</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'update_projectdeployer_deployment', 'params' : {}})" main-click>Update project deployment</a>
+                        </li>
+
+                        <li class="divider" />
+						<li class="nav-header">Other</li>
+						<li full-click>
+							<a ng-click="addStep({'type': 'send_report', 'params' : {messaging : {configuration: {}}}})" main-click>Send message</a>
+						</li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'run_scenario', 'params' : {}})" main-click>Run another scenario</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'kill_scenario', 'params' : {}})" main-click>Kill another scenario</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'runnable', 'params' : {}})" main-click>Execute macro</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'pull_git_refs', 'params' : {}})" main-click>Update Git references</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'invalidate_cache', 'params' : {}})" main-click>Invalidate caches</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'refresh_chart_cache', 'params': {}})" main-click>Refresh statistics & chart cache</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'restart_webapp', 'params' : {}})" main-click>Restart webapp</a>
+                        </li>
+                        <li full-click ng-if="appConfig.streamingEnabled">
+                            <a ng-click="addStep({'type': 'start_continuous_activity', 'params' : { continuousActivityIds:[], loopParams:{} }})" main-click>Start continuous activities</a>
+                        </li>
+                        <li full-click ng-if="appConfig.streamingEnabled">
+                            <a ng-click="addStep({'type': 'stop_continuous_activity', 'params' : { continuousActivityIds:[] }})" main-click>Stop continuous activities</a>
+                        </li>
+                        <li full-click ng-if="featureFlagEnabled('model_evaluation_stores')">
+                            <a ng-click="addStep({'type': 'compute_data_drift', 'params' : { currentId: '', currentDeterminationMethod: 'LATEST_FROM_MES', referenceDeterminationMethod: 'AUTOMATIC', driftParams: { computeHistograms: false }}})" main-click>Compute data drift</a>
+                        </li>
+                        <li full-click>
+                            <a ng-click="addStep({'type': 'retrieve_active_model_version_deployment', 'params' : {}})" main-click>Retrieve active version of deployed model</a>
+                        </li>
+
+                        <li ng-repeat="result in displayedCustomPythonSteps" ng-class="{'nav-header' : result.isSection, 'divider' : result.divider}">
+                            <span ng-if="result.isSection" href> <i class="{{result.icon}}" />&nbsp;{{result.label}}</span>
+                            <a ng-if="!result.isSection && !result.divider" ng-click="addStep({'type': result.desc.stepType, 'params' : {'config' : {}}})">
+                                <i class="{{result.icon}}" />
+                                {{result.label}}
+                            </a>
+                        </li>
+
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="flex h100 oa step-editor-side">
+			<div ng-if="currentStep == null" class="fh center-children">
+				<span class="cta-edit-step">Select or add a new step</span>
+			</div>
+			<div ng-if="currentStep != null" class="step-editor {{currentStep.type}}">
+				<div edit-step="currentStep"></div>
+			</div>
+		</div>
+	</div>
+</div>

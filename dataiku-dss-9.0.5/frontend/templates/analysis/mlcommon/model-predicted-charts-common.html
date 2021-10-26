@@ -1,0 +1,36 @@
+
+    <div class="leftPane">
+        <tabs>
+            <pane title="Columns" no-resize-hack="no">
+                <div include-no-scope="/templates/shaker/charts-available-measures.html" />
+            </pane>
+        </tabs>
+    </div>
+    <div class="mainPane">
+        <div class="h100">
+        <div class="vertical-flex h100"  ng-if="charts.length > 0">
+
+            <!-- This is a quick and dirty way to ensure that the directive will be reinitialized when the tab is changed -->
+            <div class="flex" ng-switch on="charts[currentChart.index]">
+                <div class="fh" ng-scope="{{ chart =  charts[currentChart.index]}}" ng-switch-default>
+                    <div block-api-error />
+                    <div class="h100 chart-configuration-wrapper" chart-configuration />
+                </div>
+            </div>
+            <div class="noflex charts-list" ng-show="charts">
+
+                <a class="chart" ng-repeat="chart in charts" ng-click="currentChart.index = $index" ng-class="{'enabled': currentChart.index  === $index}">
+                    <span ng-if="!chart.def.thumbnailData" class="new-chart">New chart</span>
+                    <img src="{{chart.def.thumbnailData}}" dku-better-tooltip dbt-placement="top" dbt-title="{{chart.def.name}}" />
+                    <i class="control icon-trash" ng-click="deleteChart($index); $event.stopPropagation();" title="Delete this chart"></i>
+                    <i class="control icon-copy" ng-click="addChart(chart); $event.stopPropagation();" title="Duplicate this chart"></i>
+                </a>
+                <div class="new-chart-button dibvat">
+                    <button class="btn btn--success btn--new-chart" ng-click="addChart()"> <i class="icon-plus" />&nbsp;Chart
+                    </button>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+

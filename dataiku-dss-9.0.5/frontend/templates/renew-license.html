@@ -1,0 +1,34 @@
+<div class="renew-page fh oa" style="margin-top: 0;" ng-controller="RenewLicenseController">
+	<header>
+		<h1 class="login-page__title">Welcome to Dataiku DSS</h1>
+		<div class="pull-right dropdown help-button-wrapper"
+			include-no-scope="/templates/widgets/help-button.html"></div>
+	</header>
+
+	<div class="block">
+		<div ng-if="registrationSuccessful">
+			<h2 class="login-page__subtitle">Thank you ! <br> Your Dataiku DSS license is now renewed.</h2>
+			<button ng-click="logMeIn()" class="login-page__button">Start</button>
+		</div>
+
+		<div ng-if="!registrationSuccessful">
+			<div class="alert alert-error">
+				<i class="icon-dku-error icon-2x"></i>
+                <span>Your license has expired ({{appConfig.licensing.expiresOn|friendlyTimeDelta}}).</span>
+                <p>Please contact Dataiku to obtain a new license</p>
+			</div>
+
+			<form name="licenseKeyForm" class="form-horizontal" style="width: 100%;">
+				<h2 class="login-page__subtitle" style="margin-bottom: 0;">Please enter a new license key</h2>
+				<p class="help">Enter the license that you received from Dataiku.</p>
+				<textarea required ng-model="existingKey.license" class="login-page__license-textarea"
+						style="width: 100%; height: 170px; margin-bottom: 16px; background: #ffffff;"/>
+				<div block-api-error />
+				<div class="control-group text-right">
+					<button type="submit" class="login-page__button" ng-disabled="licenseKeyForm.$invalid"
+						ng-click="setLicense()">Activate</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

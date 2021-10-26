@@ -1,0 +1,177 @@
+<div ng-controller="SQLConnectionController" class="h100 vertical-flex">
+    <div class="oa vertical-flex">
+        <div class="w100 small-lr-padding">
+            <div class="generic-white-box">
+                <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                <div block-api-error />
+
+                <form name="connectionParamsForm" class="dkuform-horizontal">
+                        <div class="row-fluid">
+                            <div class="span7">
+                                <h2 class="settings-section-title">Basic params</h2>
+                                
+                                <fieldset ng-if="connection.params.useURL != true">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Host</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.host"
+                                            ng-required="true"/>
+                                            <div class="help-inline">
+                                                Mandatory.
+                                            </div>
+                                        </div>
+                                        <div class="alert alert-warning" ng-show="checkForHttpInHostUrl(connection.params.host)">
+                                            Host should not contain a http(s):// prefix.
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Port</label>
+                                        <div class="controls">
+                                            <input type="number" min="1" max="65536" ng-model="connection.params.port" />
+                                            <div class="help-inline">
+                                                If not specified, use default value (1521).
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Service name</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.db" />
+                                            <div class="help-inline">
+                                                Database system identifier (SID).
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                <fieldset ng-if="connection.params.useURL == true">
+                                    <div class="control-group">
+                                        <label class="control-label">Connection URL</label>
+                                        <div class="controls">
+                                            <input type="text" class="input-xxlarge" ng-model="connection.params.url"
+                                            ng-required="true"
+                                            placeHolder="jdbc:oracle:thin:@HOST:PORT:DB" />
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Displayed URL</label>
+                                        <div class="controls">
+                                            <input type="text" class="input-xxlarge" ng-model="connection.params.displayedUrl"
+                                            ng-required="false"
+                                            placeHolder="jdbc:oracle:thin:@HOST:PORT:DB" />
+                                            <span class="help-inline">Visible URL for the logs</span>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <div class="control-group">
+                                    <label for="" class="control-label">Login with Kerberos</label>
+                                    <div class="controls">
+                                        <label style="display: inline-block;">
+                                            <input type="checkbox" ng-model="connection.params.kerberosLoginEnabled"/>
+                                        </label>
+                                        <button ng-if="connection.params.kerberosLoginEnabled" dku-md-title="Properties" class="btn btn--secondary btn--icon step-help-popover" popover-clazz="step-help-popover"
+                                        dku-md-popover='When activating Kerberos, you should add the necessary Advanced properties.
+                                            
+Typycally, oracle.net.authentication_services needs to be set to KERBEROS5 and oracle.net.kerberos5_mutual_authentication to true.'>
+                                                <i class="icon-question-sign"></i>
+                                        </button>                                            
+                                    </div>
+                                </div>
+
+                                <fieldset ng-if="connection.params.kerberosLoginEnabled">
+                                    <div class="control-group">
+                                        <label class="control-label">Principal</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.dssPrincipal"/>
+                                            <span class="help-inline">Principal for the DSS user</span>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Keytab</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.dssKeytabPath"/>
+                                            <span class="help-inline">Absolute path to the keytab to use for DSS</span>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Impersonated user</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.proxyUserName"/>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset ng-if="connection.credentialsMode == 'GLOBAL' && !connection.params.kerberosLoginEnabled">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">User</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.user"
+                                            ng-required="connection.params.useURL != true"/>
+                                            <div class="help-inline" ng-show="connection.params.useURL != true">
+                                                Mandatory.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Password</label>
+                                        <div class="controls">
+                                            <input type="password" ng-model="connection.params.password" autocomplete="new-password" />
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Impersonated user</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.proxyUserName"/>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <div class="control-group">
+                                    <label  class="control-label">Advanced JDBC properties</label>
+                                    <div class="controls">
+                                        <ng2-connection-properties-list [(items)]="connection.params.properties" (on-validity-change)="setAdvancedPropertiesValidity($event)"></ng2-connection-properties-list>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Use custom JDBC URL</label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="connection.params.useURL"/>
+                                            <span class="help-inline">Used to customize JDBC connection URL</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <h2 class="settings-section-title">Advanced params</h2>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Fetch size</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.fetchSize" />
+                                    </div>
+                                </div>
+                                <div include-no-scope="/templates/admin/fragments/connection-post-connect-statements.html" />
+                                <div include-no-scope="/templates/admin/fragments/connection-sql-flags.html" />
+                                <div ng-if="!connection.params.kerberosLoginEnabled" include-no-scope="/templates/admin/fragments/connection-credentials-mode.html" />
+                            </div>
+
+                            <div class="span5">
+                                <div include-no-scope="/templates/admin/fragments/sql-naming-rule.html" />
+                                <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                            </div>
+                        </div>
+                    </form>
+            </div>
+            <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+            </div>
+        </div>
+    </div>
+
+    <div class="small-lr-padding page-top-padding vertical-flex connection-page__connection-testing-section">
+        <div class="vertical-flex h100">
+            <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html"/>
+            <div class="vertical-flex oh" include-no-scope="/templates/admin/fragments/sql-connection-test.html"/>
+            <div include-no-scope="/templates/admin/fragments/connection-sql-mass-import.html"/>
+        </div>
+    </div>
+
+</div>

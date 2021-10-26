@@ -1,0 +1,124 @@
+<div class="flex vertical-flex oa">
+    <div block-api-error />
+
+    <div class="alert alert-error" ng-if="deployResult.error"
+        style="max-height: 200px; overflow-x: hidden; overflow-y: auto; margin-bottom: 0px;">
+        <p>
+            Dev server deployment <strong>FAILED</strong><br />
+            <span ng-bind="deployResult.error.detailedMessage" />
+        </p>
+
+        <pre smart-log-tail="deployResult.devserverState.logTail" />
+    </div>
+    <div class="alert alert-success" ng-if="deployResult && !deployResult.error" style="margin-bottom: 0px;">
+        Dev server is <strong ng-bind="deployResult.devserverState.state" />
+    </div>
+
+    <div class="horizontal-flex">
+        <div class="queries-list vertical-flex h100">
+            <div>
+                <div class="std-list-search-box api-endpoint-list-search-box">
+                    <span class="add-on"><i class="icon-dku-search"></i></span>
+                    <input type="search" ng-model="uiState.testQuerySearch" placeholder="Search" style="width: calc(100% - 34px)">
+                </div>
+                <div class="header-add">
+                    <button style="margin-bottom: 1px;" class="btn btn--secondary" ng-click="createNewQueries()"><strong>+</strong> Add queries</button>
+                </div>
+            </div>
+            <div class="flex vertical-flex">
+                <div ng-repeat="testQuery in endpoint.testQueries track by $index" class="central-row horizontal-flex" ng-class="{focused: uiState.testQueryIndex===$index}" ng-click="showTestQuery($index)" full-click>
+                    <div class="flex" style="height: 40px; overflow: hidden;">
+                        <label ng-show="endpoint.testQueries[$index].name">{{endpoint.testQueries[$index].name}}</label>
+                        <label ng-show="!endpoint.testQueries[$index].name">Query {{$index + 1}}</label>
+                    </div>
+                    <div class="flex" style="height: 40px; overflow: hidden; text-align: right">
+                        <span class="result mx-textellipsis text-success" ng-show="testQueriesResult.responses[$index].response" ng-switch="type">
+                            <span ng-switch-when="predict">
+                                {{testQueriesResult.responses[$index].response.result.prediction}}
+                            </span>
+                            <span ng-switch-when="function">
+                                {{testQueriesResult.responses[$index].response.response | jsonOrString}}
+                            </span>
+                            <span ng-switch-when="query">
+                                <span ng-show="testQueriesResult.responses[uiState.testQueryIndex].response.results[0].rows">
+                                    {{testQueriesResult.responses[uiState.testQueryIndex].response.results[0].rows.length}} R
+                                    {{testQueriesResult.responses[uiState.testQueryIndex].response.results[0].columns.length}} C
+                                </span>
+                            </span>
+
+                        </span>
+                    </div>
+                    <div class="noflex" style="height: 40px; overflow: hidden; text-align: right">
+                        <i ng-if="testQueriesResult && testQueriesResult.responses[$index]"
+                                ng-class="{'text-success icon-ok': testQueriesResult.responses[$index].response, 'text-error icon-remove': !testQueriesResult.responses[$index].response}" ></i>
+                        <i ng-click="deleteTestQuery($index)" class="icon-trash"></i>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex vertical-flex h100 query-container"
+            ng-if="endpoint.testQueries.length > 0 &&  uiState.testQueryIndex >= 0"
+            ng-switch="uiState.testQueryIndex"
+            global-keydown="{'ctrl-enter meta-enter': 'sendPlayTestQueriesMsg()'}">
+            <div ng-switch-default>
+                <form name="testQueryEditor">
+                    <label>
+                        <input class="simple-styled-input input-xlarge" type="text" placeholder="Query {{uiState.testQueryIndex + 1}}" ng-model="endpoint.testQueries[uiState.testQueryIndex].name" />
+                        <a class="link-darken-hover pull-right" ng-click="duplicateTestQuery(uiState.testQueryIndex)" title="Duplicate test query">
+                            <i class="icon-copy"></i>
+                        </a>
+                    </label>
+                    <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+                        <textarea
+                            json-object-pretty-view
+                            name="testQueryQ"
+                            ui-codemirror="codeMirrorSettingService.get('text/json')"
+                            ng-model="endpoint.testQueries[uiState.testQueryIndex].q">
+                        </textarea>
+                    </div>
+                    <div class="alert alert-error" ng-show="testQueryEditor.testQueryQ.dkuJSONError">JSON syntax error! <br/> {{testQueryEditor.testQueryQ.dkuJSONError}}
+                    </div>
+                </form>
+
+                <div ng-if="testQueriesResult && testQueriesResult.responses[uiState.testQueryIndex]" class="query-result" style="margin-top: 5px;">
+                    <div ng-if="testQueriesResult.responses[uiState.testQueryIndex].response" class="alert alert-success">
+                        <div ng-switch="type">
+                            <div ng-switch-when="predict">
+                                <p>Prediction: <strong>{{testQueriesResult.responses[uiState.testQueryIndex].response.result.prediction}}</strong></p>
+                            </div>
+                            <div ng-switch-when="function">
+                                <p>Result:
+                                    <strong>{{testQueriesResult.responses[uiState.testQueryIndex].response.response | jsonOrString}}</strong>
+                                    <em ng-show="testQueriesResult.responses[uiState.testQueryIndex].response.responseIsEmpty">Function succeeded but did not return a result</em>
+                                </p>
+                            </div>
+                            <div ng-switch-when="lookup" ng-switch="lookupResults = testQueriesResult.responses[uiState.testQueryIndex].response.results[0];">
+                                <p ng-repeat="(k,v) in getCollectedColumnMappings()" style="margin: 0px;">
+                                    Retrieved for {{k}} : <strong>{{lookupResults.data[v]}}</strong>
+                                </p>
+                            </div>
+                            <div ng-switch-when="query">
+                                <p ng-show="testQueriesResult.responses[uiState.testQueryIndex].response.results[0].rows">
+                                    {{testQueriesResult.responses[uiState.testQueryIndex].response.results[0].rows.length}} rows,
+                                    {{testQueriesResult.responses[uiState.testQueryIndex].response.results[0].columns.length}} cols
+                                </p>
+                            </div>
+                        </div>
+                        <a ng-click="uiState.resultsTab = (uiState.resultsTab == 'DETAILS' ? null : 'DETAILS')">Details</a> | <a ng-click="uiState.resultsTab = (uiState.resultsTab == 'LOGS' ? null : 'LOGS')">Logs</a>
+                        <pre ng-if="uiState.resultsTab == 'DETAILS'" class="debug">{{testQueriesResult.responses[uiState.testQueryIndex].response|json}}</pre>
+                        <pre ng-if="uiState.resultsTab == 'LOGS'" smart-log-tail="testQueriesResult.responses[uiState.testQueryIndex].serverState.logTail" />
+                    </div>
+
+                    <div ng-if="testQueriesResult.responses[uiState.testQueryIndex].error" class="alert alert-error">
+                        <p>Failed: <strong>{{testQueriesResult.responses[uiState.testQueryIndex].error.detailedMessage}}</strong></p>
+                        <a ng-click="uiState.resultsTab = (uiState.resultsTab == 'DETAILS' ? null : 'DETAILS')">Details</a> | <a ng-click="uiState.resultsTab = (uiState.resultsTab == 'LOGS' ? null : 'LOGS')">Logs</a>
+                        <pre ng-if="uiState.resultsTab == 'DETAILS'" class="debug">{{testQueriesResult.responses[uiState.testQueryIndex].error|json}}</pre>
+                        <pre ng-if="uiState.resultsTab == 'LOGS'" smart-log-tail="testQueriesResult.responses[uiState.testQueryIndex].serverState.logTail" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

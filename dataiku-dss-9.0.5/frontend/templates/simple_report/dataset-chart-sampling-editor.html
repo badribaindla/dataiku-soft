@@ -1,0 +1,96 @@
+<div style="padding: 10px">
+    <form>
+         <fieldset>
+            <span class="fieldLabel">Execution engine</span>
+            <select ng-model="chart.engineType" id="qa_charts_execution-engine-select" dku-bs-select layout="list" >
+                <option ng-repeat="x in availableEngines"
+                    ng-disabled="!x[2]"
+                    ng-selected="{{x[0] == chart.engineType}}"
+                    value="{{x[0]}}"
+                    title="{{x[3]}}"
+                    data-content="{{x[1]}}">{{x[1]}}</option>
+            </select>
+        </fieldset>
+        <div ng-if="chart.engineType == 'SQL' || chart.engineType == 'SPARKSQL'">
+            <fieldset>
+                <span class="fieldLabel">In-database charts always use the full dataset (or partitions).</span>
+            </fieldset>
+        </div>
+        <div ng-if="chart.engineType == 'LINO'">
+            <fieldset>
+                <span class="fieldLabel">Select which part of the dataset will be used for this chart.</span>
+            </fieldset>
+
+            <fieldset ng-show="canCopySelectionFromScript">
+                <label class="fieldLabel">
+                    <input type="checkbox" ng-model="chart.copySelectionFromScript">Use same sample as explore
+                </label>
+            </fieldset>
+
+            <fieldset ng-show="!chart.copySelectionFromScript">
+                <span class="fieldLabel">Sampling method</span>
+                <select ng-model="chart.refreshableSelection.selection.samplingMethod" ng-options="x[0] as x[1] for x in SamplingData.streamSamplingMethods" options-descriptions="SamplingData.streamSamplingMethodsDesc" layout="list" dku-bs-select />
+            </fieldset>
+        </div>
+
+        <div ng-if="!chart.copySelectionFromScript && chart.engineType == 'LINO'">
+
+            <div dataset-selection-partitions-selection-fields
+                selection="chart.refreshableSelection.selection"
+                partitioned="dataset.partitioning.dimensions.length > 0"
+                get-partitions-list="getPartitionsList"></div>
+
+            <fieldset ng-if="chart.engineType == 'LINO'">
+                 <label class="control-label">
+                    <input type="checkbox" ng-model="chart.refreshableSelection.selection.filter.enabled"
+                    ng-change="chart.refreshableSelection.selection.filter.enabled ? showFilterModal(false) : onChange()" />
+                    Filter records
+                </label>
+
+                <span ng-show="chart.refreshableSelection.selection.filter && chart.refreshableSelection.selection.filter.enabled"
+                    class="filter-expression"
+                    ng-click="showFilterModal(false)"
+                    toggle="tooltip"
+                    style="cursor: pointer"
+                    title="Click to edit"
+                    >
+                    <span ng-bind-html="chart.refreshableSelection.selection.filter|filterNiceRepr" />
+                </span>
+            </fieldset>
+
+            <div ng-if="chart.engineType == 'LINO'">
+                <div dataset-selection-sampling-details-fields selection="chart.refreshableSelection.selection" />
+            </div>
+        </div>
+
+
+        <div ng-switch="chart" ng-if="chart.engineType == 'LINO'">
+            <fieldset class="control-group" optional-max-size-mb="chart.maxDataBytes" ng-switch-default>
+                <label class="fieldLabel">
+                    <input type="checkbox" ng-model="$optionalState.hasMaxSize"/>Limit memory usage
+                </label>
+                <div class="control-group" ng-if="$optionalState.hasMaxSize">
+                    <label for="" class="control-label">Max memory usage (MB)</label>
+                    <div class="controls">
+                        <input force-integer ng-model="$optionalState.maxSize" type="number" required />
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </form>
+
+    <div class="text-right" ng-show="chart.engineType != 'SQL' && chart.engineType != 'SPARKSQL' && !(chart.copySelectionFromScript && canCopySelectionFromScript)">
+        <button ng-click="save()" class="btn btn--primary">Save and refresh sample</button>
+        <br />
+        <small><a ng-click="saveNoRefresh()">Save (no forced refresh)</a></small>
+    </div>
+    <div class="text-right" ng-show="chart.engineType != 'SQL' && chart.engineType != 'SPARKSQL' && chart.copySelectionFromScript && canCopySelectionFromScript">
+        <button ng-click="save()" class="btn btn--primary">Save</button>
+        <br />
+        <small>To force a refresh of the sample,<br /> refresh it first in Explore</small>
+    </div>
+    <div class="text-right" ng-show="chart.engineType == 'SQL' || chart.engineType == 'SPARKSQL'">
+        <button ng-click="save()" class="btn btn--primary">Save</button>
+    </div>
+
+</div>

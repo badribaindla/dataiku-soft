@@ -1,0 +1,142 @@
+<div ng-controller="HiveRecipeController" data-extend-template="/templates/layouts/code-based-recipe-editor-layout.html">
+    <div class="mainPane code-based-recipe-main-zone vertical-flex h100" data-block="recipeEditor">
+        <div block-api-error />
+        <div ng-if="valCtx.validationResult.inputsToSynchronize.length > 0" class="noflex">
+            <div ng-repeat="synchronization in valCtx.validationResult.inputsToSynchronize" >
+                <div class="alert alert-info">
+                <h4>
+                    <i class="icon-warning-sign"></i>
+                    Missing Hive table
+                </h4>
+                <h5>
+                    The dataset '{{synchronization.id}}' has no corresponding Hive table.
+                </h5>
+                <button class="btn btn--primary" ng-click="synchronizeInput(synchronization)">Synchronize</button>
+                </div>
+            </div>
+        </div>
+        <div ng-if="valCtx.validationResult.inputsToResynchronize.length > 0" class="noflex">
+            <div ng-repeat="synchronization in valCtx.validationResult.inputsToResynchronize" >
+                <div class="alert alert-info">
+                <h4>
+                    <i class="icon-warning-sign"></i>
+                    Incompatible Hive table
+                </h4>
+                <h5>
+                    The schema of '{{synchronization.id}}' doesn't match the columns of the corresponding Hive table.
+                </h5>
+                <button class="btn btn--primary" ng-click="synchronizeInput(synchronization)">Synchronize</button>
+                </div>
+            </div>
+        </div>
+
+        <code-snippet-editor code="script.data"
+            sample-type="'hive'"
+            categories="[]"
+            save-category="'hive-std'"
+            editor-options="editorOptions"
+            resolve-code-for-preview-func="resolveCodeForPreviewFunc"
+            resolve-code-for-insertion-func = "resolveCodeForInsertionFunc"
+            >
+        </code-snippet-editor>
+
+        <div include-no-scope="/templates/recipes/fragments/recipe-editor-statusbar.html" class="noflex"/>
+
+        <div class="bottom-bar noflex">
+            <div class="horizontal-flex">
+                <span class="noflex" include-no-scope="/templates/recipes/fragments/code-recipe-validate-button.html" />
+                <span class="flex" include-no-scope="/templates/recipes/fragments/code-recipe-run-bottom-bar.html" style="margin-left: 50px;"/>
+            </div>
+        </div>
+
+        <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"  class="noflex recipe-job-result"/>
+    </div>
+
+    <div data-block="additionalTabsContent">
+         <div ng-if="topNav.tab == 'advanced'" class="dss-page oa">
+			<div block-api-error />
+
+ 			<div class="horizontal-centerer">
+
+				<div class="recipe-settings-section1 w800">
+					<h1 class="recipe-settings-section1-title">Hive</h1>
+
+					<form class="dkuform-horizontal recipe-settings-section2">
+                        <div class="control-group" >
+                            <label class="control-label">Execution engine</label>
+                            <div class="controls" >
+                                <select dku-bs-select ng-model="recipe.params.executionEngine" >
+                                    <option value="HIVECLI_LOCAL">(Deprecated) Hive CLI (Isolated metastore)</option>
+                                    <option value="HIVECLI_GLOBAL">(Deprecated) Hive CLI (Global metastore)</option>
+                                    <option value="HIVESERVER2">HiveServer2</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="" class="control-label">Validate before running</label>
+                            <div class="controls">
+                                <input type="checkbox" ng-model="doPreRunValidate.doIt" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="" class="control-label">Use Dataiku UDFs</label>
+                            <div class="controls">
+                                <input type="checkbox" ng-model="recipe.params.addDkuUdf" />
+                            </div>
+                        </div>
+					</form>
+				</div>
+
+				<div class="recipe-settings-section1 w800">
+					<h1 class="recipe-settings-section1-title">Impala</h1>
+					<form class="dkuform-horizontal recipe-settings-section2">
+						<div class="control-group">
+				    		<button class="btn btn--secondary"
+                                ng-disabled="!appConfig.impalaEnabled || recipe.outputs['main'].items.length != 1"
+                                ng-click="convertToImpala()"
+                                title="{{!appConfig.impalaEnabled ? 'Impala is not configured on this DSS instance' : 'An impala recipe can only have 1 output'}}">Convert to Impala recipe</button>
+						</div>
+					</form>
+				</div>
+
+
+				<div class="recipe-settings-section1 w800">
+					<h1 class="recipe-settings-section1-title">Runtime configuration</h1>
+					<form class="dkuform-horizontal recipe-settings-section2">
+                        <div class="control-group">
+                            <label for="" class="control-label">Runtime config</label>
+                            <div class="controls">
+                                 <select dku-bs-select ng-model="recipe.params.inheritConf" ng-options="x for x in appConfig.hiveExecutionConfigs" />
+                            </div>
+                        </div>
+						<div class="control-group">
+							<small style="margin-bottom: 10px; display: inline-block;">
+							Define here configuration keys passed to the Hive executable on the command line.
+							</small>
+                            <ng2-key-values-list
+                                [(items)]="recipe.params.hiveconf"
+                                add-label="Add configuration"
+                                key-placeholder="Configuration key"
+                                value-placeholder="Configuration value">
+                            </ng2-key-values-list>
+						</div>
+					</form>
+				</div>
+
+                <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+
+				<div class="recipe-settings-section1 w800">
+					<h1 class="recipe-settings-section1-title">Variables</h1>
+					<form class="dkuform-horizontal recipe-settings-section2">
+						<div class="control-group">
+                            <label for="" class="control-label">Override variables</label>
+                            <div class="controls">
+				                <span override-table-link object-to-override="recipe" override-table-parent="recipe" />
+                            </div>
+						</div>
+					</form>
+				</div>
+			</div>
+        </div>
+    </div>
+</div>

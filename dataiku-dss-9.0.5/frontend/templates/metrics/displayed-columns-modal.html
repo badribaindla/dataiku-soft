@@ -1,0 +1,68 @@
+<div class="modal modal3 dku-modal ping-pong-modal" auto-size="false">
+    <dku-modal-header-minimum modal-title="Columns display settings"></dku-modal-header-minimum>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+
+        <div class="modal-body no-padding" style="overflow: hidden"> <!-- otherwise dragging row to sort them overflows this div -->
+
+            <div class="vertical-flex">
+                <div class="noflex" block-api-error />
+
+                <div class="row-fluid  border-bottom">
+                    <div class="span6 offset0">
+                        <div class="pull-right"><a ng-click="addAll()">Add all</a></div>
+                        <h5>Columns available ({{choicesLeft.items.length}})</h5>
+                        <div class="std-list-search-box horizontal-flex" ng-class="{error: error}">
+                            <i class="icon icon-remove ng-hide" ng-show="hasSearch()" ng-click="resetSearch()"></i>
+                            <span class="add-on noflex"> <i class="icon-dku-search"></i></span>
+                            <input class="flex" type="text" ng-model="filter.query" placeholder="Filter {{type}}…">
+                        </div>
+                    </div>
+
+                    <div class="span6 offset0">
+                        <div class="pull-right"><a ng-click="removeAll()">Remove all</a></div>
+                        <h5>Columns to display ({{displayed.items.length}})</h5>
+                    </div>
+                </div>
+
+                    <div class="lists">
+                            <div class="half-pane oa">
+                                <ul class="dku-colored-list">
+                                    <li ng-repeat="m in choicesLeft.items | filter:filter.query" class="list-item horizontal-flex" full-click>
+                                        <div class="flex mx-textellipsis">{{m}}</div>
+                                        <a class="add noflex" ng-click="add(m)" main-click>&rarr;</a>
+                                    </li>
+                                </ul>
+                            </div><!-- eat the space between the div to make it possible to use 2x50% width divs
+                         --><div class="half-pane oa">
+                                    <p  class="centered-info" ng-if="!displayed.items.length">
+                                        <small>No column displayed</small>
+                                    </p>
+
+                                <ul class="dku-colored-list" ui-sortable="{axis:'y', cursor: 'move', cancel:'', handle: '.full-metric-row'}" ng-model="displayed.items">
+                                    <li ng-repeat="m in displayed.items" class="list-item">
+                                        <div class="horizontal-flex full-metric-row">
+	                                        <span class="order-handle noflex"><i class="icon-reorder"></i></span>
+	                                        <div class="flex mx-textellipsis">{{m}}</div>
+	                                        <a class="remove noflex" ng-click="remove(m)">
+                                                <i class="icon-trash"></i>
+                                            </a>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                    </div>
+
+            </div>
+
+        </div>
+    </form>
+
+    <div class="modal-footer has-border modal-footer-std-buttons">
+        <div class="pull-right">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="resolveModal(displayed.items)">Save</button>
+        </div>
+    </div>
+
+</div>

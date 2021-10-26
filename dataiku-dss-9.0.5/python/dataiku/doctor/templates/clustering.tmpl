@@ -1,0 +1,105 @@
+{% extends "core.tmpl" %}
+
+{% block head %}
+## Clustering
+## This notebook will reproduce the steps for clustering the dataset {{ dataset }}.
+{% endblock %}
+
+{% block profiling_copy %}
+## Let's copy our dataset to keep it for eventual profiling at the end.
+
+# train dataset will be the one on which we will apply ml technics
+train = ml_dataset.copy()
+{% endblock %}
+
+
+{% block preprocessing %}
+{{ super() }}
+
+## Removing outliers
+
+{% if outliers.method == "NONE" %}
+# Outliers detection not required, skipping...
+{% else %}
+# Remove outliers from train set
+from dataiku.doctor.preprocessing.dataframe_preprocessing import detect_outliers
+
+outliers = detect_outliers(train, {{ reduce.kept_variance if reduce.kept_variance > 0 else 0.9 }}, {{ outliers.min_n }}, {{ outliers.min_cum_ratio }})
+train = train[~outliers]
+
+print ("%s outliers found" % (outliers.sum()))
+{% endif %}
+
+{% endblock %}
+
+
+{% block modeling %}
+
+
+
+{% if algorithm == 'KMEANS' %}
+from sklearn.cluster import KMeans
+clustering_model = KMeans(n_clusters={{ pre_train.k }})
+{% elif algorithm == 'MiniBatchKMeans' %}
+from sklearn.cluster import MiniBatchKMeans
+clustering_model = MiniBatchKMeans(n_clusters={{ pre_train.k }})
+{% elif algorithm == 'SPECTRAL' %}
+from sklearn.cluster import SpectralClustering
+clustering_model = SpectralClustering(n_clusters={{ pre_train.k }}, affinity="{{pre_train.affinity}}", coef0 = {{pre_train.coef0}}, gamma= {{pre_train.gamma}})
+{% elif algorithm == 'WARD' %}
+from sklearn.cluster import AgglomerativeClustering
+clustering_model = AgglomerativeClustering(n_clusters={{ pre_train.k }})
+{% elif algorithm == 'DBSCAN' %}
+from sklearn.cluster import DBSCAN
+clustering_model = DBSCAN(eps={{pre_train.epsilon}})
+{% endif %}
+
+## We can finally cluster our dataset!
+
+%time clusters = clustering_model.fit_predict(train)
+
+{% endblock %}
+
+
+{% block evaluation %}
+
+{% if is_kmean_like %}
+## Inertia
+
+print (clustering_model.inertia_)
+{% endif %}
+
+
+{% if pre_train.k > 1 %}
+
+## Silhouette
+
+from sklearn.metrics import silhouette_score
+silhouette = silhouette_score(train.values, clusters, metric='euclidean', sample_size=2000)
+print ("Silhouette score :", silhouette)
+{% endif %}
+
+
+
+## Join our original dataset with the cluster labels we found.
+
+final = train.join(pd.Series(clusters, index=train.index, name='cluster'))
+final['cluster'] = final['cluster'].map(lambda cluster_id: 'cluster' + str(cluster_id))
+
+## Compute the cluster sizes
+size = pd.DataFrame({'size': final['cluster'].value_counts()})
+size.head()
+
+
+## Draw a nice scatter plot
+
+axis_x = train.columns[0]   # change me
+axis_y = train.columns[1]  # change me
+
+from ggplot import ggplot, aes, geom_point
+print(ggplot(aes(axis_x, axis_y, colour='cluster'), final) + geom_point())
+
+
+
+
+{% endblock %}

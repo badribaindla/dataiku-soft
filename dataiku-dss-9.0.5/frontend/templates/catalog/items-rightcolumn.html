@@ -1,0 +1,497 @@
+<div ng-if="selected.item._type == 'discussion'" class="object-details h100 vertical-flex">
+    <div class="noflex" style="border-bottom: solid 1px #ddd;">
+        <div class="line users">
+            <h4>Users</h4>
+            <div>
+                <a ng-repeat="login in selected.item._source.discussionAuthor" href="/profile/{{login}}/"
+                   title="{{ users[login] || login }}" class="avatar"
+                   toggle="tooltip" placement="left" animation="false" container=".catalog-tooltips">
+                    <span user-picture="login" size="24" class="avatar24"></span>
+                </a>
+            </div>
+        </div>
+        <div class="line">
+            <h4>Project</h4>
+            <p><a ui-sref="projects.project.home.regular({projectKey:selected.item._source.projectKey})">{{selected.item._source.projectName}}</a>
+            </p>
+        </div>
+        <div class="line">
+            <h4>Item</h4>
+            <p>
+                <a href="{{getLink(selected.item)}}">
+                    {{selected.item._source.objectName}}
+                </a>
+            </p>
+        </div>
+    </div>
+    <div class="flex h100" style="overflow: hidden;">
+        <div class="h100"
+            discussions-widget-single
+            watch-object="{item: selected.item, discussionId: selected.item._source.discussionId}"
+            selected-item="{projectKey: selected.item._source.projectKey, type: selected.item._source.objectType.toUpperCase(), id: selected.item._source.objectId}"
+            discussion-id="selected.item._source.discussionId">
+        </div>
+    </div>
+</div>
+
+
+<div ng-if="selected.item._type != 'discussion'" class="object-details h100" style="padding-top: 15px; overflow-y: auto;">
+    <div class="line" ng-show="selected.item._type === 'table'">
+        <h4>Import table to project</h4>
+        <p style="overflow: visible; display: flex;justify-content: flex-end; align-items: center;"><button class="btn btn--secondary dropdown-toggle manual-caret pull-right" data-toggle="dropdown" ng-click="importTables(selected.item, $stateParams.zoneId)" style="vertical-align: baseline">Import</button></p>
+    </div>
+    <!-- Dataset -->
+    <div class="line" ng-if="selected.item._source.dataset">
+        <h4>Dataset</h4>
+        <p>
+            <a ui-sref="projects.project.datasets.dataset.explore({projectKey:selected.item._source.projectKey,datasetName:selected.item._source.dataset})">
+                {{selected.item._source.dataset}}
+            </a>
+        </p>
+    </div>
+
+    <!-- Project -->
+    <div class="line" ng-if="selected.item._type != 'project' && selected.item._source.projectName">
+        <h4>Project</h4>
+        <p><a ui-sref="projects.project.home.regular({projectKey:selected.item._source.projectKey})">{{selected.item._source.projectName}}</a>
+        </p>
+    </div>
+
+    <!-- Stored as -->
+    <div ng-if="selected.item._source.storedAs">
+        <div class="line">
+            <h4>Stored as</h4>
+            <p>{{selected.item._source.storedAs | lowercase }}</p>
+        </div>
+    </div>
+
+    <!-- About (shortDesc) -->
+    <div class="block" ng-if="selected.item._source.shortDesc">
+        <h4>About</h4>
+        <p ng-if="selected.item.$highlightedShortDesc" class="highlight-markdown markdown-description"
+           ng-bind-html="selected.item.$highlightedShortDesc"></p>
+        <p ng-if="!selected.item.$highlightedShortDesc" class="markdown-description"
+           from-markdown="selected.item._source.shortDesc"></p>
+    </div>
+
+    <div class="line" ng-if="selected.item._source.connection">
+        <h4>Connection</h4>
+        <p>{{selected.item._source.connection}}</p>
+    </div>
+    <div class="line" ng-if="selected.item._source.connectionType">
+        <h4>Connection type</h4>
+        <p>{{selected.item._source.connectionType | datasetTypeToName}}</p>
+    </div>
+    <div class="line" ng-if="selected.item._source.schema">
+        <h4>Schema</h4>
+        <p>{{selected.item._source.schema}}</p>
+    </div>
+    <div class="line" ng-if="selected.item._source.catalog">
+        <h4>Database Catalog</h4>
+        <p>{{selected.item._source.catalog}}</p>
+    </div>
+    <div class="line" ng-if="selected.item._source.connectionType === 'hiveserver2'">
+        <h4>Partitioned</h4>
+        <p>{{selected.item._source.partitioned ? 'Yes' : 'No'}}</p>
+    </div>
+
+    <!-- lastIndexDate -->
+    <div class="line" ng-if="selected.item._source.lastIndexDate">
+        <h4>Last indexed date</h4>
+        <p>{{selected.item._source.lastIndexDate == 0 ? 'N/A' : (selected.item._source.lastIndexDate |
+            friendlyTimeDeltaShort)}}</p>
+    </div>
+
+    <!-- About (description) -->
+    <div class="block" ng-if="selected.item._source.description">
+        <h4 ng-hide="selected.item._type == 'comment'">Description</h4>
+        <p ng-if="selected.item.$highlightedDescription" class="highlight-markdown markdown-description"
+           ng-bind-html="selected.item.$highlightedDescription"></p>
+        <p ng-if="!selected.item.$highlightedDescription" class="markdown-description"
+           from-markdown="selected.item._source.description"></p>
+        <p style="text-align: right" ng-if="selected.item._type == 'comment'">
+            <a href="/profile/{{selected.item._source.user[0]}}/">
+                {{users[selected.item._source.user[0]] || selected.item._source.user[0]}}
+            </a>,
+            <span title="{{selected.item._source.createdOn | date:'yyyy-MM-dd – HH:mm'}}">
+                {{selected.item._source.createdOn | friendlyTimeDeltaShort}}
+            </span>
+        </p>
+    </div>
+
+    <!-- Tags -->
+    <div class="line" ng-if="selected.item._source.tag && selected.item._source.tag.length">
+        <h4>Tags</h4>
+        <div style="height: auto; min-height: 20px;">
+            <ul class="tags inline">
+                <li ng-repeat="tag in highlightedTagList(selected.item)">
+                    <span class="tag" style="background-color: {{ tagMaps[selected.item._source.projectKey].tags[tag.raw].color || '#FDB423'}}">
+                        <span ui-global-tag="tag.highlighted || tag.raw" object-type="selected.item._type.toUpperCase()"/>
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Owner -->
+    <div class="line" ng-if="selected.item._source.owner">
+        <h4>Owner</h4>
+        <p>
+            <a href="/profile/{{selected.item._source.owner}}/">
+                {{ users[selected.item._source.owner] || selected.item._source.owner }}
+            </a>
+        </p>
+    </div>
+
+    <!-- Creation/modification/contributors info -->
+    <div ng-if="selected.item._type!='column'">
+        <hr ng-if="selected.item._source.lastModifiedOn || selected.item._source.createdOn"/>
+        <!-- Users -->
+        <div class="line users" ng-if="selected.item._source.user && selected.item._source.user.length">
+            <h4>Users</h4>
+            <div>
+                <a ng-repeat="login in selected.item._source.user" href="/profile/{{login}}/"
+                    title="{{ users[login] || login }}" class="avatar"
+                    toggle="tooltip" placement="left" animation="false" container=".catalog-tooltips">
+                    <span user-picture="login" size="24" class="avatar24"></span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Creation -->
+        <div class="line" ng-if="selected.item._source.createdOn">
+            <h4>Creation</h4>
+            <p>{{ selected.item._source.createdOn | friendlyTimeDeltaShort }}</p>
+        </div>
+
+        <!-- Created by -->
+        <div class="line" ng-if="selected.item._source.createdBy">
+            <h4>Created by</h4>
+            <p>{{ users[selected.item._source.createdBy] }}</p>
+        </div>
+
+        <!-- Last modification -->
+        <div class="line" ng-if="selected.item._source.lastModifiedOn">
+            <h4>Last modification</h4>
+            <p>{{ selected.item._source.lastModifiedOn | friendlyTimeDeltaShort }}</p>
+        </div>
+
+        <!-- Last modified by -->
+        <div class="line" ng-if="selected.item._source.lastModifiedBy">
+            <h4>Last modified by</h4>
+            <p>{{ users [selected.item._source.lastModifiedBy] || selected.item._source.lastModifiedBy }} </p>
+        </div>
+    </div>
+
+    <!-- Partitioning -->
+    <div class="accordion columns" ng-if="selected.item._source.partitioning.length">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Partitioning (<span>{{selected.item._source.partitioning.length}}</span>)
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="partitioning in selected.item._source.partitioning" class="horizontal-flex">
+                <span class="flex mx-textellipsis highlight" ng-bind-html="partitioning.name"></span>
+                <span class="info noflex">{{partitioning.type | lowercase}}</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Projects -->
+    <div class="accordion" ng-if="selected.item.related.projects.length" ng-init="show=true">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Project{{ selected.item.related.projects.length > 1 ? 's' : '' }}
+            <span ng-if="selected.item.related.projects.length > 1">({{selected.item.related.projects.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="output in selected.item.related.projects" class="mx-textellipsis horizontal-flex">
+                <a ui-sref="projects.project.home.regular({projectKey: output.key})">{{output.name}}</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Recipes -->
+    <div class="accordion" ng-if="selected.item.related.recipes.length" ng-init="show=true">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Recipe{{ selected.item.related.recipes.length > 1 ? 's' : '' }}
+            <span ng-if="selected.item.related.recipes.length > 1">({{selected.item.related.recipes.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="recipe in selected.item.related.recipes" class="mx-textellipsis horizontal-flex">
+                <a ui-sref="projects.project.recipes.recipe({projectKey:recipe.projectKey,recipeName:recipe.name})">
+                    {{recipe.name}}
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Datasets -->
+    <div class="accordion" ng-if="selected.item.related.datasets.length" ng-init="show=true">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Dataset{{ selected.item.related.datasets.length > 1 ? 's' : '' }}
+            <span ng-if="selected.item.related.datasets.length > 1">({{selected.item.related.datasets.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="dataset in selected.item.related.datasets" class="mx-textellipsis horizontal-flex">
+                <a ui-sref="projects.project.datasets.dataset.explore({projectKey:dataset.projectKey,datasetName:dataset.name})">
+                    {{dataset.name}}
+                </a>
+            </li>
+        </ul>
+    </div>
+     <!--Columns -->
+    <div class="accordion columns" ng-if="selected.item._source.numColumns" ng-init="show=selected.item._source.numColumns<10">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Columns
+            <span ng-class="{'count-matching': selected.item.highlight['column'].length}">
+                (<span>{{selected.item._source.numColumns}}</span>)
+            </span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="column in selected.item.highlightedColumns" class="horizontal-flex">
+                <span class="flex mx-textellipsis highlight" ng-bind-html="column.name"></span>
+                <span class="info noflex">{{column.type | lowercase}}</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Attachments -->
+    <div class="accordion attachments" ng-if="selected.item._source.attachments" ng-init="show=true">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Attachments
+            <span ng-class="{'count-matching': selected.item.highlight['attachments.displayName'].length}">
+                (<span>{{selected.item._source.attachments.length}}</span>)
+            </span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="attachment in highlightedAttachmentsList(selected.item)" class="horizontal-flex">
+                <span class="flex mx-textellipsis highlight" ng-bind-html="attachment.displayName || attachment.smartId"></span>
+                <span class="info noflex">{{attachment.type | lowercase}}</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Remarks -->
+    <div class="accordion remarks" ng-if="selected.item._source.remarks" ng-init="show=selected.item._source.remarks.length<200">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>Remarks
+        </h4>
+        <div ng-show="show" style="padding: 0 15px">
+            {{selected.item._source.remarks}}
+        </div>
+    </div>
+
+    <div class="accordion" ng-repeat="(type, elements) in selected.item.splitInputsByType">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Related initial {{type | niceTaggableType : elements.length}}<span ng-show="elements.length > 1"> ({{elements.length}})</span>
+        </h4>
+
+        <ul ng-show="show">
+            <li ng-repeat="input in elements" class="mx-textellipsis horizontal-flex">
+                <span class="flex mx-textellipsis">
+                    <a href="{{getLinkForElement(selected.item._source.projectKey, input)}}">{{ input.name }}</a>
+                </span>
+                <span ng-if="input.projectKey != selected.item._source.projectKey" class="info noflex">{{input.projectKey}}</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="accordion" ng-repeat="(type, elements) in selected.item.splitOutputsByType">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Related final {{type | niceTaggableType : elements.length}}<span ng-show="elements.length > 1"> ({{elements.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="input in elements" class="mx-textellipsis horizontal-flex">
+                <span class="flex mx-textellipsis">
+                    <a href="{{getLinkForElement(selected.item._source.projectKey, input)}}">{{ input.name }}</a>
+                </span>
+                <span ng-if="input.projectKey != selected.item._source.projectKey" class="info noflex">{{input.projectKey}}</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Recipe inputs -->
+    <div class="accordion" ng-if="selected.item._source.inputs.length" ng-init="show=true">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Input{{ selected.item._source.inputs.length > 1 ? 's' : '' }}
+            <span ng-if="selected.item._source.inputs.length > 1">({{selected.item._source.inputs.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="input in selected.item.splitInputs" class="mx-textellipsis horizontal-flex">
+                <span class="flex mx-textellipsis">
+                    <span ng-show="!input.type">{{ input.name }}</span>
+                    <a ng-show="input.type" href="{{getLinkForElement(selected.item._source.projectKey, input)}}">
+                        {{ input.name }}
+                    </a>
+                </span>
+                <span ng-if="input.role != 'main'" class="info noflex">{{input.projectKey}}</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Recipe inputs -->
+    <div class="accordion" ng-if="selected.item._source.outputs.length" ng-init="show=true">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Output{{ selected.item._source.outputs.length > 1 ? 's' : '' }}
+            <span ng-if="selected.item._source.outputs.length > 1">({{selected.item._source.outputs.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="output in selected.item.splitOutputs" class="mx-textellipsis horizontal-flex">
+                <span class="flex mx-textellipsis">
+                    <span ng-show="!output.type">{{ output.name }}</span>
+                    <a ng-show="output.type" href="{{getLinkForElement(selected.item._source.projectKey, output  )}}">
+                        {{ output.name }}
+                    </a>
+                </span>
+                <span ng-if="output.projectKey" class="info noflex">{{output.projectKey}}</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Exposed in projects -->
+    <div class="accordion" ng-if="selected.item._source.usedIn.length">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Exposed in projects <span>({{selected.item._source.usedIn.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="usedIn in selected.item._source.usedIn">
+                <a ui-sref="projects.project.home.regular({projectKey: usedIn})">{{usedIn}}</a>
+            </li>
+        </ul>
+    </div>
+
+    <div ng-if="selected.item._source.mlTasks.length || selected.item._source.numSteps || selected.item._source.numCharts">
+
+    </div>
+
+    <!-- Machine learning tasks -->
+    <div class="accordion" ng-if="selected.item._source.mlTasks.length">
+        <h4 class="accordion-title" ng-click="show=!show">
+            <i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Machine learning tasks <span>({{selected.item._source.mlTasks.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="task in selected.item._source.mlTasks" class="mx-textellipsis horizontal-flex">
+                <span class="flex mx-textellipsis">
+                    {{ task.name }}
+                </span>
+                <span class="info noflex">{{task.type | lowercase}}</span>
+            </li>
+        </ul>
+    </div>
+
+    <hr ng-if="selected.item._source.numSteps || selected.item._source.numCharts"/>
+
+    <!-- Steps -->
+    <div class="line" ng-if="selected.item._source.numSteps">
+        <h4>Script</h4>
+        <p>{{selected.item._source.numSteps }} step{{selected.item._source.numSteps > 1 ? 's' : ''}}</p>
+    </div>
+
+    <!-- Charts -->
+    <div class="line" ng-if="selected.item._source.numCharts">
+        <h4>Charts</h4>
+        <p>{{selected.item._source.numCharts }} chart{{selected.item._source.numCharts > 1 ? 's' : ''}}</p>
+    </div>
+
+    <!-- Project item counts -->
+    <div ng-if="selected.item._type == 'project'">
+        <hr/>
+        <div class="line">
+            <h4>Datasets</h4>
+            <p>{{selected.item._source.numDatasets}}</p>
+        </div>
+        <div class="line">
+            <h4>Recipes</h4>
+            <p>{{selected.item._source.numRecipes}}</p>
+        </div>
+        <div class="line">
+            <h4>Models</h4>
+            <p>{{selected.item._source.numModels}}</p>
+        </div>
+        <div class="line">
+            <h4>Folders</h4>
+            <p>{{selected.item._source.numManagedFolders}}</p>
+        </div>
+        <div class="line">
+            <h4>Scenarios</h4>
+            <p>{{selected.item._source.numScenarios}}</p>
+        </div>
+        <div class="line">
+            <h4>Notebooks</h4>
+            <p>{{selected.item._source.numNotebooks}}</p>
+        </div>
+        <div class="line">
+            <h4>Analyses</h4>
+            <p>{{selected.item._source.numAnalyses}}</p>
+        </div>
+        <div class="line">
+            <h4>Dashboards</h4>
+            <p>{{selected.item._source.numDashboards}}</p>
+        </div>
+        <div class="line">
+            <h4>Insights</h4>
+            <p>{{selected.item._source.numInsights}}</p>
+        </div>
+        <div class="line">
+            <h4>Webapps</h4>
+            <p>{{selected.item._source.numWebApps}}</p>
+        </div>
+        <div class="line">
+            <h4>Reports</h4>
+            <p>{{selected.item._source.numReports}}</p>
+        </div>
+        <div class="line">
+            <h4>Tasks</h4>
+            <p>{{selected.item._source.numTasks}}</p>
+        </div>
+        <div class="line">
+            <h4>Wiki articles</h4>
+            <p>{{selected.item._source.numWikiArticles}}</p>
+        </div>
+    </div>
+
+    <!-- Dashboard counts -->
+    <div ng-if="selected.item._type == 'dashboard'">
+        <hr/>
+        <div class="line">
+            <h4>Slides</h4>
+            <p>{{selected.item._source.numPages}}</p>
+        </div>
+        <div class="line">
+            <h4>Insights</h4>
+            <p>{{selected.item._source.numTiles}}</p>
+        </div>
+    </div>
+
+    <div ng-if="selected.item._type == 'insight'">
+        <miniature insight="insightData"/>
+    </div>
+
+    <!-- discussions list -->
+    <div class="accordion" ng-if="selected.item._source.discussions.length">
+
+        <h4 class="accordion-title" ng-click="show=!show"><i ng-class="{'icon-chevron-up':show, 'icon-chevron-down':!show}"></i>
+            Discussions <span>({{selected.item._source.discussions.length}})</span>
+        </h4>
+        <ul ng-show="show">
+            <li ng-repeat="discussion in selected.item._source.discussions" class="mx-textellipsis horizontal-flex">
+                <span class="flex mx-textellipsis">
+                    <a href="{{getLink(selected.item, discussion.id)}}">
+                        {{discussion.topic || 'Unnamed discussion'}}
+                    </a>
+                </span>
+            </li>
+        </ul>
+    </div>
+</div>

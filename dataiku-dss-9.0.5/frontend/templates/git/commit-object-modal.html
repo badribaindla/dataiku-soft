@@ -1,0 +1,33 @@
+<div class="modal modal3 modal-w800" ng-controller="CommitObjectModalController" tab-model="uiState.activeTab">
+
+	<dku-modal-header modal-title="Commit object" modal-class="has-border">
+		<dku-modal-tabs>
+			<li class="tab" tab-active="message">
+				<a tab-set="message">Message</a>
+			</li>
+			<li class="tab" tab-active="diff">
+				<a tab-set="diff">Diff</a>
+			</li>
+		</dku-modal-tabs>
+	</dku-modal-header>
+
+	<div class="modal-body flex" ng-switch="uiState.activeTab" style="min-height: 200px">
+		<div class="fh">
+			<div block-api-error />
+
+			<div ng-switch-when="message" class="row-fluid h100 git-commit-message__container">
+				<div class="dku-border code-mirror h200px git-commit-message__editor" autocompletable-textarea no-markdown="true">
+					<textarea ng-model="uiState.message" ui-codemirror="editorOptions" ng-if="editorOptions" />
+				</div>
+			</div>
+
+			<div ng-switch-when="diff" class="row-fluid h100">
+				<div git-diff diff-entries="preparationData.diffEntries" class="git-commit-diff__viewer" />
+			</div>
+		</div>
+	</div>
+	<div class="modal-footer modal-footer-std-buttons">
+		<button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+		<button type="button" class="btn btn--text btn--primary" ng-click="commit()" ng-disabled="!uiState.message.length">Commit</button>
+	</div>
+</div>

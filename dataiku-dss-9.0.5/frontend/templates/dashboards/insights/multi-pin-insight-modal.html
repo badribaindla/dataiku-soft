@@ -1,0 +1,42 @@
+<div class="modal modal3 multipin-insight-modal dku-modal" ng-controller="MultiPinInsightModalController" auto-size="false">
+    <div class="noflex has-border" dku-modal-header modal-title="Add to dashboards" modal-totem="icon-dku-publish"/>
+    <form name="multiPinInsightForm" class="dkuform-modal-wrapper">
+
+        <div ng-if="insight.type" class="modal-body">
+
+            <div block-api-error />
+
+            <div class="alert alert-error" ng-if="initiated && pinningOrders.length <= 0">
+                <span ng-if="dashboards.length > 0">Please select at least one dashboard.</span>
+                <span ng-if="!dashboards.length">You don't own any dashboard, please create one.</span>
+            </div>
+
+            <div include-no-scope="/templates/dashboards/insights/multi-pin-insight-table.html" />
+
+            <div class="control-group pointer-mode" ng-show="advancedMode">
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="pointerMode.mode"/>
+                        Create tiles pointing to the selected insight instead of duplicating it.
+                    </label>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <div class="advanced-parameters" ng-show="dashboards.length > 0">
+                <label class="advanced-parameters--label">
+                    <input type="checkbox" ng-model="advancedMode">&nbsp;Advanced parameters
+                </label>
+            </div>
+
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" id="qa_insight_publish-pin-button"
+                    ng-click="sendPinningOrders()" ng-disabled="pinningOrders.length <= 0" >
+                Pin
+            </button>
+        </div>
+
+    </form>
+</div>

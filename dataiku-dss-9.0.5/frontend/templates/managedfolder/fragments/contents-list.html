@@ -1,0 +1,37 @@
+<div>
+	<!-- empty folder -->
+	<div class="preview-cta centered-info" ng-if="odbListing.children && odbListing.children.length ==0">
+		<div class="default-cta">The folder is empty</div>
+		<div class="dropping-cta" ng-if="!readOnly">You can drop now</div>
+		<div class="upload-hook" ng-if="!readOnly">
+			Drag and drop your files here or
+			<button class="btn btn--contained upload-button" onclick="$('#hidden-input-file').click()">Add a file</button>
+		</div>
+	</div>
+	<!-- non empty folder && empty filtered folder -->
+	<div class="preview-cta centered-info" ng-if="odbListing.children && odbListing.children.length != 0 && filteredOdbListing.length == 0">
+		<div class="default-cta">No file nor folder match your filter</div>
+	</div>
+	<!-- non empty folder && non empty filtered folder -->
+	<div ng-if="odbListing.children && odbListing.children.length != 0 && filteredOdbListing.length > 0" class="h100 vertical-flex">
+		<!-- table header -->
+		<div class="header contents-file-list-line">
+			<span class="name" ng-click="switchSortMethod('name')">Name <i ng-if="sortMethod.by == 'name'" ng-class="sortMethod.reversed ? 'icon-chevron-down' : 'icon-chevron-up'"></i></span>
+			<span class="meta-info">
+				<span ng-click="switchSortMethod('lastModified')">Last Modification <i ng-if="sortMethod.by == 'lastModified'" ng-class="sortMethod.reversed ? 'icon-chevron-down' : 'icon-chevron-up'"></i></span>
+				<span ng-click="switchSortMethod('size')">Size <i ng-if="sortMethod.by == 'size'" ng-class="sortMethod.reversed ? 'icon-chevron-down' : 'icon-chevron-up'"></i></span>
+			</span>
+			<span class="action-col"><!-- action col --></span>
+		</div>
+		<ng-include src="'/templates/managedfolder/fragments/contents-file-list.html'" class="content-file-list-wrapper"></ng-include>
+		<div class="upload-hook" ng-if="!readOnly">
+			<span ng-if="!uiState.canDrop">
+				Drag and drop your files here or
+				<button class="btn btn--contained upload-button" onclick="$('#hidden-input-file').click()">Add a file</button>
+			</span>
+			<span ng-if="uiState.canDrop">
+				Drop your file here
+			</span>
+		</div>
+	</div>
+</div>

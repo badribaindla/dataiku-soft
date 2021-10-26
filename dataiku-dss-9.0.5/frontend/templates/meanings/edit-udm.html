@@ -1,0 +1,106 @@
+<div ng-controller="EditUDMController" class="modal modal3 edit-udm-modal" tab-model="uiState.activeTab" auto-size="false">
+
+    <dku-modal-header-with-totem modal-totem="icon-dku-meanings" >
+        <dku-modal-title>
+            {{creation ? 'Create meaning' : 'Edit meaning &quot;' + udm.id + '&quot;'}}
+        </dku-modal-title>
+        <dku-modal-tabs>
+            <li class="tab" tab-active="definition"><a tab-set="definition">Definition</a></li>
+            <li class="tab" tab-active="columns"><a tab-set="columns">Columns</a></li>
+        </dku-modal-tabs>
+    </dku-modal-header-with-totem>
+
+    <div block-api-error></div>
+
+    <div class="modal-body" ng-switch="uiState.activeTab" style="height: 380px;">
+
+        <div ng-switch-when="definition" class="h100">
+            <ng-include src="'/templates/meanings/udm-definition-form.html'" class="h100"></ng-include>
+        </div>
+
+        <div ng-switch-when="columns" class="h100">
+            <table style="background: transparent" class="vertical-flex h100">
+                <thead class="noflex">
+                    <tr>
+                        <th>
+                            <input type="checkbox" ng-model="$parent.toggleAll" dku-indeterminate="indeterminate()" />
+                        </th>
+                        <th>
+                            <div class="std-list-search-box" style="margin-left: 1px">
+                                <span class="add-on"> <i class="icon-dku-search"></i></span>
+                                <input type="search" ng-model="$parent.query" placeholder="Search columns"/>
+                            </div>
+                        </th>
+
+                        <th>
+                            Dataset
+                        </th>
+
+                        <th>
+                            Project
+                        </th>
+
+                        <th>
+                            Meaning
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody class="flex">
+                    <tr ng-repeat="column in results.hits.hits" ng-class-even="'even'" full-click>
+                        <td>
+                            <input type="checkbox" main-click
+                                   ng-if="column._source.meaning === udm.id"
+                                   ng-model="checkboxes[column._id]"
+                                   ng-checked="true"
+                                   ng-true-value="'no_change'"
+                                   ng-false-value="'remove'"
+                                   ng-change="updateCounts()"
+                                    />
+                            <input type="checkbox" main-click
+                                   ng-if="column._source.meaning !== udm.id"
+                                   ng-model="checkboxes[column._id]"
+                                   ng-true-value="'add'"
+                                   ng-false-value="'no_change'"
+                                   ng-change="updateCounts()"
+                                    />
+                        </td>
+
+                        <td class="highlight" ng-bind-html="column.highlight.name[0] || column._source.name">
+
+                        </td>
+
+                        <td>{{ column._source.dataset }}</td>
+
+                        <td>{{ column._source.projectName }}</td>
+
+                        <td class="meaning" ng-class="{disabled: checkboxes[column._id] && checkboxes[column._id] != 'no_change'}">
+                            <em ng-if="column._source.meaning">
+                                <small style="color: #999"><i class="icon-lock"></i></small>
+                                {{column._source.meaning}}</em>
+                            <span ng-if="!column._source.meaning">auto</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="modal-footer modal-footer-std-buttons has-border">
+        <div class="pull-left">
+            <p style="font-size:12px; padding-left: 10px; margin: 0;">
+                <span ng-if="changeCounts.add">Assigned to {{changeCounts.add}} colum</span>
+                <span ng-if="changeCounts.remove">Removed from {{changeCounts.remove}} column</span>
+            </p>
+        </div>
+
+        <div class="pull-right">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <span style="display: inline-block;"
+                  ng-mouseenter="form.mouseOverSave = true"
+                  ng-mouseleave="form.mouseOverSave = false"><button type="submit" class="btn btn--text btn--primary" ng-click="save()"
+                  ng-disabled="saving || form.$invalid">Save</button></span>
+        </div>
+    </div>
+</div>

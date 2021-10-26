@@ -1,0 +1,190 @@
+<div ng-controller="TriggersViewController" class="h100 list-page-4">
+
+    <div data-extend-template="/templates/layouts/list-items-3.html" class="vertical-flex scenario-triggers">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            Scenarios
+        </span>
+
+        <div data-block="table-header" class="main-list-zone row-fluid">
+            <div class="span9 offset0" style="height: 30px; min-height: 30px">
+                <ul class="list-items noflex">
+                    <li data-block="header-item" class="list-item" style="display:block">
+                        <label style="visibility: hidden">
+                            <span style="display:none;" main-click></span>
+                            <input type="checkbox" ng-model="item.$selected" />
+                        </label>
+                        <div class="hit" style="height: 14px; line-height: 14px; padding: 8px 10px 7px">
+                            <div class="chunk">
+                                <strong>Project</strong>
+                            </div>
+                            <div class="chunk">
+                                <strong>Scenario</strong>
+                            </div>
+                            <div class="trigger-list chunk" style="width: 23%">
+                                 <strong>Auto-Triggers</strong>
+                            </div>
+                            <div class="chunk">
+                                <strong>Next planned run</strong>
+                            </div>
+                            <div class="active-indicator chunk">
+                                <strong>Triggers enabled</strong>
+                            </div>
+
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="span3 offset0" style="height: 30px; min-height: 30px; border-bottom: 1px #ddd solid">&nbsp;</div>
+
+        </div>
+    
+        <div data-block="empty">
+            <h1>
+                No scenario in this instance
+            </h1>
+            <p>
+                Scenarios let you automate and schedule<br /> dataset builds, model trainings, and many other tasks
+            </p>
+            <p class="small">
+                <span doclink-wrapper page="scenarios/index">Read the documentation</span> to learn more
+            </p>
+        </div>
+    
+        <div data-block="item">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit" dataset="item" ng-class="{'scenario-inactive' : !item.active}">
+                <a class="chunk mx-link-nodecoration"
+                   ui-sref="projects.project.monitoring.scenarios({projectKey: item.projectKey})"
+                   show-tooltip-on-text-overflow text-tooltip="item.projectKey | boldify:selection.filterParams.userQueryResult">
+                </a>
+                <a class="chunk mx-link-nodecoration"
+                   ui-sref="projects.project.scenarios.scenario.settings({projectKey: item.projectKey, scenarioId: item.id})"
+                   show-tooltip-on-text-overflow text-tooltip="item.name || item.id | boldify:selection.filterParams.userQueryResult">
+                </a>
+                <div class="trigger-list chunk" style="width: 23%" ng-show="!item.triggerDigestItems.length">
+                    No auto-triggers
+                </div>
+                <ul class="trigger-list chunk" style="width: 23%" ng-show="item.triggerDigestItems.length != 0">
+                    <li ng-repeat="trigger in item.triggerDigestItems" class="trigger-item" ng-class="{'trigger-inactive' : !trigger.active}">
+                        <span ng-show="!trigger.active">(Disabled)</span>
+                        <span>{{trigger.name || trigger.description}}</span>
+                    </li>
+                </ul>
+                <div class="chunk trigger-next-run">
+                    <span ng-if="item.nextRun">{{item.nextRun | friendlyDateTime}}</span>
+                    <span ng-if="!item.nextRun">N/A</span>
+                </div>
+                <div class="active-indicator chunk">
+                    <label class="dku-toggle list-item__toggle" toggle="tooltip" title="{{ getAutoTriggerDisablingReason(appConfig, projectSummaryMap[item.projectKey]) }}" style="margin-left: 0;">
+                        <input type="checkbox" ng-disabled="getAutoTriggerDisablingReason(appConfig, projectSummaryMap[item.projectKey])" ng-model="item.active" ng-change="toggleActive(item)"></input>
+                        <span style="display: inline-block; position: relative;" ></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    
+        <!-- RIGHT COLUMN PREVIEW -->
+        <div class="h100" data-block="preview" ng-if="selection.selectedObject || selection.selectedObjects.length" right-column-tab="details">
+            <div class="vertical-flex h100 object-right-column-summary">
+                <div item-header class="noflex"
+                     href="$state.href('projects.project.scenarios.scenario.settings', {projectKey:selection.selectedObject.projectKey, scenarioId:selection.selectedObject.id})"
+                     color="scenario" icon="icon-list"
+                     ng-if="selection.selectedObjects.length === 1"
+                     title="{{selection.selectedObject.name}}">
+                    {{ selection.selectedObject.name }}
+                </div>
+                <div item-header class="noflex"
+                     color="scenario" icon="icon-list"
+                     ng-if="selection.selectedObjects.length > 1">
+                    {{ selection.selectedObjects.length + ' scenarios' }}
+                </div>
+
+                <div class="column-header-tabs noflex">
+                    <div class="tab" ng-if="selection.selectedObjects.length === 1" ng-class="{'active' : uiState.activeTab === 'details'}"
+                        ng-click="uiState.activeTab = 'details'">
+                        <div class="title">Details</div>
+                    </div>
+                    <div class="tab" ng-class="{'active' : uiState.activeTab === 'actions' || selection.selectedObjects.length > 1}"
+                        ng-click="uiState.activeTab = 'actions'">
+                        <div class="title">Actions</div>
+                    </div>
+                </div>
+    
+                <div class="flex">
+                    <div class="fh">
+                        <div ng-if="uiState.activeTab === 'details' && selection.selectedObjects.length === 1" class="object-summary-tab-content details-tab h100 oa">
+                            <div class="padded-section">
+                            <table class="details-table">
+                                <tr>
+                                    <th>Project</th>
+                                    <td>
+                                        {{selection.selectedObject.projectKey}}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Id</th>
+                                    <td>
+                                        {{selection.selectedObject.id}}
+                                    </td>
+                                </tr>
+                                <tr ng-if="selection.selectedObject.createdOn > 0"> <!-- because a bug in the scenario creation was preventing the creationTag from being saved -->
+                                    <th>Created</th>
+                                    <td>
+                                        {{selection.selectedObject.createdOn|friendlyTimeDeltaShort}}
+                                        <a ng-show="selection.selectedObject.createdBy" toggle="tooltip" title="{{selection.selectedObject.createdBy.displayName}}" href="{{ $state.href('profile.user',{userLogin:selection.selectedObject.createdBy.login}) }}">
+                                            <span user-picture="selection.selectedObject.createdBy.login" size="20" />
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Active</th>
+                                    <td>
+                                        <label class="dku-toggle" style="margin-left: 0;" toggle="tooltip" title="{{ getAutoTriggerDisablingReason(appConfig, projectSummaryMap[selection.selectedObject.projectKey]) }}" container="body">
+                                            <input type="checkbox" ng-disabled="getAutoTriggerDisablingReason(appConfig, projectSummaryMap[selection.selectedObject.projectKey])" ng-model="selection.confirmedItem.active" ng-change="toggleActive(selection.confirmedItem)">
+                                            <span style="display: inline-block" />
+                                        </label>
+                                    </td>
+                                </tr>
+                                <tr ng-if="appConfig.isAutomation">
+                                    <th>Origin</th>
+                                    <td>{{selection.confirmedItem.automationLocal ? 'local' : 'bundle'}}</td>
+                                </tr>
+                                <tr>
+                                    <th>Auto-triggers</th>
+                                    <td title="{{selection.selectedObject.triggerDigest}}" ng-show="selection.selectedObject.triggerDigest">{{selection.selectedObject.triggerDigest}}</td>
+                                    <td ng-show="!selection.selectedObject.triggerDigest">No auto-triggers</td>
+                                </tr>
+                                <tr>
+                                    <th>Next run</th>
+                                    <td ng-if="selection.selectedObject.nextRun">{{selection.selectedObject.nextRun | friendlyDateTime}}</td>
+                                    <td ng-if="!selection.selectedObject.nextRun">N/A</td>
+                                </tr>
+                                <tr>
+                                    <th>Description</th>
+                                    <td style="white-space: pre-wrap;">{{selection.selectedObject.description}}</td>
+                                </tr>
+                            </table>
+                            </div>
+                        </div>
+    
+                        <div ng-if="uiState.activeTab === 'actions' || selection.selectedObjects.length > 1" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+                            <div class="icons-section icons-grey icons-main" ng-if="selection.selectedObjects.length === 1">
+                                <div simple-right-col-action-href href="{{$state.href('projects.project.scenarios.scenario.settings', {projectKey:selection.selectedObject.projectKey, scenarioId:selection.selectedObject.id})}}" label="Open" icon="icon-edit" />
+                                <div simple-right-col-action-click on-click="runNow(selection.selectedObject)" label="Run" icon="icon-play" />
+                            </div>
+                            <div class="icons-section icons-grey icons-main" ng-if="selection.selectedObjects.length > 1">
+                                <div simple-right-col-action-click ng-if="!allAutoTriggers(selection.selectedObjects)" on-click="autoTriggersObjects(true, selection.selectedObjects)" label="Activate Auto-triggers" icon="icon-ok-sign" />
+                                <div simple-right-col-action-click ng-if="allAutoTriggers(selection.selectedObjects)" on-click="autoTriggersObjects(false, selection.selectedObjects)" label="Disable Auto-triggers" icon="icon-remove-sign" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+            </div>
+        </div>
+    </div>
+</div>

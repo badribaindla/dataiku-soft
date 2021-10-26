@@ -1,0 +1,87 @@
+<div ng-controller="ColumnEditUDMController" class="modal modal3 edit-udm-modal" auto-size="false">
+
+    <div class="catalog-tooltips"></div>
+    <div dku-modal-header-with-totem modal-title="Meaning for &quot;{{columnName}}&quot;" modal-totem="icon-tags" />
+
+    <div block-api-error />
+
+    <!-- Search view -->
+    <div ng-if="state == 'search'" selected-index="saveSet(item._source.id)" ng-model="results.hits.hits" deselect="true" in-modal="true">
+
+        <div class="modal-body udm-search vertical-flex">
+
+            <div class="summary noflex">
+                <button type="button" class="btn btn--secondary pull-right" ng-click="createNew()"><i plus-icon /> Create meaning</button>
+                <div class="std-list-search-box">
+                    <span class="add-on"> <i class="icon-dku-search"></i></span>
+                    <input type="search" ng-model="query.queryString" ng-keydown="blurOnEnter($event)" placeholder="Search meanings"/>
+                </div>
+            </div>
+
+            <div class="flex">
+                <div class="horizontal-flex row-fluid fh">
+                    <div class="span7 flex fh">
+
+                        <div class="alert alert-info" ng-if="results.hits.hits.length === 0" style="border-radius: 0">
+                            <h4>No{{ query.queryString !== 'saved' ? ' matching' : '' }} meaning</h4>
+                            <p style="text-align: right;">
+                                <a class="btn btn--secondary" ng-click="createNew()"><i plus-icon /> Create meaning</a>
+                                <a class="btn btn--secondary" ng-click="query.queryString = ''" ng-if="query.queryString !== ''">Clear search</a>
+                            </p>
+                        </div>
+
+                        <ul>
+                            <li ng-repeat="meaning in results.hits.hits"
+                                ng-class="{active: $index === selected.index && selected.item}"
+                                ng-click="selectIndex($index)"
+                                scroll-to-me="{{($index === selected.index)?'true':'false'}}"
+                                ng-class-even="'even'">
+                                <div class="horizontal-flex">
+
+                                    <span class="flex mx-textellipsis">
+
+                                        <span ng-if="meaning._source.prefix" class="prefix">
+                                            <span class="highlight" ng-bind-html="meaning.highlight.prefix[0] || meaning._source.prefix"></span>_</span><span
+                                            class="label highlight" ng-bind-html="meaning.highlight.label[0] || meaning._source.label"></span>
+
+                                    </span>
+
+                                    <span class="noflex type highlight">{{udmTypes[meaning._source.udm_type] | lowercase}}</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="span5 object-right-column-summary" ng-controller="ColumnEditUDMRefreshController">
+                        <ng-include src="'/templates/catalog/meanings-rightcolumn.html'" ng-hide="!selected.item"></ng-include>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="modal-footer modal-footer-std-buttons has-border">
+            <div class="pull-right">
+                <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+                <button type="submit" class="btn btn--text btn--primary" ng-click="saveSet(selected.item._source.id)"  ng-disabled="!selected.item">Select</button>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="state == 'new'">
+        <div class="modal-body">
+            <ng-include src="'/templates/meanings/udm-definition-form.html'"></ng-include>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons has-border">
+            <div class="pull-right">
+                <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+                <span style="display: inline-block;"
+                      ng-mouseenter="form.mouseOverSave = true"
+                      ng-mouseleave="form.mouseOverSave = false">
+                    <button type="submit" class="btn btn--text btn--primary" ng-click="saveNew()" ng-disabled="saving || form.$invalid">Create and Set</button>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

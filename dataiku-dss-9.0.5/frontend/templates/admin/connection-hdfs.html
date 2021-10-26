@@ -1,0 +1,255 @@
+<div ng-controller="HDFSConnectionController" class="h100 vertical-flex">
+    <div class="flex">
+        <div class="fh oa">
+            <div class="h100 small-lr-padding">
+                <div class="generic-white-box">
+                    <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                    <div block-api-error />
+
+
+                    <form name="connectionParamsForm" class="dkuform-horizontal">
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <h2 class="settings-section-title">Hadoop connection</h2>
+                                <div class="control-group" form-template-element model="connection.params"
+                                field="{name:'root',type:'string', mandatory:true, label:'Root path URI'}" />
+
+                                <div class="control-group">
+                                    <label for="" class="control-label">Extra Hadoop conf.</label>
+                                    <div class="controls" ng-init="connection.params.extraConf = connection.params.extraConf || []">
+                                        <ng2-credentials-list 
+                                            [(items)]="connection.params.extraConf"
+                                            key-identifier="name"
+                                            key-placeholder="Configuration key"
+                                            value-placeholder="Configuration value"
+                                            [required]="true"
+                                            [can-be-final]="false"
+                                            add-label="Add extra configuration"
+                                            (on-validity-change)="setExtraHadoopConfigurationValidity($event)">
+                                        </ng2-credentials-list>
+                                    </div>
+                                </div>
+
+                                <h2 class="settings-section-title">Hive integration</h2>
+                                <div class="control-group">
+                                    <label class="control-label">Hive synchronization mode</label>
+                                    <div class="controls">
+                                        <select ng-model="connection.params.hiveSynchronizationMode">
+                                            <option value="KEEP_IN_SYNC">Keep datasets synced</option>
+                                            <option value="NO_SYNC">No sync</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-if="connection.params.hiveSynchronizationMode != 'NO_SYNC'">
+                                    <label for="" class="control-label">Fallback Hive DB</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.defaultDatabase" name="hiveDefaultDatabaseName" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/" />
+                                        <div class="help-inline error-text-color" ng-show="connectionParamsForm.hiveDefaultDatabaseName.$invalid">
+                                            Hive database names can only contains letters, numbers and underscores.
+                                        </div>
+                                        <div class="help-inline">
+                                            This database is used as fallback for datasets which do not have a database set.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div ng-show="connection.allowManagedDatasets && !appConfig.impersonationEnabled && connection.params.hiveSynchronizationMode != 'NO_SYNC'">
+                                    <h2 class="settings-section-title">Advanced</h2>
+
+                                    <div class="control-group" ng-if="!appConfig.impersonationEnabled && connection.params.hiveSynchronizationMode != 'NO_SYNC'">
+                                        <label class="control-label">Override pre-create folder for recipes</label>
+                                        <div class="controls">
+                                            <label>
+                                                <input type="checkbox" ng-model="connection.params.overridePreCreateManagedDatasetFolderBeforeMetastoreSyncForRecipes"/>
+                                                <span class="help-inline">Override the value in the general settings for this connection</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="control-group">
+                                        <label class="control-label">Custom provider (advanced)</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.customPropertiesProviderClass" />
+                                            <span class="help-inline">
+                                                Class name of a custom HDFS properties
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="control-group" ng-if="connection.params.customPropertiesProviderClass">
+                                        <label class="control-label">Custom provider settings</label>
+                                        <div class="controls">
+                                        <ng2-credentials-list 
+                                            [(items)]="connection.params.customPropertiesProviderParams"
+                                            key-identifier="name"
+                                            key-placeholder="Provider key"
+                                            value-placeholder="Provider value"
+                                            [can-be-final]="false"
+                                            add-label="Add provider setting">
+                                        </ng2-credentials-list>
+                                    </div>
+                                </div>
+
+                                </div>
+                                <div ng-show="connection.allowManagedDatasets || connection.allowManagedFolders">
+                                    <h2 class="settings-section-title">Naming rules for new datasets</h2>
+                                    <p>
+                                        <small class="help-inline" style="padding: 0">
+                                            These settings define how managed HDFS datasets are located and mapped to
+                                            Hive tables. These settings are only applied when creating a new managed HDFS dataset.
+                                            You can always modify these afterwards in the HDFS dataset settings.
+                                            See <doclink page="/connecting/relocation" title="the documentation" /> for more information.
+                                        </small>
+                                    </p>
+
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Path prefix</label>
+                                        <div class="controls">
+                                            <input ng-model="connection.params.namingRule.hdfsPathDatasetNamePrefix" type="text" />
+                                            <div class="help-inline">
+                                                This will be prepended before the dataset name in the path, relative
+                                                to the connection root. You may reference variables here, they will
+                                                be expanded dynamically
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Path suffix</label>
+                                        <div class="controls">
+                                            <input ng-model="connection.params.namingRule.hdfsPathDatasetNameSuffix" type="text" />
+                                            <div class="help-inline">
+                                                This will be appended after the dataset name in the path, relative
+                                                to the connection root. You may reference variables here, they will
+                                                be expanded dynamically
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" ng-if="connection.params.hiveSynchronizationMode != 'NO_SYNC'">
+                                        <label for="" class="control-label">Hive database</label>
+                                        <div class="controls">
+                                            <input ng-model="connection.params.namingRule.hiveDatabaseName" type="text"  name="hiveDatabaseName" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/" />
+
+                                            <div class="help-inline error-text-color" ng-show="connectionParamsForm.hiveDatabaseName.$invalid">
+                                                Hive database names can only contains letters, numbers and underscores.
+                                            </div>
+                                            <br/>
+                                            <div class="help-inline">
+                                                You may reference variables here, they will be expanded dynamically
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" ng-if="connection.params.hiveSynchronizationMode != 'NO_SYNC'">
+                                        <label for="" class="control-label">Hive table name prefix</label>
+                                        <div class="controls">
+                                            <input ng-model="connection.params.namingRule.tableNameDatasetNamePrefix" type="text" name="hiveTableNamePrefix" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/" />
+
+                                            <div class="help-inline error-text-color" ng-show="connectionParamsForm.hiveTableNamePrefix.$invalid">
+                                                Hive table names can only contains letters, numbers and underscores.
+                                            </div>
+                                            <br/>
+                                            <div class="help-inline">
+                                                This will be prepended before the dataset name in the hive table name.
+                                                You may reference variables here, they will be expanded dynamically
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" ng-if="connection.params.hiveSynchronizationMode != 'NO_SYNC'">
+                                        <label for="" class="control-label">Hive table name suffix</label>
+                                        <div class="controls">
+                                            <input ng-model="connection.params.namingRule.tableNameDatasetNameSuffix" type="text" name="hiveTableNameSuffix" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/"  />
+                                            <div class="help-inline error-text-color" ng-show="connectionParamsForm.hiveTableNameSuffix.$invalid">
+                                                Hive table names can only contains letters, numbers and underscores.
+                                            </div>
+                                            <br/>
+                                            <div class="help-inline">
+                                                This will be appended after the dataset name in the hive table name.
+                                                You may reference variables here, they will be expanded dynamically
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-warning" ng-show="warnings.noVariableInPath">
+                                        Path does not include any variable reference. Datasets will be created in an absolute path,
+                                        which is not recommended for relocation purposes and may cause name clashes.
+                                    </div>
+                                    <div class="alert alert-warning" ng-show="warnings.noVariableInHive">
+                                        Table and schema name do not include any variable reference. Datasets will be created with
+                                        absolute names, which is not recommended for relocation purposes and may cause name clashes.
+                                    </div>
+
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Uploads path prefix</label>
+                                        <div class="controls">
+                                            <input ng-model="connection.params.namingRule.uploadsPathPrefix" type="text"/>
+                                            <div class="help-inline">
+                                                This will be prepended to the path for uploaded datasets.
+                                                Variables expansion is not supported.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+								<div class="control-group">
+								    <h2 class="settings-section-title">Custom properties</h2>
+								    <label  class="control-label">Advanced connection properties</label>
+								    <div class="controls">
+                                        <ng2-connection-properties-list [(items)]="connection.params.dkuProperties" (on-validity-change)="setAdvancedConnectionPropertiesValidity($event)"></ng2-connection-properties-list>
+								        <span class="help-inline">
+								            For specific use cases
+								        </span>
+								    </div>
+								</div>
+                            </div>
+                            <div class="span6">
+
+                                <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                                <div include-no-scope="/templates/admin/fragments/connection-credentials-mode.html" />
+
+                                <div ng-show="appConfig.impersonationEnabled">
+
+                                    <h2 class="settings-section-title">Impersonation-related settings</h2>
+                                    <div class="control-group">
+                                        <label class="control-label">ACL synchronization mode</label>
+                                        <div class="controls">
+                                            <select ng-model="connection.params.aclSynchronizationMode">
+                                                <option value="NONE">None</option>
+                                                <option value="SUBDIRECTORY">Through subdirectory</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="control-group">
+                                        <label class="control-label">Clear as</label>
+                                        <div class="controls">
+                                            <select ng-model="connection.params.clearMode">
+                                                <option value="DSS_USER">DSS User</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <button type="button" class="btn btn--secondary" ng-click="resyncRootPermissions()">
+                                            Resync root permissions
+                                        </button>
+                                        <button type="button" class="btn btn--secondary" ng-click="resyncPermissions()">
+                                            Resync dataset permissions
+                                        </button>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                    <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="noflex small-lr-padding page-top-padding" include-no-scope="/templates/admin/fragments/connection-name-test-save-with-results.html" />
+</div>

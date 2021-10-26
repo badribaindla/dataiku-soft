@@ -1,0 +1,1 @@
+SELECT data, rank(data) FROM a;

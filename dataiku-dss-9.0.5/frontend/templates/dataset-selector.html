@@ -1,0 +1,84 @@
+<div ng-if="!multi && !transclude" ng-class="{'has-dataset': currentlySelected}" full-click
+	class="mainzone dss-object-selector-mainzone has-caret" title="{{currentlySelected.smartName}}" ng-if="!transclude">
+	<span class="caret"></span>
+	<span ng-show="currentlySelected">
+		<a class="trigger qa_recipe_selected-dataset" main-click
+			ng-click="togglePopover()">{{currentlySelected.label || currentlySelected.smartName}}
+		</a>
+		<br/>
+		<small>
+			<span>{{currentlySelected.type}}</span> -
+			<a ng-if="!currentlySelected.localProject"
+				ui-sref="projects.project.foreigndatasets.dataset.explore({projectKey: currentlySelected.projectKey, datasetFullName: currentlySelected.smartName})">
+				View
+			</a>
+			<a ng-if="currentlySelected.localProject"
+				ui-sref="projects.project.datasets.dataset.explore({projectKey: currentlySelected.projectKey, datasetName: currentlySelected.smartName})">
+				View
+			</a>
+		</small>
+	</span>
+
+	<a main-click 
+		ng-show="!currentlySelected"
+		class="trigger qa_generic_ds-selector" 
+		ng-click="togglePopover()">No dataset selected
+	</a>
+</div>
+
+<button ng-if="multi && !transclude" class="dku-select-button mainzone has-caret" ng-click="togglePopover()">
+	<span>
+		<b ng-if="datasetSelector && datasetSelector.length > 0">{{ datasetSelector.length }} </b>
+		{{ 'Dataset' | plurify: datasetSelector.length }}
+	</span>
+	<span class="caret"></span>
+</button>
+
+<div ng-if="transclude" ng-transclude class="mainzone"></div>
+
+<div class="dss-object-selector-popover popover checkable-items" id="qa_visual-recipes_dataset-selector">
+	<div class="search-wrapper">
+		<input type="search" 
+			autofocus 
+			ng-model="filter.query" 
+			placeholder="Filter&hellip;"
+			class="qa_generic_filter-ds-selector" />
+	</div>
+	<div class="list-zone">
+		<div ng-repeat="group in displayedGroups" class="group">
+			<hr />
+			<h4>{{group.title}}</h4>
+
+			<ul class="dss-object-selector__items">
+				<li ng-repeat="object in group.datasets"
+					ng-class="{ disabled: !object.usable, selected: isItemSelected(object), hovered: currentlySelected === object }"
+					class="dss-object-selector__item"
+					full-click
+					scroll-to-me="{{currentlySelected == object}}">
+					<span class="dss-object-selector__item-selection" ng-if="multi">
+						<i ng-if="isItemSelected(object)" class="icon-ok"></i>
+					</span>
+					<span class="dss-object-selector__item-icon">
+						<i class="{{(object.type == 'STREAMING_ENDPOINT' ? object.streamingEndpoint.type : object.datasetType || object.subtype) | subTypeToIcon: object.type }} {{ object.type | typeToColor }}"></i>
+					</span>
+					<a href="" main-click ng-click="itemClicked(object)" ng-if="object.localProject"
+						class="qa_recipe_available-datasets dss-object-selector__item-name">
+						{{object.label || object.name}}
+						<span class="dss-object-selector__item-type">
+							{{object.type == "STREAMING_ENDPOINT" ? object.streamingEndpoint.datasetType : object.subtype}}
+							<span ng-bind="object.usableReason"></span>
+						</span>
+					</a>
+					<a href="" main-click ng-click="select(object)" ng-if="!object.localProject">
+						{{object.label || object.name}} (from project {{object.projectKey}})
+						<span class="dss-object-selector__item-type">
+							{{object.datasetType || object.subtype}}
+							<span ng-bind="object.usableReason"></span>
+						</span>
+					</a>
+				</li>
+			</ul>
+
+		</div>
+	</div>
+</div>

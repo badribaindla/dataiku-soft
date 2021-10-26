@@ -1,0 +1,44 @@
+<div class="modal modal3 tutorial-download" ng-controller="TutorialDownloadController" >
+	<div dku-modal-header modal-title="Create &quot;{{tutorialIdToInstall}}&quot;" modal-class="has-border"/>
+
+
+<form class="dkuform-modal-horizontal dkuform-modal-wrapper" ng-cloak>
+	<div class="modal-body">
+		<div ng-if="state == 'RUNNING'">
+			<!-- can be downloading, unzipping, importing (briefly) -->
+			<span>Please wait, {{stateShown.name}}</span>
+			<div class="download-progress" ng-show="installingFuture && installingFuture.progress.states[0]">
+				<div ng-show="installingFuture.progress.states[0].unit == 'NONE'" class="progress">
+					<div class="bar bar-success" style="width: {{installingFuture.progress.states[0].cur}}%;"></div>
+					<div style="position: absolute; left: 0px; width: 100%; text-align: center;">Progress...</div>
+				</div>
+				<div ng-show="installingFuture.progress.states[0].unit == 'SIZE'">
+					<span>{{installingFuture.progress.states[0].cur}} bytes downloaded</span>
+				</div>
+			</div>
+		</div>
+
+		<div ng-if="state == 'FAILED'" class="alert alert-error" >
+			<h4> <i class="icon-dku-error" />&nbsp;Failed to create the tutorial.</h4>
+			<p>
+				{{failure.message}}
+			</p>
+		</div>
+		<div ng-if="state == 'DONE'" class="alert alert-info">
+			Tutorial created successfully
+		</div>
+	</div>
+
+	<div class="modal-footer modal-footer-std-buttons">
+		<div ng-if="state == 'RUNNING'">
+			<button type="button" class="btn btn--text btn--danger" ng-click="abort()">Abort</button>
+		</div>
+		<div ng-if="state == 'FAILED'">
+			<button type="submit" class="btn btn--text btn--secondary" ng-click="dismiss()">Close</button>
+		</div>
+		<div ng-if="state == 'DONE'">
+			<button type="submit" class="btn btn--text btn--secondary" ng-click="closeAndGo()">OK</button>
+		</div>
+	</div>
+</form>
+</div>

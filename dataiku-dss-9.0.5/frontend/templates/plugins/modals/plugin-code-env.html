@@ -1,0 +1,80 @@
+<form class="dkuform-modal-horizontal mbot0">
+    <div ng-show="uiState.state == 'DISPLAY'">
+        <label class="control-label">Plugin currently uses env</label>
+        <div class="controls">
+            {{settings.codeEnvName}}
+             <button ng-show="codeEnvs.length > 0" type="button" class="btn btn--secondary mleft8" ng-click="uiState.state = 'SELECT'">Change</button>
+             <button ng-show="codeEnvs.length == 0" type="button" class="btn btn--secondary mleft8" ng-click="uiState.state = 'CREATE'">Change</button>
+             <button type="button" class="btn btn--secondary mleft8" ng-click="useCodeEnv(null, 'SELECT')">Dissociate</button>
+        </div>
+    </div>
+    <div ng-show="uiState.state == 'SELECT'">
+        <div class="control-group mbot0" ng-show="codeEnvs.length > 0 || settings.codeEnvName">
+            <label class="control-label">Use existing matching env</label>
+            <div class="controls">
+                <select dku-bs-select data-none-selected-text="Select a code environment" ng-model="settings.codeEnvName" ng-options="e.envName as e.envName + ' (' + e.deploymentMode + ')' for e in codeEnvs"  data-live-search="true"/>
+                <button type="button" ng-disabled="!settings.codeEnvName" class="btn btn--secondary" ng-click="useCodeEnv(settings.codeEnvName)">Confirm</button>
+                <button type="button" class="btn btn--secondary" ng-click="uiState.state = 'CREATE'"> Create a new one</button>
+            </div>
+        </div>
+    </div>
+    <div ng-show="uiState.state == 'CREATE'">
+        <div class="control-group" >
+            <label class="control-label">Create new</label>
+            <div class="controls">
+            <select dku-bs-select ng-model="newEnv.deploymentMode" ng-options="m[0] as m[1] for m in codeEnvDeploymentModes"/>
+            </div>
+        </div>
+        <div ng-if="!pluginDesc.codeEnvSpec.forceConda" class="control-group" >
+            <label class="control-label" for="useCondaCheckbox">Use Conda</label>
+            <div class="controls">
+                <input type="checkbox" id="useCondaCheckbox" ng-model="newEnv.conda" />
+            </div>
+        </div>
+        <div ng-if="pluginDesc.codeEnvLang == 'PYTHON' && possiblePythonInterpreters.length > 1" class="control-group" >
+            <label class="control-label" for="pythonInterpreterSelect">Python</label>
+            <div class="controls">
+                <select id="pythonInterpreterSelect" dku-bs-select ng-model="newEnv.pythonInterpreter" ng-options="i for i in possiblePythonInterpreters"></select>
+            </div>
+        </div>
+        <div ng-if="pluginDesc.codeEnvLang == 'PYTHON' && newEnv.pythonInterpreter == 'CUSTOM'" class="control-group" >
+            <span for="pythonExecutableInput">Python executable</span>
+            <div class="controls">
+                <input type="text" id="pythonExecutableInput" ng-model="newEnv.customInterpreter" />
+            </div>
+        </div>
+        <div ng-if="containerNames.length > 0 && newEnv.deploymentMode == 'PLUGIN_MANAGED' && addLicInfo.containersLicensed" class="control-group" >
+            <div>
+                <label class="control-label">Build images for</label>
+                <div class="controls">
+                    <label>
+                        <input type="radio" ng-model="newEnv.allContainerConfs" ng-value="true"/>
+                        All containers
+                    </label>
+                    <label>
+                        <input type="radio" ng-model="newEnv.allContainerConfs" ng-value="false"/>
+                        Selected containers
+                    </label>
+                </div>
+            </div>
+            <div ng-if="newEnv.allContainerConfs == false">
+                <div class="controls">
+                    <select dku-bs-select multiple="multiple" ng-model="newEnv.containerConfs"
+                            ng-options="c for c in containerNames"></select>
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <button type="button" class="btn btn--primary mright8" ng-click="buildNewCodeEnv(newEnv)">Build new environment</button>
+                <button type="button" class="btn btn--secondary" ng-if="codeEnvs && codeEnvs.length" ng-click="uiState.state = 'DISPLAY'">Cancel</button>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="alert alert-warning dib mtop16 mbot0" ng-if="!isCurrentSelectedEnvUpToDate()">
+    <span>The selected environment is not up-to-date.</span>
+    <button type="button" class="btn btn--secondary mleft16" ng-click="updateCodeEnv(settings.codeEnvName)">
+        <i class="icon-refresh"></i>Update
+    </button>
+</div>

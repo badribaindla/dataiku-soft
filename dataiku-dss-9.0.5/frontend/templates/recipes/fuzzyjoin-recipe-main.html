@@ -1,0 +1,245 @@
+<div class="join-recipe visual-recipe-with-steps" ng-show="topNav.tab == 'settings'">
+
+    <div class="main-recipe-content dss-page vertical-flex">
+        <div block-api-error/>
+        <div class="flex" style="position: relative;">
+
+            <div class="leftPane vertical-flex">
+                <div class="steps flex">
+                    <div recipe-step class="inputs"/>
+                    <div recipe-step="join" step-label="Join"/>
+                    <div recipe-step="fuzzyJoinAdditionalSettings" step-label="Additional Settings"/>
+                    <div recipe-step="selectedColumns" step-label="Selected columns"/>
+                    <div recipe-step="output" step-label="Output"/>
+                    <div ng-if="recipeStatus.topLevelMessages.anyMessage" recipe-step="topLevelMessages"
+                         step-label="Warnings"/>
+                </div>
+                <div class="run noflex" ng-if="params">
+                    <div include-no-scope="/templates/recipes/visual-recipes-fragments/visual-recipe-run.html"/>
+                    <div engine-selector-button
+                         recipe-status="recipeStatus"
+                         recipe-params="params"
+                         update-status="hooks.updateRecipeStatus"
+                         can-change-engine="canChangeEngine"
+                    />
+                </div>
+            </div>
+
+
+            <div class="mainPane fh oa" ng-if="computablesMap && params">
+
+                <table ng-if="params.virtualInputs.length" class="datasets-background-table"
+                       ng-class="{'ng-hide': ['output', 'fuzzyJoinAdditionalSettings'].indexOf(uiState.currentStep) >= 0}">
+                    <colgroup>
+                        <col ng-repeat="input in params.virtualInputs"
+                             ng-class="{error: (InfoMessagesUtils.getMessageAtLine(recipeStatus.preFilters, $index) && uiState.currentStep == 'preFilters') || (InfoMessagesUtils.getMessageAtColumn(recipeStatus.inputComputedColumns, $index) && uiState.currentStep == 'inputComputedColumns') }">
+                    </colgroup>
+                    <tr>
+                        <td ng-repeat="input in params.virtualInputs" class="dataset-column"></td>
+                    </tr>
+                </table>
+
+
+                <div ng-if="params.virtualInputs.length" class="fh" style="position:absolute">
+                    <table class="datasets-table" style="position: absolute"
+                           ng-class="{'ng-hide': ['output', 'fuzzyJoinAdditionalSettings'].indexOf(uiState.currentStep) >= 0}">
+                        <tr>
+                            <td ng-repeat="input in params.virtualInputs" class="dataset-column" full-click>
+                                <div class="dataset-header selected qa_recipe_join-input-ds-container">
+                                    <div class="pull-right dataset-tools" code-recipe-schema-list>
+                                        <a title="Explore"
+                                           href="{{datasetSmartHRef(getDatasetName($index), 'explore')}}"
+                                           target="_blank">
+                                            <i class="icon-table"/>
+                                        </a>
+                                        <a ng-click="beginEditSchema(getDatasetName($index))" title="Schema">
+                                            <i class="icon-cog"/>
+                                        </a>
+                                    </div>
+                                    <h4 title="{{getDatasetName($index)}}">
+                                        <div class="dataset-name limited-width">
+                                            <a ng-click="showChangeInputModal($index)" main-click style="color: inherit"
+                                               class="qa_recipe_join-input-ds">
+                                                <i class="dataset-bullet {{getDatasetColorClass($index)}}"
+                                                   ng-click="toggleDatasetSelection($index)"/>
+                                                {{getDatasetName($index)}}
+                                            </a>
+                                        </div>
+                                    </h4>
+                                    <div class="change-input" style="color: grey">
+                                        click to replace dataset
+                                    </div>
+                                </div>
+                            </td>
+                            <td ng-show="!isFuzzy">
+                                <a ng-click="showNewJoinModal()"
+                                   class="add-input-button btn btn--primary pull-right qa_recipe_join-add-input-ds">
+                                    <i plus-icon/> Add input
+                                </a>
+                            </td>
+                        </tr>
+                        <tr ng-repeat="join in params.joins" class="dataset-column"
+                            ng-if="uiState.currentStep == 'join'">
+                            <td ng-repeat="x in range(join.table1)"></td>
+                            <td colspan="{{join.table2 - join.table1 + 1}}">
+                                <join-block ng-if="join.on.length != 0" on-condition-clicked="showJoinEditModal(join)"/>
+                                <join-block-empty ng-if="join.on.length == 0"/>
+
+                            </td>
+                            <td ng-show="!isFuzzy"
+                                ng-repeat="x in range(params.virtualInputs.length - join.table1 - 1)"></td>
+                        </tr>
+
+                        <tr ng-if="uiState.currentStep == 'selectedColumns'">
+                            <td ng-repeat="input in params.virtualInputs" class="output-columns">
+                                <div selected-columns-editor columns="uiState.selectedColumns[$index]">
+                                    <div class="header">
+                                        <div class="column-selection-mode">
+
+                                            Manually select columns
+                                            <label class="dku-toggle dku-toggle-plain dib" style="margin-right: 10px">
+                                                <input type="checkbox"
+                                                       ng-model="params.virtualInputs[$index].autoSelectColumns">
+                                                <span>
+                                            </label>
+                                            Autoselect all
+                                        </div>
+                                        <div style="height: 25px;">
+                                            <div class="dataset-prefix pull-right">
+                                                Prefix:
+                                                <input
+                                                        type="text"
+                                                        ng-model="input.prefix"
+                                                        placeholder="none"
+                                                        ng-blur="hooks.updateRecipeStatus()"
+                                                        ng-keydown="keyDownOnPrefixBox($event)"
+                                                >
+                                            </div>
+
+                                            <input
+                                                    type="checkbox"
+                                                    ng-model="selected.all"
+                                                    dku-indeterminate="selected.any && !selected.all"
+                                                    ng-change="updateSelectAll()"
+                                                    title="select/deselect all"
+                                                    toogle="tooltip"
+                                                    visible-if="!params.virtualInputs[$index].autoSelectColumns"
+                                            />
+                                            <span ng-if="InfoMessages.getMessageAtLine(recipeStatus.selectedColumns, $index)">
+                                                <i class="icon-warning-sign" style="color: orange; margin-left: 6px"/>
+                                                {{InfoMessages.getMessageAtLine(recipeStatus.selectedColumns, $index).message}}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="body" ng-show="!params.virtualInputs[$index].autoSelectColumns">
+                                        <div
+                                                ng-if="uiState.selectedColumns"
+                                                ng-repeat="column in getColumnList($index)"
+                                                class="output-column {{getDatasetColorClass(input)}}"
+                                                ng-class="{
+                                                duplicate: column.selected && hasDuplicates($parent.$index, column),
+                                                selected: column.selected
+                                                }"
+                                                style="clear:both"
+                                        >
+                                            <span class="pull-right column-type">{{column.type}}</span>
+                                            <i class="pull-right icon-pencil edit-column-alias" title="edit alias"
+                                               ng-click="currentEditedColumn == column ? endColumnEdition() : editColumnAlias($index, column)"/>
+                                            <label class="column-name-block">
+                                                <span class="column-name limited-width">
+                                                    <input
+                                                            type="checkbox"
+                                                            ng-model="column.selected"
+                                                            ng-change="onSelectionChange($index)"/>
+                                                    <span class="current-name limited-width"
+                                                          ng-show="currentEditedColumn != column">
+                                                        {{getColumnOutputName(input, column)}}
+                                                    </span>
+                                                    <span ng-show="currentEditedColumn == column">
+                                                        <input
+                                                                type="text"
+                                                                class="alias-editor flat"
+                                                                ng-model="column.alias"
+                                                                placeholder="alias"
+                                                                ng-blur="endColumnEdition()"
+                                                                ng-keydown="keyDownOnAliasBox($event)"
+                                                        >
+                                                    </span>
+                                                </span>
+                                                <div class="original-name"
+                                                     ng-show="getColumnOutputName(input, column) != column.name || currentEditedColumn == column">
+                                                    for column {{column.name}}
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <div ng-if="uiState.currentStep == 'fuzzyJoinAdditionalSettings'"
+                         class="padded-step-settings h100 oa fuzzy-join-additional-settings">
+                        <div class="recipe-settings-section1">
+                            <h1 class="recipe-settings-section1-title horizontal-flex">
+                                Debug mode
+                            </h1>
+                            <div class="recipe-settings-section1__line">
+                                <label class="horizontal-flex fuzzy-join-matching-details">
+                                    <label class="dku-toggle">
+                                        <input type="checkbox" ng-model="params.withMetaColumn" ng-disabled="params.debugMode">
+                                        <span></span>
+                                    </label>
+                                    <div class="fuzzy-join-matching-details__label">
+                                        <div>
+                                            Output matching details
+                                        </div>
+                                        <div class="explanation">
+                                            Creates an additional column in output dataset containing matching details
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="recipe-settings-section1__line">
+                                <label class="horizontal-flex fuzzy-join-matching-details">
+                                    <label class="dku-toggle">
+                                        <input type="checkbox" ng-model="params.debugMode"
+                                               ng-change="updateDebugMode()">
+                                        <span></span>
+                                    </label>
+                                    <div class="fuzzy-join-matching-details__label">
+                                        <div>
+                                            Full debug mode
+                                        </div>
+                                        <div class="explanation">
+                                            Computes a cross-join with two extra columns: match flag and matching details
+                                        </div>
+                                    </div>
+                                    <div class="flex-expand"></div>
+                                    <div class="alert alert-warning horizontal-flex mx-center-children" ng-show="params.debugMode">
+                                        <i class="icon-warning-sign"/> Warning: execution will be slow and will produce a lot of data
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ng-if="uiState.currentStep == 'output'" class="fh">
+                        <div data-extend-template="/templates/recipes/visual-recipes-fragments/run-summary.html"
+                             class="h100"/>
+                    </div>
+
+                    <div data-extend-template="/templates/recipes/visual-recipes-fragments/visual-sql-top-level-messages.html"/>
+                </div>
+
+                <div ng-if="!params.virtualInputs.length" class="placeholder-block" style="margin-top:40px">
+                    No input datasets
+                    <br/>
+                    <button class="btn btn--secondary" ng-click="showNewJoinModal()" style="padding: 0 40px"> Select
+                        input datasets
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,25 @@
+<div ng-if="tile.behavior == 'GO_TO_DATASET'">
+    <a main-click ui-sref="projects.project.datasets.dataset.settings({datasetName:tile.datasetName})" wt1-click-event="app-tile-fs-dataset-edit"><i class="icon-dataset"></i>&nbsp;{{tile.datasetName}}</a>
+    <span ng-include="'/templates/apps/fragments/tile-help.html'"></span>
+</div>
+<div ng-if="tile.behavior.startsWith('MODAL_')">
+    <button class="btn btn--secondary" ng-click="openModal()">Edit</button>
+</div>
+<div ng-if="tile.behavior.startsWith('INLINE_')">
+    <div block-api-error />
+    <div class="app-tiles__tile-files-browse-zone">
+       <dataset-path-input browse-fn="browse" path="dataset.params.path"  validate-fn="doTest" connection="dataset.params.connection" change-needs-confirm="false">
+       </dataset-path-input>
+       <div ng-show="detectionResults && !detectionResults.connectionOK">
+           <div class="alert alert-error">
+               <i class="icon-dku-error" /><span summary-of-error="detectionResults.connectionError" />
+           </div>
+       </div>
+    </div>
+
+    <span ng-include="'/templates/apps/fragments/tile-help.html'" class="app-tiles__tile-help--multiline-neighbour"></span>
+    <div>
+        <a main-click ui-sref="projects.project.datasets.dataset.settings({datasetName:tile.datasetName})" wt1-click-event="app-tile-fs-dataset-edit"><i class="icon-arrow-right"></i>&nbsp;View settings of dataset {{tile.datasetName}}</a>
+        <span>({{dataset.formatType}}, {{dataset.schema.columns.length}} column(s))</span>
+    </div>
+</div>

@@ -1,0 +1,141 @@
+<div class="h100 oa">
+
+    <div block-api-error></div>
+
+    <h2 class="settings-section-title" id="global-dss-usage">Global DSS usage</h2>
+
+    <div class="row-fluid">
+        <div class="span6">
+            <table class="table table-hover table-striped" style="width: auto">
+                <tr>
+                    <td>Projects</td>
+                    <th>{{globalSummary.projects}}</th>
+                </tr>
+                <tr>
+                    <td>Datasets</td>
+                    <th>{{globalSummary.datasets.all}}</th>
+                </tr>
+                <tr>
+                    <td>Recipes</td>
+                    <th>{{globalSummary.recipes.all}}</th>
+                </tr>
+                <tr>
+                    <td>Visual analyses</td>
+                    <th>{{globalSummary.analysis.nbAnalyses}}</th>
+                </tr>
+                <tr>
+                    <td>Charts</td>
+                    <th>{{globalSummary.charts.nbCharts}}</th>
+                </tr>
+                <tr>
+                    <td>Notebooks (SQL, Hive, Impala)</td>
+                    <th>{{globalSummary.notebooks.nbSqlNotebooks}}</th>
+                </tr>
+                <tr>
+                    <td>Notebooks (Python, R)</td>
+                    <th>{{globalSummary.notebooks.nbJupyterNotebooks}}</th>
+                </tr>
+                <tr>
+                    <td>Notebooks on git</td>
+                    <th>{{globalSummary.notebooks.nbJupyterNotebooksOnGit}}</th>
+                </tr>
+            </table>
+        </div>
+        <div class="span6">
+            <table class="table table-hover table-striped" style="width: auto">
+                <tr>
+                    <td>Scenarios</td>
+                    <th>{{globalSummary.scenarios.all}}</th>
+                </tr>
+                <tr>
+                    <td>Prediction models (analysis)</td>
+                    <th>{{globalSummary.analysis.nbPredMLTasks}}</th>
+                </tr>
+                <tr>
+                    <td>Clustering models (analysis)</td>
+                    <th>{{globalSummary.analysis.nbClustMLTasks}}</th>
+                </tr>
+                <tr>
+                    <td>Dashboards</td>
+                    <th>{{globalSummary.dashboards.nbDashboards}}</th>
+                </tr>
+                <tr>
+                    <td>Insights</td>
+                    <th>{{globalSummary.insights.nbInsights}}</th>
+                </tr>
+                <tr>
+                    <td>API services</td>
+                    <th>{{globalSummary.apiServices.services}}</th>
+                </tr>
+                <tr>
+                    <td>User-defined meanings</td>
+                    <th>{{globalSummary.udms.nbUDM}}</th>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="row-fluid">
+        <div class="span6">
+            <div class="settings-section-title" id="dataset-types">Dataset types</div>
+
+            <table class="table table-hover table-striped" style="width: auto" sort-table="-v">
+                <tr>
+                    <th sort-col="k">Type</th>
+                    <th sort-col="v">Count</th>
+                </tr>
+                <tr ng-repeat="item in globalSummary.datasets.allByTypeArray|orderBy:sortColumn:sortDescending">
+                    <td> <i class="{{item.k|datasetTypeToIcon}}" />&nbsp;
+                        {{item.k|datasetTypeToName}}
+                    </td>
+                    <th>{{item.v}}</th>
+                </tr>
+            </table>
+        </div>
+        <div class="span6">
+
+            <div class="settings-section-title" id="recipe-types">Recipe types</div>
+
+            <table class="table table-hover table-striped" style="width: auto" sort-table="-v">
+                <tr>
+                    <th sort-col="k">Type</th>
+                    <th sort-col="v">Count</th>
+                </tr>
+                <tr ng-repeat="item in globalSummary.recipes.byTypeArray|orderBy:sortColumn:sortDescending">
+                    <td> <i class="{{item.k|recipeTypeToIcon}}" />&nbsp;
+                        {{item.k|recipeTypeToName}}
+                    </td>
+                    <th>{{item.v}}</th>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <h2 class="settings-section-title" id="projects-usage">Projects usage</h2>
+
+    <table class="table table-hover table-striped" style="width: auto" sort-table="projectKey">
+        <tr>
+            <th sort-col="projectKey">Project</th>
+            <th sort-col="datasets.all">Datasets</th>
+            <th sort-col="recipes.all">Recipes</th>
+            <th sort-col="analysis.nbAnalyses">Analyses</th>
+            <th sort-col="notebooks.nbSqlNotebooks">SQL nbks</th>
+            <th sort-col="notebooks.nbJupyterNotebooks">Jupyter nbks</th>
+            <th sort-col="notebooks.nbJupyterNotebooksOnGit">Jupyter nbks on git</th>
+            <th sort-col="scenarios.all">Scenarios</th>
+            <th sort-col="dashboards.nbDashboards">Dashboards</th>
+        </tr>
+        <tr ng-repeat="project in globalSummary.projectsSummaries|filter:projectQuery|orderBy:sortColumn:sortDescending">
+            <th><div class="mx-textellipsis" style="max-width: 500px">{{project.projectName}} ({{project.projectKey}})</div></th>
+            <td>{{project.datasets.all}}</td>
+            <td>{{project.recipes.all}}</td>
+            <td>{{project.analysis.nbAnalyses}}</td>
+            <td>{{project.notebooks.nbSqlNotebooks}}</td>
+            <td>{{project.notebooks.nbJupyterNotebooks}}</td>
+            <td>{{project.notebooks.nbJupyterNotebooksOnGit}}</td>
+            <td>{{project.scenarios.all}}</td>
+            <td>{{project.dashboards.nbDashboards}}</td>
+        </tr>
+    </table>
+
+</div>

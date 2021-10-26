@@ -1,0 +1,65 @@
+<div style="position: relative" class="pad16 h100">
+    <div class="vertical-flex fh h100 pad16 audit-buffer-table">
+        <div class="noflex" style="padding: 0 20px 10px 20px;">
+            <div class="pull-right">
+                <label class="dibvam" style="margin-right: 10px">
+                    <input style="margin: 0" type="checkbox" ng-model="uiState.includeAllCalls" ng-change="refreshList()">
+                    Include all calls
+                </label>
+
+                <button class="dibvam btn btn--secondary" ng-click="refreshList()">
+                    <i class="icon-refresh" />&nbsp;Refresh
+                </button>
+            </div>
+            <h2 class="page-subtitle dib">Audit trail</h2>
+            <div block-api-error></div>
+            <p style="margin-top: 10px;">
+                Warning: this live view only shows the last elements added in the audit log since the last DSS restart. <br />
+                For complete audit data, see documentation.
+            </p>
+        </div>
+        <div class="noflex dku-colored-list spaced fattable-default-header dku-border-bottom">
+            <div style="width: 120px;">
+                <strong>Timestamp</strong>
+            </div>
+            <div style="width: 200px;">
+                <strong>Type</strong>
+            </div>
+            <div style="width: 120px;">
+                <strong>User</strong>
+            </div>
+            <div style="width: 95px;">
+                <strong>IP</strong>
+            </div>
+            <div>
+                <strong>Details</strong>
+            </div>
+        </div>
+
+        <div class="h100 fattable-default-style" fat-repeat="auditBuffer.events" as="event" row-height="36">
+            <div>
+                <div style="width: 120px">
+                    {{event.timestamp|date:'yyyy/MM/dd-HH:mm:ss'}}
+                </div>
+                <div style="width: 200px">
+                    <span ng-show="event.superType == 'generic-failure'" class="text-error"><i class="icon-remove" /></span>
+                    <span ng-show="event.superType == 'generic'" class="text-success"><i class="icon-ok" /></span>
+                    <span ng-show="event.superType == 'authfail'" class="text-error"><i class="icon-ban-circle" /></span>
+                    <span ng-show="event.superType == 'allcalls'"><i class="icon-ok" /></span>
+                    {{event.obj.msgType}}
+                </div>
+                <div style="width: 120px" class="mx-textellipsis">
+                    <span ng-if="event.obj.authUser" user-picture="event.obj.authUser" size="20" class="avatar20 list-btn" title="{{item.ownerDisplayName}}"></span> {{event.obj.authUser}}
+                </div>
+                <div style="width: 95px">
+                    {{event.obj.originalIP}}
+                </div>
+                <div class="mx-textellipsis">
+                    <div ng-if="event" title="{{event.obj|auditBufferEventDetails}}">
+                        {{event.obj|auditBufferEventDetails}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

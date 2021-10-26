@@ -1,0 +1,61 @@
+<div class="filters-wrapper" dku-arrow-slider slider-selector=".filters-slider" frame-selector=".facetsFilters" model-list-name = "shaker.explorationFilters">
+    <!-- Global search -->
+    <div class="filter-wrapper">
+        <div class="filter global-search" ng-class="{filled : shaker.globalSearchQuery.length}">
+            <input ng-class="{filled : shaker.globalSearchQuery.length}" blur-model="shaker.globalSearchQuery" placeholder=" ">
+            <i class="icon-clear-filter" ng-click="shaker.globalSearchQuery = ''"></i>
+            <i class="icon-search" />
+        </div>
+    </div>
+    <!-- Actions buttons -->
+    <div class="actions">
+        <button class="btn btn-borderless" type="button" ng-click="toggleFilterView()" ng-if="shaker.explorationFilters.length > 0">
+            <span ng-if="!viewAllFilter" title="Expand all filters"><i class="icon-chevron-down"></i></span>
+            <span ng-if="viewAllFilter" title="Collapse all filters"><i class="icon-chevron-up"></i></span>
+        </button>
+    </div>
+
+    <!-- Filter slider -->
+    <div class="arrow-slider left" ng-class="{'active' : canSlideLeftFlag}" ng-click="canSlideLeft() && slideLeftClickHandler()" ng-show="!viewAllFilter && needSlider()">
+        <i class="icon-chevron-left"></i>
+    </div>
+    <!-- Default filter view -->
+    <div class="accordion facetsFilters" ng-show="!viewAllFilter || (customFormulaEdition && customFormulaEdition.editing > 0)">
+        <div class="filters-slider">
+            <!-- Filters column -->
+            <div class="filter-wrapper" ng-repeat="ff in shaker.explorationFilters" id="{{getFFGroupIdByColumn(ff.column)}}">
+                <div dku-if="ff.type == 'columnFilter'" class="filter">
+                    <span ng-init="ffGroup = ff" ></span> 
+                    <div class="h100" include-no-scope="/templates/shaker/column-filter.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- View all filters -->
+    <div class="accordion facetsFilters view-all-filters-frame" ng-if="viewAllFilter && !(customFormulaEdition && customFormulaEdition.editing > 0)">
+	    <div class="view-all-filters-slider">
+            <!-- Filters column -->
+	        <div class="filter-wrapper" ng-repeat="ff in shaker.explorationFilters" id="{{getFFGroupIdByColumn(ff.column)}}" scroll-to-me="{{isMustBeVisibleFilter(ff.column)}}">
+	            <div dku-if="ff.type == 'columnFilter'" class="filter">
+	                <span ng-init="ffGroup = ff" ></span> 
+	                <div class="h100" include-no-scope="/templates/shaker/column-filter-big.html" />
+	            </div>
+
+	        </div>
+	    </div>
+    </div>
+    <div class="arrow-slider right" ng-class="{'active' : canSlideRightFlag}" ng-click="canSlideRight() && slideRightClickHandler()" ng-show="!viewAllFilter && needSlider()">
+        <i class="icon-chevron-right"></i>
+    </div>
+    <!-- Displaying nb of rows matching the filters -->
+    <span class="meta-info" ng-if="!viewAllFilter || (customFormulaEdition && customFormulaEdition.editing > 0)"><span class="nb-rows" ng-show="table.totalKeptRows >= 0">{{table.totalKeptRows}} matching rows</span>
+        <span ng-show="table.totalDeletedKeptRows>0"> ({{table.totalDeletedKeptRows}} deleted)</span>
+
+        <span ng-if="table.allColumnNames.length != table.headers.length">
+            -
+            <span class="nb-rows">{{table.headers.length}} / {{table.allColumnNames.length}}</span> cols.
+        </span>
+
+    </span>
+
+</div>

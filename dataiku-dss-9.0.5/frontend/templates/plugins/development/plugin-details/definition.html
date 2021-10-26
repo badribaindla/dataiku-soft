@@ -1,0 +1,179 @@
+<div class="plugin-content plugin-information fh oa">
+    <div block-api-error />
+    <div class="plugin-page-grid">
+        <div class="plugin-info-column">
+            <div class="plugin-info">
+                <div class="plugin-info__header">
+                    <div class="plugin-info__details">
+                        <h4 class="plugin-details__title">{{ pluginData.installedDesc.desc.meta.label || pluginData.installedDesc.desc.id }}</h4>
+                        <div class="plugin-details__description" ng-if="pluginData.installedDesc.desc.meta.description" from-markdown="pluginData.installedDesc.desc.meta.description"></div>
+                    </div>
+                    <div class="plugin-info__icon-container">
+                        <i class="plugin-info__icon {{ pluginData.installedDesc.desc.meta.icon || pluginData.storeDesc.desc.meta.icon }}"></i>
+                    </div>
+                </div>
+
+                <div class="line">
+                    <span class="line-title">Author</span>
+                    <span class="line-content">
+                        {{pluginData.installedDesc.desc.meta.author}}
+                    </span>
+                </div>
+
+                <div class="line">
+                    <span class="line-title">Version</span>
+                    <span class="line-content">
+                        {{pluginData.installedDesc.desc.version}}
+                    </span>
+                </div>
+
+                <div class="line">
+                    <span class="line-title">License</span>
+                    <span class="line-content">
+                        {{pluginData.installedDesc.desc.meta.licenseInfo}}
+                    </span>
+                </div>
+
+                <div class="line" ng-if="pluginData.installedDesc.desc.meta.supportLevel">
+                    <span class="line-title">Support tier
+                        <a href="https://doc.dataiku.com/dss/latest/troubleshooting/support-tiers.html" target="blank"class="link-std"><i class="icon-question-sign"></i></a>
+                    </span>
+                    <span class="line-content">
+                        {{pluginData.installedDesc.desc.meta.supportLevel |niceConst}}
+                    </span>
+                </div>
+
+                <div class="line wrapping">
+                    <span class="line-title">Location</span>
+                    <code class="line-content">{{pluginData.baseFolderPath}}</code>
+                </div>
+
+                <div class="line tags-and-reload" ng-if="pluginData.installedDesc.desc.meta.tags && pluginData.installedDesc.desc.meta.tags.length > 0">
+                    <span class="line-title">Tags</span>
+                    <span class="line-content">
+                        <ul class="tags inline">
+                            <li ng-repeat="tag in pluginData.installedDesc.desc.meta.tags">
+                                <span class="tag plugin__tag">{{tag}}</span>
+                            </li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="plugin-components-column">
+            <div class="plugin-code-dependencies" ng-if="pluginData && pluginData.installedDesc && !pluginData.installedDesc.codeEnvSpec && !pluginData.installedDesc.frontendRequirements.hasDependencies" >
+                <h4 class="plugin-details__title plugin-details__title--code-env">Code environment</h4>
+                <a class="btn btn--secondary pull-right" ng-click="createCodeEnvPopin()">
+                    <span>+</span> Create a code environment
+                </a>
+                <p class="mbot0">
+                    This plugin does not require a dedicated code environment.
+                    <br> Code environments are a means to specify dependencies for your plugins.
+                    <br> See <doclink page="/code-envs/plugins" title="the documentation" /> for more information.
+                </p>
+            </div>
+
+            <div class="plugin-code-dependencies" ng-if="pluginData.installedDesc.codeEnvSpec">
+                <h4 class="plugin-details__title plugin-details__title--code-env">
+                    Code environment
+                </h4>
+                <i class="icon icon-trash pull-right plugin-component-item__delete-icon" ng-click="removeCodeEnv()" toggle="tooltip" title="Remove code environment definition"></i>
+                <p class="text-warning warning-background--light pad8" ng-if="pluginEnvUpToDate === false">
+                    <i class="icon-warning-sign mright8"></i>
+                    This plugin will not work until the code environment is properly setup.
+                </p>
+                <div plugin-requirements
+                    plugin-desc="pluginData.installedDesc"
+                    settings="pluginData.settings"
+                    on-valid="validatePluginEnv"
+                    on-invalid="invalidatePluginEnv">
+                </div>
+            </div>
+
+            <div class="plugin-code-dependencies" ng-if="pluginData.installedDesc.frontendRequirements.hasDependencies">
+                <h4 class="plugin-details__title plugin-details__title--code-env">
+                    Dependencies
+                </h4>
+                <div plugin-requirements
+                    plugin-desc="pluginData.installedDesc"
+                    settings="pluginData.settings"
+                    on-valid="validatePluginEnv"
+                    on-invalid="invalidatePluginEnv">
+                </div>
+            </div>
+
+            <div class="plugin-components">
+                <div ng-show="computeNbComponents(pluginData.installedDesc)">
+                    <h4 class="plugin-details__title">Components ({{computeNbComponents(pluginData.installedDesc)}})</h4>
+                    <div class="flex std-list-search-box">
+                        <span class="search-icon"><i class="icon-dku-search"></i></span>
+                        <input type="search" ng-model="filterQuery.userQuery" placeholder="Search&hellip;">
+                    </div>
+                    <a class="btn btn--primary mbot16 mleft16" ng-click="newComponentPopin()">
+                        <span>+</span> New Component
+                    </a>
+                </div>
+                <div class="plugin-components__group alert-error" ng-if="pluginData.installedDesc.loadingFailures.length > 0">
+                    <h5 class="plugin-components__group-title" ng-click="foldableToggle()"><i ng-class="foldableOpen ? 'icon-caret-down' : 'icon-caret-right'"></i>
+                        Some components were not loaded
+                    </h5>
+                    <ul>
+                        <li ng-repeat="loadingFailure in pluginData.installedDesc.loadingFailures">
+                            <a class="content-name" ng-click="loadingFailure.folderName && openPluginContentInEditor(loadingFailure, loadingFailure.componentTypeGroup)" ng-class="{'no-link': !loadingFailure.folderName}">{{loadingFailure.componentId||loadingFailure.componentName}}</a>
+                            <div>{{loadingFailure.error}}</div>
+                        </li>
+                    </ul>
+                </div>
+                <ul class="plugin-components__group" ng-repeat="contentType in getComponentsTypeListFiltered()">
+                    <li ng-repeat="content in filteredContent[contentType] | orderBy: 'meta.displayOrderRank'" class="plugin-component-item" ng-class="{'plugin-component-item--readonly': !hasFileToOpen(contentType)}" ng-click="openPluginContentInEditor(content, contentType)">
+                        <div class="plugin-component-item__content">
+                            <div class="plugin-component-item__icon-column">
+                                <i class="plugin-component-item__icon {{ getComponentIcon(contentType, content) }}"></i>
+                            </div>
+                            <div class="plugin-component-item__meta-column">
+                                <h5 class="plugin-component-item__name">
+                                    <a class="plugin-component-item__name" ng-click="openPluginContentInEditor(content, contentType)" ng-if="hasFileToOpen(contentType)">
+                                        {{ content.meta.label || content.id }}
+                                    </a>
+                                    <span ng-if="!hasFileToOpen(contentType)">
+                                        {{ content.meta.label || content.id }}
+                                    </span>
+                                </h5>
+                                <div ng-if="content.meta.description"
+                                    class="plugin-component-item__description"
+                                    from-markdown="content.meta.description">
+                                </div>
+                            </div>
+                            <div class="plugin-component-item__right-column">
+                                <span class="plugin-component-item__type">{{ contentType | humanContentType }}</span>
+                                <i class="icon {{content.folderName ? 'icon-trash' : ''}} plugin-component-item__delete-icon" ng-click="deleteComponent($event, content, contentType)"></i>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <div class="empty-list-cta" ng-if="pluginData && computeNbComponents(pluginData.installedDesc) === 0">
+                    <h1>
+                        This plugin has no components.
+                    </h1>
+                    <p>
+                        A plugin is made of a number of components,
+                        <br> each component being a specific new kind of object in DSS.
+                    </p>
+                    <p class="small">
+                        <span doclink-wrapper page="plugins/reference/plugins-components">Read the documentation</span> to learn more
+                    </p>
+                    <div class="import-first-dataset">
+                        <a class="btn btn--primary btn--large" ng-click="newComponentPopin()">
+                            <span plus-icon />
+                            &nbsp;Create your first component
+                        </a>
+                    </div>
+                </div>
+                <div ng-if="computeNbComponents(pluginData.installedDesc) > 0 && getComponentsTypeListFiltered().length == 0" class="empty-list-cta">
+                    <p>No component matches your query.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

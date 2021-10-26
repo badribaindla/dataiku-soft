@@ -1,0 +1,70 @@
+<div class="list-page-4 flex dss-home-page tile-set tile-list-content" ng-class="rowType">
+
+    <div data-extend-template="/templates/layouts/list-items-fattable.html" class="vertical-flex">
+
+        <div data-block="summary-row" class="noflex expanded-header">
+            <home-expanded-header></home-expanded-header>
+        </div>
+
+        <div data-block="empty">
+            <h1>
+                No items
+            </h1>
+        </div>
+
+        <!-- expanded list item -->
+        <div data-block="item" full-click contain-click="true" class="h100" >
+
+            <div class="hit h100" dataset="item" ng-if="!item"  />
+
+            <div class="hit h100" dataset="item" ng-if="item" >
+                <div main-click ng-click="objectClicked(item, $event)"> </div>
+                <div class="illustration">
+                    <i ng-if="item.catalogItemType=='dashboard'" class="icon icon-dku-dashboard universe-color dashboard"></i>
+                    <i ng-if="item.catalogItemType!='dashboard'"class="icon {{CatalogItemService.itemToIcon(item.catalogItemType, item, true)}} universe-color {{CatalogItemService.itemToColor(item.catalogItemType, item)}} "></i>
+                </div>
+                <div class="hitContent horizontal-flex h100" >
+                    <div class="flex hit-content-main">
+                        <h4 class="hit-content-main__title">
+                            <a ng-href="{{CatalogItemService.getLink(item.catalogItemType, item)}}"  title="{{item.displayName}}" ng-bind-html="item.displayName | boldify:selection.filterParams.userQueryResult"></a>
+                        </h4>
+                        <div class="hit-content-main__subtitle" >
+                            {{item.projectName }}
+                            <span ng-show="item.lastModifiedOn">
+                                |
+                                <span class="nowrap">Modified {{ item.lastModifiedOn|friendlyTimeDeltaShort }}</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div ng-if="rowType!='wikis'" class="interests noflex">
+                        <star-interest status="item.starred"
+                                       on-toggle="starObject(nextStatus, item)"
+                        ></star-interest>
+                        <br />
+                        <watch-interest status="item.watching"
+                                        on-toggle="watchObject(nextStatus, item)"
+                        ></watch-interest>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PREVIEW -->
+        <div data-block="preview" right-column-tab="details" ng-switch="rightColumnTypeType()" class="h100">
+            <div ng-switch-when="dashboard"             dashboard-right-column-summary class="h100"></div>
+            <div ng-switch-when="recipe"                recipe-right-column-summary class="h100"/>
+            <div ng-switch-when="dataset"               dataset-right-column-summary class="h100"/>
+            <div ng-switch-when="saved_model"             saved-model-right-column-summary class="h100"/>
+            <div ng-switch-when="managed_folder"        managed-folder-right-column-summary class="h100"/>
+            <div ng-switch-when="analysis"              analysis-right-column-summary class="h100"/>
+            <div ng-switch-when="sql_notebook"          sql-notebook-right-column-summary class="h100"/>
+            <div ng-switch-when="jupyter_notebook"      jupyter-notebook-right-column-summary class="h100"/>
+            <div ng-switch-when="insight"               insight-right-column-summary class="h100"/>
+            <div ng-switch-when="article"               article-right-column-summary class="h100"/>
+            <div ng-switch-when="web_app"               web-app-right-column-summary class="h100"/>
+            <div ng-switch-when="report"               report-right-column-summary class="h100"/>
+            <div ng-switch-when="scenario"               scenario-right-column-summary class="h100"/>
+        </div>
+    </div>
+</div>

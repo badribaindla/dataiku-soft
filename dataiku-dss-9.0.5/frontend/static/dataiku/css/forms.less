@@ -1,0 +1,1515 @@
+/**
+ * Dataiku style for forms and buttons
+ */
+
+// Bootstrap resets
+
+// NOT YET
+
+.inline-labels {    // quick and dirty inline labels for checkbox & radio
+    label { display: inline; }
+    label + label { padding-left: 1em; }
+    input[type=checkbox],
+    input[type=radio] {
+        vertical-align: baseline;
+    }
+}
+
+// This is to ensure proper rendering of input[type=date]
+::-webkit-calendar-picker-indicator { margin: 0; }
+
+// Common to all Dataiku forms
+// TODO @style Is this issued ?
+
+form.dkuform {
+ 	input[type=text], input[type=password] {
+ 		height: auto;
+ 	}
+	select {
+		display: inline-block;
+		margin: 0;
+    	padding: 4px 6px  !important;
+	}
+
+	.control-group {
+		.controls {
+			.codemirror  {
+				.CodeMirror {
+					height: 100%;
+                    min-height: 100px;
+				}
+				border: 1px solid @border-color;
+			}
+		}
+	}
+}
+
+.pipeline-config.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/**
+ * The "standard form" base style for each input and each label
+ *
+ * It's common to both horizontal and vertical forms, used notably in:
+ *  - modals
+ *  - dataset and recipe settings
+ *  - analysis model settings
+ */
+
+.mx-std-formlabel-base() {
+    .mx-ssp(14px, regular);
+    color: @grey-lighten-2;
+    line-height: 24px;
+    height: 26px;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+
+    &.disabled {
+        color: @grey-lighten-4;
+    }
+}
+
+.mx-std-input-base() {
+    .mx-ssp(13px, regular);
+    display: inline-block;
+    color: @grey-lighten-1;
+    &:focus, &:hover {
+        color: @grey-lighten-1;
+    }
+    .box-sizing(border-box);
+    line-height: 24px;
+    height: 26px;
+    margin: 0;
+    padding: 0px 4px;
+    vertical-align: middle;
+    border-radius: 0;
+
+    &:focus {
+        box-shadow: none;
+        border: 1px solid @border-focus-color;
+    }
+    &.ng-dirty.ng-invalid {
+        border: 1px solid @error-red-base;
+    }
+}
+
+.mini-bs-select {
+    .bootstrap-select.bootstrap-select.bootstrap-select.bootstrap-select.bootstrap-select.bootstrap-select.bootstrap-select {
+        width: 80px;
+    }
+    button.dropdown-toggle.dropdown-toggle.dropdown-toggle.dropdown-toggle.dropdown-toggle {
+        width: 80px;
+    }
+}
+
+.unconstrained-bs-select {
+    button {
+        width: 100% !important;
+    }
+}
+
+.mx-common-input-styles() {
+    input[type=text],
+    input[type=url],
+    input[type=number],
+    input[type=date],
+    input[type=time],
+    input[type=password],
+    textarea,
+    select,
+    button.btn.selectpicker{
+        .mx-std-input-base;
+    }
+    button.btn.selectpicker{
+        line-height: 16px;
+        padding: 1px 20px 1px 4px;
+        background-color: @white-base;
+        &:hover {
+            background-color: @grey-background;
+        }
+    }
+
+    input[type=checkbox], input[type=radio] {
+        margin: 0 5px 0 0;
+        float: none;
+    }
+    input[type=radio] {
+        position: relative;
+        top: -1px; // More beautiful this way
+    }
+
+    input:focus {
+        border: 1px @info-blue-base solid;
+    }
+
+    /* Color invalid dataset uniqueness issues, even when non dirty */
+    input.ng-invalid-dataset-name-unique {
+        background-color: @error-red-lighten-1
+    }
+    textarea {
+    	// height and line height must be tweaked w.r.t. mx-std-input-base because a textarea is meant to have several lines
+	    line-height: 14px;
+    	height: auto;
+    	padding: 4px 4px;
+    }
+
+    a {
+        .mx-link-nodecoration;
+    }
+    .alert {
+        border-radius: 0;
+    }
+
+    input[type="date"]::-webkit-clear-button { /* Removes the cross to clear */
+      -webkit-appearance: none;
+      margin: 0;
+    }
+}
+
+.common-styles-only {
+    .mx-common-input-styles;
+}
+
+.dkuform-chart-options {
+    @controls-width: 160px;
+    .mx-common-input-styles;
+    margin-bottom: 0;
+
+    .control-group {
+        margin-bottom: 8px;
+        .control-label {
+            .mx-std-formlabel-base;
+            text-align: left;
+            display: block;
+            width: @controls-width - 10px;
+        }
+        .controls {
+            .help-inline, .help-block {
+                font-size: 0.8em;
+            }
+            // label within controls, for checkbox;
+            label {
+                font-size: 12px;
+            }
+
+            input[type=text],
+            input[type=number],
+            select {
+                width: @controls-width;
+            }
+
+            .bootstrap-select {
+                width: @controls-width;
+                button {
+                    border-radius: 0;
+                    width: @controls-width;
+                    &:focus {
+                        outline: @error-red-base;
+                    }
+                }
+            }
+
+            .mx-common-input-styles;
+
+            select {
+                border-radius: 0;
+                padding: 0 0.5em;
+            }
+        }
+    }
+}
+
+
+// Mixin to create different variants of the "horizontal form"
+.mx-dkuform-horz(@horizontal-component-offset, @controls-width: 206px) {
+	// Import the bootstrap classes
+	.form-horizontal;
+	margin-bottom: 0;
+
+	.control-group {
+		margin-bottom: 6px;
+		margin-top: 6px;
+		.control-label {
+			.mx-std-formlabel-base;
+			.mx-common-input-styles;
+			height: fit-content;
+			height: -moz-fit-content;
+			text-align: left;
+			width: @horizontal-component-offset - 10px;
+		}
+		.right-wall {
+			width: 360px;
+		}
+		.controls {
+			.help-inline, .help-block {
+				font-size: 0.8em;
+			}
+            // label within controls, for checkbox;
+            label {
+                font-size: 12px;
+            }
+            .checkbox-label {
+                width: 206px;
+
+                &.checkbox-label--wide {
+                    width: 300px;
+                }
+            }
+
+			margin-left: @horizontal-component-offset;
+
+            input[type=text],
+            input[type=number],
+            select {
+                width: @controls-width;
+                &.input-xlarge {
+                    width: 270px;
+                }
+                &.input-xxlarge {
+                    width: 430px;
+                }
+                &.input-half-size {
+                    width: 102px;
+                }
+            }
+
+			.bootstrap-select {
+                width: @controls-width;
+				button {
+					border-radius: 0;
+					width: @controls-width;
+                    &.input-half-size {
+                        width: 102px;
+                    }
+					&:focus {
+						outline: @error-red-base;
+					}
+				}
+			}
+
+            .mx-common-input-styles;
+
+			select {
+				border-radius: 0;
+				padding: 0 0.5em;
+			}
+		    .fit{
+		        width: auto;
+            }
+            .bold {
+                font-weight: bold;
+            }
+            .codemirror  {
+                .CodeMirror {
+                    height: 100%;
+                }
+                border: 1px solid @border-color;
+            }
+		}
+	}
+}
+
+/**
+ * The main standard horizontal form
+ */
+@horizontal-component-regular-offset: 200px;
+.dkuform-horizontal {
+	.mx-dkuform-horz(@horizontal-component-regular-offset);
+}
+
+.dkuform-horizontal.dkuform-horizontal-wider {
+    .control-group {
+        .control-label {
+            width: 240px;
+        }
+        .controls {
+            margin-left: 250px;
+        }
+    }
+}
+
+/**
+ * Tighter style for partition deps */
+.dkuform-horizontal-tight-pdeps {
+    .mx-dkuform-horz(150px);
+    .control-group {
+        margin-bottom: 5px;
+    }
+}
+
+.dkuform-disableable {
+    fieldset:disabled {
+        cursor: not-allowed; opacity: .5;
+    }
+}
+
+/**
+ * Special case for custom fields
+ */
+.dkuform-horizontal.custom-fields-form {
+    position: relative;
+    .custom-fields-form-edit-zone {
+        padding: 15px 25px 15px 25px;
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
+    .custom-fields-form-component {
+        padding: 15px 25px 15px 25px;
+        border-bottom: 1px @border-color solid;
+    }
+    .control-group {
+        display: flex;
+        .control-label {
+            flex: 1 0 33%;
+            padding-right: 10px;
+        }
+        .controls {
+            margin-left: 0;
+            flex: 1 0 66%;
+            > div {
+                flex: 2 0;
+                display: flex;
+                .input-value, .display-value {
+                    margin: 0;
+                    flex: 1 0;
+                }
+                .help-inline {
+                    vertical-align: top;
+                    flex: 1 0;
+                    padding-left: 10px;
+                }
+            }
+        }
+    }
+}
+
+.dkuform-horizontal .control-group .controls .form-element__create-dataset-wrapper {
+    .form-element__dataset-selector {
+        width: 206px;
+        form {
+            padding: 0;
+            margin: 0;
+        }
+    }
+}
+
+.dkuform-horizontal .control-group .controls .form-element__pick-dataset-wrapper {
+    display: inline-block;
+    width: 206px;
+}
+
+.dkuform-horizontal .control-group .controls textarea.form-element__textarea {
+    display: flex;
+    width: 100%;
+    min-height: 100px;
+}
+
+.dkuform-horizontal .control-group .controls div.form-element__codemirror {
+    display: flex;
+    width: 100%;
+    min-height: 100px;
+    
+    .CodeMirror {
+        width: 100%;
+        max-height: 300px;
+    }
+}
+
+.dkuform-horizontal .control-group .controls .bootstrap-select.bootstrap-select.bootstrap-select.bootstrap-select.bootstrap-select {
+    width: 206px;
+}
+
+.dkuform-horizontal.custom-fields-form.custom-fields-popup {
+    .control-group {
+        margin-bottom: 0;
+        .control-label {
+            flex: 1 0 50%;
+            font-size: inherit;
+            line-height: inherit;
+        }
+        .controls {
+            flex: 1 0 50%;
+            font-size: inherit;
+            line-height: inherit;
+        }
+        .settings-section-title {
+            font-size: inherit;
+            line-height: inherit;
+            margin: 10px 0 5px 0;
+        }
+    }
+}
+
+/**
+ * The main standard vertical form
+ */
+.dkuform-std-vertical {
+    .mx-common-input-styles;
+
+    .control-label {
+        .mx-std-formlabel-base;
+    }
+
+    .control-group {
+        margin-bottom: 19px;
+    }
+
+    .control-group {
+        .controls {
+            margin: 0px 0px 0px;
+            line-height: 20px;
+        }
+    }
+}
+
+/**
+ * A bigger vertical form. Used in recipe IO
+ */
+.dkuform-vertical-larger {
+    .mx-common-input-styles;
+
+    .control-label, .sub-control-label {
+        .mx-std-formlabel-base;
+    }
+
+    .control-group, .sub-control-group {
+        margin-bottom: 19px;
+    }
+
+    .control-group, .sub-control-group {
+        .controls, .sub-controls {
+            margin: 0px 0px 0px;
+            line-height: 20px;
+        }
+
+        select {
+            width: 100%;
+            // color: @grey-lighten-5;
+            height: 30px;
+        }
+
+        input {
+            width: 100%;
+            // color: @grey-lighten-5;
+            height: 30px;
+
+            &::-webkit-input-placeholder { color: inherit; opacity: .4; }
+            &::-moz-placeholder          { color: inherit; opacity: .4; }
+        }
+
+        .bootstrap-select {
+            width: 100% !important;
+            height: 30px;
+            button {
+                height: 100%;
+                // color: @grey-lighten-5;
+            }
+        }
+    }
+    .dss-object-selector-mainzone {
+        width: 100%;
+        background: @white-base;
+    }
+}
+
+
+.controls-side-by-side-40-60 {
+    .control-group {
+        display: inline-block;
+        float: left;
+    }
+    .control-group:nth-of-type(1) {
+        width: 40%;
+        .controls {
+            margin-right: 10px;
+        }
+    }
+    .control-group:nth-of-type(2) {
+        width: 60%;
+    }
+}
+
+input[type=file] {
+    font-family: 'SourceSansPro';
+}
+
+// Forms in modals
+.dkuform-modal-horizontal {
+    input[type=checkbox] {
+        /* Work-around misalignment */
+        margin-top: 1px;
+    }
+
+	.form-horizontal;
+    .control-group:not(:first-child) {
+        margin-top: 19px;
+        margin-bottom: 0;
+    }
+
+    label.control-label {
+        .mx-std-formlabel-base;
+        width: 220px;
+        cursor: default;
+        &-compact {
+            width: 120px;
+        }
+    }
+    .controls {
+        margin-left: 230px;
+        &-compact {
+            margin-left: 130px;
+        }
+    }
+    .mx-common-input-styles;
+
+    .bootstrap-select.bootstrap-select.bootstrap-select.bootstrap-select.bootstrap-select {
+        width: 206px;
+    }
+
+    input[type=file] {
+        padding-top: 4px;
+        height: 22px;
+    }
+    .help-inline {
+        color: @text-weak;
+        font-size: 12px;
+        width: 230px;
+        &.help-inline--full-width {
+            width: 100%;
+        }
+
+            &.disabled {
+                color: @grey-lighten-4;
+            }
+    }
+    .dss-object-selector-mainzone {
+        width: 206px;
+        background: @white-base;
+    }
+}
+
+.dkuform-modal-vertical {
+    padding: 0 50px;
+    .mx-common-input-styles;
+
+    .modal-body {
+        padding-left: 0;
+        padding-right: 0;
+        overflow: visible;
+        hr {
+            border-top: 1px solid @border-color;
+            margin: 10px -50px;
+        }
+    }
+
+    .control-group {
+        margin-bottom: 15px;
+    }
+
+    .full-width {
+        margin-left: -50px;
+        margin-right: -50px;
+    }
+
+    label.control-label {
+        font-weight: @font-weight-semi-bold;
+        cursor: default;
+        margin-bottom: 10px;
+    }
+}
+
+.dkuform-modal-wrapper {
+    margin: 0;
+}
+
+// Specific - to be removed ?
+form[name=renaming] {
+	margin-bottom: 12px;
+    h2 {
+    	box-shadow: inset 0 1px 2px fade(@grey-base, 10%);
+    	font-size: 1.5em;
+    	background-color: @white-base;
+        position: relative;
+        margin-top: 0;
+        margin-bottom: 8px;
+        input {
+            padding-left: 45px;
+            margin-bottom: 5px;
+        }
+        >i {
+            position: absolute;
+            left: 5px;
+            top: 7px;
+            color: rgba(0,0,0,0.25);
+            pointer-events: none;
+            width: 35px;
+            text-align: center;
+        }
+        >small {
+            position: absolute;
+            left: 5px;
+            top: 29px;
+            width: 35px;
+            text-align: center;
+            font-size: 10px;
+            display: block;
+            color: rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+    }
+}
+
+/***************** Buttons ******************/
+
+// For buttons, we reuse Bootstrap classes, so we have some resetting to do
+.btn {
+    background-image : inherit;
+    box-shadow: none;
+    text-shadow: none;
+    box-sizing: border-box;
+    outline: 0;
+}
+
+:not(.dku-btn-group) .btn {
+    border-radius: 0px !important;
+}
+
+// More bootstrap reset
+.btn-group > .btn,
+.btn-group > .dropdown-menu,
+.btn-group > .popover {
+    font-size: 13px;
+}
+
+.btn-in-form.btn-in-form {
+    height: 24px;
+    line-height: 24px;
+}
+
+/***
+ * The basic types of button colors
+ */
+
+.mx-btn-inverse-disabled {
+    // Grr
+    &[disabled]{
+        color: fade(@white-base, 80%);
+    }
+}
+
+.btn {
+	&:focus {
+		outline: none;
+	}
+}
+
+/* Button Primary */
+.mx-dku-btn-primary-colors() {
+    background: @btn-primary-background;
+    color: @btn-primary-text;
+    transition: all 0.2s ease;
+    &:not([disabled]):hover {
+        background: @btn-primary-background-hover;
+    }
+    &:active, &:focus {
+        box-shadow: none;
+        background: @btn-primary-background-active;
+    }
+}
+
+/* Button Success */
+.mx-dku-btn-success-colors() {
+    background: @btn-success-background;
+    color: @btn-success-text;
+    &:hover {
+        background: @btn-success-background-hover;
+    }
+    &:active, &:focus {
+        box-shadow: none;
+        transition: all 0.2s ease;
+        background: @btn-success-background-active;
+    }
+}
+
+.btn.btn.btn.btn, // override bootstrap's (same except right)
+.has-caret {
+    position: relative;
+    > .caret {
+        position: absolute;
+        top: 50%;
+        margin-top: -2px;
+        vertical-align: middle;
+        right: 6px;
+        margin-left: 6px;
+    }
+}
+.btn.btn.dropdown-toggle:not(.manual-caret),
+.has-caret {
+    padding-right: 20px;
+}
+
+.dku-toggle.dku-toggle {
+    margin-left: 10px;
+    margin-bottom: 0;
+    display: inline-block;
+    position: relative;
+    top: 3px;
+    &.dku-toggle--no-margin {
+        margin: 0;
+    }
+    input {
+        display: none;
+    }
+    input + * {
+        display: block;
+        box-shadow: 0 2px 1px -1px @grey-lighten-7;
+        height: 20px;
+        width: 50px;
+        border-radius: 15px;
+        cursor: pointer;
+        text-align: left;
+        &:before { // toggle background
+            content: "OFF";
+            text-indent: 22px;
+
+            font-family: Verdana;
+            line-height: 20px;
+            color: @white-base;
+            font-size: 10px;
+            position: absolute;
+            display: block;
+            height: 20px;
+            width: 50px;
+            top: 0;
+            left: 0px;
+            border-radius: 15px;
+            background: @grey-lighten-5;
+            transition-delay: 0.1s;
+        }
+        &:after { // handle
+            content: "";
+            position: absolute;
+            display: block;
+            height: 18px;
+            width: 18px;
+            top: 1px;
+            left: 1px;
+            border-radius: 15px;
+            background: @white-base;
+            transition: .25s ease-in-out;
+        }
+    }
+    input:checked {
+        + * {
+            &:before {
+                background-color: @digital-blue-base;
+                color: @white-base;
+                content: "ON";
+                text-indent: 8px;
+            }
+            &:after {
+                left: 31px;
+            }
+        }
+        &:disabled + * {
+            cursor: not-allowed;
+            &:before {
+                color: @digital-blue-lighten-4;
+                background-color: @digital-blue-lighten-3;
+            }
+            &:after {
+                background-color: @digital-blue-lighten-6;
+            }
+        }
+    }
+    input:disabled + * {
+        cursor: not-allowed;
+        &:before {
+            color: @grey-lighten-8;
+            background-color: @grey-lighten-7;
+        }
+        &:after {
+            background-color: @grey-lighten-8;
+        }
+    }
+    &.error input + *:before {
+        background-color: @error-red-base !important;
+    }
+}
+.dku-toggle-no-content.dku-toggle-no-content.dku-toggle-no-content {
+    input + *:before, input + *:after {
+        content: '';
+    }
+}
+
+.dku-toggle-plain.dku-toggle-plain.dku-toggle-plain {
+    input + *:before {
+        content: '';
+        background: @grey-lighten-5;
+    }
+    input + *:after {
+        content: '';
+    }
+}
+
+
+.dku-labelled-toggle {
+    display: inline-block;
+    font-size: 12px;
+    input {
+        display: none;
+    }
+    input + * {
+        .no-select;
+        color: @grey-lighten-1;
+        padding: 4px 7px;
+        border-radius: 3px;
+        margin: 1px;
+    }
+    input:enabled + * {
+        background-color: @grey-background;
+        &:hover {
+            background-color: @success-green-base;
+            color: @white-base;
+        }
+    }
+    input:checked + * {
+        background-color: @success-green-base;
+        color: @white-base;
+        &:hover {
+            background-color: @success-green-base;
+        }
+    }
+    input:disabled + *  {
+        background: none;
+        pointer-events: none;
+        cursor: default;
+        color: @grey-lighten-6;
+        font-weight: @font-weight-normal;
+        text-decoration: line-through;
+        &:hover {
+            background-color: inherit;
+        }
+    }
+}
+
+input.in-place-edit {
+    background-color: inherit !important;
+    color: inherit !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    text-rendering: inherit !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    position: relative;
+    top: -1px;
+    &:not(:focus) {
+        border-color: rgba(0,0,0,0);
+        &:hover {
+            border-color: @border-color;
+        }
+    }
+}
+
+// GET LOST PRICK !
+.dku-select-button.dku-select-button.dku-select-button.dku-select-button {
+    text-transform: none;
+    outline: none !important;
+    &:focus {
+        outline: none !important;
+    }
+
+    i.object-icon {
+        vertical-align: middle;
+        margin-left: 3px;
+        margin-right: 5px;
+    }
+}
+.dku-select-button.dku-select-button {
+    .mx-ssp(13px, @font-weight-normal);
+}
+.bootstrap-select-searchbox {
+    input[type=text] {
+        .mx-std-input-base;
+    }
+}
+
+.show-on-hover {
+    visibility: hidden;
+    // &:hover won't work on FF (hidden => can't have hover)
+    :hover > &, &.popover-shown, & > * { visibility: visible; }
+    & > .caret { visibility: inherit; }
+}
+
+label.disabled {
+    color: @grey-lighten-5;
+}
+
+.mx-selector-item {
+    border: 1px solid @border-color;
+    padding: 5px;
+    margin: 8px 10px;
+
+    &:not(.selectable) {
+        color: @grey-lighten-7;
+    }
+    &.selectable:hover {
+        cursor: pointer;
+        background-color: @grey-background;
+    }
+    &.selected, &.selected:hover {
+        border-color: @border-focus-color;
+        background-color: @white-base;
+    }
+    i:not(.universe-color) {
+        color: @text-weak;
+    }
+    .selection-indicator {
+        display: inline-block;
+        width: 20px;
+        text-align: center;
+        i {
+            color: @digital-blue-base;
+        }
+    }
+    .selectable-item__title {
+        .mx-textellipsis;
+        color: @text-important;
+        font-weight: @font-weight-semi-bold;
+        max-width: 90%;
+    }
+    .selectable-item__description {
+        font-weight: @font-weight-normal;
+    }
+}
+
+.selectable-items-list,
+.selectable-items-list-h50 {
+    .selectable-item {
+        .horizontal-flex;
+        .selection-indicator { .noflex; }
+        .mx-selector-item;
+    }
+    &.selectable-items-list--no-margins .selectable-item {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+ul.selectable-items-list {
+    margin: 0;
+}
+
+.selectable-items-list-h50 .selectable-item { height: 52px; }
+
+/* GUI 2.1 */
+.big-click-zone-inline {
+    .mx-selector-item;
+    margin: 0 0 10px 0;
+    .title {
+        margin: 0;
+        font-size: 17px;
+        font-weight: @font-weight-semi-bold;
+    }
+}
+
+.btn-run-group {
+    .btn {
+        height: 26px;
+        line-height: 26px;
+        text-transform: uppercase;
+    }
+    .btn-run-main {
+        padding: 0 10px;
+    }
+}
+
+/***********************************
+ * listForm (add/remove form rows) *
+ ***********************************/
+
+.dku-right-col-form {
+    padding-top: 10px;
+    .mx-common-input-styles;
+    .control-group {
+        padding: 0 10px;
+        margin-bottom: 20px;
+        .control-label {
+            font-weight: @font-weight-semi-bold;
+            cursor: default;
+        }
+        label.control-label[for] {
+            cursor: pointer;
+        }
+    }
+
+    input[type=text], textarea, .bootstrap-select,
+    .bootstrap-select:not([class*="span"]):not([class*="col-"]):not([class*="form-control"]):not(.input-group-btn),
+    .dss-object-selector-mainzone {
+        box-shadow: none;
+        width: 100%;
+    }
+
+    .bootstrap-select:not(:last-child) {
+        margin-bottom: 5px !important;
+    }
+
+    .dss-object-selector-mainzone {
+        line-height: 22px;
+        font-size: inherit;
+        background: @white-base;
+        height: 26px;
+
+        &.has-dataset {
+            height: 48px;
+        }
+    }
+}
+
+input.simple-styled-input {
+    .mx-std-input-base;
+}
+
+.dku-search-input {
+    position: relative;
+
+    input {
+        .mx-std-input-base;
+        padding: 0 25px 0 10px;
+        box-shadow: none;
+        width: 100%;
+    }
+
+    &:before {
+        &:extend(.mx-font-icm_app);
+        content: "\e608";
+        font-size: 15px;
+        color: @grey-lighten-5;
+        position: absolute;
+        right: 5px;
+        top: 4px;
+        display: block;
+    }
+}
+
+.dku-editable-text {
+    > div {
+        padding: 4px 5px 2px 5px;
+        i {
+            padding-left: 5px;
+            cursor: pointer;
+        }
+    }
+    > input {
+        .mx-std-input-base;
+        font-size: inherit !important;
+        font-weight: inherit !important;
+
+        &:not(:focus) {
+            border-color: transparent;
+            background: transparent;
+        }
+    }
+
+    &:focus {
+        border: 1px solid @error-red-base;
+    }
+}
+
+.dku-horizontal-selector-list {
+    > .item {
+        .mx-selector-item;
+
+        margin: 4px 0 10px 0;
+        padding: 10px;
+
+        &:before {
+            content: " ";
+            font-family: FontAwesome;
+            color: @digital-blue-base;
+            width: 30px;
+            display: inline-block;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1em;
+            padding-right: 3px;
+        }
+
+        &.selected:before {
+            content: "\f00c";
+        }
+
+        .name {
+            font-weight: @font-weight-semi-bold;
+            display: inline-block;
+            min-width: 135px;
+        }
+    }
+}
+
+.dku-block-selector-list {
+    display: flex;
+
+    > .item {
+        .mx-selector-item;
+
+        text-align: center;
+
+        margin: 10px;
+        padding: 10px;
+
+        &:before {
+            content: " ";
+            font-family: FontAwesome;
+            color: @digital-blue-base;
+            width: 100%;
+            display: block;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1em;
+            height: 20px;
+            padding-right: 3px;
+        }
+
+        &.selected:before {
+            content: "\f00c";
+        }
+
+        .name {
+            margin: 5px 0;
+            font-weight: @font-weight-semi-bold;
+            display: inline-block;
+            min-width: 135px;
+        }
+    }
+}
+
+.dku-btn-group {
+    .btn-group;
+
+    .btn {
+        background: @white-base;
+        border: 1px solid @border-color;
+
+        color: @grey-lighten-1;
+
+        font-family: SourceSansPro;
+        font-weight: @font-weight-semi-bold;
+
+        &:hover {
+            background: @grey-background;
+            color: @text-weak;
+        }
+
+        &.active {
+            background: @grey-background;
+            color: @text-weak;
+            box-shadow: none;
+        }
+    }
+}
+
+.standard-settings {
+    .standard-settings-infozone {
+        box-sizing: border-box;
+        margin: 20px auto;
+        border: 1px solid @border-color;
+    }
+    .standard-settings-section1 {
+        background: @white-base;
+        box-sizing: border-box;
+        margin: 20px auto;
+        border: 1px solid @border-color;
+    }
+    .standard-settings-infozone, .standard-settings-section1 {
+
+        .standard-settings-section2 {
+            h5 {
+                margin-top: 0;
+            }
+
+            .group-key-selector {
+                margin: 10px 0;
+                > div { display:inline-block; }
+                .btn-green {
+                    background-color: @success-green-base;
+                    color: @white-base;
+                    border: none;
+                }
+                > a {
+                    margin: 0 10px;
+                }
+            }
+        }
+
+        h1, .standard-settings-section2 {
+            padding: 10px;
+        }
+        .standard-settings-section2:not(:first-of-type) {
+            border-top: 1px solid @border-color;
+        }
+        h1.standard-settings-section1-title {
+            .mx-ssp(20px, @font-weight-normal);
+            line-height: 26px;
+            color: @grey-lighten-2;
+            margin: 0;
+            padding-bottom: 0;
+
+            .keyadd-btn {
+                margin-right: 10px;
+                width: 220px;
+                text-align: left;
+            }
+
+            > span {
+                font-size: 12px;
+                padding-left: 20px;
+            }
+            .greenbtn {
+                user-select: none;
+                padding: 4px 7px;
+                border-radius: 3px;
+                margin: 1px;
+                background-color: @success-green-base;
+                color: @white-base;
+            }
+        }
+        h2.standard-settings-section2-title {
+            .mx-ssp(16px, @font-weight-normal);
+            line-height: 26px;
+            color: @grey-lighten-2;
+            margin: 10px 0;
+        }
+        h3.standard-settings-section3-title {
+            .mx-ssp(14px, @font-weight-normal);
+            line-height: 20px;
+            color: @grey-lighten-2;
+        }
+    }
+}
+
+
+/* Copied from bootstrap 3 */
+.btn-group-justified {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    > .btn,
+    > .btn-group {
+        float: none;
+        display: table-cell;
+        width: 1%;
+    }
+    > .btn-group .btn {
+        width: 100%;
+    }
+
+    > .btn-group .dropdown-menu {
+        left: auto;
+    }
+}
+
+.dku-add-new {
+    color: @grey-lighten-5;
+    text-transform: uppercase;
+
+    &:before {
+        &:extend(.mx-font-icm_app);
+        content: '\e61f';
+        height: 16px;
+        width: 16px;
+        display: inline-block;
+        vertical-align: middle;
+        text-align: center;
+        margin-right: 7px;
+        line-height: 16px;
+        font-size: 15px;
+    }
+
+    &:hover {
+        color: @text-weak;
+        text-decoration: none;
+    }
+}
+
+.code-mirror {
+    &.dynamic-height {
+        .CodeMirror, .CodeMirror-scroll {
+            height: auto;
+            min-height: 100px;
+        }
+    }
+
+    &.h200px {
+        .CodeMirror, .CodeMirror-scroll {
+            height: 200px;
+        }
+    }
+}
+
+.tiles-select-one-of {
+    .tile-select-one-of {
+        border: none;
+        box-shadow: none;
+        cursor: pointer;
+        opacity: 0.76;
+        border: 1px solid transparent;
+        &.preselected, &:hover {
+            border: 1px solid @border-color;
+            border-radius: 2px;
+            box-shadow: 0px 2px 5px fade(@grey-base, 8%);
+            opacity: 1;
+        }
+    }
+}
+
+label.chameleon-text-input {
+    .mx-common-input-styles();
+    .inherit-text-properties;
+
+    input[type=text] {
+        &:not(:focus) {
+            border-color: transparent;
+            background: none;
+            box-shadow: none;
+            outline: none;
+            .inherit-text-properties;
+        }
+    }
+}
+
+.dku-input-error-highlight() {
+    input[type=text] {
+        &.has-error:focus {
+            border-color: @error-red-base;
+            outline: 0;
+            .box-shadow(~"inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(225, 17, 13,.6)");
+        }
+    }
+}
+
+.dku-error-fade-in {
+  -webkit-animation-name: tooltip-fade-in;
+  animation-name: tooltip-fade-in;
+  -webkit-animation-duration: 1s;
+  animation-duration: 1s;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+@-webkit-keyframes tooltip-fade-in {
+  0% {opacity: 0;}
+  100% {opacity: 1;}
+}
+@keyframes tooltip-fade-in {
+  0% {opacity: 0;}
+  100% {opacity: 1;}
+}
+
+button.button--git-action {
+    width: auto;
+    max-width: 180px;
+    text-align: left;
+    border: none;
+    border-radius: 3px;
+    outline: none !important;
+    text-transform: none;
+    overflow: hidden;
+    white-space: nowrap;
+    font-weight: @font-weight-normal;
+    text-overflow: ellipsis;
+    color: @text-important;
+    font-size: 14px;
+    display: inline-block;
+    background: none;
+    padding: 4px;
+    font-family: 'SourceSansPro';
+
+    &:hover, &.popover-shown {
+        background-color: @grey-background;
+    }
+
+    .icon-dku-git {
+        font-size: 22px;
+        vertical-align: middle;
+    }
+
+    .button__branch-name {
+        vertical-align: middle;
+        font-size: 16px;
+        font-weight: @font-weight-normal;
+    }
+}
+
+.button--git-action.has-caret {
+    padding-right: 20px;
+}
+
+.button--git-action.disabled {
+    cursor: default;
+    &:hover {
+        background: none;
+    }
+}
+
+.popover_style_no_border {
+    box-shadow: none;
+    border: 0;
+    padding: 0;
+}
+
+.popover__elt_no_bg_hover:hover {
+    background-image: none !important;
+    background-color: transparent !important;
+    > * {
+        background-image: none !important;
+        background-color: transparent !important;
+
+    }
+}
+
+.webhook-url {
+    width: ~'calc(100% - 16px)' !important;
+    
+    &.ng-invalid { 
+        border: 1px solid @error-red-base;
+    }
+}
+
+.webhook-url-error {
+    width: ~'calc(100% - 20px)' !important;
+}
+
+.auto-config-form-list-item {
+    line-height: 26px;
+    padding: 0 15px;
+    .mx-textellipsis;
+    list-style: none;
+}
+
+select,
+textarea,
+input[type="text"],
+input[type="password"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="date"],
+input[type="month"],
+input[type="time"],
+input[type="week"],
+input[type="number"],
+input[type="email"],
+input[type="url"],
+input[type="search"],
+input[type="tel"],
+input[type="color"],
+.uneditable-input {
+    font-family: 'SourceSansPro';
+    border-radius: 0;
+}

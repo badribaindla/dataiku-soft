@@ -1,0 +1,77 @@
+
+<div ng-controller="CustomWebAppEditController" class="fh oa recipe-editor-page">
+
+    <div future-waiting response="sharedState.backendFuture" ng-show="sharedState.backendFuture && !sharedState.backendFuture.hasResult"></div>
+
+    <div class="recipe-settings-section1 w800" ng-if="hasSettings || true">
+        <form global-keydown="{'ctrl-s meta-s': 'saveWebAppWithCode()'}">
+            <div plugin-settings-alert plugin-desc="pluginDesc" component-type="webapp" has-settings="pluginDesc.hasSettings" app-config="appConfig" />
+
+            <div custom-params-form
+                ng-if="(desc.params && desc.params.length > 0) || (desc.paramsTemplate && desc.paramsTemplate.length > 0)"
+                desc="desc"
+                plugin-desc="pluginDesc"
+                component-id="loadedDesc.id"
+                config="app.config"
+                >
+            </div>
+        </form>
+    </div>
+
+
+    <div class="recipe-settings-section1 w800" ng-if="getBaseType(app.type) == 'STANDARD' && !app.params.hideJSSecurityPanel">
+        <h1 class="recipe-settings-section1-title">Javascript security</h1>
+        <div class="recipe-settings-section2">
+            <div class="alert alert-error" ng-if="unauthorisedUsedDatasets.length">
+                Dataset{{unauthorisedUsedDatasets.length > 1 ? 's' : ''}} {{unauthorisedUsedDatasets}} {{unauthorisedUsedDatasets.length > 1 ? 'are' : 'is'}} in the parameters but not accessible through JavaScript API.
+            </div>
+            <a class="btn btn--secondary" ng-click="showSettingsModal()"> Configure </a>
+        </div>
+    </div>
+
+
+    <div class="recipe-settings-section1 w800" ng-if="app.params.backendEnabled || ['SHINY', 'BOKEH', 'DASH'].includes(getBaseType(app.type))">
+        <h1 class="recipe-settings-section1-title">Backend</h1>
+        <div class="recipe-settings-section2">
+            <form class="dkuform-horizontal">
+                <div class="control-group">
+                    <label for="" class="control-label">Auto-start backend</label>
+                    <div class="controls">
+                        <label>
+                            <input type="checkbox" ng-model="app.params.autoStartBackend" />
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="!app.isVirtual">
+                    <label for="" class="control-label">Run backend as</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="app.params.runAs" ng-options="user.login as user.login for user in allUsers">
+                            <option value="">Last modifier</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group" ng-show="backendEnabled(app)">
+                    <label for="" class="control-label">Require authentication</label>
+                    <div class="controls">
+                        <label>
+                            <input type="checkbox" ng-model="app.params.forceAuthentication" />
+                            <span class="help-inline">The webapp cannot be accessed without being logged into DSS. Note that your administrator may override this setting and require authentication for all webapps</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div web-app-infra="app.params.infra" ng-show="backendEnabled(app)"></div>
+
+            </form>
+        </div>
+    </div>
+
+    <div style="text-align: center">
+        <a class="dib btn btn--primary btn--large" ng-show="!isDirty()" href="{{$state.href('projects.project.webapps.webapp.view')}}">
+            View webapp
+        </a>
+        <a class="dib btn btn--primary btn--large" ng-show="isDirty()" ng-click="saveAndViewWebApp()">
+            <i class="icon-save"></i> Save and view webapp
+        </a>
+    </div>
+</div>

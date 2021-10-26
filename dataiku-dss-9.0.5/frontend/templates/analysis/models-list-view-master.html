@@ -1,0 +1,105 @@
+<div class="h100 oa">
+    <div class="session" ng-repeat="session in getSessions(selection.filteredObjects)" ng-class="{selected:session===sessionTask.sessionId,running:isSessionRunning(session)}"
+    puppeteer-hook="s{{session | onlyNumbers}}" ng-if="selection.filteredObjects.length > 0">
+        <div class="session-container">
+            <div class="session-title" class="accordion-title" full-click>
+                <span style="display:none;" main-click ng-click="getSessionTaskIfChanged(session)"></span>
+                <input type="checkbox"
+                    ng-model="selection.partial[session].all"
+                    dku-indeterminate="selection.partial[session].some"
+                    ng-change="updateMassSelectionCheckbox(session);">
+                <span class="title">
+                    Session {{session | onlyNumbers}}
+                </span>
+                <div class="pull-right">
+                    <span custom-element-popup cep-position="align-left-bottom" cep-offset-left="0" close-on-click="true" full-click>
+                        <a ng-click="getSessionTaskIfChanged(session);togglePopover()" main-click class="mainzone dropdown-toggle">
+                            <i class="dku-ellipsis-vertical dku-ellipsis-vertical--circle-on-hover"></i>
+                        </a>
+                        <ul class="popover custom-element-popup-popover dropdown-menu column-header-menu shaker-column-row-popup">
+                            <li ng-hide="isSessionRunning(session)">
+                                <a ng-click="deleteSession(session)" class="text-error">
+                                    <i class="icon-trash"></i> Delete
+                                </a>
+                            </li>
+                            <li ng-show="hasOptimizingModels(session) && uiState.$userRequestedState !== 'FINALIZE'">
+                                <a ng-click="stopGridSearchSession(session)">
+                                    <i class="icon-pause"></i> Suspend optimization
+                                </a>
+                            </li>
+                            <li ng-show="hasOptimizingModels(session) && uiState.$userRequestedState === 'FINALIZE'" class="disabled pointer-events-none">
+                                <a ng-click="stopGridSearchSession(session)">
+                                    <i class="icon-pause"></i> Suspending optimization…
+                                </a>
+                            </li>
+                            <li ng-show="!mlTaskStatus.training && hasResumableModels(session)">
+                                <a ng-click="retrainSession(session)" >
+                                    <i class="icon-play"></i> Resume Session
+                                </a>
+                            </li>
+                            <li ng-show="mlTasksContext.activeMLTask.backendType !== 'VERTICA'">
+                                <a ng-click="revertDesignToSession(session)" >
+                                    <i class="icon-backward"></i> Revert design to this session
+                                </a>
+                            </li>
+                            <li ng-show="isSessionRunning(session)">
+                                <a ng-click="abortTraining()" >
+                                    <i class="icon-stop"></i> Abort this session
+                                </a>
+                            </li>
+                        </ul>
+                    </span>
+                </div>
+                <span class="pull-right session-running" ng-if="isSessionRunning(session)">
+                    Running <i class="icon-spinner icon-spin" />
+                </span>
+            </div>
+            <ul>
+                <li class="model horizontal-flex" ng-repeat="model in getSessionModels(selection.filteredObjects, session)|orderBy : 'algorithmOrder'" full-click ignore-element=".icon-info-sign" ng-class="{failed:isModelFailedOrAborted(model),focused: selection.selectedObject === model,selected: model.$selected,'session-focused':session===sessionTask.sessionId}">
+                    <span style="display:none;" main-click ng-click="objectClicked(model, $event); scrollToModel(model)"></span>
+                    <!-- because checkbox click is priority -->
+                    <input type="checkbox" ng-model="model.$selected" ng-click="checkBoxChanged(model, $event)">
+                    <span class="model-name flex mx-textellipsis">
+                         <span class="model-color-bullet" ng-style="session === sessionTask.sessionId && model.color && {'border-color': model.color}"></span>
+                         <span ng-show="selection.selectedObject === model">
+                            <a ng-href="{{isModelDone(model) ? $state.href(sRefPrefix + (snippetSource === 'SAVED' ? '' : '.model') + '.report', {'fullModelId':model.fullModelId}) : '#'}}">{{model.userMeta.name}}</a>
+                        </span>
+                         <span ng-show="selection.selectedObject !== model">
+                            {{model.userMeta.name}}
+                        </span>
+                    </span>
+                    <div class="noflex">
+                        <span ng-show="!isModelFailedOrAborted(model)&&!isModelRunning(model)" class="metric-container">
+                            <i class="icon-trophy" ng-if="isBestModelScore(model, true)"></i>
+                            <i class="icon-dku-weight" ng-if="model.sampleWeightsEnabled"></i>
+                            <span ng-if="model.partitionedModelEnabled">~</span>
+                            <span class="metric" ng-bind-html="model.mainMetric | mlMetricFormat
+                                :uiState.currentMetric
+                                :(uiState.currentMetric.substr(0, 3) === 'NB_' ? 0 : 3)
+                                :model.mainMetricStd">
+                            </span>
+                            <span ng-if="model.partitionedModelEnabled"
+                                  dku-md-popover="{{getAggregationExplanation(uiState.currentMetric)}}"
+                                  dku-md-title="Aggregated metric">
+                                 <i class="icon-info-sign"></i>
+                            </span>
+                        </span>
+                        <span ng-show="isModelRunning(model)">
+                            <i class="dku-loader icon-spin w20 h20"></i>
+                        </span>
+                        <span ng-show="!isModelRunning(model)&&!isModelFailedOrAborted(model)" class="model-starred">
+                            <i ng-click="toggleStarred(model)" ng-if="!model.userMeta.starred"
+                                class="icon-star-empty"></i>
+                            <i ng-click="toggleStarred(model)" ng-if="model.userMeta.starred"
+                                class="icon-star"></i>
+                        </span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="session--empty" ng-if="selection.filteredObjects.length === 0">
+        <div>No model matches the filters</div>
+        <button type="button" class="btn btn--text btn--primary" ng-if="mlTaskStatus.fullModelIds.length > 0" ng-click="clearModelsListFilters()">Clear filters</button>
+    </div>
+</div>

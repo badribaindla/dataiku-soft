@@ -1,0 +1,38 @@
+<div class="input-filter-block" style="margin-top: 15px;">
+    <h4 class="distinct">
+        Distinct
+        <label
+            title="{{!recipeStatus || recipeStatus.selectedEngine.canDistinctSelect ? 'Remove duplicate rows' : 'Not available with this engine'}}"
+            class="dku-toggle pull-right"
+            ng-class="{disabled: recipeStatus && !recipeStatus.selectedEngine.canDistinctSelect}"
+            toggle="tooltip"
+            >
+            <input type="checkbox"
+                ng-model="filter.distinct"
+                ng-change="hooks.updateRecipeStatus()"
+                ng-disabled="recipeStatus && !recipeStatus.selectedEngine.canDistinctSelect"
+                >
+            <span/>
+        </label>
+    </h4>
+
+    <h4 class="dataset-filter">
+        Filter
+        <label class="dku-toggle pull-right">
+            <input type="checkbox" class="dku-toggle"
+                ng-model="filter.enabled"
+                ng-change="filter.enabled ? showFilterModal(false) : onChange()"
+                />
+            <span/>
+        </label>
+    </h4>
+
+    <a ng-show="filter && filter.enabled"
+        class="filter-expression"
+        ng-click="showFilterModal(false)"
+        title="Click to edit"
+        >
+        <div ng-bind-html="filter|filterNiceRepr" class="oxa horizontal-flex"></div>
+    </a>
+
+</div>

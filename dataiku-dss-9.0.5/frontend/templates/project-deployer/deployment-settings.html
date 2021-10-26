@@ -1,0 +1,108 @@
+<div>
+    <div class="deployment-settings h100 row-fluid" tab-model="uiState.settingsPane">
+        <div class="span2 offset0 nav-list-sidebar sidebar-admin">
+            <ul>
+                <li sidebar-tab-l2-link tab-name="information" label="Deployment information" />
+                <li sidebar-tab-l2-link tab-name="variables" label="Variables" />
+                <li sidebar-tab-l2-link tab-name="connections" label="Connections" />
+                <li sidebar-tab-l2-link tab-name="code-envs" label="Code envs" />
+                <li sidebar-tab-l2-link tab-name="scenarios" label="Scenarios" />
+            </ul>
+        </div>
+
+        <div class="span10 h100 offset0 boxed-next-to-sidebar" ng-switch="uiState.settingsPane">
+            <div ng-switch-when="information" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Source project key</label>
+                        <div class="controls">
+                            <input type="text" ng-model="deploymentSettings.publishedProjectKey" disabled />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Source bundle</label>
+                        <div class="controls">
+                            <select dku-bs-select="{ liveSearch: true }"
+                                ng-options="bundle.id as (bundle.name || bundle.id) for bundle in bundles"
+                                ng-model="deploymentSettings.bundleId"
+                                required />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Target infrastructure</label>
+                        <div class="controls">
+                            <input type="text" ng-model="deploymentSettings.infraId" disabled />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Target project key</label>
+                        <div class="controls">
+                            <input type="text" 
+                            ng-model="deploymentSettings.deployedProjectKey" 
+                            disabled
+                            required />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Target project folder {{ !projectFolderHierarchy.id ? 'ID' : '' }}</label>
+                        <div class="controls">
+                            <input type="text" ng-if="projectFolderPath" ng-model="projectFolderPath" disabled />
+                            <input type="text" ng-if="!projectFolderPath" ng-model="deploymentSettings.projectFolderId" disabled />
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="variables" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div>
+                        <h4 class="font-weight-normal mbot16">
+                            Update local variables on automation project
+                        </h4>
+                        <div class="alert alert-info">Variables declared here will be added to the local variables on the automation project, overwriting existing values in case of name collision.</div>
+                        <div class="with-codemirror-h200-borders">
+                            <textarea ng-model="localVariables.asJSON"
+                                ui-codemirror="codeMirrorSettingService.get('application/json')">
+                            </textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-weight-normal mtop24 mbot16">
+                            Project global variables in bundle
+                        </h4>
+                        <div class="alert alert-info">Existing global variables on the automation project will be erased and replaced with the project global variables from the bundle.</div>
+
+                        <div>
+                            <pre>{{ uiState.selectedBundle.projectVariables | json }}</pre>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="connections" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div include-no-scope="/templates/project-deployer/fragments/edit-deployment-connections.html"></div>
+                </form>
+            </div>
+
+
+            <div ng-switch-when="code-envs" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div include-no-scope="/templates/project-deployer/fragments/edit-deployment-code-envs.html"></div>
+                </form>
+            </div>
+
+            <div class="pad0" ng-switch-when="scenarios" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div include-no-scope="/templates/project-deployer/fragments/edit-deployment-scenarios.html"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

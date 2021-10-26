@@ -1,0 +1,21 @@
+<div >
+	<div ng-if="paramDesc.type == 'BOOLEAN'">
+			<input ng-model="it.value" type="checkbox" />
+	</div>
+	<div ng-if="paramDesc.type != 'BOOLEAN'">
+		<ng-switch on="paramDesc.type">
+            <span ng-switch-when="UNKNOWN" >{{it.value}}</span>
+            <textarea ng-switch-when="TEXTAREA" ng-model="it.value" ng-disabled="disabled"/>
+			<input ng-switch-when="INT" force-integer type="number" ng-model="it.value" step="1" class="input-mini" next-on-enter ng-disabled="disabled"/>
+			<input ng-switch-when="DOUBLE" force-double type="number" ng-model="it.value" step="any" class="input-mini" next-on-enter ng-disabled="disabled"/>
+			<input ng-switch-when="STRING" type="text" ng-model="it.value" next-on-enter ng-disabled="disabled"/>
+			<input ng-switch-when="PASSWORD" type="password" ng-model="it.value" autocomplete="new-password" next-on-enter ng-disabled="disabled"/>
+			<div ng-switch-when="MAP" style="display: inline-block;" autoconfig-map-to-mapping-editor="it.value" ng-disabled="disabled">
+				<mapping-editor ng-model="tempMap" add-label="Add key/value" /> <!-- the js code converts the key-value pairs to a map -->
+			</div>
+			<div ng-switch-when="KEY_VALUE_LIST" style="display: inline-block;" ng-disabled="disabled">
+				<mapping-editor ng-model="it.value" add-label="Add key/value" /> 
+			</div>
+		</ng-switch>
+	</div>
+</div>

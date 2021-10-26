@@ -1,0 +1,33 @@
+<div class="modal modal3 dku-modal plugin-dev-commons" auto-size="false" >
+    <div dku-modal-header modal-class="has-border" modal-title="Move {{toMove.children ? 'folder' : 'file'}}..." />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body plugin-content no-padding vertical-flex" style="height: 200px !important;">
+            <div block-api-error class="noflex" />
+
+            <div class="h100 oa content-list flex" style="border-right: none; width: auto;"> <!-- suppress border -->
+                <div class="content-row horizontal-flex" ng-class="{'is-destination': uiState.moveToTop}" style="padding-left: {{getMarginFromDepth(0)}}px" ng-click="foldRoot = !foldRoot;">
+                    <i class="icon" ng-class="{'icon-caret-down': !foldRoot, 'icon-caret-right': foldRoot}" ng-if="devContents !== undefined" style="left: {{getCarretLeftPosition(0)}}px;"></i>
+                    <a class="name-with-icon flex" ng-click="changeDestination();">
+                        <i class="icon icon-folder-close  colored-folder-icon"></i>
+                        <span class="name" >{{ headerDescription || 'Plugin contents' }}</span>
+                    </a>
+                </div>
+                <ul ng-if="devContents !== undefined && !foldRoot"> <!-- so that the ng-init are not undefined -->
+                    <li ng-repeat="content in devContents" >
+                        <div include-no-scope="/templates/plugins/development/fragments/folder-selector.html" />
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons has-border" style="height:auto; line-height:auto;">
+            <p class="destination horizontal-flex">
+                <span class="noflex">To directory:</span>
+                <code class="flex">/{{uiState.destination.path}}</code>
+            </p>
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="move();" ng-disabled="hasNowhereToGo()">Move</button>
+        </div>
+    </form>
+</div>

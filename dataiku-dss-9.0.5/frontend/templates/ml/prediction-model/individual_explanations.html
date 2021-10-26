@@ -1,0 +1,140 @@
+<div ng-controller="IndividualExplanationsController">
+    <form name="forms.explanationsForm" class="individual-explanations-form">
+        <div class="explanation-params-inline">
+            <span>Compute the explanations for the </span>
+            <input class="explanation-params-inline__number-input" required name="nbExplanations" type="number" force-integer min="1" max=99 ng-model="uiState.nbExplanations" />
+            <span> most influential features for extreme {{ isRegression() ? "predictions" : "probabilities" }} </span>
+            <span class="explanation-params-inline__class-selector" ng-show="isMulticlass()">for 
+                <div puppeteer-hook-1>
+                    <select  dku-bs-select="{titlePrefix:'Class'}"
+                        ng-model="selectedClass"
+                        ng-options="c disable when !selectableClasses.includes(c) for c in modelData.classes | orderBy"/>
+                </div>
+            </span>
+            <span> using the method: </span>
+            <span class="explanation-params-inline__method">
+                <input id="radio-button-ice" type="radio" ng-model="uiState.method" value="ICE"/>
+                <label for="radio-button-ice"> ICE </label>
+
+                <input id="radio-button-shapley" type="radio" ng-model="uiState.method" value="SHAPLEY"/>
+                <label for="radio-button-shapley"> Shapley </label>
+            </span>
+            <button 
+                class="btn btn--contained btn--publish"
+                style="margin-left: auto;"
+                disabled-if="!!readOnly" disabled-message="Cannot compute, read only"
+                ng-disabled="!canCompute()"
+                ng-click="compute()">Compute
+            </button>
+            <span with-computation-params-popin data-sample-size-label="Max. number of rows to explain" 
+                data-sample-size-help="Number of records to explain when the left and right sliders are overlaid"
+                data-hide-nb-jobs="true" class="computation-params-gear" ng-click="toggleComputationParamsPopin($event)">
+                <i class="icon-gear"></i>
+            </span>
+        </div>
+    </form>
+    <span ng-if="uiState.showLowPredictions" class="explanation-row-count explanation-row-count--left">
+        <span ng-if="results && selectedRange.from === results.lowPredictionsBoundary">
+            {{ explanations.low.index.length }} {{'row' | plurify: explanations.low.index.length }}
+        </span>
+        <span ng-if="!results || selectedRange.from !== results.lowPredictionsBoundary">
+            ~{{ nbRowsLeft }} {{'row' | plurify: nbRowsLeft }}
+        </span>
+    </span>
+    <span ng-if="uiState.showHighPredictions" class="explanation-row-count explanation-row-count--right">
+        <span ng-if="results && selectedRange.to === results.highPredictionsBoundary">
+            {{ explanations.high.index.length }} {{'row' | plurify: explanations.high.index.length }}
+        </span>
+        <span ng-if="!results || selectedRange.to !== results.highPredictionsBoundary">
+            ~{{ nbRowsRight }} {{'row' | plurify: nbRowsRight }}
+        </span>
+    </span>
+    <svg ng-if="scale" class="line-chart-brush chart-std-font" id="density-chart" multi-line-chart height="250px"
+        data-ys="axes.ys" data-x="axes.x"
+        data-labels="labels" data-axes="dataAxes"
+        data-colors="[chartColor]" data-format="'.02f'" data-options="{area: true}" callback="addBrush"
+        disable-interactive-layer="true"
+        data-x-scale="scale"
+        hide-legend="true" disable-transitions="$stateParams.exportMode"
+        puppeteer-hook-2>
+    </svg>
+    <div class="row brush-checkboxes">
+        <div class="brush-checkboxes__checkbox brush-checkboxes__checkbox--left">
+            <input id="low-prob-checkbox" type="checkbox" ng-model="uiState.showLowPredictions" ng-change="addBrush()" ng-if="!uiState.exportMode">
+            <label ng-if="!uiState.exportMode" for="low-prob-checkbox" class="brush-checkboxes__label">Enable <span class="low-prediction-color"> low {{ isRegression() ? "predictions" : "probabilities" }}</span></label>
+            <label ng-if="uiState.exportMode" class="brush-checkboxes__label"><span class="low-prediction-color">Low {{ isRegression() ? "predictions" : "probabilities" }}</span></label>
+        </div>
+        <div class="brush-checkboxes__checkbox brush-checkboxes__checkbox--right">
+            <input id="high-prob-checkbox" type="checkbox" ng-model="uiState.showHighPredictions" ng-change="addBrush()" ng-if="!uiState.exportMode">
+            <label ng-if="!uiState.exportMode" for="high-prob-checkbox" class="brush-checkboxes__label">Enable <span class="high-prediction-color">high {{ isRegression() ? "predictions" : "probabilities" }}</span></label>
+            <label ng-if="uiState.exportMode" class="brush-checkboxes__label"><span class="high-prediction-color">High {{ isRegression() ? "predictions" : "probabilities" }}</span></label>
+        </div>
+    </div>
+
+    <div ng-show="results">
+        <div class="row-fluid explanation-action-bar" ng-show="explanations.low.length.index !== 0 || explanations.high.index.length !== 0" >
+            <div class="identifier-selector">
+                <span class="identifier-selector__label"> Identifier:</span>
+                <ml-column-select-with-type
+                    per-feature="modelData.preprocessing.per_feature"
+                    ng-model="uiState.selectedColumn"
+                    authorized-types="['CATEGORY', 'NUMERIC', 'TEXT']"
+                    authorized-roles="['INPUT', 'REJECT']">
+                </ml-column-select-with-type>
+            </div>
+            <div class="export-btn export-btn--explanations">
+                <button class="btn btn--secondary" ng-click="exportExplanations()">Export</button>
+            </div>
+        </div>
+    
+        <div class="row-fluid doctor-explanation--results" puppeteer-hook-3>
+            <div ng-if="explanations.low.index.length === 0 && explanations.high.index.length === 0" 
+                class="post-train-empty-state">
+                <div class="post-train-empty-state__title">No rows to explain in the selected ranges</div>
+            </div>
+            <div ng-if="uiState.showLowPredictions" ng-class="{ span12: !uiState.showHighPredictions, span6: uiState.showHighPredictions}">
+                <div class="predictions-cards predictions-cards--low">
+                    <div ng-if="explanations.low.index.length === 0 && explanations.high.index.length !== 0" 
+                        class="post-train-empty-state post-train-empty-state--expalation">
+                        <div class="post-train-empty-state__title">No rows to explain in this range</div>
+                    </div>
+                    <individual-explanation-cards
+                        selected-column="uiState.selectedColumn"
+                        results="results"
+                        is-regression="isRegression()"
+                        explanations="explanations.low">
+                    </individual-explanation-cards>
+                </div>
+            </div>
+
+            <div ng-if="uiState.showHighPredictions" ng-class="{ span12: !uiState.showLowPredictions, span6: uiState.showLowPredictions}">
+                <div class="predictions-cards predictions-cards--high">
+                    <div ng-if="explanations.high.index.length === 0 && explanations.low.index.length !== 0" 
+                        class="post-train-empty-state post-train-empty-state--expalation">
+                        <div class="post-train-empty-state__title">No rows to explain in this range</div>
+                    </div>
+                    <individual-explanation-cards
+                        selected-column="uiState.selectedColumn"
+                        results="results"
+                        is-regression="isRegression()"
+                        explanations="explanations.high">
+                    </individual-explanation-cards>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="doctor-explanation doctor-explanation--explanations">
+            <p>
+                Individual prediction explanations are feature importances specific to a given sample. 
+                When the model is linear (logistic regression, OLS...), the explanation for one feature is simply 
+                the impact of the feature on the prediction with the mean feature value as a baseline: <code>coefficient * (feature value - mean feature value)</code>.
+            </p>
+            <p>
+                As a generalization, the explanation is the difference between the prediction value and the average of prediction values obtained by replacing the 
+                feature value by values drawn from the <span ng-if="!isKFolding">test</span> dataset. This method approximates Shapley values, trading off speed against both bias and variance. 
+            </p>
+            <p ng-if="isClassification()"> For classification problems, the explanations are computed probability log-odd ratios: <code>log(p / (1 - p))</code></p>
+    </div>
+
+</div>

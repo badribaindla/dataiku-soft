@@ -1,0 +1,343 @@
+<div class="doctor-explanation doctor-explanation--sampling">
+    <div dku-foldable open="uiState.settingsPane === 'evaluation-validation'">
+
+        <h5 class="doctor-explanation__title doctor-explanation__title--foldable-toggler" ng-click="foldableToggle()">
+            <i ng-class="foldableOpen ? 'icon-chevron-down' : 'icon-chevron-right'" class="doctor-explanation__foldable-toggler-icon" />
+            Sampling & splitting
+            <a ng-if="uiState.settingsPane !== 'evaluation-validation'" class="btn btn--text btn--primary mleft8" ng-click="uiState.settingsPane = 'evaluation-validation'">Edit</a>
+        </h5>
+
+        <section ng-if="!mlTaskDesign.splitParams.kfold" class="doctor-explanation__foldable-section" ng-show="foldableOpen" puppeteer-hook-sampling-and-splitting puppeteer-hook-element-content-loaded>
+            <div class="doctor-explanation__sampling-summary">{{ getSamplingMethodLabel() }} & {{ mlTaskDesign.splitParams.ssdTrainingRatio }} train ratio</div>
+            <div class="doctor-explanation__schema" id="evaluation-schema">
+                <div class="doctor-explanation__schema-row">
+                    <span class="doctor-explanation__label">Sampling</span>
+                    <div class="progress doctor-explanation__progress doctor-explanation__sampling-progress" 
+                        ng-class="{'doctor-explanation__sampling-progress--whole-data': mlTaskDesign.splitParams.ssdSelection.samplingMethod === 'FULL'}">
+                    </div>
+                </div>
+                <div class="doctor-explanation__schema-row">
+                    <span class="doctor-explanation__label">Evaluation</span>
+                    <div class="progress doctor-explanation__progress doctor-explanation__evaluation-progress" id="evaluation-progress">
+                        <div class="bar doctor-explanation__bar doctor-explanation__bar--train" id="evaluation-train-bar" style="width:{{ mlTaskDesign.splitParams.ssdTrainingRatio * 100 }}%"></div>
+                    </div>
+                </div>
+                <div class="doctor-explanation__schema-legend" ng-if="mlTaskDesign.time.enabled">
+                    <span class="doctor-explanation__arrow-line"></span><span class="doctor-explanation__arrow-end"></span>
+                </div>
+            </div>
+            <p class="doctor-explanation__paragraph">
+                The metrics used to rank models obtained by different algorithms are computed on the <i class="icon-circle set-color-test"></i> test set. 
+                <br> 
+                The final model is trained on the <i class="icon-circle set-color-train"></i> train set.
+            </p>
+        </section>
+
+        <section ng-if="mlTaskDesign.splitParams.kfold" class="doctor-explanation__foldable-section" ng-show="foldableOpen" puppeteer-hook-sampling-and-splitting puppeteer-hook-element-content-loaded>
+            <div class="doctor-explanation__sampling-summary">{{ getSamplingMethodLabel() }} & {{ mlTaskDesign.splitParams.nFolds }}-fold cross-test</div>
+            <div class="doctor-explanation__schema" id="evaluation-schema">
+                <div class="doctor-explanation__schema-row">
+                    <span class="doctor-explanation__label">Sampling</span>
+                    <div class="progress doctor-explanation__progress doctor-explanation__sampling-progress" 
+                        ng-class="{'doctor-explanation__sampling-progress--whole-data': mlTaskDesign.splitParams.ssdSelection.samplingMethod === 'FULL'}">
+                    </div>
+                </div>
+                <div class="doctor-explanation__schema-row" ng-repeat="fold in [].constructor(mlTaskDesign.splitParams.nFolds) track by $index" ng-if="mlTaskDesign.splitParams.nFolds < 5">
+                    <span class="doctor-explanation__label">Evaluation fold {{ $index + 1 }}</span>
+                    <div class="progress doctor-explanation__progress doctor-explanation__evaluation-progress--reversed">
+                        <div class="bar doctor-explanation__bar doctor-explanation__bar--test"  
+                            ng-class="{'doctor-explanation__bar--right': $index + 1 === mlTaskDesign.splitParams.nFolds, 'doctor-explanation__bar--middle': ($index > 0 && $index < mlTaskDesign.splitParams.nFolds - 1)}" 
+                            style="margin-left: {{ $index * (100 / mlTaskDesign.splitParams.nFolds) }}%; width: {{ 100 / mlTaskDesign.splitParams.nFolds }}%">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.splitParams.nFolds >= 5">
+                    <span class="doctor-explanation__label">Evaluation fold 1</span>
+                    <div class="progress doctor-explanation__progress doctor-explanation__evaluation-progress--reversed">
+                        <div class="bar doctor-explanation__bar doctor-explanation__bar--test"
+                            style="margin-left: 0; width: {{ 100 / mlTaskDesign.splitParams.nFolds }}%">
+                            <span ng-if="mlTaskDesign.splitParams.nFolds <= 20">1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.splitParams.nFolds >= 5">
+                    <span class="doctor-explanation__label">Evaluation fold 2</span>
+                    <div class="progress doctor-explanation__progress doctor-explanation__evaluation-progress--reversed">
+                        <div class="bar doctor-explanation__bar doctor-explanation__bar--test doctor-explanation__bar--middle"
+                            style="margin-left: {{ 100 / mlTaskDesign.splitParams.nFolds }}%; width: {{ 100 / mlTaskDesign.splitParams.nFolds }}%">
+                            <span ng-if="mlTaskDesign.splitParams.nFolds <= 20">2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.splitParams.nFolds >= 5">
+                    <i class="icon-dku-more doctor-explanation__schema-ellipsis"></i>
+                    <i class="icon-dku-more doctor-explanation__schema-ellipsis"></i>
+                </div>
+
+                <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.splitParams.nFolds >= 5">
+                    <span class="doctor-explanation__label">Evaluation fold {{ mlTaskDesign.splitParams.nFolds - 1 }}</span>
+                    <div class="progress doctor-explanation__progress doctor-explanation__evaluation-progress--reversed">
+                        <div class="bar doctor-explanation__bar doctor-explanation__bar--test doctor-explanation__bar--middle"
+                            style="margin-left: {{ (mlTaskDesign.splitParams.nFolds - 2)  * (100 / mlTaskDesign.splitParams.nFolds) }}%; width: {{ 100 / mlTaskDesign.splitParams.nFolds }}%">
+                            <span ng-if="mlTaskDesign.splitParams.nFolds <= 20">{{ mlTaskDesign.splitParams.nFolds - 1 }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.splitParams.nFolds >= 5">
+                    <span class="doctor-explanation__label">Evaluation fold {{ mlTaskDesign.splitParams.nFolds }}</span>
+                    <div class="progress doctor-explanation__progress doctor-explanation__evaluation-progress--reversed">
+                        <div class="bar doctor-explanation__bar doctor-explanation__bar--test doctor-explanation__bar--right"
+                            style="margin-left: {{ (mlTaskDesign.splitParams.nFolds - 1) * (100 / mlTaskDesign.splitParams.nFolds) }}%; width: {{ 100 / mlTaskDesign.splitParams.nFolds }}%">
+                            <span ng-if="mlTaskDesign.splitParams.nFolds <= 20">{{ mlTaskDesign.splitParams.nFolds }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doctor-explanation__schema-legend">  
+                    <i class="icon-circle set-color-train"></i> Train set
+                </div>
+            </div>
+            <p class="doctor-explanation__paragraph">
+                The metrics used to rank models obtained by different algorithms are computed on <i class="icon-circle set-color-test"></i> each of the test folds.
+                The final model is trained on the <i class="icon-circle set-color-sampling"></i> sampled dataset.
+            </p>
+        </section>
+    </div>
+    <hr class="doctor-explanation__separation-line">
+    <div dku-foldable open="uiState.settingsPane === 'hyperparameters'">
+        <h5 class="doctor-explanation__title doctor-explanation__title--foldable-toggler" ng-click="foldableToggle()">
+            <i ng-class="foldableOpen ? 'icon-chevron-down' : 'icon-chevron-right'" class="doctor-explanation__foldable-toggler-icon"/>
+            Hyperparameters
+            <a ng-if="uiState.settingsPane !== 'hyperparameters'" class="btn btn--text btn--primary mleft8" ng-click="uiState.settingsPane = 'hyperparameters'">Edit</a>
+        </h5>
+        <section class="doctor-explanation__foldable-section" ng-show="foldableOpen" ng-if="mlTaskDesign.modeling.gridSearchParams.mode === 'SHUFFLE' || mlTaskDesign.modeling.gridSearchParams.mode === 'TIME_SERIES_SINGLE_SPLIT'" puppeteer-hook-hyperparameters-search-strategy puppeteer-hook-element-content-loaded>
+            <div class="doctor-explanation__cross-validation-summary">{{ getCrossValidationLabel() }} & {{ mlTaskDesign.modeling.gridSearchParams.splitRatio }} split ratio</div>
+            <div class="doctor-explanation__schema" id="hyperparameters-schema">
+                <div class="doctor-explanation__schema-row">
+                    <span class="doctor-explanation__label">Hyperparameters</span>
+                    <div ng-if="!mlTaskDesign.splitParams.kfold" class="progress doctor-explanation__progress doctor-explanation__hyperparameters-progress">
+                        <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                            style="width: {{ (mlTaskDesign.modeling.gridSearchParams.splitRatio * mlTaskDesign.splitParams.ssdTrainingRatio) * 100 }}%">
+                        </div>
+
+                        <div class="bar doctor-explanation__bar doctor-explanation__bar--validation"
+                            style="width: {{ ((1 - mlTaskDesign.modeling.gridSearchParams.splitRatio) * mlTaskDesign.splitParams.ssdTrainingRatio) * 100 }}%">
+                        </div>
+                    </div>
+                    <div ng-if="mlTaskDesign.splitParams.kfold" class="progress doctor-explanation__progress doctor-explanation__hyperparameters-progress--k-fold-split">
+                        <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                            style="width: {{ mlTaskDesign.modeling.gridSearchParams.splitRatio * 100 }}%">
+                        </div>
+                    </div>
+                </div>
+                <div class="doctor-explanation__schema-legend" ng-if="mlTaskDesign.time.enabled">
+                    <span class="doctor-explanation__arrow-line"></span><span class="doctor-explanation__arrow-end"></span>
+                </div>
+            </div>
+            <p class="doctor-explanation__paragraph">
+                The metrics used to rank hyperparameter points are computed by simple split validation.
+                <br>
+                The <span class="font-weight-bold">train/validation split</span> strategy simply holds out <i class="icon-circle set-color-train-part"></i> part of the <i class="icon-circle set-color-train"></i> train set to validate it on the <i class="icon-circle set-color-validation"></i> validation set.
+            </p>
+        </section>
+        <section class="doctor-explanation__foldable-section" ng-show="foldableOpen" ng-if="mlTaskDesign.modeling.gridSearchParams.mode === 'KFOLD'" puppeteer-hook-hyperparameters-search-strategy puppeteer-hook-element-content-loaded>
+            <div class="doctor-explanation__cross-validation-summary">{{ getCrossValidationLabel() }}</div>
+            <p class="doctor-explanation__paragraph">
+                <div class="doctor-explanation__schema" id="hyperparameters-schema">
+                    <div class="doctor-explanation__schema-row" ng-repeat="fold in [].constructor(mlTaskDesign.modeling.gridSearchParams.nFolds) track by $index" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds < 5">
+                        <span class="doctor-explanation__label">Fold {{ $index + 1 }}</span>
+                        <div class="progress doctor-explanation__progress doctor-explanation__hyperparameters-k-fold-progress">
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                ng-if="$index > 0"
+                                style="width: {{ $index * ((100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds) }}%">
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--validation"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds }}%">
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                ng-if="$index < mlTaskDesign.modeling.gridSearchParams.nFolds - 1"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) - ((100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds) - ($index * ((100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds) ) }}%">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds >= 5">
+                        <span class="doctor-explanation__label">Fold 1</span>
+                        <div class="progress doctor-explanation__progress doctor-explanation__hyperparameters-k-fold-progress">
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--validation"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds }}%">
+                                <span ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds <= 10">1</span>
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) - ((100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds) }}%">
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds >= 5">
+                        <span class="doctor-explanation__label">Fold 2</span>
+                        <div class="progress doctor-explanation__progress doctor-explanation__hyperparameters-k-fold-progress">
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds }}%">
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--validation"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds }}%">
+                                <span ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds <= 10">2</span>
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) - (2 * ((100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds)) }}%">
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds >= 5">
+                        <i class="icon-dku-more doctor-explanation__schema-ellipsis"></i>
+                        <i class="icon-dku-more doctor-explanation__schema-ellipsis"></i>
+                    </div>
+    
+                    <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds >= 5">
+                        <span class="doctor-explanation__label">Fold {{ mlTaskDesign.modeling.gridSearchParams.nFolds - 1 }}</span>
+                        <div class="progress doctor-explanation__progress doctor-explanation__hyperparameters-k-fold-progress">
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                style="width: {{ (mlTaskDesign.modeling.gridSearchParams.nFolds - 2)  * ((100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds)}}%">
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--validation"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds }}%">
+                                <span ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds <= 10">{{ mlTaskDesign.modeling.gridSearchParams.nFolds - 1 }}</span>
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                style="width: {{ 100 * getHyperparametersBarsMaxWidth() / mlTaskDesign.modeling.gridSearchParams.nFolds }}%">
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds >= 5">
+                        <span class="doctor-explanation__label">Fold {{ mlTaskDesign.modeling.gridSearchParams.nFolds }}</span>
+                        <div class="progress doctor-explanation__progress doctor-explanation__hyperparameters-k-fold-progress">
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                style="width: {{ (mlTaskDesign.modeling.gridSearchParams.nFolds - 1)  * ((100 * getHyperparametersBarsMaxWidth()) / mlTaskDesign.modeling.gridSearchParams.nFolds)}}%">
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--validation"
+                                style="width: {{ 100 * getHyperparametersBarsMaxWidth() / mlTaskDesign.modeling.gridSearchParams.nFolds }}%">
+                                <span ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds <= 10">{{ mlTaskDesign.modeling.gridSearchParams.nFolds }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                The metrics used to rank hyperparameter points are computed by cross-validation.
+                <br>
+                In <span class="font-weight-bold">K-fold cross-validation</span> the dataset is partitioned into k equally sized subsets. Then, k-1 subsets are used as <i class="icon-circle set-color-train-part"></i> folded train sets while the remaining subset is retained to validate the model. <br>
+                This process is then repeated k times, once for each fold defined by the subset used as  <i class="icon-circle set-color-validation"></i> validation set.
+            </p>
+        </section>
+        <section class="doctor-explanation__foldable-section" ng-show="foldableOpen" ng-if="mlTaskDesign.modeling.gridSearchParams.mode === 'TIME_SERIES_KFOLD'" puppeteer-hook-hyperparameters-search-strategy puppeteer-hook-element-content-loaded>
+            <div class="doctor-explanation__cross-validation-summary">{{ getCrossValidationLabel() }}</div>
+            <p class="doctor-explanation__paragraph">
+                <div class="doctor-explanation__schema" id="hyperparameters-schema">
+                    <div class="doctor-explanation__schema-row" ng-repeat="fold in [].constructor(mlTaskDesign.modeling.gridSearchParams.nFolds) track by $index" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds < 5">
+                        <span class="doctor-explanation__label">Fold {{ $index + 1 }}</span>
+                        <div class="progress doctor-explanation__progress doctor-explanation__hyperparameters-k-fold-progress">
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                style="width: {{ ($index + 1) * ((100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1)) }}%">
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--validation"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1)}}%">
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--ignored-part"
+                                ng-if="$index < mlTaskDesign.modeling.gridSearchParams.nFolds - 1"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) - ((100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1)) - (($index + 1) * ((100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1)) ) }}%">
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds >= 5">
+                        <span class="doctor-explanation__label">Fold 1</span>
+                        <div class="progress doctor-explanation__progress doctor-explanation__hyperparameters-k-fold-progress">
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1) }}%">
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--validation"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1) }}%">
+                                <span ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds <= 10">1</span>
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--ignored-part"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) - (2 * ((100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1))) }}%">
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds >= 5">
+                        <span class="doctor-explanation__label">Fold 2</span>
+                        <div class="progress doctor-explanation__progress doctor-explanation__hyperparameters-k-fold-progress">
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                style="width: {{ 2 * ((100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1)) }}%">
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--validation"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1) }}%">
+                                <span ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds <= 10">2</span>
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--ignored-part"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) - (3 * ((100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1))) }}%">
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds >= 5">
+                        <i class="icon-dku-more doctor-explanation__schema-ellipsis"></i>
+                        <i class="icon-dku-more doctor-explanation__schema-ellipsis"></i>
+                    </div>
+    
+                    <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds >= 5">
+                        <span class="doctor-explanation__label">Fold {{ mlTaskDesign.modeling.gridSearchParams.nFolds - 1 }}</span>
+                        <div class="progress doctor-explanation__progress doctor-explanation__hyperparameters-k-fold-progress">
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                style="width: {{ (mlTaskDesign.modeling.gridSearchParams.nFolds - 1)  * ((100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1))}}%">
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--validation"
+                                style="width: {{ (100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1) }}%">
+                                <span ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds <= 10">{{ mlTaskDesign.modeling.gridSearchParams.nFolds - 1 }}</span>
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--ignored-part"
+                                style="width: {{ 100 * getHyperparametersBarsMaxWidth() / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1) }}%">
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="doctor-explanation__schema-row" ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds >= 5">
+                        <span class="doctor-explanation__label">Fold {{ mlTaskDesign.modeling.gridSearchParams.nFolds }}</span>
+                        <div class="progress doctor-explanation__progress doctor-explanation__hyperparameters-k-fold-progress">
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--train-part"
+                                style="width: {{ mlTaskDesign.modeling.gridSearchParams.nFolds  * ((100 * getHyperparametersBarsMaxWidth()) / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1))}}%">
+                            </div>
+                            <div class="bar doctor-explanation__bar doctor-explanation__bar--validation"
+                                style="width: {{ 100 * getHyperparametersBarsMaxWidth() / (mlTaskDesign.modeling.gridSearchParams.nFolds + 1) }}%">
+                                <span ng-if="mlTaskDesign.modeling.gridSearchParams.nFolds <= 10">{{ mlTaskDesign.modeling.gridSearchParams.nFolds }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="doctor-explanation__schema-legend" ng-if="mlTaskDesign.time.enabled">
+                        <span class="doctor-explanation__arrow-line"></span><span class="doctor-explanation__arrow-end"></span>
+                    </div>
+                </div>
+
+                The metrics used to rank hyperparameter points are computed by cross-validation.
+                <br>
+                In <span class="font-weight-bold">time-based K-fold</span> the dataset is partitioned into k equally sized subsets sorted along the time variable. Then, one of the subset is chosen as the <i class="icon-circle set-color-validation"></i> validation subset</span> and the subsets before (or after) it are used as <i class="icon-circle set-color-train-part"></i> folded train sets. 
+                This process is repeated k-1 times, once for each fold defined by the subset used as validation set except the first one.
+            </p>
+        </section>
+        <section class="doctor-explanation__foldable-section" ng-show="foldableOpen" ng-if="mlTaskDesign.modeling.gridSearchParams.mode === 'CUSTOM'" puppeteer-hook-hyperparameters-search-strategy puppeteer-hook-element-content-loaded>
+            <div class="doctor-explanation__cross-validation-summary">{{ getCrossValidationLabel() }}</div>
+            <div class="doctor-explanation__schema" id="hyperparameters-schema">
+            </div>
+            <p class="doctor-explanation__paragraph">
+                The dataset is split according to the chosen custom cross-validation strategy. 
+            </p>
+        </section>
+    </div>
+</div>

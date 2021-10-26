@@ -1,0 +1,100 @@
+<div ng-controller="SQLScriptRecipeController" data-extend-template="/templates/layouts/code-based-recipe-editor-layout.html">
+    <div class="mainPane code-based-recipe-main-zone vertical-flex h100" data-block="recipeEditor">
+        <div block-api-error />
+
+        <div code-snippet-editor
+            code="script.data"
+            sample-type="'sql'"
+            categories="['sql-query-std', 'sql-script-std']"
+            save-category="'sql-query-std'"
+            editor-options="editorOptions"
+            resolve-code-for-preview-func="resolveCodeForPreviewFunc"
+            resolve-code-for-insertion-func = "resolveCodeForInsertionFunc"
+            />
+
+        <div include-no-scope="/templates/recipes/fragments/recipe-editor-statusbar.html" class="noflex"/>
+
+        <div class="bottom-bar noflex">
+        	<div class="horizontal-flex">
+                <span class="noflex">
+                    <button class="btn btn--secondary" ng-click="sqlFormat()"><i class="icon-code"/> Format code</button>
+                </span>
+                <span class="noflex" include-no-scope="/templates/recipes/fragments/code-recipe-validate-button.html" />
+                <span class="flex" include-no-scope="/templates/recipes/fragments/code-recipe-run-bottom-bar.html" />
+            </div>
+        </div>
+        <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html" class="noflex recipe-job-result" />
+    </div>
+
+    <div data-block="additionalTabsContent">
+         <div ng-if="topNav.tab == 'advanced'" class="dss-page oa">
+			<div block-api-error />
+			<div class="horizontal-centerer">
+
+				<div class="recipe-settings-section1 w800">
+					<h1 class="recipe-settings-section1-title">Execution options</h1>
+					<form class="dkuform-horizontal recipe-settings-section2">
+						<div class="control-group">
+                            <label for="" class="control-label">Allow SQL across connections</label>
+                            <div class="controls">
+						    	<input name="allowMultipleConnections" type="checkbox" ng-model="recipe.params.allowMultipleConnections" id="allowMultipleConnections" />
+						    	<label for="allowMultipleConnections" class="help-inline">Inputs and outputs datasets reside on different connections</label>
+                            </div>
+						</div>
+						<div class="control-group" ng-show="recipe.params.allowMultipleConnections">
+                            <label for="" class="control-label">Main SQL connection</label>
+                            <div class="controls">
+								<select name="mainConnectionDataset" ng-model="recipe.params.mainConnectionDataset" ng-options="ds.ref as getInputOrOuputLabel(ds.ref) for ds in sqlDatasets">
+								</select>
+							    <span class="help-inline">Connection to run the query in</span>
+                            </div>
+						</div>
+						<div class="control-group">
+                            <label for="" class="control-label">Use psql</label>
+                            <div class="controls">
+                                <label>
+						    	    <input name="usePsql" type="checkbox" ng-model="recipe.params.usePsql" />
+    							    <span class="help-inline">For PostgreSQL recipes, use psql binary instead of the JDBC driver</span>
+                                </label>
+                            </div>
+						</div>
+                        <div class="control-group">
+                            <label for="" class="control-label">Infer output schemas</label>
+                            <div class="controls">
+                                <label>
+                                    <input type="checkbox" ng-model="recipe.params.inferOutputDatasetsSchema" />
+                                    <span class="help-inline">After running this recipe, detect the schema from the table(s) in the database and set the dataset schema</span>
+                                </label>
+                            </div>
+                        </div>
+						<div class="control-group">
+                    		<label class="control-label">
+                        		Multiple statements parsing
+                    		</label>
+                    		<div class="controls" stop-propagation>
+                        		<select ng-model="recipe.params.statementsParsingMode" ng-options="x[0] as x[1] for x in [['SPLIT', 'Parse and split'],['RAW', 'Submit as a single statement']]" />
+                        		<span class="help-inline">
+                            		"Submit as a single statement" might be required for stored procedure or other complex statements
+                        		</span>
+                    		</div>
+                		</div>
+					</form>
+				</div>
+
+                <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+
+				<div class="recipe-settings-section1 w800">
+					<h1 class="recipe-settings-section1-title">Overrides</h1>
+					<form class="dkuform-horizontal recipe-settings-section2">
+						<div class="control-group">
+							<label for="" class="control-label">Override variables</label>
+							<div class="controls">
+								<span override-table-link object-to-override="recipe" override-table-parent="recipe" />
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+    </div>
+</div>

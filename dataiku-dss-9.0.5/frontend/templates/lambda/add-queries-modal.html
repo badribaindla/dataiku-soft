@@ -1,0 +1,32 @@
+<div class="modal modal3 new-env-modal dku-modal">
+    <div class="modal-header has-border no-totem">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4>Add test queries</h4>
+    </div>
+    <div class="modal-body">
+        <div>
+            <label style="padding: 0px 10px 0px 10px; display: inline-block; vertical-align: middle;"> Add
+                <input type="number" style="margin-bottom: 3px;margin-left: 5px; margin-right: 5px; text-align: center;width: 40px; vertical-align: middle;" ng-model="uiState.queriesBatchSize" min="1">
+                {{ uiState.queriesBatchSize == 1 ? "query" : "queries" }}
+            </label>
+        </div>
+        <div>
+            <label style="padding: 0px 10px 0px 10px;"><input type="radio" ng-model="uiState.requestType" value="EMPTY">
+                &nbsp; Empty
+            </label>
+        </div>
+        <div>
+            <label style="padding: 0px 10px 0px 10px; display: inline-block; vertical-align: middle;">
+                <input type="radio" ng-model="uiState.requestType" value="DATASET">
+                &nbsp;
+                From dataset
+            </label>
+            <div style="vertical-align: middle;display: inline-block;padding-bottom: 3px;" ng-if="uiState.requestType==='DATASET'" dataset-selector="uiState.inputDatasetSmartName" available-datasets="datasets"></div>
+        </div>
+    </div>
+    <div class="modal-footer modal-footer-std-buttons">
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+        <button type="submit" class="btn btn--text btn--primary" ng-click="addQueries(uiState.requestType,uiState.queriesBatchSize,uiState.inputDatasetSmartName);dismiss()"
+            disabled-if="uiState.requestType!=='EMPTY' && !uiState.inputDatasetSmartName">Add</button>
+    </div>
+</div>

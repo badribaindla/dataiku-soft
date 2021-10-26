@@ -1,0 +1,31 @@
+<div data-extend-template="/templates/recipes/single-output-recipe-creation.html" ng-controller="PivotRecipeCreationController">
+    <div data-block="settings">
+        <div class="control-group">
+            <label for="" class="control-label">Input dataset</label>
+            <div class="controls">
+                <div dataset-selector="io.inputDataset" available-datasets="availableInputDatasets" class="qa_recipe_available-datasets-dropdown" ></div>
+            </div>
+        </div>
+
+        <div ng-if="io.inputDataset" class="control-group">
+            <label for="" class="control-label">
+                Pivot By
+            </label>
+            <div class="controls" ng-if="activeSchema.columns.length">
+                <select dku-bs-select="{liveSearch:true}"
+                    required ng-model="io.targetVariable"
+                    ng-options="column.name as column.name for column in activeSchema.columns"
+                    watch-model="activeSchema"
+                    auto-focus-child="true"
+                    id="qa_recipe_pivotby-select"/>
+            </div>
+        </div>
+    </div>
+
+    <div
+        data-block="requirements"
+        class="recipe-modal-io__disabled-explanation">
+        <div ng-if="!io.inputDataset">This recipe requires an input dataset.</div>
+        <div ng-if="io.inputDataset && !io.targetVariable">This recipe requires a pivot column.</div>
+    </div>
+</div>

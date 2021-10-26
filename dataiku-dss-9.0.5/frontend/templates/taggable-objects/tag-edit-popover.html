@@ -1,0 +1,74 @@
+<div class="tag-edit-popover" ng-class="{'no-tag-icon' : noTagIcon, 'tag-edit-popover--editable': editable}" ng-click="!isEditing && onStartTagEdit($event)">
+    <div class="tag-edit-popover__editor">
+        <div class="tags hit-content__tags flex" ng-if="responsive && (tags.length || filteredTags.globalTagsCategories.length)">
+            <responsive-tags-list items="tags" tags-map="allTags" object-type="objectType" global-tags-categories="filteredTags.globalTagsCategories" disable-assert="true" editable="editable"></responsive-tags-list>
+        </div>
+        <div class="tags" ng-if="!responsive && (tags.length || filteredTags.globalTagsCategories.length)">
+            <span ng-repeat="tag in tags track by $index" class="tag" style="background-color:{{tagColor(tag)}};" ng-click="!isEditing && onStartTagEdit($event, tag.globalTagsCategory)" >
+                <span ui-global-tag="tag" object-type="objectType"></span>
+            </span>
+            <span ng-if="editable" class="help-text tag" ng-repeat="category in filteredTags.globalTagsCategories track by $index" ng-click="!isEditing && onStartTagEdit($event, category)">
+                <i plus-icon></i> Add {{category}}
+            </span>
+            <span ng-if="editable" class="help-text tag" ng-click="!isEditing && onStartTagEdit($event)">
+                <i plus-icon></i> Add tags
+            </span>
+        </div>
+        <span ng-if="editable && tags.length === 0 && filteredTags.globalTagsCategories.length === 0" class="help-text"> Click to add tags</span>
+        <span ng-if="!editable && tags.length === 0" class="tag-helper-info">No tags have been assigned</span>
+    </div>
+
+    <div class="tag-edit-popover__container" ng-keydown="onEditKeydown" dku-local-keypress="{'esc' : 'saveEdit($event)', 'del' : 'backspace($event)'}">
+        <div ng-if="isEditing" class="tag-edit-popover__popover">
+            <div class="tag-edit-filter" ng-class="{'tag-edit-filter--focus': filterFocused}">
+                <i class="icon-dku-search"></i>
+                <input ng-model="uiState.newTag" name="tagEditorInput" auto-focus="true"
+                       ng-focus="filterFocused = true" ng-blur="filterFocused = false" autocomplete="off"
+                       scroll-to-me="true" type="search" placeholder="Filter {{globalTagsCategory ? 'tags' : 'or create a new tag'}}"
+                       class="tag-edit-filter__input" aria-label="Selected tags"
+                       ng-keydown="onInputKeydown($event)" />
+            </div>
+            <div class="tag-edit-popover__picker">
+                <ul class="tag-edit-popover__list">
+                    <li ng-repeat="tag in filteredTags.selectedItems"
+                        ng-class="{active: (uiState.dropDownIndex == $index)}"
+                        scroll-to-me="{{uiState.dropDownIndex == $index}}">
+                        <div class="tag-edit-popover__list-row" ng-click="onDropdownClick($event, $index, true)" ng-keydown="onDropdownKeydown($event, $index)">
+                            <div class="horizontal-flex selected tag-edit-popover__list-item">
+                                <span class="tag-color noflex" style="background-color:{{tag.color}}"></span>
+                                <span ui-global-tag="tag.title" object-type="objectType"></span>
+                            </div>
+                        </div>
+                    </li>
+                    <li ng-repeat="tag in filteredTags.items"
+                             ng-class="{active: (uiState.dropDownIndex == filteredTags.selectedItems.length + $index)}"
+                             scroll-to-me="{{uiState.dropDownIndex == filteredTags.selectedItems.length + $index}}">
+                        <div class="tag-edit-popover__list-row" ng-click="onDropdownClick($event, $index)" ng-keydown="onDropdownKeydown($event, $index)" >
+                            <div class="horizontal-flex tag-edit-popover__list-item">
+                                <span class="tag-color noflex" style="background-color:{{tag.color}}"></span>
+                                <span ui-global-tag="tag.title" object-type="objectType"></span>
+                            </div>
+                        </div>
+                    </li>
+                    <div ng-if="filteredTags.createItem" class="tag-edit-popover__create"
+                         ng-class="{active: uiState.dropDownIndex == filteredTags.length + filteredTags.selectedItems.length - 1}"
+                         ng-click="onDropdownClick($event, filteredTags.length-1)"
+                         ng-keydown="onDropdownKeydown($event, filteredTags.length - 1)"
+                         scroll-to-me="{{uiState.dropDownIndex == filteredTags.length + filteredTags.selectedItems.length - 1}}">
+                        <div class="horizontal-flex tag-edit-popover__create-row" >
+                            <i class="icon-plus flex-no-grow"></i>
+                            <span class="flex" >Create &laquo;{{(filteredTags.createItem | limitTo:12) + (filteredTags.createItem.length > 12 ? '...' : '')}}&raquo;</span>
+                            <code ng-if="uiState.dropDownIndex == filteredTags.length + filteredTags.selectedItems.length - 1"
+                                  class="dku-tiny-text-sb text-weak tags-settings__create-shortcut">enter</code>
+                            <span class="return flex-no-grow">&crarr;</span>
+                        </div>
+                    </div>
+                </ul>
+                <p ng-if="!filteredTags.isSelectedTag && filteredTags.items.length==0 && filteredTags.selectedItems.length==0">No tags available</p>
+            </div>
+            <div ng-if="!globalTagsCategory && allowManageTags" class="tag-edit-popover__manage">
+                <button class="btn btn--contained btn--tag-list tag-edit-popover__manage-button" ng-click="manageTags()">Manage tags</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,257 @@
+<div class="list-page-4 flex dss-home-page list-page--flat-design">
+    <div class="fh" filtered-multi-select-rows ng-model="listItems">
+        <div class="jobs-grid h100">
+            <!-- Left column for jobs list -->
+            <div class="jobs__left-column h100">
+                <div data-block="summary-row" class="summary-row">
+                    <div class="flex" style="width: 100%">
+                        <div class="std-list-search-box">
+                            <span class="add-on"> <i class="icon-dku-search"></i></span>
+                            <input type="search" ng-model="queryFilters.search" placeholder="Search jobs&hellip;">
+                        </div>
+                        <div class="error-drawer" ng-if="selection.filterParams.userQueryErrors">
+                            <div class="error" ng-repeat="(exp, err) in selection.filterParams.userQueryErrors">
+                                <i class="icon icon-dku-error" />{{err.message}}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sort-boxes">
+                        <!-- Ordering -->
+                        <div class="sort-box list-control-widget" ng-if="!noSort">
+                            <select class="sort-box-menu"
+                                dku-bs-select="{style: 'dku-select-button'}"
+                                remember-choice="sortCookieKey+'k'"
+                                ng-model="selection.orderQuery"
+                                ng-options="obj.value as obj.label for obj in sortBy"
+                                required
+                                >
+                            </select>
+                        </div>
+
+                        <div class="separator">|</div>
+
+                        <!-- Status filtering -->
+                        <div custom-element-popup close-on-click="true" class="sort-box list-control-widget list-control-dropdown">
+                            <button class="dku-select-button mainzone has-caret" ng-click="togglePopover()">
+                                <span ng-bind="statusLabel"></span>
+                                <span class="caret" />
+                            </button>
+                            <div class="popover sort-box-menu checkable-items">
+                                <ul>
+                                    <li ng-class="{'selected' : queryFilters.status === ''}" ng-click="setStatusFilter('', 'Any status');">
+                                        <i class="sort-box-menu__icon"></i><span class="sort-box-menu__label">Any Status</span>
+                                    </li>
+                                    <li ng-class="{'selected' : queryFilters.status === 'RUNNING'}" ng-click="setStatusFilter('RUNNING', 'Running');">
+                                        <i class="dku-loader sort-box-menu__icon"></i><span class="sort-box-menu__label">Running</span>
+                                    </li>
+                                    <li ng-class="{'selected' : queryFilters.status === 'DONE WITH WARNINGS'}" ng-click="setStatusFilter('DONE WITH WARNINGS', 'Warning');">
+                                        <i class="icon-dku-warning text-warning sort-box-menu__icon"></i><span class="sort-box-menu__label">Warning</span>
+                                    </li>
+                                    <li ng-class="{'selected' : queryFilters.status === 'FAILED'}" ng-click="setStatusFilter('FAILED', 'Error');">
+                                        <i class="icon-dku-error sort-box-menu__icon text-error"></i><span class="sort-box-menu__label">Failed</span>
+                                    </li>
+                                    <li ng-class="{'selected' : queryFilters.status === 'DONE'}" ng-click="setStatusFilter('DONE', 'Done');">
+                                        <i class="icon-dku-success sort-box-menu__icon text-success"></i><span class="sort-box-menu__label">Done</span>
+                                    </li>
+                                    <li ng-class="{'selected' : queryFilters.status === 'ABORTED'}" ng-click="setStatusFilter('ABORTED', 'Aborted');">
+                                        <i class="icon-dku-pause sort-box-menu__icon"></i><span class="sort-box-menu__label">Aborted</span>
+                                    </li>
+                                    <li ng-class="{'selected' : queryFilters.status === 'WAITING_CONFIRMATION'}" ng-click="setStatusFilter('WAITING_CONFIRMATION', 'Preview');">
+                                        <i class="icon-sitemap sort-box-menu__icon"></i><span class="sort-box-menu__label">Preview</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- User filtering -->
+                        <div custom-element-popup close-on-click="true" class="sort-box list-control-widget list-control-dropdown" ng-if="isDSSAdmin()">
+                            <button class="dku-select-button mainzone has-caret" ng-click="togglePopover()">
+                                <span ng-bind="userLabel"></span>
+                                <span class="caret"></span>
+                            </button>
+                            <div class="popover sort-box-menu checkable-items sort-box-menu--users">
+                                <ul class="sort-box-menu__users-list">
+                                    <li ng-class="{'selected' : queryFilters.user === ''}" ng-click="setUserFilter('', 'All users', true);">
+                                        <i class="sort-box-menu__icon icon-group"></i><span>All users</span>
+                                    </li>
+                                    <li ng-repeat="user in users" ng-class="{'selected' : queryFilters.user === user.login}" ng-click="setUserFilter(user.login, user.displayName, true);">
+                                        <span user-picture="user.login"></span><span>{{user.displayName}}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Clear filters button -->
+                        <div class="clear-filters-btn" ng-click="resetFilters();" ng-if="isFiltering()">Clear filters</div>
+                    </div>
+                </div>
+
+                <div block-api-error></div>
+
+                <div style="height: calc(100% - 100px);" class="matching-jobs h100 vertical-flex">
+                    <div class="flex">
+                        <div class="scroll-zone fh">
+                            <div class="info-zone" ng-show="selection == undefined">
+                                <div class="alert alert-info" data-block="not_yet_loaded"></div>
+                            </div>
+
+                            <div ng-show="selection.loaded && listItems.length === 0">
+                                <div class="alert alert-info" data-block="empty">
+                                    <h4>No Item</h4>
+                                </div>
+                            </div>
+
+                            <div class="all-filtered-out" ng-show="listItems.length && !selection.filteredObjects.length">
+                                <div class="alert alert-info" data-block="all-filtered-out">
+                                    <h4>No item match your filter</h4>
+                                    <div style="margin: 10px 0">
+                                        <a class="btn btn--secondary" ng-click="resetFilters()">Clear filters</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <ul class="fh" ng-if="selection.filteredObjects.length"
+                                fat-repeat="selection.filteredObjects" as="item" row-height="84"
+                                disable-scroll-to
+                                tabindex="0" list-padding="fatListPadding" style="outline:none" ng-keydown="multiSelectKeydown($event, true)">
+                                <li class="matching-job-fat-item" ng-class="{'matching-job-fat-item--focused': selection.selectedObject === item, selected: item.$selected, filler: !item}"
+                                    full-click>
+                                    <div data-block="item" style="width: 100%">
+                                        <span main-click ng-click="objectClicked(item, $event)"></span>
+                                        <section class="matching-job">
+                                            <div class="status-icon">
+                                                <i ng-if="item.state == 'WAITING_CONFIRMATION'" class="icon-sitemap"></i>
+                                                <i ng-if="item.state === 'NOT_STARTED' || item.state === 'COMPUTING_DEPS'" class="icon-dku-queued"></i>
+                                                <span ng-if="item.state === 'RUNNING'" class="dku-loader icon-spin"></span>
+                                                <i ng-if="item.state != 'RUNNING' && item.state != 'WAITING_CONFIRMATION' && item.state != 'COMPUTING_DEPS' && item.state != 'WAITING_CONFIRMATION'"
+                                                    ng-class="{'text-success icon-dku-success': item.state === 'DONE' && item.warningsCount === 0,
+                                                        'text-warning icon-dku-warning': item.state === 'DONE' && item.warningsCount > 0,
+                                                        'icon-dku-error text-error': item.state === 'FAILED',
+                                                        'icon-dku-pause': item.state === 'ABORTED'}"
+                                                    toggle="tooltip"
+                                                    animation="false"
+                                                    data-original-title="{{item.stateTitle}}">
+                                                </i>
+                                            </div>
+                                            <div class="matching-job__initiator-avatar">
+                                                <a href="/profile/{{item.def.initiator}}/"
+                                                    title="{{item.def.initiator}}"
+                                                    class="avatar"
+                                                    toggle="tooltip"
+                                                    animation="false">
+                                                    <span user-picture="item.def.initiator"></span>
+                                                </a>
+                                            </div>
+                                            <div class="matching-job__info oh">
+                                                <h4 class="matching-job__title">
+                                                    <a main-click href="{{$state.href('projects.project.jobs.job', {jobId : item.def.id})}}">
+                                                        <div class="targetDataset matching-job__dataset-name" show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.def.outputs[0].targetDataset | boldify:selection.filterParams.userQueryResult"></div>
+                                                        <span class="targetPartition matching-job__partition-name" ng-show="item.def.outputs[0].targetPartition">({{ item.def.outputs[0].targetPartition }})</span>
+                                                    </a>
+                                                </h4>
+                                                <date class="matching-job__date" title="This job was started {{item.timeSinceInitiation|friendlyDurationShort}} ago">
+                                                    {{item.timeSinceInitiation|friendlyDurationShort}} ago <span ng-if="item.endTime - item.startTime > 0"> | {{(item.endTime - item.startTime)|durationHHMMSS}}</span>
+                                                </date>
+                                                <div class="matching-job__tags">
+                                                    <span class="matching-job__tag" ng-hide="item.stepRunId == null">
+                                                        <i class="icon-play-sign"></i>
+                                                        <a class="matching-job__tag-link" href="{{$state.href('projects.project.scenarios.scenario.runs.list.run', {scenarioId: item.scenarioId, runId: item.scenarioRunId})}}" >
+                                                            {{item.scenarioId}}
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="matching-job__link noflex">
+                                                <a href="{{$state.href('projects.project.jobs.job', {jobId : item.def.id})}}">View logs</a>
+                                            </div>
+                                        </section>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right column for preview -->
+            <div class="jobs__preview-column right-sidebar">
+
+                <!-- Waiting for job click -->
+                <div ng-show="!selection.selectedObject">
+                    <h4 class="empty-right-column small-lr-padding" ng-show="selection.filteredObjects.length">
+                        Click an item to view details.
+                    </h4>
+                </div>
+
+                <div class="empty-list-cta" ng-if="selection.loaded && listItems.length === 0">
+                    <h1>
+                        No job has run in this project
+                    </h1>
+                    <p>Jobs are created when you build datasets.</p>
+                </div>
+
+                <!-- Preview -->
+                <div ng-scope="{{job = selection.selectedObject}}" data-block="preview" clicked-job-preview>
+                    <div class="object-right-column-summary fh vertical-flex" ng-if="job">
+                        <div item-header class="noflex"
+                            color="jobs"
+                            icon="icon-play">
+                            <span class="targetDataset">{{ job.def.outputs[0].targetDataset }}</span>
+                            <a href="/profile/{{job.def.initiator}}/"
+                                title="{{job.def.initiator}}"
+                                class="avatar object-right-column-avatar"
+                                toggle="tooltip"
+                                animation="false">
+                                <span user-picture="job.def.initiator"></span>
+                            </a>
+                            <span>{{job.startTime |friendlyDateRange : job.endTime}}</span>
+
+                            <span ng-hide="job.stepRunId == null" class="job-status-breadcrumb-scenario">
+                                <i class="icon-play-sign"></i>
+                                <a href="{{$state.href('projects.project.scenarios.scenario.runs.list.run', {scenarioId: job.scenarioId, runId: job.scenarioRunId})}}" >
+                                    {{job.scenarioId}}
+                                </a>
+                            </span>
+                            <span class="targetPartition" ng-if="job.def.outputs[0].targetPartition" title="{{job.def.outputs[0].targetPartition}}">
+                                ({{ job.def.outputs[0].targetPartition.substr(0, 250) }}{{job.def.outputs[0].targetPartition.length > 250 ? '...' : ''}})
+                            </span>
+                        </div>
+                        <div class="job-preview h100 vertical-flex">
+                            <div class="job-preview__flow job-status-graph" flow-common job-status-graph ng-if="activitiesFatTable.length > 0">
+                                <div class="oa h100">
+                                    <section class="job-preview__no-flow h100" ng-if="jobStatus.removed">
+                                        <h3><i class="icon-ban-circle"></i></h3>
+                                        <h4>Cannot preview flow. Job details have been removed.</h4>
+                                    </section>
+                                    <section class="job-preview__no-flow h100" ng-if="hasBigFlow && !forceFlow">
+                                        <h3><i class="icon-dku-warning"></i></h3>
+                                        <h4>Flow is very large and could take a while to render.</h4>
+                                        <button class="btn btn--secondary mtop16" ng-click="drawJobGraph(true)">Render anyway</button>
+                                    </section>
+                                    <section ng-show="!jobStatus.removed && (!hasBigFlow || forceFlow)" class="h100">
+                                        <div class="h100 mainPane">
+                                            <flow-graph id="flow-graph" class="no-pin"></flow-graph>
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
+
+                            <div class="job-preview__activities-header" ng-if="activitiesFatTable.length > 0">
+                                <h2 ng-if="activitiesFatTable.length > 1"><span ng-bind="activitiesFatTable.length"></span> Activities</h2>
+                                <h2 ng-if="activitiesFatTable.length === 1">1 Activity</h2>
+                            </div>
+
+                            <job-activities-list activities-fat-table='activitiesFatTable'
+                                                 row-height='52'
+                                                 job-removed='jobStatus.removed'
+                                                 on-activity-click='goToActivity'
+                                                 on-mouse-over-activity='hoverActivity'
+                                                 on-mouse-leave-activity='unhoverActivity'/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

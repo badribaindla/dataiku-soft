@@ -1,0 +1,23 @@
+<div block-api-error></div>
+<div ng-show="!gitCustomCheckout">
+    <!-- Only use a dku-bs-select when there are not too many rows,
+        otherwise it is insanely slow.-->
+    <div ng-show="gitCheckoutRefs.length < 200">
+        <select dku-bs-select="{'liveSearch':true}"
+                ng-model="gitCheckout"
+                ng-options="ref as ref|extractGitRefName group by ref|extractGitRefGroup for ref in gitCheckoutRefs"></select>
+        <button type="button" class="btn btn--secondary btn--icon" ng-click="gitCustomCheckout = true"><i class="icon-edit" /></button>
+
+    </div>
+    <div ng-show="gitCheckoutRefs.length >= 200">
+        <select ng-model="gitCheckout"
+                ng-options="ref as ref|extractGitRefName group by ref|extractGitRefGroup for ref in gitCheckoutRefs"></select>
+        <button type="button" class="btn btn--secondary btn--icon" ng-click="gitCustomCheckout = true"><i class="icon-edit" /></button>
+    </div>
+</div>
+<div ng-show="gitCustomCheckout">
+    <input type="text" ng-model="gitCheckout" placeholder="main" />
+    <button type="button" class="btn btn--secondary btn--icon" ng-disabled="!gitRepository" ng-click="listRemoteRefs()">
+        <i class="icon-refresh" />
+    </button>
+</div>

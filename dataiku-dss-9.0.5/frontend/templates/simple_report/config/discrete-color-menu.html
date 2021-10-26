@@ -1,0 +1,44 @@
+<div>
+    <form class="dkuform-chart-options">
+
+        <div class="control-group">
+            <div class="control-label">Palette</div>
+            <div class="controls">
+                <div class="palette-picker__list-zone" palette-picker-logic container="chart.def.colorOptions" type="discrete">
+                    <div class="horizontal-flex">
+                        <div class="flex oh palette-picker">
+                            <select dku-bs-select="{width: '220px', customDropdownAttrs: {'no-global-contextual-menu-close': 'true'}}" ng-model="container.colorPalette" ng-if="categories" class="palette-select qa_charts_palette-select" data-container="body">
+                                <optgroup ng-repeat="(category, palettes) in categories" label="{{category}}">
+                                    <option ng-repeat="palette in palettes" value="{{palette.id}}" data-content='{{getPaletteContent(palette)}}'>{{palette.id}}</option>
+                                </optgroup>
+
+                                <option data-divider="true"></option>
+                                <option value="__dku_custom__">Custom palette</option>
+                                <option value="__dku_meaning__" ng-show="colorMeaning">Meaning palette ({{colorMeaning.label}})</option>
+
+                            </select>
+                        </div>
+
+                        <div class="noflex" ng-show="chart.def.colorOptions.colorPalette == '__dku_custom__'">
+                            <div class="btn btn--secondary" ng-click="editCustomPalette('discrete')" style="margin-left: 5px;">Edit</div>
+                        </div>
+
+                        <div class="noflex" ng-show="chart.def.colorOptions.colorPalette == '__dku_meaning__'">
+                            <div class="btn btn--secondary" ng-click="editMeaning('discrete')" style="margin-left: 5px;">Edit</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <small><a target="_blank" rel="noopener noreferrer"
+                      href="{{$root.versionDocRoot}}visualization/palettes.html">Add other color palettes with plugins</a></small>
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">Opacity</div>
+            <div class="controls">
+                <div dku-slider min="0" max="1" value="chart.def.colorOptions.transparency" class="qa_charts_opacity-slider" nb-decimal-places="1" />
+            </div>
+        </div>
+
+   </form>
+</div>

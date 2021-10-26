@@ -1,0 +1,81 @@
+<div class="modal modal3 modal-w800 dku-modal modal-fixed-height400" global-keydown="{'esc': 'close();' }">
+    <div dku-modal-header modal-close="close" ng-if="uiState.nextStep == 'ASK_MODE'" modal-title="Select update mode" />
+    <div dku-modal-header modal-close="close" ng-if="uiState.nextStep == 'PREPARE_FAILED'" modal-title="Pre-sync of packages failed" />
+    <div dku-modal-header modal-close="close" ng-if="uiState.nextStep == 'DEPLOY_FAILED'" modal-title="Deployment activation failed" />
+
+    <div class="dkuform-modal-wrapper" ng-if="uiState.nextStep == 'ASK_MODE'">
+        <div class="modal-body">
+            <div class="row-fluid tiles-select-one-of" >
+                <div class="span6 tile-select-one-of preselected" full-click style="height: 350px;  padding: 0.5 em; position:relative">
+                    <h4 class="text-center">Light update</h4>
+
+                    <h5 style="color: #2AB1AC; text-align: center">Recommended for most use cases</h5>
+
+                    <ul style="margin-top: 20px; font-size: 13px">
+                        <li>Quick update</li>
+                        <li>No query loss</li>
+                        <li>Use to change deployed version(s)</li>
+                        <li><span class="text-warning">Cannot be used to update Performance Tuning settings</span></li>
+                        <li><span class="text-warning">Cannot be used to update Authentication settings</span></li>
+                    </ul>
+                    <div class="text-center modal-footer modal-footer-std-buttons" style="margin: 1em; position: absolute; bottom: 0; text-align: center; width: 100%;">
+                        <button main-click class="btn btn--text btn--success" ng-click="uiState.refreshMode = 'LIGHT'; uiState.nextStep = 'PREPARE'; runStep(); dismiss()">Select</button>
+                    </div>
+                </div>
+                <div class="span6 tile-select-one-of" full-click style="height: 350px; padding: 0.5 em; position: relative" ng-mouseenter="preselectLeft=false">
+                    <h4 class="text-center">Full update</h4>
+                    <h5 style="color: #2AB1AC; text-align: center">&nbsp;</h5>
+
+                    <ul style="margin-top: 20px; font-size: 13px">
+                        <li>Use to change Performance Tuning or Authentication settings</li>
+                        <li>Slower</li>
+                        <li><span class="text-warning">Update may cause temporary service interruption (depending on settings)</span></li>
+                    </ul>
+                    <div class="text-center modal-footer modal-footer-std-buttons" style="margin: 1em; position: absolute; bottom: 0; text-align: center; width: 100%;">
+                        <button main-click class="btn btn--text btn--success" ng-click="uiState.refreshMode = 'FULL'; uiState.nextStep = 'PREPARE'; runStep(); dismiss()">Select</button>
+                    </div>
+                </div>
+            </div>
+        </div>    
+    </div>
+
+    <div class="dkuform-modal-wrapper" ng-if="uiState.nextStep == 'PREPARE_FAILED'">
+        <div class="modal-body">
+            <div class="alert alert-error">
+                <h4><strong>Upload of some of the version packages to the API nodes failed.</strong></h4>
+                <p>
+                    It will not be possible to activate the deployment successfully on all API nodes<br />
+                    It may still be possible to activate the deployment on some of the API nodes
+                </p>
+                <p style="margin-bottom:0">
+                    Upload <strong>succeeded on {{prepareResult.nbOKNodes}}</strong> nodes and <strong>failed on {{prepareResult.nbNOKNodes}}</strong> nodes.
+                </p>
+            </div>
+
+            <div info-messages-raw-list-with-alert="prepareResult" />
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="close()">Abort</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="retryPrepare()">Retry</button>
+            <button type="submit" class="btn btn--text btn--danger" ng-click="deploy()">Deploy anyway</button>
+        </div>
+    </div>
+    <div class="dkuform-modal-wrapper" ng-if="uiState.nextStep == 'DEPLOY_FAILED'">
+        <div class="modal-body">
+            <div class="alert alert-error">
+                <h4>Activation of the new version(s) failed on some of the API nodes</h4>
+                <p>
+                    The service may be in a partially-inconsistent state (differing versions).
+                </p>
+                <p style="margin-bottom: 0">
+                    Activation <strong>succeeded on {{deployResult.nbOKNodes}}</strong> nodes and <strong>failed on {{deployResult.nbNOKNodes}}</strong> nodes.
+                </p>
+            </div>
+            <div info-messages-raw-list-with-alert="deployResult" />
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="close()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="retryDeploy()">Retry</button>
+        </div>
+    </div>
+</div>

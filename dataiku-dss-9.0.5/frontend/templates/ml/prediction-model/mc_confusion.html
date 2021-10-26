@@ -1,0 +1,33 @@
+<div ng-controller="MultiClassConfusionMatrixController" ng-if="modelData.perf">
+    <select ng-model="displayMode" dku-bs-select="{titlePrefix:'Display'}">
+        <option value="records"  >{{printWeightedIfWeighted()}} Record count</option>
+        <option value="actual"   >{{printWeightedIfWeighted()}} % of actual classes</option>
+        <option value="predicted">{{printWeightedIfWeighted()}} % of predicted classes</option>
+    </select>
+    <div ng-if="tableHidden" style="text-align: center">
+        <div class="alert alert-warning" style="margin-top: 15px;">
+            <strong>Warning:</strong> the model you have trained has many ({{data.records.length}}) classes. Displaying the confusion matrix
+            may cause the browser to stop responding, and the matrix will probably not be very readable. To continue anyway, press below.
+        </div>
+        <button class="btn btn--secondary" ng-click="showTable()" style="display: inline-block">DISPLAY TABLE</button>
+    </div>
+    <table class="table confusion-matrix multiclass" style="margin-top: 1em;" ng-if="!tableHidden">
+        <tr> <th/> <th colspan="{{n}}">Predicted</th> <th ng-if="sumActual[displayMode]" rowspan="2" /> </tr>
+        <tr> <th>Actual</th> <th ng-repeat="cp in cs"><code ng-bind="cp" /></th> </tr>
+        <tr ng-repeat="(i, ca) in cs">
+            <th><code ng-bind="ca" /></th>
+            <td ng-repeat="(j, cp) in cs" class="{{cp === ca ? 'success' : 'error'}}"
+                ng-bind="getMaybeWeighted(data[displayMode][i][j])" />
+            <td ng-if="sumActual[displayMode]" ng-bind="getMaybeWeighted(sumActual[displayMode][i])" />
+        </tr>
+        <tr ng-if="sumPredicted[displayMode]">
+            <th></th>
+            <td ng-repeat="(j, cp) in cs" ng-bind="getMaybeWeighted(sumPredicted[displayMode][j])" />
+            <th ng-if="displayMode === 'records'" ng-bind="getMaybeWeighted(total)" />
+        </tr>
+    </table>
+    <p class="alert alert-warning" ng-if="modelData.trainInfo.kfold">
+        This model was evaluated using K-fold cross-test.
+        These results are for the first fold only.
+    </p>
+</div>

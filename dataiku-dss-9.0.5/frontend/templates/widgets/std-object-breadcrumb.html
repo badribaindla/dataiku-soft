@@ -1,0 +1,184 @@
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'DATASET'">
+    <a class="item dataset"
+        href="{{$root.StateUtils.href.dataset(topNav.item.id)}}">
+        <i class="icon {{topNav.item.data.datasetType|datasetTypeToIcon}}"></i>
+        <span class="title ellipsis dataset" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+        <i ng-show="topNav.item.data.customFieldsPreview.length" class="nav" id="qa_custom-fields_status-icon" dku-html-tooltip tooltip-class="custom-fields-tooltip generic-shadow-box" ng-click="DatasetCustomFieldsService.editCustomFields()" prevent-default style="cursor: {{DatasetCustomFieldsService.canEditCustomFields() ? 'pointer' : 'default'}}">
+            <tooltip-trigger>
+                <span ng-repeat="cf in topNav.item.data.customFieldsPreview" style="color: {{cf.value.color || '#cccccc'}};"><i class="{{cf.definition.iconInDatasetPreview}}" style="{{!$last ? 'margin-right: 4px;' : ''}}" /></span>
+            </tooltip-trigger>
+            <tooltip-content>
+                <div ng-if="DatasetCustomFieldsService.canEditCustomFields()" class="alert alert-info" style="margin-bottom: 10px;"><i class="icon-info-sign"></i>&nbsp;Click to edit metadata</div>
+                <div custom-fields-popup id="qa_custom-fields-popup" custom-fields="topNav.item.data.customFields" custom-fields-map="DatasetCustomFieldsService.customFieldsMap()"></div>
+            </tooltip-content>
+        </i>
+        <i class="nav icon-compass" ng-click="Navigator.showForTopNav()" title="Navigate around (Shift+A)" prevent-default></i>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'STREAMING_ENDPOINT'">
+    <a class="item streaming-endpoint"
+        href="{{$root.StateUtils.href.streamingEndpoint(topNav.item.id)}}">
+        <i class="icon {{topNav.item.data.type|datasetTypeToIcon}}"></i>
+        <span class="title ellipsis streaming-endpoint" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+        <i class="nav icon-compass" ng-click="Navigator.showForTopNav()" title="Navigate around (Shift+A)" prevent-default></i>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'RECIPE'">
+    <a class="item qa_recipe_name" href="{{$state.href('projects.project.recipes.recipe')}}">
+        <i class="icon {{topNav.item.data.recipeType|recipeTypeToIcon}} {{topNav.item.data.recipeType|recipeTypeToColor}} universe-background"></i>
+        <span class="title ellipsis recipe" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+        <i class="nav icon-compass" ng-click="Navigator.showForTopNav()" title="Navigate around (Shift+A)" prevent-default></i>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'JOB'">
+    <a class="item job" ui-sref-opts="{reload:true}" ui-sref="projects.project.jobs.job" >
+        <i class="icon icon-play"></i>
+        <span class="title ellipsis">
+            <div class="job-status-breadcrumb-state-container" >
+                <span class="dku-loader icon-spin" ng-if="jobStatus.baseStatus.state === 'RUNNING'"></span>
+                <i class="job-status-breadcrumb-state-icon icon-dku-error text-error" ng-if="jobStatus.baseStatus.state === 'FAILED'" title="Job failed"></i>
+                <i class="job-status-breadcrumb-state-icon icon-dku-success text-success" ng-if="jobStatus.baseStatus.state === 'DONE'" title="Job done"></i>
+                <i class="job-status-breadcrumb-state-icon icon-dku-pause" ng-if="jobStatus.baseStatus.state === 'ABORTED'" title="Job aborted"></i>
+            </div>
+            <div class="horizontal-flex" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></div>
+        </span>
+        <span class="targetDataset">{{jobDef.targetDataset}}</span>
+        <a href="/profile/{{jobDef.initiator}}/"
+            title="{{jobDef.initiator}}"
+            class="avatar object-right-column-avatar"
+            toggle="tooltip"
+            animation="false">
+            <span user-picture="jobDef.initiator"></span>
+        </a>
+        <span class="job-status-breadcrumb-timestamp" ng-show="jobStatus.baseStatus.jobStartTime">
+            {{jobStatus.baseStatus.jobStartTime |friendlyDateRange : jobStatus.baseStatus.jobEndTime}}
+        </span>
+        <span ng-hide="jobDef.stepRun == null" class="job-status-breadcrumb-scenario">
+            <i class="icon-play-sign"></i>
+            <a href="{{$state.href('projects.project.scenarios.scenario.runs.list.run', {scenarioId: jobDef.stepRun.scenarioId, runId: jobDef.stepRun.scenarioRunId})}}">
+                {{jobDef.stepRun.scenarioId}}
+            </a>
+        </span>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'CONTINUOUS_ACTIVITY'">
+    <a class="item continuous-activity" ui-sref-opts="{reload:true}" ui-sref="projects.project.continuous-activities.continuous-activity.runs">
+        <i class="icon icon-play"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'ANALYSIS'">
+    <a class="item analysis" href="{{$state.href('projects.project.analyses.analysis.script')}}">
+        <i class="icon icon-dku-nav_analysis"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+        <i class="nav icon-compass" ng-click="Navigator.showForTopNav()" title="Navigate around (Shift+A)" prevent-default></i>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'SAVED_MODEL'">
+    <a class="item model" href="{{$state.href('projects.project.savedmodels.savedmodel.versions')}}">
+        <i class="icon {{'icon-machine_learning_' + (topNav.item.data.taskType == 'CLUSTERING' ? 'clustering' : 'regression')}}"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+        <i class="nav icon-compass" ng-click="Navigator.showForTopNav()" title="Navigate around (Shift+A)" prevent-default></i>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'MODEL_EVALUATION_STORE'">
+    <a class="item evaluation-store" title="{{ topNav.item.data.name }}" href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.evaluations')}}">
+        <i class="icon icon-model-evaluation-store"></i>
+        <span class="title ellipsis" title="{{topNav.item.data.name}}">{{topNav.item.data.name}}</span>
+        <i class="nav icon-compass" ng-click="Navigator.showForTopNav()" title="Navigate around (Shift+A)" prevent-default></i>
+    </a>
+</div>
+
+<div class="object-breadcrumb"  ng-if="topNav.item.type == 'JUPYTER_NOTEBOOK'" >
+    <a class="item notebook" href="{{$state.href('projects.project.notebooks.jupyter_notebook')}}">
+        <span ng-switch="topNav.item.data.type">
+            <i ng-switch-when="R" class="icon icon-code_r_recipe"></i>
+            <i ng-switch-when="scala" class="icon icon-code_spark_scala_recipe"></i>
+            <i ng-switch-when="julia" class="icon icon-code_julia_recipe"></i>
+            <i ng-switch-default class="icon icon-code_python_recipe"></i>
+        </span>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+        <i class="nav icon-compass" ng-click="Navigator.showForTopNav()" title="Navigate around (Shift+A)" prevent-default></i>
+    </a>
+</div>
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'SQL_NOTEBOOK'" >
+    <a class="item notebook" href="{{$state.href('projects.project.notebooks.sql_notebook')}}">
+        <i ng-if="topNav.item.data.isHive" class="icon icon-code_hive_recipe"></i>
+        <i ng-if="topNav.item.data.isImpala" class="icon icon-code_impala_recipe"></i>
+        <i ng-if="topNav.item.data.isSpark" class="icon icon-code_sparksql_recipe"></i>
+        <i ng-if="!(topNav.item.data.isHive) && !(topNav.item.data.isImpala) && !(topNav.item.data.isSpark)" class="icon icon-code_sql_recipe"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+        <i class="nav icon-compass" ng-click="Navigator.showForTopNav()" title="Navigate around (Shift+A)" prevent-default></i>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'DASHBOARD'">
+    <a class="item dashboard" ui-sref-opts="{reload:true}" ui-sref="projects.project.dashboards.dashboard.view">
+        <i class="icon icon-dku-dashboard"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'INSIGHT'">
+    <a class="item insight" ui-sref="projects.project.dashboards.insights.insight.view">
+        <!-- No 'reload: true' on link to keep the same InsightCoreController and not loose the 'back to dashboard' button -->
+        <i class="icon dashboard universe-background {{topNav.item.data.type | insightTypeToIcon}}"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="'Insight ' + topNav.item.data.name"></span>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'MANAGED_FOLDER'">
+    <a ng-if="$state.includes('projects.project.managedfolders.managedfolder.view')" class="item folder" ui-sref-opts="{reload:true}" ui-sref="projects.project.managedfolders.managedfolder.view">
+        <i class="icon icon-box"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+        <i class="nav icon-compass" ng-click="Navigator.showForTopNav();$event.stopPropagation();" title="Navigate around (Shift+A)" prevent-default></i>
+    </a>
+    <a ng-if="$state.includes('projects.project.foreignmanagedfolders.managedfolder.view')" class="item folder" ui-sref-opts="{reload:true}" ui-sref="projects.project.foreignmanagedfolders.managedfolder.view">
+        <i class="icon icon-box"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+        <i class="nav icon-compass" ng-click="Navigator.showForTopNav();$event.stopPropagation();" title="Navigate around (Shift+A)" prevent-default></i>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'LAMBDA_SERVICE'">
+    <a class="item lambdaservice" ui-sref-opts="{reload:true}" ui-sref="projects.project.lambdaservices.service.endpoints">
+        <i class="icon icon-cloud universe-background lambda" />
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'SCENARIO'">
+    <a class="item job" ui-sref="projects.project.scenarios.scenario.settings">
+        <i class="icon icon-list"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'MONITORING'">
+    <a class="item job" ui-sref="{{topNav.top === 'DSS_HOME' ? 'automation.outcomes' : 'projects.project.monitoring.scenarios'}}">
+        <i class="icon icon-list"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'WEB_APP'">
+    <a class="item" ui-sref="projects.project.webapps.webapp.view">
+        <i class="icon universe-background {{topNav.item.data.type | webappTypeToColor}} {{topNav.item.data.type | webappTypeToIcon}}"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+    </a>
+</div>
+
+<div class="object-breadcrumb" ng-if="topNav.item.type == 'REPORT'">
+    <a class="item" ui-sref="projects.project.reports.report.view">
+        <i class="icon universe-background notebook {{'report' |typeToIcon}}"></i>
+        <span class="title ellipsis" show-tooltip-on-text-overflow text-tooltip="topNav.item.data.name"></span>
+    </a>
+</div>
+

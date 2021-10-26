@@ -1,0 +1,51 @@
+ <div class="modal modal3 move-copy-modal dku-modal" ng-controller="MoveCopyTileModalController" auto-size="false">
+    <div dku-modal-header modal-class="noflex has-border" modal-title="Move / Copy tile" />
+    <form name="moveCopyTileForm" class="dkuform-modal-wrapper dkuform-modal-horizontal">
+        
+        <div class="modal-body">
+
+            <div block-api-error />
+
+            <div class="control-group">
+                <label class="control-label">Action</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="keepOriginal" ng-change="checkConsistency(); pinningOrder.page = getPagesList()[0];"
+                            ng-options="o.v as o.n for o in [{ n: 'Copy', v: true }, { n: 'Move', v: false }]">
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">To Dashboard</label>
+                <div class="controls">
+                    <select dku-bs-select="{liveSearch:true}" ng-model="pinningOrder.dashboard" ng-options="dashboard as dashboard.name for dashboard in dashboards" ng-change="pinningOrder.page = getPagesList()[0]"></select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">To Slide</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="pinningOrder.page" ng-options="page as getPageLabel(pinningOrder.dashboard, page) for page in getPagesList()"></select>
+                </div>
+            </div>
+
+            <div class="control-group" ng-show="advancedMode">
+                <div class="controls">
+                    <label><input type="checkbox" ng-model="pointerMode.mode" ng-disabled="!keepOriginal || tile.tileType != 'INSIGHT'"/>Create another tile pointing to the same insight instead of duplicating the insight.</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <div class="advanced-parameters">
+                <label class="advanced-parameters--label">
+                    <input type="checkbox" ng-model="advancedMode">&nbsp;Advanced parameters
+                </label>
+            </div>
+            <button type="button"  class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="validate();">{{keepOriginal ? 'Copy' : 'Move'}}</button>
+        </div>
+
+    </form>
+</div>
+ 

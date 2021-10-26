@@ -1,0 +1,36 @@
+<div >
+	<div class="top-level-tabs objecttype-scenario">
+		<div class="horizontal-flex row-fluid object-nav">
+			<div class="flex oh" std-object-breadcrumb />
+			<div class="noflex" ng-show="appConfig.licensedFeatures.temporalTriggerAllowed || appConfig.licensing.ceEntrepriseTrial">
+				<a class="tab" ng-class="{enabled: topNav.tab == 'outcomes'}" ng-click="topNav.tab='outcomes'" fw500-width>
+					Daily summary
+				</a>
+				<a class="tab" ng-class="{enabled: topNav.tab == 'unlimited'}" ng-click="topNav.tab='unlimited'" fw500-width>
+					Timeline
+				</a>
+			</div>
+		</div>
+	</div>
+
+	<div ng-if="(appConfig.licensedFeatures.temporalTriggerAllowed || appConfig.licensing.ceEntrepriseTrial) && topNav.tab == 'unlimited'"
+		class="dss-page container-fluid"
+		style="margin-top: 10px;"
+		>
+		<ng-include src="'/templates/scenarios/timeline.html'" class="h100"></ng-include>
+	</div>
+
+	<div ng-if="(appConfig.licensedFeatures.temporalTriggerAllowed || appConfig.licensing.ceEntrepriseTrial) && topNav.tab == 'outcomes'"
+		class="dss-page container-fluid"
+		style="margin-top: 10px;"
+		>
+		<ng-include src="'/templates/scenarios/outcomes-view.html'" class="h100"></ng-include>
+	</div>
+
+    <feature-locked feature-name="'Monitoring scenarios'"
+    	class="dss-page container-fluid"
+    	style="margin-top: 10px;"
+		ng-if="!(appConfig.licensedFeatures.temporalTriggerAllowed || appConfig.licensing.ceEntrepriseTrial)">
+	</feature-locked>
+
+</div>

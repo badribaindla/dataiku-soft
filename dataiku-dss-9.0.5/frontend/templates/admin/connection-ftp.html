@@ -1,0 +1,57 @@
+
+<div ng-controller="FTPConnectionController" class="h100 vertical-flex">
+    <div class="flex">
+        <div class="fh oa">
+            <div class="h100 small-lr-padding">
+                <div class="generic-white-box">
+                    <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                    <div block-api-error />
+
+                    <form name="connectionParamsForm" class="dkuform-horizontal">
+                        <div class="row-fluid">
+
+                            <div class="span6">
+                                <h2 class="settings-section-title">Connection</h2>
+                                <div class="control-group" form-template-element
+                                model="connection.params"
+                                field="{name:'host', type:'string', mandatory:true, label:'Host'}" />
+                                <div class="control-group" form-template-element
+                                model="connection.params"
+                                field="{name:'port', type:'int', mandatory:true, label:'Port'}" />
+                                <div class="control-group" form-template-element
+                                model="connection.params"
+                                field="{name:'user', type:'string', label:'User'}" />
+                                <div class="control-group">
+                                    <label for="" class="control-label">Password</label>
+                                    <div class="controls">
+                                        <input type="password" ng-model="connection.params.password" autocomplete="new-password" />
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Use passive mode</label>
+                                    <div class="controls">
+                                        <input type="checkbox" ng-model="connection.params.passive" />
+                                    </div>
+                                </div>
+                                <div class="control-group" form-template-element
+                                model="connection.params"
+                                field="{name:'path', type:'string', label:'Path'}" />
+                            </div>
+                            <div class="span6">
+                                <div include-no-scope="/templates/admin/fragments/fs-naming-rule.html" />
+                                <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                                <div class="alert alert-warning" ng-show="connection.useGlobalProxy && connection.$canHaveProxy && !connection.params.passive">
+                                    Active-mode FTP over HTTP proxy is not supported.
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                    <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="noflex small-lr-padding page-top-padding" include-no-scope="/templates/admin/fragments/connection-name-test-save-with-results.html" />
+</div>

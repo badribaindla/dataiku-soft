@@ -1,0 +1,44 @@
+<div class="modal modal3 plugin-preview" ng-controller="PluginLearnMoreController">
+    <div ng-if="pluginDesc.isDev" dku-modal-header-with-totem modal-title="{{pluginDesc.label || pluginDesc.id }}" modal-totem="icon-beaker"/>
+    <div ng-if="!pluginDesc.isDev" dku-modal-header modal-title="{{pluginDesc.label || pluginDesc.id }}" modal-class="has-border" />
+
+    <div class="modal-body" style="padding: 0px 20px 20px 20px;"> <!-- tweak the padding-top for the tabs below -->
+        <form class="dkuform-horizontal recipe-settings-section2" name="settingsForm">
+            <div class="row-fluid mtop10">
+                <div ng-if="pluginDesc.description" from-markdown="pluginDesc.description"></div>
+            </div>
+            <div class="row-fluid mtop10" ng-if="pluginDesc.url">
+                <a target="_blank" rel="noopener noreferrer" href="{{pluginDesc.url}}">
+                    Plugin documentation&nbsp;<i class="icon-external-link"></i>
+                </a>
+            </div>
+            <div class="row-fluid mtop10" ng-if="showRecipes" style="list-style: none;">
+                <ul style="list-style: none;">
+                    <li ng-repeat="recipe in customRecipes" style="margin-bottom: 5px;">
+                        <div >
+                            <i ng-if="recipe.desc.meta.icon" class="{{recipe.desc.meta.icon}}"></i>
+                            <i ng-if="!recipe.desc.meta.icon && pluginDesc.icon" class="{{pluginDesc.icon}}"></i>
+                            {{recipe.desc.meta.label || recipe.id}}
+                        </div>
+                        <div ng-if="recipe.desc.meta.description" from-markdown="recipe.desc.meta.description"></div>
+                    </li>
+                </ul>
+            </div>
+            <div class="row-fluid mtop10" ng-if="showDatasets">
+                <ul style="list-style: none;">
+                    <li ng-repeat="dataset in customDatasets" style="margin-bottom: 5px;">
+                        <div >
+                            <i ng-if="dataset.desc.meta.icon" class="{{dataset.desc.meta.icon}}"></i>
+                            <i ng-if="!dataset.desc.meta.icon && pluginDesc.icon" class="{{pluginDesc.icon}}"></i>
+                            {{dataset.desc.meta.label || dataset.id}}
+                        </div>
+                        <div ng-if="dataset.desc.meta.description" from-markdown="dataset.desc.meta.description"></div>
+                    </li>
+                </ul>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer modal-footer-std-buttons has-border">
+        <button class="btn btn--text btn--secondary" ng-click="dismiss()">Close</button>
+    </div>
+</div>

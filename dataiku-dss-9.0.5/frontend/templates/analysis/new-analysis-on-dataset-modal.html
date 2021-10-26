@@ -1,0 +1,55 @@
+<div class="modal modal3 new-analysis-modal dku-modal" ng-controller="NewAnalysisOnDatasetModalController">
+    <div dku-modal-header-with-totem modal-class="noflex" modal-title="Analyze &quot;{{datasetSmartName}}&quot;" modal-totem="icon-dku-nav_analysis" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body" ng-if="existingAnalyses != null" style="box-sizing: border-box;">
+            <div ng-if="existingAnalyses.length" class="already-existing">
+                <p ng-if="forMLTask && !hasMLTasks">Models are created within an Analysis and then deployed on the Flow for scoring.</p>
+                <p ng-if="forMLTask && hasMLTasks">Models already exists on this dataset</p>
+                <p ng-if="!forMLTask || !hasMLTasks">
+                    <strong>{{existingAnalyses.length}} analyses</strong> already exist on this dataset</p>
+                <ul>
+                    <li ng-repeat="analysis in existingAnalyses">
+                        <a ng-if="!forMLTask" ng-bind="analysis.name"
+                            ui-sref="projects.project.analyses.analysis.script({analysisId: analysis.id})" />
+                        <span ng-if="forMLTask" ng-bind="analysis.name" />
+                        &nbsp; - &nbsp; created {{analysis.createdOn|friendlyTimeDeltaShort}}
+                        <span avatar displayName="analysis.createdBy.displayName" login="analysis.createdBy.login" />
+                        <ul ng-if="forMLTask">
+                            <li ng-if="analysis.mlTasks.length === 0">No model yet &ndash;
+                                <a ui-sref="projects.project.analyses.analysis.ml.list({analysisId: analysis.id})">
+                                    Open analysis
+                                </a>
+                            </li>
+                            <li ng-repeat="mlTask in analysis.mlTasks">
+                                <a ng-if="mlTask.taskType === 'PREDICTION'"
+                                    ui-sref="projects.project.analyses.analysis.ml.predmltask.list.results({analysisId: analysis.id, mlTaskId: mlTask.mlTaskId})" 
+                                    ng-bind="mlTask.name" />
+                                <a ng-if="mlTask.taskType === 'CLUSTERING'"
+                                    ui-sref="projects.project.analyses.analysis.ml.clustmltask.list.results({analysisId: analysis.id, mlTaskId: mlTask.mlTaskId})"
+                                    ng-bind="mlTask.name" />
+                                <span>({{ mlTask.modelCount }} model{{ mlTask.modelCount > 1 ? 's' : '' }})</span>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <button type="button" class="btn btn--secondary" ng-click="createAnother()">Create another analysis</button>
+            </div>
+
+            <div ng-if="existingAnalyses.length == 0" class="not-existing">
+                <p ng-if="forMLTask">Models are created within an Analysis and then deployed on the Flow for scoring.</p>
+                <div class="control-group">
+                    <label for="newAnalysisName" class="control-label">Name</label>
+                    <div class="controls">
+                        <input type="text" class="input-xlarge" id="newAnalysisName" placeholder="New analysis name" ng-model="newData.name" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons" ng-if="existingAnalyses.length == 0">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" ng-disabled="theform.$invalid || existingAnalyses.length" class="btn btn--text btn--primary" ng-click="create()">Create analysis</button>
+        </div>
+    </form>
+</div>

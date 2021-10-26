@@ -1,0 +1,74 @@
+<div class="tag-edit-field" ng-if="!editable">
+    <div class="tags-list-editor">
+        <div class="tags">
+            <div ng-repeat="tag in savedTags track by $index" class="tag" style="background-color:{{tagColor(tag)}}" >
+                <span ui-global-tag="tag" object-type="objectType"/>
+            </div>
+        </div>
+        <span ng-if="savedTags.length === 0" class="tag-helper-info">No tags have been assigned</span>
+    </div>
+</div>
+
+
+<div class="tag-edit-field" ng-if="editable" ng-click="!isEditing && onStartTagEdit($event)" style="cursor: pointer;">
+    <div ng-if="!isEditing" class="tags-list-editor">
+        <div class="tags" ng-if="savedTags.length || filteredTags.globalTagsCategories.length">
+            <span ng-repeat="tag in savedTags track by $index" class="tag" style="background-color:{{tagColor(tag)}}" ng-click="!isEditing && onStartTagEdit($event, tag.globalTagsCategory)" >
+                <span ui-global-tag="tag" object-type="objectType"/>
+            </span>
+            <span class="help-text tag"
+                  ng-repeat="category in filteredTags.globalTagsCategories track by $index"
+                  ng-click="!isEditing && onStartTagEdit($event, category)">
+                <i plus-icon></i> Add {{category}}
+            </span>
+            <span class="help-text tag" ng-click="!isEditing && onStartTagEdit($event)">
+                <i plus-icon></i> Add tags
+            </span>
+        </div>
+        <span ng-if="savedTags.length === 0 && filteredTags.globalTagsCategories.length === 0" class="help-text"> Click to add tags</span>
+    </div>
+
+    <div ng-if="isEditing" class="tags-editor" ng-keydown="onEditKeydown"  dku-local-keypress="{'esc' : 'cancelEdit($event)', 'del' : 'backspace($event)'}">
+        <div class="tags-list-editor" >
+            <div class="tags" ng-click="setFocus($event)">
+                <div class="tag " ng-class="{active: uiState.tagIndex == $index}" style="background-color:{{tagColor(tag)}}" ng-click="onSelectTag($event, $index)"
+                     ng-repeat="tag in tags track by $index" scroll-to-me="{{uiState.tagIndex == $index}}">
+                    <span ui-global-tag="tag" object-type="objectType"/>
+                    <i class="icon-remove" ng-click="deleteTag($event, $index)"></i>
+                </div>
+                <input ng-model="uiState.newTag" scroll-to-me="true" type="text" auto-focus="true"
+                class="tag-editor-input"  name="tagEditorInput" ng-keydown="onInputKeydown($event)" aria-label="Selected tags" />
+
+              </div>
+            <button class="btn btn--text btn--secondary" ng-click="cancelEdit($event)">Cancel</button>
+            <button class="btn btn--text btn--primary" ng-click="saveEdit($event)">{{saveBtnText}}</button>
+        </div>
+        <div style="left:{{35 + dropListLeft()}}px" ng-if="isEditing && provideDropDown" class="tag-select-dropdown" >
+            <div class="tag-pick-options" >
+                <ul class="tag-pick-list"  >
+                    <li ng-repeat="tag in filteredTags.items" ng-class="{active: (uiState.dropDownIndex == $index)}" scroll-to-me="{{uiState.dropDownIndex == $index}}">
+                        <a href ng-click="onDropdownClick($event, $index)" ng-keydown="onDropdownKeydown($event, $index)" >
+                            <div class="horizontal-flex" >
+                                <span class="tag-color noflex" style="background-color:{{tag.color}}"/>
+                                <span ui-global-tag="tag.title" object-type="objectType"/>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+
+                <div ng-if="filteredTags.createItem" class="create-item" ng-class="{active: uiState.dropDownIndex == filteredTags.length-1}">
+                    <a href ng-click="onDropdownClick($event, filteredTags.length-1)" ng-keydown="onDropdownKeydown($event, filteredTags.length-1)" >
+                        <div class="horizontal-flex" >
+                            <i class="icon-plus flex-no-grow" ></i>
+                            <span class="flex" >Create &laquo;{{(filteredTags.createItem | limitTo:12) + (filteredTags.createItem.length > 12 ? '...' : '')}}&raquo;</span>
+                            <span class="return flex-no-grow" ng-if="!uiState.dropDownIndex && uiState.dropDownIndex!=0" >&crarr;</span>
+                        </div>
+                    </a>
+                </div>
+                <p ng-if="!filteredTags.isSelectedTag && !filteredTags">No tags available</p>
+                <p ng-if="filteredTags.isSelectedTag">Tag already selected</p>
+            </div>
+            <button ng-if="!globalTagsCategory && allowManageTags" class="btn btn--contained btn--tag-list" ng-click="manageTags()" >Manage tags</button>
+        </div>
+    </div>
+</div>

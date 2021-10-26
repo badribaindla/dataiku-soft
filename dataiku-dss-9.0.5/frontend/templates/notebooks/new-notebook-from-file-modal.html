@@ -1,0 +1,54 @@
+<div class="modal modal3" ng-controller="NewNotebookFromFileModalController">
+    
+    <dku-modal-header modal-class="has-border">
+        <dku-modal-title>
+            <span ng-show="newNotebook.language === null || isLanguageSupported">New Notebook from file</span>
+            <span ng-show="newNotebook.language === 'python' && !isLanguageSupported">New Python Notebook from file</span>
+            <span ng-show="newNotebook.language === 'r' && !isLanguageSupported">New R Notebook from file</span>
+            <span ng-show="newNotebook.language === 'scala' && !isLanguageSupported">New Scala Notebook from file</span>
+            <span ng-if="datasetSmartName"> on {{datasetSmartName}}</span>
+        </dku-modal-title>
+    </dku-modal-header>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="notebookFromFileForm">
+        <div class="modal-body plugin-from-desktop-modal__body">
+            <div block-api-error/>
+
+            <div class="control-group">
+                <label for="notebookFile" class="control-label">File</label>
+                <div class="controls">
+                    <input class="upload-notebook-file-input" id="notebookFile" name="notebookFile" type="file" required valid-file ng-model="newNotebook.file" accept=".ipynb"/>
+                    <span ng-show="notebookFromFileForm.notebookFile.$invalid" class="help-inline mtop8">
+                        Please upload a <code>.ipynb</code> file.
+                    </span>
+                </div>
+                <section class="alert alert-error" ng-show="hasParsingFailed">
+                    <span><i class="icon-dku-error mright8"></i> An error occurred while parsing the notebook. Please check the file or try again later.
+                </section>
+    
+                <section class="alert alert-warning" ng-show="isLanguageSupported">
+                    <span><i class="icon-dku-warning mright8"></i> It looks like the notebook kernel language of this file is neither Python, R or Scala. <br> You can still upload the file but will probably have to configure the notebook kernel. 
+                </section>
+            </div>
+
+            <section ng-show="isParsing" class="tac mtop16">
+                <span class="dku-loader w24 h24 icon-spin m0a"></span> <h5>Please wait, parsing the uploaded file.</h5>
+            </section>
+            
+            <div class="control-group" ng-show="!isParsing && newNotebook.language">
+                <label class="control-label">Notebook name</label>
+                <div class="controls">
+                    <input name="notebookName" ng-model="newNotebook.name" type="text" ng-pattern="/^[^#.*/\\]+$/" required/>
+                    <span ng-show="notebookFromFileForm.notebookName.$error.pattern" class="help-inline mtop8">
+                        Can't contain <code>#.*/\</code>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="notebookFromFileForm.$invalid || isParsing || hasParsingFailed" ng-click="uploadAndRedirect()">Upload</button>
+        </div>
+    </form>
+</div>

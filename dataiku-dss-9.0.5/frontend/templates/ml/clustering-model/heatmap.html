@@ -1,0 +1,121 @@
+<div class="heatmap-page" ng-if="modelData.heatmap"
+     ng-controller="ClusteringHeatmapController">
+    <div class="horizontal-flex" style="justify-content: space-between">
+        <div>
+            <div class="horizontal-flex" ng-show="cat_names.length != 0">
+                <div style="padding-top: 3px; margin-right: 10px">View features :</div>
+                <div class="btn-group">
+                    <button class="btn btn--secondary"
+                            ng-click="selectAllFeatures()" ng-class="{'btn--active' : selectionMode == 'ALL'}">All
+                    </button>
+                    <button class="btn btn--secondary"
+                            ng-click="selectOnlyNumeric()" ng-class="{'btn--active' : selectionMode == 'NUMERIC'}">Numeric
+                    </button>
+                    <button class="btn btn--secondary"
+                            ng-click="selectSpecificCat(cat_names[0].index)" ng-class="{'btn--active' : selectionMode == 'CAT'}">
+                        Single categorical
+                    </button>
+                </div>
+                <select style="margin-left: 5px; margin-bottom: 0px; height: 24px;" ng-show="selectionMode == 'CAT'"
+                        ng-model="selectedCategorical"
+                        ng-options="item.index as item.name for item in cat_names"
+                        ng-change="selectSpecificCat(selectedCategorical)">
+                </select>
+            </div>
+            <div class="help-inline" style="padding: 0; color: #777; font-size: 11px">Click on a feature or a cluster to sort the heatmap by signifiance.</div>
+        </div>
+        <div class="horizontal-flex" style="align-items: center; text-align: right; width: auto;">
+            <heat-gradient></heat-gradient>
+            <div class="dropdown" style="margin-left: 10px;">
+                <button class="btn btn--secondary manual-caret dropdown-toggle" data-toggle="dropdown">Export <i
+                        class="icon-caret-down"></i></button>
+                <ul class="dropdown-menu pull-right text-left">
+                    <li><a ng-click="exportTabular()">Export as a tabular view (recommended)</a></li>
+                    <li><a ng-click="exportStacked()">Export as a stacked column view</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div ng-style="!modelDocumentExport ? {'margin-top': '50px', 'padding-bottom': '100px'} : {'margin-top': '20px', 'padding-top': '40px'}" id="clusterHeatMapChartContainer">
+        <div style="position: relative; white-space: nowrap; height: 50px">
+            <div class="features-container" style="width: 140px; position: relative; display: inline-block">
+                <a class="reset-sort-link" ng-click="reset()" ng-hide="selectedFeature==-1&&selectedCluster==-1">Reset sort
+                </a>
+            </div>
+            <div style="position: absolute; bottom: 0px; display: inline-block">
+                <div style="position: absolute; height: 0px" ng-style="{'bottom': clusterOffset()}">
+                    <div ng-repeat="ci in clusterIndex" class="cluster-container">
+                        <div ng-class="selectedFeature != -1 ? 'cluster-box' : 'cluster-header'">
+                            <div class="cluster-content horizontal-flex"
+                                 ng-style="{'font-weight': selectedCluster==ci?'bold':'normal'}">
+                                <div class="noflex carets">
+                                    <i class="icon-caret-down" ng-if="selectedCluster==ci && sortDescending"></i>
+                                    <i class="icon-caret-up" ng-if="selectedCluster==ci && !sortDescending"></i>
+                                    <i class="icon-caret-up" style="visibility: hidden" ng-if="selectedCluster != ci"></i>
+                                </div>
+                                <div class="noflex color-indicator" ng-style="{'background-color': getClusterMeta(clusters[ci]).color}"
+                                     nrg-if="selectedFeature == -1">
+
+                                </div>
+                                <div class="cluster-name noflex">
+                                    <a ng-click="sortFeatures(ci)" title="{{getClusterMeta(clusters[ci]).name}}">
+                                        {{getClusterMeta(clusters[ci]).name}}
+                                    </a>
+                                </div>
+                                <a class="cluster-edit noflex" style="max-width:120px" ng-click="editClusterDetails(ci)" ng-if="!modelDocumentExport">
+                                    <i class="icon-pencil"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="margin 0 auto" ng-style="{'width': 140 + tableWidth + additionalWidth}">
+            <div style="float: left; width: 140px; position: relative">
+                <div style="position: absolute" ng-style="{left: featureOffset()}">
+                    <div ng-repeat="fi in featureIndex">
+                        <div class="features-container">
+                            <div class="features" style="width: 140px">
+                                <a style="z-index: 2; position: relative"
+                                        ng-class="{'features-box': selectedCluster != -1}"
+                                   ng-style="{
+                                    'font-weight': (selectedFeature==fi?'bold':'normal'),
+                                    'padding-right': (selectedCluster != -1 ? '5px' : '15px')
+                                }"
+                                   ng-click="sortClusters(fi)" title="{{featureInfo[fi].name}}">{{featureInfo[fi].name}}</a>
+                            </div>
+                            <i class="icon-caret-right" ng-show="selectedFeature == fi && sortDescending"></i>
+                            <i class="icon-caret-left" ng-show="selectedFeature == fi && !sortDescending"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-left: 140px" ng-style="{'width': tableWidth}">
+                <table class="table" ng-style="{'width': tableWidth}">
+                    <tbody>
+                    <tr ng-repeat="fi in featureIndex" ng-class="{'sort-active' : fi == selectedFeature}">
+                        <td class="square" ng-repeat="ci in clusterIndex"
+                        ng-class="{'sort-active' : ci == selectedCluster}"
+                        ng-style="{
+                            'background-color': getElementColor(fi, ci)}">
+                            <!-- Add an invisible div above the tile to allow tooltip to be showable when hovering
+                                 above the feature container -->
+                            <div class="tile-overlay" dku-better-tooltip dbt-placement="right" dbt-title="{{tooltipHtml(fi, ci)}}"
+                                 dbt-class="title-tooltip"></div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div ng-if="!modelData.heatmap" class="placeholder-block">
+    The heatmap is not available with this model.
+</div>
+
+

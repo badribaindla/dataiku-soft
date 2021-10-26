@@ -1,0 +1,65 @@
+<div class="git-log" style="position: relative">
+    <div block-api-error />
+    <div class="line"></div>
+    <div class="line-selected" ng-show="compare.from && compare.to"></div>
+
+    <div class="day" ng-repeat="day in days" ng-class="{unfocus: !dayInCompareRange($index)}">
+        <div class="date"><i class="icon-circle-blank"></i> {{day.changes.length}} commit{{day.changes.length > 1 ? 's' : ''}} on {{day.date | date}}</div>
+        <ul class="cell-list">
+            <li class="commit-log-entry" ng-repeat="entry in day.changes"
+                ng-class="{
+                    compare: (compare.from.day === $parent.$index && compare.from.commit == $index) || (compare.to.day === $parent.$index && compare.to.commit == $index),
+                    unfocus: !commitInCompareRange($parent.$index, $index)
+                }"
+                ng-mouseover="setCompareTo($parent.$index, $index, $event)"
+                ng-click="!clickIsOnTag($event) ? openCompareModal() : ''"
+            >
+
+                <div class="horizontal-flex">
+                    <div class="avatar noflex">
+                        <span user-picture="entry.author" size="32"></span>
+                    </div>
+                    <div class="information flex">
+                        <div class="commit-message qa_log_commit-message"
+                            ng-click="!compare.from && !noCommitDiff && !clickIsOnTag($event) ? openDiffModal(entry.commitId) : ''"
+                            style="cursor: {{noCommitDiff ? 'default': 'pointer'}} "
+                            from-markdown="entry.message"
+                            no-markdown="true"></div>
+                        <small><a ui-sref="profile.user.view({userLogin: entry.author})">{{entry.author}}</a> - {{entry.timestamp | friendlyTimeDeltaShort}}</small>
+                    </div>
+                    <div class="commit-id noflex" style="width: 150px;">
+
+                        <a class="pull-right" ng-click="!compare.from ? openDiffModal(entry.commitId) : ''" title="{{entry.commitId}}" ng-disabled="compare.from">
+                            <small>{{entry.commitId | limitTo : 7}}</small>
+                        </a>
+
+                        <button class="btn btn--secondary active"
+                            ng-click="exitCompare"
+                            ng-show="!noCommitDiff && compare.from.day == $parent.$index && compare.from.commit == $index">
+                            Compare
+                        </button>
+
+                        <button class="btn btn--secondary compare"
+                            ng-click="setCompareFrom($parent.$index, $index, $event)"
+                            ng-show="!noCommitDiff && !compare.from">
+                            Compare
+                        </button>
+
+                        <button class="btn btn--secondary compare"
+                            ng-click="!clickIsOnTag($event) ? openCompareModal() : ''; $event.stopPropagation();"
+                            ng-show="compare.from && (compare.from.day != $parent.$index || compare.from.commit != $index)">
+                            Compare to
+                        </button>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="day" style="margin-bottom: 20px;">
+        <div class="date">
+            <i class="icon-circle"></i>
+            <span>{{ lastStatus }}</span>
+        </div>
+    </div>
+</div>

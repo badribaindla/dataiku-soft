@@ -1,0 +1,47 @@
+<div class="modal modal3 dku-modal insert-special-input__modal" ng-class="{'processor-code-open': uiState.processorCodeShown}">
+    <form class="dkuform-modal-wrapper">
+        <div dku-modal-header modal-title="Define the shape of the input"/>
+        <div class="modal-body modal-no-sizing">
+            <div class="modal-info-container">
+                <div class="modal-info">
+                    <p>
+                        The input shape must match the shape of the array returned in "{{uiState.insertFeature}}" processing. <a  ng-show="!uiState.processorCodeShown" ng-click="showHideProcessorCode()">Show more&hellip;</a>
+                    </p>
+                    <div ng-show="uiState.processorCodeShown">
+                        <p>
+                            The shape is a tuple of integers that does not include the batch size. For example, <code>shape=(32,)</code> means that the expected input is batches of 32-dimensional vectors.
+                        </p>
+                        <p>
+                            The processing of "{{uiState.insertFeature}}" is the following
+                        </p>
+                        <div  class="special-feature-processor__definition">
+                            <div class="code-snippet-editor-wrapper">
+                                <div class="editor-wrapper">
+                                    <div class="editor">
+                                        <textarea ng-model="uiState.insertFeatParams.customHandlingCode"
+                                                  ui-codemirror="insertReadOnlyOptions"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p>
+                            <a ng-click="showHideProcessorCode()">Show less&hellip;</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <p>
+                Fill the shape of the input, then insert the following code
+            </p>
+            <div class="insert-special-input">
+                <span>{{uiState.insertStartInputCode}}</span><input class="insert-special-input" type="text" ng-model=uiState.insertInputShape placeholder="(32,) or (197, 197, 3) ..."></input><span>{{uiState.insertEndInputCode}}</span>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <div class="pull-right" ng-if="!positive">
+                <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+                <button type="button" class="btn btn--text btn--primary" ng-click="insertSpecialInput(); dismiss()" ng-disabled="!uiState.insertInputShape">Insert</button>
+            </div>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,44 @@
+<div ng-if="uiState.filesListing" class="dataset-settings-files-listing" style="background: white; padding: 10px; margin-top: 5px; border: 1px #ddd solid">
+	<div class="pull-right">
+		<a ng-click="uiState.filesListing = null"> <i class="icon-remove" /></a>
+	</div>
+	Found {{uiState.filesListing.totalFiles}} files ({{uiState.filesListing.selectedFiles}} selected) - {{uiState.filesListing.totalSize|filesize}} total size ({{uiState.filesListing.selectedSize|filesize}} selected)
+    <div class="dku-colored-list spaced dku-border-bottom">
+        <div class="fattable-default-header" style="border-bottom: none; width: 100%;">
+            <div style="width: 200px;"> <strong>Path</strong>
+            </div>
+            <div style="width: 70px;"> <strong>Size</strong>
+            </div>
+            <div style="width: 120px;">
+                <strong>Last modified</strong>
+            </div>
+            <div style="width: 120px;">
+                <strong>Selected</strong>
+            </div>
+        </div>
+    </div>
+
+	<div class="fattable-default-style" style="height: {{getFilesListingHeight(uiState.filesListing)}}px; font-size: 10px" fat-repeat="uiState.filesListing.paths" as="path" row-height="27">
+		<div>
+			<div style="width: 200px" class="mx-textellipsis" title="{{path.path}}">{{path.path}}</div>
+			<div style="width: 70px">{{ path.size |filesize }}</div>
+			<div style="width: 120px">{{path.lastModified|date:'yyyy/MM/dd-HH:mm:ss'}}</div>
+			<div style="width: 120px;">
+				<span ng-show="path.selected" class="text-success">
+					<i class="icon-ok" />
+				</span>
+				<span ng-show="!path.selected" class="text-error">
+					<i class="icon-remove" />
+					<span ng-show="dataset.params.filesSelectionRules.mode == 'EXPLICIT_SELECT_FILES'">
+						<a ng-click="addExplicitSelect(path)">Add</a>
+					</span>
+					<span ng-show="dataset.params.filesSelectionRules.mode == 'RULES_INCLUDED_ONLY'">
+						<a ng-click="addIncludeRule(path)">Add</a>
+					</span>
+
+				</span>
+
+			</div>
+		</div>
+	</div>
+</div>

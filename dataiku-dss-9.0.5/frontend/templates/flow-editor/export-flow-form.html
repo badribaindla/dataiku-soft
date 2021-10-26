@@ -1,0 +1,57 @@
+<div class="flow-export-dir">
+    <div class="control-group">
+        <label class="control-label">File Type</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="params.exportFormat.fileType" ng-options="x for x in fileTypes"/>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Size</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="params.exportFormat.paperSize" ng-options="key as value for (key, value) in paperSizeMap"></select>
+        </div>
+    </div>
+    <div class="control-group" ng-if="params.exportFormat.paperSize != 'CUSTOM'">
+        <label class="control-label">Orientation</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="params.exportFormat.orientation" ng-options="key as value for (key, value) in orientationMap"></select>
+        </div>
+    </div>
+    <div class="control-group" ng-if="params.exportFormat.paperSize == 'CUSTOM'">
+        <label class="control-label">Width</label>
+        <div class="controls">
+            <input type="number" class="input-half-size" ng-model="params.exportFormat.width" name="exportWidth" ng-min="minResW" ng-max="maxResW" step="1" ng-required="params.exportFormat.paperSize"/>
+            <span class="help-inline">pixels</span>
+            <span class="flow-export-error dku-error-fade-in" ng-show="exportFormController.exportWidth.$invalid">Choose a width value between {{minResW}} and {{maxResW}}.</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="params.exportFormat.paperSize == 'CUSTOM'">
+        <label class="control-label">Height</label>
+        <div class="controls">
+            <input type="number" class="input-half-size" ng-model="params.exportFormat.height" name="exportHeight" ng-min="minResH" ng-max="maxResH" step="1" ng-required="params.exportFormat.paperSize" />
+            <span class="help-inline">pixels</span>
+            <span class="flow-export-error dku-error-fade-in" ng-show="exportFormController.exportHeight.$invalid">Choose a height value between {{minResH}} and {{maxResH}}.</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Tiling</label>
+        <div class="controls">
+            <label class="dku-toggle" style="margin-left: 0;">
+                <input type="checkbox" ng-model="tileScale.enabled">
+                <span style="display: inline-block"/>
+                <span class="help-inline" style="vertical-align: top">Split the Flow graph on multiple pages.</span>
+            </label>
+        </div>
+    </div>
+    <div class="control-group" ng-if="tileScale.enabled">
+        <label class="control-label">Tile Scale</label>
+        <div class="controls">
+            <input type="number" class="input-half-size" ng-model="tileScale.percentage" name="tileScale" ng-min="100" step="100"/>
+            <span class="help-inline" ng-show="!exportFormController.tileScale.$invalid">% - will generate
+                <span ng-show="tileScale.sheets.count <= 1">a single page</span>
+                <span ng-show="tileScale.sheets.count > 1">{{tileScale.sheets.count}} pages ({{tileScale.sheets.x}} x {{tileScale.sheets.y}})</span>
+            </span>
+            <span class="flow-export-error dku-error-fade-in" ng-show="exportFormController.tileScale.$invalid">Choose value greater than 100%.<br/>200% will scale the Flow on up to 2 x 2 pages, 300% on up to 3 x 3 pages...</span>
+        </div>
+    </div>
+</div>

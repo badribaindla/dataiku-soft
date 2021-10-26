@@ -1,0 +1,227 @@
+<div ng-init="pcd = modelData.perf.perCutData; kfold = modelData.trainInfo.kfold;
+            ti = modelData.perf.tiMetrics; pm = modelData.perf.metrics;
+            cc = modelData.coreParams.calibration;" class="horizontal-flex">
+    <div class="span4">
+        <h3 ng-if="!isMulticlass() && !isOnPartitionedBaseModel()" class="dku-small-title mbot16" puppeteer-hook-1>
+            Threshold independent</h3>
+        <h3 ng-if="!isMulticlass() && isOnPartitionedBaseModel()" class="dku-small-title mbot16" puppeteer-hook-1>
+            Threshold independent: <br> averaging over partitions</h3>
+        <table class="table detailed-metrics-table" puppeteer-hook-2>
+            <tr ng-if="isMulticlass()">
+                <td>
+                    {{ printWeightedIfWeighted() }} Precision
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Unweighted average of precision for all classes (Proportion of predicted X that were indeed X)"></i>
+                </td>
+                <th ng-bind-html="currentCutData.Precision || pm.precision | mlMetricFormat :'PRECISION' :4
+                    :(kfold && (pcd ? pcd.precisionstd[cci] : pm.precisionstd))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('PRECISION', 'Precision')}}"
+                    dku-md-title="Aggregated metric">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr ng-if="modelData.hasProbas">
+                <td>
+                    {{ printWeightedIfWeighted() }} Log loss
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Error metric that takes into account the predicted probabilities (the lower the better)"></i>
+                    <span ng-if="cc && cc.calibrationMethod != 'NO_CALIBRATION'">NB: calibration might change the log loss as it modifies the predicted probabilities</span>
+                </td>
+                <th ng-bind-html="ti.logLoss || pm.logLoss | mlMetricFormat :'LOGLOSS' :4
+                    :(kfold && (ti ? ti.logLossstd : pm.logLossstd))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('LOG_LOSS', 'Log loss')}}"
+                    dku-md-title="Aggregated metric">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr ng-if="modelData.hasProbas">
+                <td>
+                    {{ printWeightedIfWeighted() }} ROC - {{ isMulticlass() ? 'M' : '' }}AUC Score
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Area under the ROC; from 0.5 (random model) to 1 (perfect model)"></i>
+                </td>
+                <th ng-bind-html="ti.auc || pm.mrocAUC | mlMetricFormat :'AUC' :4
+                    :(kfold && (ti ? ti.aucstd : pm.mrocAUCstd))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('ROC_AUC', 'ROC AUC')}}"
+                    dku-md-title="Aggregated metric">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr ng-if="modelData.hasProbas">
+                <td>
+                    {{ printWeightedIfWeighted() }} Calibration loss
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Average distance between calibration curve and diagonal. From 0 (perfectly calibrated) up to 0.5."></i>
+                </td>
+                <th ng-bind-html="ti.calibrationLoss || pm.mCalibrationLoss | mlMetricFormat :'AUC' :4
+                    :(kfold && (ti ? ti.calibrationLossstd : pm.mcalibrationLossstd))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('CALIBRATION_LOSS', 'Calibration loss')}}"
+                    dku-md-title="Aggregated metric">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr ng-if="modelData.modeling.metrics.evaluationMetric == 'CUSTOM' && modelData.modeling.metrics.customEvaluationMetricNeedsProba">
+                <td>
+                    {{ printWeightedIfWeighted() }} Custom score
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="{{modelData.modeling.metrics.customEvaluationMetricGIB ? 'Higher' : 'Lower'}} values are better">
+                    </i>
+                </td>
+                <th ng-bind-html="ti.customScore || pm.customScore | mlMetricFormat :'CUSTOM' :4
+                    :(kfold && (ti ? ti.customScorestd : pm.customScorestd))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('CUSTOM', 'Custom score')}}"
+                    dku-md-title="Aggregated metric">
+                <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+        </table>
+    </div>
+    <div class="span4">
+        <h3 ng-if="!isMulticlass() && !isOnPartitionedBaseModel()" class="dku-small-title mbot16" puppeteer-hook-3>
+            Threshold dependent</h3>
+        <h3 ng-if="!isMulticlass() && isOnPartitionedBaseModel()" class="dku-small-title mbot16" puppeteer-hook-3>
+            Threshold dependent: <br> using optimal threshold from each partition</h3>
+        <table class="table detailed-metrics-table" puppeteer-hook-4>
+            <tr>
+                <td>
+                    {{ printWeightedIfWeighted() }} Accuracy
+                    <i ng-if="!isMulticlass()" class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Proportion of correct predictions (positive and negative) in the test set"></i>
+                    <i ng-if="isMulticlass()" class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Proportion of correctly-classified observations"></i>
+                </td>
+                <th ng-bind-html="currentCutData.Accuracy || currentCutData['Weighted Accuracy'] || pm.accuracy | mlMetricFormat :'ACCURACY' :4
+                    :(kfold && (pcd ? pcd.accuracystd[cci] : pm.accuracystd))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('ACCURACY', 'Accuracy')}}"
+                    dku-md-title="Aggregated metric">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr ng-if="!isMulticlass()">
+                <td>
+                    {{ printWeightedIfWeighted() }} Precision
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Proportion of positive predictions that were indeed positive (in the test set)"></i>
+                </td>
+                <th ng-bind-html="currentCutData.Precision || pm.precision | mlMetricFormat :'PRECISION' :4
+                    :(kfold && (pcd ? pcd.precisionstd[cci] : pm.precisionstd))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('PRECISION', 'Precision')}}"
+                    dku-md-title="Aggregated metric">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    {{ printWeightedIfWeighted() }} Recall
+                    <i ng-if="!isMulticlass()" class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Proportion of actual positive values found by the classifier"></i>
+                    <i ng-if="isMulticlass()" class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Unweighted average of recall for all classes (Proportion of actual class X found by the classifier)"></i>
+                </td>
+                <th ng-bind-html="currentCutData.Recall || pm.recall | mlMetricFormat :'RECALL' :4
+                    :(kfold && (pcd ? pcd.recallstd[cci] : pm.recallstd))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('RECALL', 'Recall')}}"
+                    dku-md-title="Aggregated metric">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    {{ printWeightedIfWeighted() }} F1 Score
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Harmonic mean between Precision and Recall"></i>
+                </td>
+                <th ng-bind-html="currentCutData['F1-Score'] || pm.f1 | mlMetricFormat :'F1' :4
+                    :(kfold && (pcd ? pcd.f1std[cci] : pm.f1std))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('F1', 'F1 Score')}}"
+                    dku-md-title="Aggregated metric">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    {{ printWeightedIfWeighted() }} Hamming loss
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Fraction of labels that are incorrectly predicted (the lower the better)"></i>
+                </td>
+                <th ng-bind-html="currentCutData.hammingLoss || pm.hammingLoss | mlMetricFormat :'HAMMING' :4
+                    :(kfold && (pcd ? pcd.hammingLossstd[cci] : pm.hammingLossstd))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('HAMMINGLOSS', 'Hamming loss')}}"
+                    dku-md-title="Aggregated metric">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    {{ printWeightedIfWeighted() }} Cost matrix gain
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Average gain per record that the test set ({{ kfold ? modelData.trainInfo.fullRows : modelData.trainInfo.testRows }} rows) would yield given the specified gain for each outcome.Specified gains: TP = {{modelData.headTaskCMW.tpGain}}, TN = {{modelData.headTaskCMW.tnGain}}, FP = {{modelData.headTaskCMW.fpGain}}, FN = {{modelData.headTaskCMW.fnGain}}.">
+                    </i>
+
+                </td>
+                <th ng-bind-html="currentCutData.cmg || pm.cmg | mlMetricFormat:'COST_MATRIX':4: false"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('COST_MATRIX', 'Cost matrix')}}"
+                    dku-md-title="Aggregated metric">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+
+            <tr ng-if="!isMulticlass()">
+                <td>
+                    {{ printWeightedIfWeighted() }} Matthews Correlation Coefficient
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="Correlation coefficient between actual and predicted values. +1 = perfect, 0 = no correlation, -1 = perfect anti-correlation">
+                    </i>
+                </td>
+                <th ng-bind-html="currentCutData.mcc | mlMetricFormat :'MCC' :4
+                    :(kfold && (pcd ? pcd.mccstd[cci] : pm.mccstd))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('MCC')}}"
+                    dku-md-title="Aggregated metric">
+                    <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+            <tr ng-if="modelData.modeling.metrics.evaluationMetric == 'CUSTOM' && !modelData.modeling.metrics.customEvaluationMetricNeedsProba">
+                <td>
+                    {{ printWeightedIfWeighted() }} Custom score
+                    <i class="icon-question-sign detailed-metrics-table__metrics-details"
+                       toggle="tooltip" title="{{modelData.modeling.metrics.customEvaluationMetricGIB ? 'Higher' : 'Lower'}} values are better">
+                    </i>
+                </td>
+                <th ng-bind-html="currentCutData.customScore || pm.customScore | mlMetricFormat :'CUSTOM' :4
+                    :(kfold && (pcd ? pcd.customScorestd[cci] : pm.customScorestd))"></th>
+                <th ng-if="isOnPartitionedBaseModel()"
+                    dku-md-popover="{{getAggregationExplanation('CUSTOM', 'Custom score')}}"
+                    dku-md-title="Aggregated metric">
+                <i class="icon-info-sign"></i>
+                </th>
+            </tr>
+        </table>
+    </div>
+    <div class="span4">
+        <div class="doctor-explanation">
+            <h5 class="doctor-explanation__title mbot8">Reading tips</h5>
+            <p>Be aware that some of these metrics (like accuracy) can be misleading since they assume that the target variable is balanced accross your sample.
+            </p>
+            <div ng-if="isOnPartitionedBaseModel()">
+                <h5 class="doctor-explanation__title mbot8">Partitioned model metrics</h5>
+                <p>
+                    Keep in mind that metrics for the overall partitioned model are <strong>aggregate</strong>. <br />
+                    They have been computed from optimal-threshold results when available. <br />
+                    For others, like AUC, a weighted average has been used instead.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

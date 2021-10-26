@@ -1,0 +1,28 @@
+<div class="modal modal3 dku-modal" style="width: 700px;">
+
+    <div dku-modal-header-with-totem modal-title="Build &quot;{{dataset.name}}&quot;" modal-totem="icon-play" />
+
+    <form class="dkuform-modal-horizontal build-dataset-form dkuform-modal-wrapper disablable" name="theform" ng-disabled="isBuildingDataset">
+        <div class="modal-body" style="width:100%;">
+            <debug data="dataset"></debug>
+            <debug data="build_partitions"></debug>
+
+            <div block-api-error />
+
+            <div build-mode-selector build-mode="computeMode" target-type="'dataset'"></div>
+
+            <div partition-selector partitioning="dataset.partitioning" build-partitions="buildPartitions" bem-modifier="'partition-selector--block'"></div>
+
+            <div class="alert alert-warning" ng-show="datasetShortStatus.computedByRecipes.length ==0">
+                <i class="icon-warning-sign" />&nbsp;This dataset cannot be built, it is not the target of any recipe.
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons has-border">
+            <button type="button" class="btn btn--text btn--secondary" ng-disabled="theform.$invalid" ng-click="startJobPreview()">Preview</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="theform.$invalid" ng-click="startJob()">Build dataset</button>
+        </div>
+
+    </form>
+
+</div>

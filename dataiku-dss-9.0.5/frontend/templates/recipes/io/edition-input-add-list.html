@@ -1,0 +1,27 @@
+<div ng-class="{noflex: !role.editing, flex: role.editing}" style="flex-grow: 0;">
+    <div ng-if="role.editing">
+        <div class="vertical-flex h100">
+            <div class="noflex setup-top-row setup-row">
+                <span >Search</span>
+                <div class="search-field">
+                    <span class="icon-dku-search"></span>
+                    <input placeholder="" type="search" ng-model="addInput.filter"/>
+                </div>
+                <a ng-click="cancelAddInput()" class="icon-remove btn-close pull-right" title="Cancel selection" ng-show="role.arity != 'UNARY' || !role.required || (recipe.outputs[role.name].items && recipe.outputs[role.name].items.length > 0)"></a>
+             </div>
+             <div class="flex oa edit-section top-line">
+                <ul class="choices">
+                    <li ng-repeat="computable in addInput.usable" class="top-line-except-first-row">
+                        <div include-no-scope="/templates/recipes/io/modal-input-selector-item.html" />
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-button" ng-if="role.editableInEditor && !role.editing && editInputs && editInputs.length == 0" >
+        <button class="btn btn--primary btn--large btn--tall btn--full btn-add" ng-click="enterAddInput(role.name)">
+          {{role.arity == "UNARY" ? (recipe.inputs[role.name].items.length > 0 ? 'Change' : 'Set') : '+ Add'}}
+        </button>
+    </div>
+</div>

@@ -1,0 +1,31 @@
+<div override-table-modal class="override-table-modal modal modal3">
+    <div dku-modal-header modal-title="Override variables" modal-class="has-border" />
+    <form>
+        <div block-api-error />
+        <div class="modal-body">
+        	<div class="vertical-flex h100">
+				<pre class="flex">{{simplifiedObjectToOverride|prettyjson}}</pre>
+				<div class="flex" style="flex-grow: 0;">
+                    <h4>Overrides {{getValue.length}}</h4>
+                    <editable-list class="oa" ng-model="localTable.overrides" transcope="{getValue: getValue}"
+                            add-label="Add override" pre-add="localTable.overrides.length == 0" style="overflow-x: hidden">
+                        <div><input type="text" ng-model="it.path" placeholder="Path" /></div>
+                        <i class="editable-list__arrow-icon icon-long-arrow-right"></i>
+                        <div><input type="text" ng-model="it.expr" placeholder="Expression" /></div>
+                        <div>
+                            <button class="btn btn--secondary" ng-click="getValue(it)" ng-hide="it.$$computedValue" >Show value</button>
+                            <button class="btn btn--secondary" ng-click="it.$$computedValue = null;" ng-show="it.$$computedValue" >Hide value</button>
+                        </div>
+                        <div ng-show="it.$$computedValue">
+                            <pre style="overflow: none;" ng-bind="it.$$computedValue"></pre>
+                        </div>
+                    </editable-list>
+				</div>
+        	</div>
+        </div>
+    </form>
+    <div class="modal-footer modal-footer-std-buttons">
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+        <button type="button" class="btn btn--text btn--primary" type="submit" ng-click="save()">Save</button>
+    </div>
+</div>

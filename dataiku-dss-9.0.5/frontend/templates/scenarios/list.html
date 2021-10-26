@@ -1,0 +1,99 @@
+<div class="list-page-4 flex dss-home-page list-page--flat-design">
+<div data-extend-template="/templates/layouts/list-items-2.html" class="vertical-flex scenarios-list-page h100 main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+    <!-- COUNTER -->
+    <span data-block="counter-name">
+        Scenarios
+    </span>
+
+    <!--  NEW   -->
+    <div style="display: inline-block"  data-block="newItem">
+       <a class="btn btn--secondary" ng-click="newScenario()" disabled-if-ro><span plus-icon />&nbsp;New scenario</a>
+   </div>
+
+    <div data-block="empty">
+        <h1>
+            No scenario in this project
+        </h1>
+        <p>
+            Scenarios let you automate and schedule<br /> dataset builds, model trainings, and many other tasks
+        </p>
+        <p class="small">
+        	<span doclink-wrapper page="scenarios/index">Read the documentation</span> to learn more
+        </p>
+        <div class="import-first-dataset">
+            <a disabled-if-ro="" class="btn btn--contained btn--large btn--scenario" ng-click="newScenario()">
+                <span plus-icon />
+                &nbsp;Create your first scenario
+            </a>
+        </div>
+    </div>
+
+    <div data-block="item" class="h100">
+        <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+        	<span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+        	<input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+        </label>
+        <div class="hit h100" dataset="item">
+            <div class="illustration">
+                <i class="icon-list universe-color scenario"></i>
+            </div>
+            <div class="hitContent horizontal-flex h100">
+                <div class="hit-content-main" style="width: 100%;">
+	                <div class="horizontal-flex">
+                        <div class="flex" style="flex-basis: 3px;">
+		                    <h4 class="hit-content-main__title dib" style="width: 100%;">
+                                <a class="mx-textellipsis" ui-sref="projects.project.scenarios.scenario.settings({projectKey: $stateParams.projectKey, scenarioId: item.id})"
+                                    show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.name || item.id | boldify:selection.filterParams.userQueryResult">
+                                </a>
+                                <span class="hit-content-main__interests">
+                                    <star-interest status="item.interest.starred"
+                                                   on-toggle="starObject(nextStatus, item)"
+                                    ></star-interest>
+                                    <watch-interest status="item.interest.watching"
+                                                    on-toggle="watchObject(nextStatus, item)"
+                                    ></watch-interest>
+                                    <i ng-if="item.unavailable"
+                                        title="Some elements of this scenario are not available"
+                                        toggle="tooltip" container="body" class="mleft8">
+                                        <i class="icon-warning-sign text-error"></i>
+                                    </i>
+                                </span>
+		                    </h4>
+		                    <div class="hit-content-main__subtitle">
+                                (id: {{item.id}})
+                                <span ng-show="item.lastModifiedOn">
+                                    | Modified {{ item.lastModifiedOn|friendlyTimeDeltaShort }}
+                                </span>
+		                    </div>
+                        </div>
+
+                        <div class="hit-content__tags flex">
+                            <responsive-tags-list items="item.tags" tags-map="projectTagsMap" object-type="'SCENARIO'"></responsive-tags-list>
+                        </div>
+                        <div class="trigger-digest-container">
+		                    <div class="active-indicator" ng-switch on="item.id">
+                                <div class="label">Auto-triggers</div>
+		                        <label ng-switch-default class="dku-toggle list-item__toggle" toggle="tooltip" title="{{ getAutoTriggerDisablingReason(appConfig, projectSummary) }}">
+		                            <input type="checkbox" ng-model="item.active" ng-disabled="getAutoTriggerDisablingReason(appConfig, projectSummary)" ng-change="toggleActive(item)"/>
+		                            <span style="display: inline-block; position: relative;" ></span>
+		                        </label>
+		                    </div>
+                            <small class="trigger-digest" title="{{item.triggerDigest}}" ng-if="item.futureId == null && item.active">
+                                {{item.triggerDigest}}
+                            </small>
+                            <small class="trigger-digest" ng-if="item.futureId == null && !item.active">
+                                No automatic execution
+                            </small>
+		                    <small class="trigger-digest" ng-if="item.futureId">
+		                        Running since {{item.start |date: 'yyyy/MM/dd HH:mm:ss'}}
+		                    </small>
+                        </div>
+					</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <standardized-side-panel page="objects_list" object-type="{{ (selection.selectedObjects.length <= 1) ? ((selection.selectedObject.type) ? 'SCENARIO' : '') : 'MULTI' }}" single-type="SCENARIO">
+    </standardized-side-panel>
+</div>

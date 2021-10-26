@@ -1,0 +1,241 @@
+<div ng-controller="KafkaConnectionController" class="h100 vertical-flex">
+    <div class="flex">
+        <div class="fh oa">
+            <div class="h100 small-lr-padding">
+                <div class="generic-white-box">
+                    <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                    <div block-api-error />
+
+                    <form name="connectionParamsForm" class="dkuform-horizontal">
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <h2 class="settings-section-title">Connection</h2>
+        
+                                <div class="control-group">
+                                    <label class="control-label">Bootstrap servers</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.bootstrapServers"/>
+                                    </div>
+                                </div>
+                                <h2 class="settings-section-title">Security</h2>
+                                <div class="control-group">
+                                    <label class="control-label">Mode</label>
+                                    <div class="controls">
+                                        <select dku-bs-select ng-model="connection.params.securityMode" ng-options="m.id as m.label for m in securityModes"></select>
+                                    </div>
+                                </div>
+                                <div ng-if="connection.params.securityMode == 'KERBEROS'">
+                                    <div class="control-group">
+                                        <label class="control-label">Use DSS keytab</label>
+                                        <div class="controls">
+                                            <label>
+                                                <input type="checkbox" ng-model="connection.params.kerberosUseDSSKeytab"/>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" ng-if="!connection.params.kerberosUseDSSKeytab">
+                                        <label class="control-label">Kerberos principal</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.kerberosPrincipal"/>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" ng-if="!connection.params.kerberosUseDSSKeytab">
+                                        <label class="control-label">Kerberos keytab</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.kerberosKeytab"/>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Kerberos service name</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.kerberosServiceName"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div ng-if="connection.params.securityMode == 'SASL'">
+                                    <div class="control-group">
+                                        <label class="control-label">JAAS config</label>
+                                        <div class="controls">
+                                            <textarea ng-model="connection.params.saslJAASConfig" ui-codemirror="codeMirrorSettingService.get('text/plain')"/>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Sasl mechanism</label>
+                                        <div class="controls">
+                                            <input type="text" ng-model="connection.params.saslMechanism"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h2 class="settings-section-title">SSL</h2>
+                                <div class="control-group">
+                                    <label class="control-label">Enable SSL</label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="connection.params.sslEnabled"/>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div ng-if="connection.params.sslEnabled">
+                                   <div class="control-group">
+                                       <label class="control-label">Truststore location</label>
+                                       <div class="controls">
+                                           <input type="text" ng-model="connection.params.sslTruststoreLocation"/>
+                                       </div>
+                                   </div>
+                                   <div class="control-group">
+                                       <label class="control-label">Truststore password</label>
+                                       <div class="controls">
+                                           <input type="password" ng-model="connection.params.sslTruststorePassword"/>
+                                       </div>
+                                   </div>
+                                   <div class="control-group">
+                                       <label class="control-label">Client authentication</label>
+                                       <div class="controls">
+                                           <label>
+                                               <input type="checkbox" ng-model="connection.params.sslClientAuth"/>
+                                           </label>
+                                       </div>
+                                   </div>
+                                   <div class="control-group" ng-if="connection.params.sslClientAuth">
+                                       <label class="control-label">Keystore location</label>
+                                       <div class="controls">
+                                           <input type="text" ng-model="connection.params.sslKeystoreLocation"/>
+                                       </div>
+                                   </div>
+                                   <div class="control-group" ng-if="connection.params.sslClientAuth">
+                                       <label class="control-label">Keystore password</label>
+                                       <div class="controls">
+                                           <input type="password" ng-model="connection.params.sslKeystorePassword"/>
+                                       </div>
+                                   </div>
+                                   <div class="control-group" ng-if="connection.params.sslClientAuth">
+                                       <label class="control-label">Key password</label>
+                                       <div class="controls">
+                                           <input type="password" ng-model="connection.params.sslKeyPassword"/>
+                                       </div>
+                                   </div>
+                                </div>
+        
+                                <h2 class="settings-section-title">KSQL</h2>
+                                <div class="control-group">
+                                    <label class="control-label">KSQL server URL</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.ksqlConnectionParams.serverUrl"/>
+                                        <span class="help-inline">URL of a node of a KSQL cluster that is connected to the Kafka cluster</span>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <div class="control-label">
+                                        <button type="button" class="btn btn--secondary" ng-click="testKsql()" ng-disabled="!connection.params.ksqlConnectionParams.serverUrl">Check KSQL settings</button>
+                                    </div>
+                                    <div class="controls">
+                                        <div class="alert alert-success" ng-if="testKsqlResult && testKsqlResult.ok">
+                                            <span>
+                                                Connection to KSQL OK, retrieved info
+                                            </span>
+                                            <pre class="debug">{{testKsqlResult.info | json}}</pre>
+                                        </div>
+                                        <div class="alert alert-error" ng-if="testKsqlResult && !testKsqlResult.ok">
+                                            Connection to KSQL failed: {{testKsqlResult.message}}
+                                        </div>
+                                        <div ng-if="testingKsql">
+                                            <i class="icon-spin icon-spinner" />Please wait, testing KSQL connection
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">KSQL server version</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.ksqlConnectionParams.serverVersion"/>
+                                        <span class="help-inline">Used to determine whether to use pre-0.10 style ROWKEYs</span>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Enable basic auth.</label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="connection.params.ksqlConnectionParams.basicAuthentication"/>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div ng-if="connection.params.ksqlConnectionParams.basicAuthentication">
+                                   <div class="control-group">
+                                       <label class="control-label">User</label>
+                                       <div class="controls">
+                                           <input type="text" ng-model="connection.params.ksqlConnectionParams.basicAuthUser"/>
+                                       </div>
+                                   </div>
+                                   <div class="control-group">
+                                       <label class="control-label">Password</label>
+                                       <div class="controls">
+                                           <input type="text" ng-model="connection.params.ksqlConnectionParams.basicAuthPassword"/>
+                                       </div>
+                                   </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Enable SSL client auth.</label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="connection.params.ksqlConnectionParams.sslClientAuthEnabled"/>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div ng-if="connection.params.ksqlConnectionParams.sslClientAuthEnabled">
+                                   <div class="control-group">
+                                       <label class="control-label">Keystore location</label>
+                                       <div class="controls">
+                                           <input type="text" ng-model="connection.params.ksqlConnectionParams.sslKeystoreLocation"/>
+                                       </div>
+                                   </div>
+                                   <div class="control-group">
+                                       <label class="control-label">Keystore password</label>
+                                       <div class="controls">
+                                           <input type="text" ng-model="connection.params.ksqlConnectionParams.sslKeystorePassword"/>
+                                       </div>
+                                   </div>
+                                   <div class="control-group">
+                                       <label class="control-label">Key password</label>
+                                       <div class="controls">
+                                           <input type="text" ng-model="connection.params.ksqlConnectionParams.sslKeyPassword"/>
+                                       </div>
+                                   </div>
+                                </div>
+
+                                <h2 class="settings-section-title">Advanced</h2>
+                                <div class="control-group">
+                                    <label  class="control-label">Advanced properties</label>
+                                    <div class="controls">
+                                        <ng2-connection-properties-list [(items)]="connection.params.properties"></ng2-connection-properties-list>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="span6">
+                                <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                    <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="noflex small-lr-padding page-top-padding">
+      <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html" />
+      <div>
+        <div ng-show="testing" class="alert alert-info">
+            <i class="icon-spin icon-spinner" />Please wait, testing connection
+        </div>
+        <div ng-show="testResult">
+            <div ng-show="!testResult.ok" class="alert alert-error">
+                <i class="icon-dku-error" /> Connection to Kafka failed: {{testResult.message}}
+            </div>
+            <div ng-show="testResult.ok" class="alert alert-success">
+                <i class="icon-success" /> Connection to Kafka OK, found {{testResult.topics.length}} topics
+            </div>
+        </div>
+    </div>
+</div>

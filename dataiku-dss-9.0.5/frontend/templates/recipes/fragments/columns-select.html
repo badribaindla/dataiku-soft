@@ -1,0 +1,39 @@
+<div class="recipe-settings-section2">               
+    <div class="select-columns">
+        <form class="dkuform-horizontal">
+            <div class="control-group title">
+                <h2 class="recipe-settings-section2__text control-label mbot8">{{title}}</h2> 
+            </div>
+            <div class="alert alert-info mbot8" ng-if="needsInfo && isInfoOpen">
+                {{infoText}}
+            </div>
+            <ul ui-sortable="{axis:'y', cursor: 'move', cancel:'', handle: '.handle-row'}" ng-model="selectedColumns">
+                <li ng-repeat="col in selectedColumns" class="mbot8">
+                    <span ng-if="hasOrder" class="handle-row dib"><i class="icon-reorder"/></span>
+                    <span ng-if="hasOrder" class="col-rank dib">{{ $index + 1 }}</span>
+                    <span class="col-desc dib" ng-class="{'invalid': !isInColumns(col)}">
+                        <span class="horizontal-flex">
+                            <span class="col-name flex" title="{{getColumn(col)}}">{{getColumn(col)}}</span>
+                            <span class="col-type noflex">{{ getColType(getColumn(col)) }}</span>
+                        </span>
+                    </span>
+                    <span class="col-order dib" ng-if="hasOrder" title="{{col.desc ? 'Descending' : 'Ascending'}}" data-toggle="tooltip" data-placement="top">
+                        <a ng-click="col.desc = !col.desc">
+                            <i class="qa_recipe_sort-button" ng-class="col.desc ? 'icon-sort-by-attributes-alt' : 'icon-sort-by-attributes'"/>
+                        </a>
+                    </span>
+                    <span class="remove dib"><a ng-click="removeColumn($index)"><i class="icon-trash"/></a></span>
+                </li>
+            </ul>
+            <div class="dropdown-columns mtop8">
+                <select dku-bs-select="{liveSearch:true,width:200,noneSelectedText:'Select column'}"
+                        ng-model="orderToAdd" class="qa_recipe_order-to-add"
+                        ng-options="val as val.name for val in availableColumns=(columns | filter: filterSelectedColumns)"
+                        watch-model="availableColumns"
+                        ng-change="!orderToAdd || addColumn(orderToAdd);orderToAdd=null;"
+                        options-annotations="types">
+                </select>
+            </div>
+        </form>
+    </div>
+</div>

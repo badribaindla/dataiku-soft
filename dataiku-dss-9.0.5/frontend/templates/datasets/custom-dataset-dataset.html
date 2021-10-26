@@ -1,0 +1,245 @@
+<div ng-show="dataset" class="h100 custom-dataset-dataset">
+    <div include-no-scope="/templates/datasets/fragments/settings-save.html" />
+    <tabs class="tabs-with-margin vertical-flex">
+        <pane title="Connector">
+            <div future-waiting response="testFuture" ng-if="testFuture && !testFuture.hasResult"></div>
+            <div class="container-fluid page-top-padding h100">
+                <div class="row-fluid h100">
+                    <div class="span3 h100 oa">
+                        <div class="recipe-settings-section2" >
+                            <div from-markdown="desc.meta.description" />
+
+                            <a target="_blank" rel="noopener noreferrer" href="{{pluginDesc.url}}">
+                                Plugin documentation&nbsp;<i class="icon-external-link"></i>
+                            </a>
+                        </div>
+                        <hr />
+
+                        <div plugin-settings-alert plugin-desc="pluginDesc" component-type="dataset" has-settings="pluginDesc.hasSettings" app-config="appConfig" />
+                        <form class="form common-styles-only" name="customConfigForm">
+                            <div custom-params-form desc="desc" plugin-desc="pluginDesc" component-id="loadedDesc.id" config="dataset.params.customConfig" />
+
+                            <div ng-if="desc.partitioningMode.indexOf('CODE_DEFINED') == 0" class="control-group">
+                                <label class="control-label">Partition for preview</label>
+                                <div class="controls">
+                                    <input ng-disabled="dataset.params.previewAllPartitions" type="text" ng-model="dataset.params.previewPartition" placeholder="Partition identifier" />
+                                </div>
+                            </div>
+                            <div ng-if="desc.partitioningMode.indexOf('USER_DEFINED') == 0 && dataset.partitioning.dimensions.length>0" class="control-group">
+                                <label class="control-label">Partition for preview</label>
+                                <div class="controls">
+                                    <input ng-disabled="dataset.params.previewAllPartitions" type="text" ng-model="dataset.params.previewPartition" placeholder="Partition identifier" />
+                                </div>
+                            </div>
+
+                            <div ng-if="desc.partitioningMode == 'CODE_DEFINED_LISTABLE' || (desc.partitioningMode == 'USER_DEFINED_LISTABLE' && dataset.partitioning.dimensions.length>0)" class="control-group">
+                                <label class="control-label">Preview on all partitions</label>
+                                <div class="controls">
+                                    <input type="checkbox" ng-model="dataset.params.previewAllPartitions" />
+                                </div>
+                            </div>
+                            <div ng-if="desc.partitioningMode == 'CODE_DEFINED_UNLISTABLE'" class="control-group">
+                                <label class="control-label">Forced partitions list</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="dataset.params.explicitPartitionsList" />
+                                    <span class="help-inline">Optional - Allows listing of partitions</span>
+                                </div>
+                            </div>
+                            <div ng-if="desc.partitioningMode == 'USER_DEFINED_UNLISTABLE' && dataset.partitioning.dimensions.length>0" class="control-group">
+                                <label class="control-label">Forced partitions list</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="dataset.params.explicitPartitionsList" />
+                                    <span class="help-inline">Optional - Allows listing of partitions</span>
+                                </div>
+                            </div>
+
+                            <div ng-if="desc.partitioningMode == 'USER_DEFINED_LISTABLE' && dataset.partitioning.dimensions.length>0" class="control-group">
+                                <label class="control-label">Forced partitions list</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="dataset.params.explicitPartitionsList" />
+                                    <span class="help-inline">Optional - Allows listing of partitions if it's too slow for connector</span>
+                                </div>
+                            </div>
+
+                            <button class="btn btn--success" ng-click="test()" ng-disabled="!customConfigForm.$valid">
+                                Test &amp; get schema
+                            </button>
+                        </form>
+
+                        <hr />
+                        <form class="form common-styles-only">
+                            <div class="controls">
+                                <label class="checkbox">
+                                    <input type="checkbox" ng-model="showPreview" />
+                                    Show preview when testing
+                                </label>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="span9 h100">
+                        <div ng-if="testing" class="alert alert-info">
+                            Please wait, testing...
+                        </div>
+
+                        <div ng-if="!testing && !testResult">
+                            <div ng-if="!customConfigForm.$valid" class="alert alert-info">
+                                Waiting for dataset to be configured
+                            </div>
+                            <div ng-if="customConfigForm.$valid && !dataset.schema.columns.length" class="alert alert-warning">
+                                The dataset does not yet have a schema.<br />
+                                You need to test before you can use this dataset.
+                            </div>
+                            <div class="placeholder-block" ng-if="customConfigForm.$valid && dataset.schema.columns.length">
+                                Test to get a preview
+                            </div>
+                        </div>
+
+                        <div ng-if="!testing && testResult" class="vertical-flex h100">
+                            <div ng-if="!testResult.error" class="alert alert-success">
+                                Connection succeeded
+                            </div>
+                            <div ng-if="testResult.error" class="alert alert-error">
+                                Test failed: {{testResult.error.detailedMessage}}
+                            </div>
+                            <div ng-if="testResult.preview" class="noflex">
+                                <div class="scroll dataset-preview-scroll">
+                                <div simple-detection-preview-table dataset="dataset" table="testResult.preview" headers="testResult.preview.headers"
+                                                                    schema-is-user-editable="false"/>
+
+                                <div class="preview-empty" ng-show="testResult.preview.displayedRows ==0">No rows retrieved</div>
+                                <div class="preview-empty" ng-show="testResult.preview.displayedRows == 0 && (desc.partitioningMode == 'USER_DEFINED_LISTABLE' || desc.partitioningMode == 'USER_DEFINED_UNLISTABLE') && dataset.partitioning.dimensions.length == 0">(Note: The dataset accepts a partitioning scheme)</div>
+                                </div>
+                            </div>
+                            <!-- flex is so painful it's easier to duplicate the ng-if -->
+                            <h2 class="settings-section-title noflex" ng-if="testResult.backendLog && pluginDesc.isDev && isDSSAdmin() && !dataset.type.startsWith('CustomJava_')">Backend log tail</h2>
+                            <div class="dev flex oa" ng-if="testResult.backendLog && pluginDesc.isDev && isDSSAdmin() && !dataset.type.startsWith('CustomJava_')">
+                                <pre smart-log-tail="testResult.backendLog.tail" />
+                            </div>
+                            <!-- flex is so painful it's easier to duplicate the ng-if -->
+                            <h2 class="settings-section-title noflex" ng-if="testResult.kernelLog && pluginDesc.isDev && isDSSAdmin() && !dataset.type.startsWith('CustomJava_')">Kernel log tail</h2>
+                            <div class="dev flex oa" ng-if="testResult.kernelLog && pluginDesc.isDev && isDSSAdmin() && !dataset.type.startsWith('CustomJava_')">
+                                <pre smart-log-tail="testResult.kernelLog" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </pane>
+
+        <pane title="Schema">
+            <div class="container-fluid page-top-padding vertical-flex h100" style="position: relative;">
+                <div schema-consistency-status
+                    current-schema="dataset.schema"
+                    consistency="consistency"
+                    overwrite-schema="overwriteSchema"
+                    clear-managed-dataset="clearDataset"
+                    check-consistency="checkConsistency"
+                    discard-consistency-error="discardConsistencyError"
+                    managed="dataset.managed"
+                    schema-just-modified="schemaJustModified"
+                    class="noflex" />
+                <div include-no-scope="/templates/datasets/schema-edition.html" class="flex"/>
+            </div>
+        </pane>
+
+        <pane title="Partitioning" visible-pane="{{ desc.partitioningMode == 'USER_DEFINED_LISTABLE' || desc.partitioningMode == 'USER_DEFINED_UNLISTABLE' }}">
+            <!-- not relevant when desc.partitioningMode == 'NON_PARTITIONABLE' nor 'CODE_DEFINED' (because then you don't choose) -->
+            <div scrollable-to-bottom>
+            <div class="container-fluid page-top-padding">
+                <div ng-if="appConfig.communityEdition && !appConfig.licensing.ceEntrepriseTrial"
+                        class="locked-feature">
+                    <div class="banner">
+                        Partitioning <span about-partitioning-box skip-community-popup="true" />
+                        is not available with your <span class="edition">Free Edition</span> license
+                    </div>
+                    <div include-no-scope="/templates/profile/community-vs-enterprise-try.html"></div>
+                </div>
+
+                <div ng-controller="GeneralEditPartitioningCtrl" class="editPartitioning oa"
+                        remaining-height style="height: {{remainingHeight}}px"
+                        ng-if="!appConfig.communityEdition || appConfig.licensing.ceEntrepriseTrial">
+                    <debug data="detectedScheme"></debug>
+
+                    <div>
+                        <div ng-hide="activatePartititioning">
+                            <p>Partitioning is not yet activated for this dataset</p>
+                            <button type="button" class="btn btn--secondary" ng-click="activatePartititioning=true;">Activate partitioning</button>
+                        </div>
+
+                        <div ng-show="activatePartititioning" add-remove ng-model="dataset.partitioning.dimensions">
+                            <h4>
+                                <ng-pluralize count="dataset.partitioning.dimensions.length"
+                                    when="{ '0': 'No dimension yet',
+                                            'one': 'Dimension',
+                                            'other': 'Dimensions'}">
+                                </ng-pluralize>
+                            </h4>
+                            <ul class="dimensions">
+                                <!-- Existing partitions -->
+                                <li ng-repeat="dimension in dataset.partitioning.dimensions">
+                                    <form class="form-inline">
+                                        <i ng-class="{'icon-calendar': dimension.type=='time', 'icon-code-fork icon-rotate-90': dimension.type=='value'}"></i>
+                                        <label>
+                                            Name :
+                                        </label>
+                                        <input type="text" required ng-model="dimension.name">
+
+                                        <label ng-show="dimension.type == 'time'">
+                                            Period:
+                                            <select ng-disabled="dimension.type != 'time'"
+                                                ng-model="dimension.params.period"
+                                                ng-options="p for p in ['HOUR','DAY','MONTH','YEAR']">
+                                            </select>
+                                        </label>
+                                        <a ng-click="remove($index);"><i class="icon-trash"></i></a>
+                                        </br>
+                                    </form>
+                                </li>
+                            </ul>
+
+                            <div>
+                                <button type="button" class="btn btn--secondary" ng-click="add({name:'date', type: 'time', params:{period: 'YEAR'}})" ng-disabled="hasTimeDimension()">
+                                    <i class="icon-calendar icon-stack-base"></i>
+                                    Add time dimension
+                                </button>
+                                <button type="button" class="btn btn--secondary" ng-click="add({name:'dimension_'+(dataset.partitioning.dimensions.length+1), type: 'value', params:{}})">
+                                    <i class="icon-code-fork icon-rotate-90 icon-stack-base"></i>
+                                    Add discrete dimension
+                                </button>
+
+                            </div>
+                            <small ng-show="hasTimeDimension()">There can only be one time dimension.</small>
+
+                            <div style="margin-top: 10px">
+                                <button type="button" class="btn btn--secondary" ng-disabled="!isPartitioned()" ng-click="runTestPartitioning()">
+                                    <i class="icon-refresh" />&nbsp;List partitions
+                                </button>
+                            </div>
+
+                            <debug data="testPartitioning"></debug>
+                            <div ng-show="testPartitioning.configuredSchemeContent">
+                                <h4>Partitioning preview</h4>
+                                <p>Detected <strong>{{(testPartitioning.configuredSchemeContent|toArray).length}}</strong> partitions</p>
+                                <ul>
+                                    <li ng-repeat="(name,partition) in testPartitioning.configuredSchemeContent">
+                                        <strong>{{ name }}</strong>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </pane>
+
+        <pane title="Advanced">
+            <div class="h100 oa">
+                <div include-no-scope="/templates/datasets/advanced-fieldset-flow.html" />
+                <div include-no-scope="/templates/datasets/advanced-override-table.html" />
+                <div include-no-scope="/templates/datasets/advanced-fieldset-danger.html" />
+            </div>
+        </pane>
+    </tabs>
+</div>

@@ -1,0 +1,150 @@
+<li>
+	<a href="{{ $state.href('projects.project.savedmodels.savedmodel.versions', {projectKey : object.projectKey, smId: object.name }) }}"> <i class="icon-fixed-width icon-info"></i>
+		Open
+	</a>
+</li>
+<li ng-show="object.predecessors.length == 1 && object.projectKey == $stateParams.projectKey">
+	<a ng-click="trainModel(object.projectKey, object.name); WT1Event('savedmodel-contextual-menu-train')">
+		<i class="icon-fixed-width icon-play"></i>
+		Train&hellip;
+	</a>
+</li>
+
+<li ng-show="object.projectKey == $stateParams.projectKey"  class="divider"></li>
+<li ng-show="object.projectKey == $stateParams.projectKey" >
+	<a ng-click="deleteFlowItem()">
+		<span class="text-error">
+			<i class="icon-fixed-width icon-trash"></i>
+			Delete
+		</span>
+	</a>
+</li>
+
+<li ng-if="object.nodeType == 'FOREIGN_SAVEDMODEL' && !object.forbiddenForeignProject" class="divider"></li>
+<li ng-if="object.nodeType == 'FOREIGN_SAVEDMODEL' && !object.forbiddenForeignProject">
+	<a href="{{ $state.href('projects.project.flow', {projectKey: object.projectKey, id: 'savedmodel_' + object.projectKey + '.' + object.name}, {inherit: false}) }}"> <i class="icon-fixed-width icon-reply" />
+		View source
+	</a>
+</li>
+
+<li ng-if="object.nodeType == 'LOCAL_SAVEDMODEL' && (object.accessibleTargetProjects || []).length > 0" class=divider"></li>
+<li ng-if="object.nodeType == 'LOCAL_SAVEDMODEL' && (object.accessibleTargetProjects || []).length > 0" class="dropdown-submenu">
+	<a>
+		<i class="icon-fixed-width icon-mail-forward" />
+		View shared model in
+	</a>
+	<ul class="dropdown-menu">
+		<li ng-repeat="tarPrj in object.accessibleTargetProjects">
+			<a href="{{ $state.href('projects.project.flow', {projectKey: tarPrj.projectKey, id: 'savedmodel_' + object.projectKey + '.' + object.name}, {inherit: false}) }}">
+				<i class="icon-fixed-width icon-dkubird" />
+				{{ tarPrj.name }}
+			</a>
+		</li>
+	</ul>
+</li>
+
+<li class="divider"></li>
+<li disabled-if-ro>
+	<a ng-click="moveToFlowZone(getSelectedTaggableObjectRefs(), false, computeMovingImpact())" id="qa_flow-zone-item">
+		<i class="icon-fixed-width icon-move_to_zone" />
+		Move to a flow zone
+	</a>
+</li>
+<li disabled-if-ro>
+    <a ng-click="shareToFlowZone(getSelectedTaggableObjectRefs())">
+        <i class="icon-fixed-width icon-share_to_zone" />
+        Share to a flow zone
+    </a>
+</li>
+<li ng-if="object.usedByZones.length && !object.successors.length" disabled-if-ro>
+    <a ng-click="unshareToFlowZone(getSelectedTaggableObjectRefs(), [object.usedByZones[0]])" id="qa_flow-zone-share">
+        <i class="icon-fixed-width icon-unshare_to_zone" />
+        Unshare from this zone
+    </a>
+</li>
+<li ng-if="othersZones && !othersZones.includes(object.usedByZones[0])" class="dropdown-submenu" id="qa_flow-zone-unshare">
+    <a>
+        <i class="icon-fixed-width icon-go_to_usage" />
+        Go to usage
+    </a>
+    <ul class="dropdown-menu">
+        <li ng-repeat="zone in othersZones">
+            <a ng-click="zoomToOtherZoneNode(zone)">
+                <i class="icon-fixed-width icon-zone" />
+                {{FlowGraph.node("zone_"+zone).description}}
+            </a>
+        </li>
+    </ul>
+</li>
+<li ng-if="othersZones && othersZones.includes(object.usedByZones[0] || object.ownerZone)" disabled-if-ro>
+    <a ng-click="zoomToOtherZoneNode(object.ownerZone)">
+        <i class="icon-fixed-width icon-go_to_original" />
+        Go to original
+    </a>
+</li>
+
+<li ng-if="object.predecessors.length || object.successors.length || hasPredecessorsInOtherZone(object) || hasSuccessorsInOtherZone(object)" class="divider"></li>
+
+<li ng-if="object.predecessors.length || hasPredecessorsInOtherZone(object)">
+	<a ng-click="selectPredecessors(object)" ng-mouseover="previewSelectPredecessors()" ng-mouseleave="endPreviewBranch()">
+		<i class="icon-fixed-width icon-DKU_select_upstream" />
+		Select all upstream
+	</a>
+</li>
+
+<li ng-if="object.successors.length || hasSuccessorsInOtherZone(object)">
+	<a ng-click="selectSuccessors(object)" ng-mouseover="previewSelectSuccessors()" ng-mouseleave="endPreviewBranch()">
+		<i class="icon-fixed-width icon-DKU_select_downstream" />
+		Select all downstream
+	</a>
+</li>
+
+<li ng-if="object.predecessors.length || object.successors.length" class="divider"></li>
+
+<li ng-if="object.predecessors.length">
+	<a ng-click="foldPredecessors(object)" ng-mouseover="previewFoldPredecessors()" ng-mouseleave="endPreviewBranch()">
+		<i class="icon-fixed-width icon-DKU_collapse_upstream" />
+		Hide all upstream
+	</a>
+</li>
+
+<li ng-if="object.successors.length">
+	<a ng-click="foldSuccessors(object)" ng-mouseover="previewFoldSuccessors()" ng-mouseleave="endPreviewBranch()">
+		<i class="icon-fixed-width icon-DKU_collapse_downstream" />
+		Hide all downstream
+	</a>
+</li>
+<!-- Tools specific -->
+<li ng-if="tool.type == 'TAGS' && tool.user.getSingleFocused()"  class="divider"></li>
+<li disabled-if-ro  ng-if="tool.type == 'TAGS' && tool.user.getSingleFocused()" >
+	<a ng-click="tool.def.toggleFocusedTag(this, object);">
+		<i class="icon-fixed-width icon-tag"/>
+		Toggle tag <strong>{{tool.user.getSingleFocused()}}</strong>
+	</a>
+</li>
+
+<!-- No tool active: tools menu -->
+
+<li ng-if="!tool.type"  class="divider"></li>
+<li disabled-if-ro ng-if="!tool.type" class="dropdown-submenu" disabled-if-ro >
+	<a>
+		<i class="icon-fixed-width  icon-wrench" />
+		Tools
+	</a>
+	<ul class="dropdown-menu">
+		<li disabled-if-ro  ng-if="tool.type != 'PROPAGATE_SCHEMA'" >
+			<a ng-click="startTool('PROPAGATE_SCHEMA', {projectKey: object.projectKey, datasetName: object.name});">
+				<i class="icon-fixed-width icon-list" />
+
+				Start schema propagation from here
+			</a>
+		</li>
+		<li disabled-if-ro>
+			<a ng-click="buildFromComputable(object.name);">
+				<i class="icon-fixed-width icon-play" />
+
+				Rebuild from here
+			</a>
+		</li>
+	</ul>
+</li>

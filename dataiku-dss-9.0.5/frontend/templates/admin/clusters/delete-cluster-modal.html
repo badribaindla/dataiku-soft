@@ -1,0 +1,50 @@
+<div class="modal modal3">
+	<div dku-modal-header modal-title="Delete cluster" />
+
+	<form class="dkuform-modal-wrapper dkuform-modal-horizontal">
+		<div class="modal-body">
+            <div block-api-error />
+            
+            <div ng-if="clusterStatus.error" api-error-alert="clusterStatus.error" />
+            
+            <div ng-if="clusterStatus && clusterStatus.usages.length == 0">Delete cluster <b>{{clusterId}}</b> (not used)</div>
+            
+            <div ng-if="clusterStatus && clusterStatus.usages.length > 0">
+                <div>
+                    Delete cluster <b>{{clusterId}}</b> used by :
+                </div>
+                <ul>
+                    <li ng-repeat="usage in clusterStatus.usages">
+                        <div ng-if="usage.scenarioId">
+                            Scenario {{usage.scenarioId}} (project {{usage.scenarioProjectKey}})
+                        </div>
+                        <div ng-if="!usage.scenarioId">
+                            Project {{usage.projectKey}}
+                        </div>
+                    </li>
+                </ul>
+                <div>
+                    <span ng-if="clusterStatus.otherProjectUsagesCount > 0 || clusterStatus.otherScenarioUsagesCount > 0"> + <strong>{{clusterStatus.otherProjectUsagesCount}}</strong> projects and <strong>{{clusterStatus.otherScenarioUsagesCount}}</strong> scenarios</span>
+                </div>
+
+            </div>
+
+            <div ng-if="doesntNeedStop()">Not running/attached at the moment</div>
+            <div ng-if="mayNeedStop()" class="alert alert-info">
+                The cluster is currently running/attached.
+                <br />
+                <label>
+                    <input type="checkbox" ng-model="uiState.stop" />
+                    Stop/detach cluster
+                </label>
+            </div>
+            
+		</div>
+
+		<div class="modal-footer modal-footer-std-buttons">
+            <button type="submit" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="button" class="btn btn--text btn--danger" ng-click="delete()">Delete</button>
+		</div>
+	</form>
+
+</div>

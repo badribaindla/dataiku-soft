@@ -1,0 +1,42 @@
+<div class="dashboard-export-dir">
+    <div class="control-group" ng-if="origin == 'scenario'">
+        <label class="control-label">Dashboard</label>
+        <div class="controls">
+            <div object-picker="params.dashboardId" type="DASHBOARD" object="selectedDashboard.dashboard"/>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">File Type</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="params.exportFormat.fileType" ng-options="x for x in fileTypes"/>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Size</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="params.exportFormat.paperSize" ng-options="key as value for (key, value) in paperSizeMap"></select>
+        </div>
+    </div>
+    <div class="control-group" ng-if="params.exportFormat.paperSize != 'CUSTOM'">
+        <label class="control-label">Orientation</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="params.exportFormat.orientation" ng-options="key as value for (key, value) in orientationMap"></select>
+        </div>
+    </div>
+    <div class="control-group" ng-if="params.exportFormat.paperSize == 'CUSTOM'">
+        <label class="control-label">Width</label>
+        <div class="controls">
+            <input type="number" class="input-half-size" ng-model="params.exportFormat.width" name="exportWidth" ng-min="minResW" ng-max="maxResW" step="1"/>
+            <span class="help-inline">pixels</span>
+            <span class="dashboard-export-error dku-error-fade-in" ng-show="exportFormController.exportWidth.$invalid">Choose a width value between {{minResW}} and {{maxResW}}.</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="params.exportFormat.paperSize == 'CUSTOM'">
+        <label class="control-label">Height</label>
+        <div class="controls">
+            <input type="number" class="input-half-size" ng-model="params.exportFormat.height" name="exportHeight" ng-min="minResH" ng-max="maxResH" step="1"/>
+            <span class="help-inline">pixels</span>
+            <span class="dashboard-export-error dku-error-fade-in" ng-show="exportFormController.exportHeight.$invalid">Choose a height value between {{minResH}} and {{maxResH}}.</span>
+        </div>
+    </div>
+</div>

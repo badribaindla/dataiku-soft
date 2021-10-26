@@ -1,0 +1,75 @@
+<div class="shaker fixedPanes showLeftPane"
+    shaker-facets
+    shaker-explore-base
+    analysis-script
+    shaker-on-dataset
+    shaker-with-processors
+    shaker-with-library
+    has-custom-formula-zone
+    show-left-pane="true"
+    ng-class="{showLeftPane: showLeftPane, showRightPane: showRightPane}"
+    fixed-panes
+    global-keydown="{'ctrl-s meta-s':'saveOnly()'}"
+    listen-keydown="{'delete': 'deleteSelectedSteps($event)' }">
+
+    <div class="leftPane" ng-class="{sampling: uiState.shakerLeftPane == 'design-sample'}">
+
+        <div class="handle" ng-click="toggleLeftPane()"></div>
+        <tabs>
+            <pane title="Script" subtitle="getScriptDesc()">
+                <div include-no-scope="/templates/shaker/shaker-script-tab.html" />
+            </pane>
+            <pane title="Design Sample" subtitle="getSampleDesc()">
+                <div include-no-scope="/templates/shaker/sampling-tab.html" />
+            </pane>
+        </tabs>
+    </div>
+
+    <div class="mainPane" ng-if="shakerState.activeView == 'table'">
+        <!-- Main pane top bar -->
+        <div ng-show="shaker" class="table-view-header">
+            <!-- Big top bar -->
+            <div class="shaker-summary-wrapper" custom-formula-zone="replace">
+                <!-- Step summury -->
+                <div include-no-scope="/templates/shaker/shaker-summary-stats.html"/>
+
+                <!-- Views Buttons -->
+                <div class="view-buttons-wrapper">
+                   <a style="font-size: 27px; vertical-align: middle; text-decoration: none" ng-click="showWarningsDetails()" class="text-warning" ng-show="table.warnings.totalCount">
+                        <i class="icon-warning-sign" toggle="tooltip" title="Warnings occurred while previewing" />
+                    </a>
+
+                    <div include-no-scope="/templates/shaker/display-mode-menu.html" class="dib"/>
+                    <div include-no-scope="/templates/shaker/shaker-views-buttons.html" class="dib" />
+                </div>
+            </div>
+
+            <!-- filters bar -->
+            <div include-no-scope="/templates/shaker/filters-column.html"></div>
+        </div>
+
+        <!-- Main pane main zone -->
+        <div class="table-view" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="fatalAPIErrorContainer" ng-show="fatalAPIError">
+                <block-api-error />
+            </div>
+
+            <div future-waiting response="future" dku-if="future && !future.hasResult"></div>
+
+            <div ng-if="shakerState.runError" api-error-alert="shakerState.runError" />
+
+            <!-- SHAKER TABLE -->
+            <div class="positionTable shakerTable coloring-{{table.coloringScheme}}" fattable fattable-data="table" fat-draggable fat-resizable ng-show="!shakerState.runError"></div>
+
+            <spinner ng-show="pendingRequests.length && spinnerPosition == 'shaker'"></spinner>
+        </div>
+    </div>
+    <div class="mainPane h100" analysis-columns ng-if="shakerState.activeView == 'columns'">
+        <div class="h100" include-no-scope="/templates/shaker/columns-view.html" />
+    </div>
+    <div quick-columns-view class="rightPane"></div>
+    <div include-no-scope="/templates/shaker/processors-library.html"></div>
+    <div coachmark-serie-caller serie-id="'shaker-hello'" extra-serie-ids="extraCoachmarksSerieIds" />
+</div>
+
+<div include-no-scope="/templates/shaker/script-modals.html"></div>

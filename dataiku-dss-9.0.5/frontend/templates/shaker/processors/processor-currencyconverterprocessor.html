@@ -1,0 +1,123 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-grand-parent="processorForm" ng-controller="CurrencyConverterController">
+    <fieldset>
+        <span class="fieldLabel">Column</span>
+        <input
+            type='text'
+            bs-typeahead='step.$stepState.change.columnsBeforeStep'
+            autocomplete='off'
+            ng-trim="false"
+            ng-required="param.mandatory"
+            data-min-length='0'
+            ng-model='step.params.inputColumn'
+            class="submit-on-blur"
+            next-on-enter/>
+    </fieldset>
+
+    <fieldset>
+        <label>
+            <input type="checkbox" ng-model="step.params.isCurrencyFromColumn" class="submit-on-blur">
+            <span class="fieldLabel">Input currency from column</span>
+        </label>
+    </fieldset>
+
+    <div ng-if="step.params.isCurrencyFromColumn">
+        <fieldset>
+            <span class="fieldLabel">Input currency column</span>
+            <input
+                    type='text'
+                    bs-typeahead='step.$stepState.change.columnsBeforeStep'
+                    name='currencyReferenceColumn'
+                    autocomplete='off'
+                    ng-trim="false"
+                    data-min-length='0'
+                    ng-model="step.params.refCurrencyColumn"
+                    ng-required="step.params.isCurrencyFromColumn"
+                    class="submit-on-blur"
+                    next-on-enter>
+            <span ng-show="!currencyColumnIsValid">'Currency code' column expected</span>
+        </fieldset>
+    </div>
+
+    <div ng-if="!step.params.isCurrencyFromColumn">
+        <fieldset>
+            <span class="fieldLabel">Input currency</span>
+            <select dku-bs-select
+                ng-model="step.params.inputCurrency"
+                class="submit-on-blur"
+                next-on-enter
+                ng-required="!step.params.isCurrencyFromColumn"
+                ng-options="x[0] as x[1] for x in currencies"
+                ></select>
+        </fieldset>
+    </div>
+    <fieldset>
+        <span class="fieldLabel">Output currency</span>
+        <select dku-bs-select
+            ng-model="step.params.outputCurrency"
+            class="submit-on-blur"
+            next-on-enter
+            required
+            ng-options="x[0] as x[1] for x in currencies"
+            ></select>
+    </fieldset>
+    <fieldset>
+        <span class="fieldLabel">Input date source</span>
+        <select dku-bs-select
+            ng-model="step.params.dateInput"
+            class="submit-on-blur"
+            next-on-enter
+            ng-required="param.mandatory"
+            ng-options="x[0] as x[1] for x in dateInputs"
+            ></select>
+    </fieldset>
+    <div ng-if="step.params.dateInput == 'COLUMN'">
+        <fieldset>
+            <span class="fieldLabel">Date column (parsed)</span>
+            <input
+                type='text'
+                name="dateReferenceColumn"
+                bs-typeahead='step.$stepState.change.columnsBeforeStep'
+                autocomplete='off'
+                ng-trim="false"
+                data-min-length='0'
+                ng-model="step.params.refDateColumn"
+                ng-required="step.params.dateInput == 'COLUMN'"
+                class="submit-on-blur"
+                next-on-enter>
+            <span ng-show="!dateColumnIsValid">'Date parsed' column expected</span>
+        </fieldset>
+    </div>
+    <div ng-if="step.params.dateInput == 'CUSTOM'">
+        <fieldset>
+            <span class="fieldLabel">Custom date (YYYY-MM-DD)</span>
+            <input
+                type='text'
+                name="dateReferenceCustom"
+                autocomplete='off'
+                ng-trim='false'
+                data-min-length='10'
+                ng-model="step.params.refDateCustom"
+                ng-required="step.params.dateInput == 'CUSTOM'"
+                class="submit-on-blur"
+                next-on-enter>
+            <span ng-show="outOfDateReference">No rates records before 1999-01-04</span>
+        </fieldset>
+    </div>
+    <fieldset>
+        <span class="fieldLabel">Precision</span>
+
+        <input type="number" ng-model="step.params.decimalNumber"
+            ng-trim="false"
+            class="submit-on-blur"
+            next-on-enter ng-trim="false"/>
+    </fieldset>
+    <fieldset>
+        <span class="fieldLabel">Output column</span>
+
+        <input type="text" ng-model="step.params.outputColumn"
+            ng-trim="false"
+            class="submit-on-blur"
+            next-on-enter ng-trim="false"/>
+    </fieldset>
+
+</form>

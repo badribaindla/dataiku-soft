@@ -1,0 +1,152 @@
+<a class="pull-right" ng-click="removeWindow($index)" style="font-size: 14px; margin: 15px;"><i class="icon-trash"/></a>
+<h1 class="recipe-settings-section1-title window-name">
+    <input type="text" ng-model="window.name" placeholder="Window description" class="in-place-edit"/>
+</h1>
+<span class="window-prefix" title="prefix to use in the columns of the recipe output">
+    <span class="window-prefix-label">Prefix:</span>
+    <input type="text" ng-model="window.prefix" placeholder="none" class="in-place-edit" style="width:200px"/>
+</span>
+<div class="recipe-settings-section2">
+    <form class="window-definition no-select">
+        <div class="control-group">
+            <div class="control-label area-label">
+                Partitioning columns
+                <label class="dku-toggle qa_recipe_window-toggle">
+                    <input type="checkbox" class="dku-toggle" ng-model="window.enablePartitioning" id="qa_recipe_window-toggle-partitioning"
+                        ng-change="!window.enablePartitioning || window.partitioningColumns.length || addPartitioningColumn(window);updateRecipeStatusLater(700)"/>
+                    <span/>
+                </label>
+            </div>
+            <div class="controls" ng-show="window.enablePartitioning">
+                <div>
+                    <div ng-repeat="col in window.partitioningColumns track by $index" style="margin-bottom: 3px">
+                        <!-- <ins>&vellip;&vellip;</ins> -->
+                        <span>
+                            <column-select
+                                columns="getColumnsWithComputed()"
+                                ng-model="window.partitioningColumns[$index]"
+                                />
+                        </span>
+                        <a ng-click="removePartitioningColumn(window, $index)" class="remove"><i times-icon/></a>
+                    </div>
+                    <a class="btn btn--secondary" ng-click="addPartitioningColumn(window)" style="width:220px"> + Add column</a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="control-group">
+            <div class="control-label area-label">
+                Order columns
+                <span style="font-family:'SourceSansPro'; text-transform:initial"><!-- TODO style the tooltips -->
+                    <label class="dku-toggle qa_recipe_window-toggle" ng-class="{error: (!window.enableOrdering || !window.orders.length) && (recipeStatus.aggregationsRequireOrder || window.enableLimits)}"
+                        title="{{(!window.enableOrdering || !window.orders.length) && (recipeStatus.aggregationsRequireOrder || window.enableLimits) ? 'Settings require an ordered window' : ''}}" toggle="tooltip"
+                        >
+                        <input type="checkbox" id="qa_recipe_window-toggle-ordering"
+                        ng-model="window.enableOrdering"
+                        ng-change="!window.enableOrdering || window.orders.length || addOrderColumn(window);"/>
+                        <span/>
+                    </label>
+                </span>
+            </div>
+            <div class="controls" ng-show="window.enableOrdering">
+                <div>
+                    <div ng-repeat="order in window.orders track by $index" style="margin-bottom: 3px">
+                        <!-- <ins>&vellip;&vellip;</ins> -->
+                        <span class="std-list-sort-box-large">
+                            <sort-order-button class="order" value="order.desc" ></sort-order-button>
+                            <column-select
+                                columns="getColumnsWithComputed()"
+                                ng-model="order.column"
+                                />
+                        </span>
+                        <a ng-click="removeOrderColumn(window, $index)" class="remove"><i times-icon/></a>
+                    </div>
+                    <a class="btn btn--secondary" ng-click="addOrderColumn(window)" style="width: 246px; margin-left: -1px;"> + Add column</a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="control-group bounds">
+            <div class="control-label area-label">
+                <span title="">Window frame</span>
+                <label class="dku-toggle qa_recipe_window-toggle">
+                    <input type="checkbox" class="dku-toggle" ng-model="window.enableLimits" ng-change="updateRecipeStatusLater(700)"
+                           id="qa_recipe_window-toggle-window-frame" />
+                    <span/>
+                </label>
+            </div>
+            <div ng-if="window.enableLimits">
+                <div class="alert alert-info">
+                    <i class="icon-info-sign" />
+                    Window frames enable you to limit the number of rows taken into account to compute aggregations.
+                    <div style="font-style: italic;">Example: compute sliding averages for time series. </div>
+                </div>
+                <select dku-bs-select ng-model="window.windowLimitMode" ng-init="window.windowLimitMode = window.windowLimitMode || 'ROWS'">
+                    <option value="ROWS">Limit the number of preceding/following rows</option>
+                    <option value="RANGE">Limit window on a value range of the order column</option>
+                </select>
+
+                <div  ng-if="window.windowLimitMode == 'ROWS'">
+                    <label style="margin: 7px 0px;">
+                        <input type="checkbox" ng-model="window.limitPreceding" style="width: auto;"/>
+                        Limit preceding rows
+                    </label>
+                    <div ng-if="window.limitPreceding">
+                        <span style="display: inline-block; width: 150px;margin-left: 20px;">Number of rows before: </span>
+                        <input type="number" ng-model="window.precedingRows"
+                            ng-init="window.precedingRows = window.precedingRows !== undefined ? window.precedingRows : (window.followingRows || 1)"
+                            ng-class="{invalid: isWindowFrameRowsLimitationInvalid(window)}"
+                            style="width:80px">
+                    </div>
+
+                    <label style="margin: 7px 0px;">
+                        <input type="checkbox" ng-model="window.limitFollowing" style="width: auto;"/>
+                        Limit following rows
+                    </label>
+                    <div ng-if="window.limitFollowing">
+                        <span style="display: inline-block; width: 150px;margin-left: 20px;">Number of rows after: </span>
+                        <input type="number" ng-model="window.followingRows"
+                            ng-init="window.followingRows = window.followingRows !== undefined ? window.followingRows : (window.precedingRows || 1)"
+                            ng-class="{invalid: isWindowFrameRowsLimitationInvalid(window)}"
+                            style="width:80px">
+                    </div>
+                </div>
+
+                <div  ng-if="window.windowLimitMode == 'RANGE'">
+                    <label style="margin: 7px 0px;">
+                        <input type="checkbox" ng-model="window.limitPreceding" style="width: auto;"/>
+                        Use lower bound
+                    </label>
+                    <div ng-if="window.limitPreceding">
+                        <span style="display: inline-block; width: 150px;margin-left: 20px;">Lower bound: </span>
+                        <input type="number" ng-model="window.windowLowerBound" style="width:80px">
+                    </div>
+
+                    <label style="margin: 7px 0px;">
+                        <input type="checkbox" ng-model="window.limitFollowing" style="width: auto;"/>
+                        Use upper bound
+                    </label>
+                    <div ng-if="window.limitFollowing">
+                        <span style="display: inline-block; width: 150px;margin-left: 20px;">Upper bound: </span>
+                        <input type="number" ng-model="window.windowUpperBound" style="width:80px">
+                    </div>
+
+                    <div ng-show="getOrderColumnType(window) == 'date'" style="margin-top: 15px;">
+                        <select dku-bs-select ng-model="window.windowDateRangeUnit" ng-change="hooks.updateRecipeStatus()">
+                            <option value="SECOND">Seconds</option>
+                            <option value="MINUTE">Minutes</option>
+                            <option value="HOUR">Hours</option>
+                            <option value="DAY">Days</option>
+                            <option value="WEEK">Weeks</option>
+                            <option value="MONTH">Months</option>
+                            <option value="YEAR">Years</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>

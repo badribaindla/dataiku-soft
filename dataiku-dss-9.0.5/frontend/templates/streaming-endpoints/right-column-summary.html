@@ -1,0 +1,208 @@
+<div class="object-right-column-summary h100 vertical-flex" ng-if="selection.selectedObject">
+	<div item-header
+		class="noflex"
+        href="$state.href('projects.project.streaming-endpoints.streaming-endpoint.explore', {projectKey : selection.selectedObject.projectKey, streamingEndpointId :selection.selectedObject.id})"
+		color="streaming-endpoint"
+		icon="{{selection.selectedObject.streamingEndpointType | datasetTypeToIcon}}"
+		title="{{selection.selectedObject.name}}">
+		{{selection.selectedObject.name}}
+	</div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+	<div class="flex oa" ng-switch="uiState.activeTab">
+		<div ng-switch-when="details" class="details-tab  h100 oa">
+			<object-details
+				object-type="STREAMING_ENDPOINT"
+				object-data="objectFullInfo"
+                editable="true"
+				context="right-column"
+				hover-intent-callback="QuickView" >
+			</object-details>
+		</div>
+
+		<div ng-switch-when="timeline" class="object-summary-tab-content">
+			<div ng-if="objectFullInfo.timeline.items">
+				<div contributors-list tl="objectFullInfo.timeline"></div>
+				<div timeline="objectFullInfo.timeline" reverse="true" context="object"></div>
+			</div>
+		</div>
+
+        <!-- DISCUSSIONS tab -->
+        <div ng-switch-when="discussions" class="object-summary-tab-content discussions-tab h100 oa">
+            <div class="h100" discussions-widget watch-object="selection.selectedObject" selected-item="{projectKey: selection.selectedObject.projectKey, type: 'ANALYSIS', id: selection.selectedObject.id}" />
+        </div>
+
+		<div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+			<div class="icons-section icons-grey icons-main">
+				<div simple-right-col-action-click
+                	ng-if="isLocalStreamingEndpoint"
+                    on-click="startApplyTagging()"
+                    label="Tag"
+                    icon="icon-tags"
+                    disabled-if-ro
+                    title=""
+                    />
+
+				<div ng-if="isLocalStreamingEndpoint && projectSummary.canManageExposedElements"
+					simple-right-col-action-click
+					ng-inject="ExposedObjectsService"
+					on-click="ExposedObjectsService.exposeSingleObject('STREAMING_ENDPOINT', se.id, se.id)"
+					label="Share"
+					icon="icon-dku-share"
+					disabled-if-ro
+					/>
+
+				<div simple-right-col-action-click
+                     ng-if="isLocalStreamingEndpoint"
+                     ng-show="!isWatching(selection.selectedObject.watching)"
+                     on-click="watchObjects(true)"
+                     label="{{ actionLabels.WATCH }}"
+                     icon="icon-eye-open"
+                     disabled-if-ro
+                     ng-attr-title="{{ actionTooltips.WATCH }}"
+                     data-toggle="tooltip"
+                />
+
+                <div simple-right-col-action-click
+                     ng-if="isLocalStreamingEndpoint"
+                     ng-show="isWatching(selection.selectedObject.watching)"
+                     on-click="watchObjects(false)"
+                     label="{{ actionLabels.UNWATCH }}"
+                     icon="icon-eye-close"
+                     disabled-if-ro
+                     ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                     data-toggle="tooltip"
+                />
+
+                <div simple-right-col-action-click
+                     ng-if="isLocalStreamingEndpoint"
+                     ng-show="!selection.selectedObject.starred"
+                     on-click="starObjects(true)"
+                     label="{{ actionLabels.STAR }}"
+                     icon="icon-star"
+                     disabled-if-ro
+                     ng-attr-title="{{ actionTooltips.STAR }}"
+                     data-toggle="tooltip"
+                />
+
+                <div simple-right-col-action-click
+                     ng-if="isLocalStreamingEndpoint"
+                     ng-show="selection.selectedObject.starred"
+                     on-click="starObjects(false)"
+                     label="{{ actionLabels.UNSTAR }}"
+                     icon="icon-star-empty"
+                     disabled-if-ro
+                     ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                     data-toggle="tooltip"
+                />
+
+                <div ng-if="isLocalStreamingEndpoint"
+                    simple-right-col-action-click
+                    on-click="isProjectAnalystRW() && GlobalProjectActions.deleteTaggableObject(this, 'STREAMING_ENDPOINT', selection.selectedObject.name, selection.selectedObject.description)"
+                    label="Delete"
+                    icon="icon-trash"
+                    ng-class="{'icons-danger': isProjectAnalystRW()}"
+                    disabled-if-ro
+                    />
+
+				<div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS getFlexboxFillerCount-->
+			</div>
+
+            <div dku-foldable open="true" class="accordion">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    Visual recipes
+                    <i class="{{foldableChevronClazz}}" />
+                </h4>
+                <div ng-show="foldableOpen" class="icons-section icons-continuous" disabled-block-if-ro >
+                        <div simple-right-col-action-click
+                            on-click="showCreateCSyncModal(se.id, se.zone)"
+                            label="Streaming Sync"
+                            icon="icon-continuous_sync_recipe"
+                            title="Copy the stream to another connection"
+                            wt1-click-id="rightpaneldataset_actions_recipecsync"
+                            />
+                    <div class="action-icon" ng-repeat="i in ([3] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+
+            <div dku-foldable open="true" class="accordion">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    Code recipes
+                    <i class="{{foldableChevronClazz}}" />
+                </h4>
+                <div ng-show="foldableOpen" class="icons-section icons-continuous" disabled-block-if-ro >
+                    <div
+                        simple-right-col-action-click
+                        on-click="showCreateCodeBasedModal('cpython', [se.id], se.zone)"
+                        label="Streaming Python"
+                        icon="icon-continuous_python_recipe"
+                        wt1-click-id="rightpaneldataset_actions_recipecpython"
+                        />
+
+                    <div
+                        simple-right-col-action-click
+                        on-click="showCreateCodeBasedModal('ksql', [se.id], se.zone)"
+                        label="Ksql"
+                        icon="icon-continuous_ksql_recipe"
+                        wt1-click-id="rightpaneldataset_actions_recipeksql"
+                        />
+
+                    <div ng-if="usability.recipes.streaming_spark_scala.details.enableStatus == 'NOT_LICENSED_EE'"
+                        simple-right-col-action-click
+                        on-click="showSparkNotLicensedModal()"
+                        label="Streaming Spark"
+                        icon="icon-continuous_spark_scala_recipe"
+                        />
+                    <div ng-if="usability.recipes.streaming_spark_scala.details.enableStatus == 'OK'"
+                        simple-right-col-action-click
+                        on-click="showCreateCodeBasedModal('streaming_spark_scala', [se.id], se.zone)"
+                        label="Streaming Spark"
+                        icon="icon-continuous_spark_scala_recipe"
+                        wt1-click-id="rightpaneldataset_actions_recipestreamingsparkscala"
+                        />
+
+                    <div class="action-icon" ng-repeat="i in ([3] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+
+            <div dku-foldable dku-foldable-right-panel open="true" class="accordion" name="actions.flowZones">
+                <h4 class="accordion-title" ng-click="foldableToggle()">
+                    <i class="{{foldableChevronClazz}}" />
+                    Flow Zones
+                </h4>
+                <div ng-show="foldableOpen" class="icons-section icons-flow-zones" disabled-block-if-ro >
+                    <div simple-right-col-action-click
+                         on-click="moveToFlowZone(getSelectedTaggableObjectRefs(), false, computeMovingImpact())"
+                         label="Move"
+                         icon="icon-move_to_zone"
+                         title="Move to a flow zone"
+                    />
+                    <div simple-right-col-action-click
+                         on-click="shareToFlowZone(getSelectedTaggableObjectRefs())"
+                         label="Share"
+                         icon="icon-share_to_zone"
+                         title="Share to a flow zone"
+                    />
+                    <div simple-right-col-action-click
+                         ng-if="selection.selectedObject.usedByZones.length && !selection.selectedObject.successors.length"
+                         on-click="unshareToFlowZone(getSelectedTaggableObjectRefs(), [selection.selectedObject.usedByZones[0]])"
+                         label="Unshare"
+                         icon="icon-unshare_to_zone"
+                         title="Unshare from this flow zone"
+                    />
+                    <div simple-right-col-action-click
+                         ng-if="$state.current.name.startsWith('projects.project.flow') && isDatasetZoneInput()"
+                         on-click="zoomToOtherZoneNode(selection.selectedObject.ownerZone)"
+                         label="Original"
+                         toggle="tooltip-bottom"
+                         title="Zoom on original node in other zone"
+                         icon="icon-go_to_original"
+                    />
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+            </div>
+
+		</div>
+	</div>
+</div>

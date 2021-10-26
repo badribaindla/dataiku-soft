@@ -1,0 +1,46 @@
+<div ng-controller="TwitterConnectionController" class="h100 vertical-flex">
+    <div class="flex">
+        <div class="fh oa">
+            <div class="h100 small-lr-padding">
+                <div class="generic-white-box">
+                    <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                    <div block-api-error />
+
+                    <form name="connectionParamsForm" class="dkuform-horizontal">
+                        <h2 class="settings-section-title">Connection</h2>
+
+                        <div class="control-group" form-template-element model="connection.params"
+                        field="{name:'api_key',type:'string', mandatory:true, label:'API key'}"/>
+                        <div class="control-group" form-template-element model="connection.params"
+                        field="{name:'api_secret',type:'string', mandatory:true, label:'API secret'}" />
+                        <div class="control-group" form-template-element model="connection.params"
+                        field="{name:'token_key',type:'string', mandatory:true, label:'Access token'}" />
+                        <div class="control-group" form-template-element model="connection.params"
+                        field="{name:'token_secret',type:'string', mandatory:true, label:'Access token secret'}" />
+
+                        <button type="button" class="btn btn--secondary" ng-click="setActiveConnection(connection.name)" ng-show="displaySetActive" ng-disabled="connectionParamsForm.$invalid || isActive || isRunning">Set as active</button>
+
+                        <div include-no-scope="/templates/admin/fragments/connection-proxy.html" />
+                    </form>
+                </div>
+                <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                    <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="noflex small-lr-padding page-top-padding">
+      <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html" />
+      <div>
+        <div ng-show="testing" class="alert alert-info"> <i class="icon-spin icon-spinner" />Please wait, testing connection
+        </div>
+        <div ng-show="testResult">
+            <div ng-show="!testResult.ok" class="alert alert-error"> <i class="icon-dku-error" />Connection to Twitter failed: {{testResult.message}}
+            </div>
+            <div ng-show="testResult.ok" class="alert alert-success">
+                <i class="icon-success" />
+                Connection to Twitter OK
+            </div>
+        </div>
+    </div>
+</div>

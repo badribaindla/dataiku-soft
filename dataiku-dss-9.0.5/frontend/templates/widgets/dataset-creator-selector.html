@@ -1,0 +1,115 @@
+<div ng-if="uiState.mode == 'create'" class="suggested-new-output-dataset h100">
+    <form name="forms.newOutputDatasetForm" class="dkuform-vertical" ng-if="managedDatasetOptions">
+        <div ng-if="!uiState.backendWarnings.length">
+            <div class="sub-control-group">
+                <label class="sub-control-label">Name</label>
+                <div class="sub-controls">
+                    <input type="text" ng-pattern="/^[\w-_]+$/" custom-validation="isDatasetNameUnique"
+                           ng-model="newDataset.name" ng-required="true"
+                           placeholder="Name" auto-focus="{{mode == 'create'}}"/>
+                    <check-hive-handles-dataset-name class='sub-form-field-warning' dataset-name="newDataset.name"
+                                                     dataset-connection-type="newDataset.connectionOption.connectionType"/>
+                </div>
+                <div class="alert alert-error" ng-show="!isDatasetNameUnique(newDataset.name)">
+                    Dataset "{{newDataset.name}}" already exists.
+                </div>
+            </div>
+            <div class="sub-control-group">
+                <label for="" class="sub-control-label">Store into</label>
+                <div class="sub-controls">
+                    <select ng-model="newDataset.connectionOption"
+                            dku-bs-select="{liveSearch:true,size:'auto'}"
+                            ng-options="item as item.connectionName group by item.connectionType for item in managedDatasetOptions.connections|orderBy:'connectionType + connectionName'"/>
+                </div>
+            </div>
+            <div class="sub-control-group"
+                 ng-if="newDataset.connectionOption.fsProviderTypes && newDataset.connectionOption.fsProviderTypes.length > 1">
+                <label for="" class="sub-control-label">Store using</label>
+                <div class="sub-controls">
+                    <select ng-model="newDataset.typeOption"
+                            dku-bs-select
+                            ng-options="t for t in newDataset.connectionOption.fsProviderTypes"/>
+                </div>
+            </div>
+
+            <div class="sub-control-group" ng-if="newDataset.connectionOption.canOverrideSQLCatalog">
+                <label class="control-label" ng-switch="newDataset.connectionOption.connectionType">
+                    <span ng-switch-when="BigQuery">BigQuery project</span>
+                    <span ng-switch-when="Snowflake">Database</span>
+                    <span ng-switch-default>Catalog</span>
+                </label>
+                <div class="sub-controls">
+                    <input type="text" ng-model="newDataset.overrideSQLCatalog"
+                           placeholder="{{newDataset.connectionOption.unoverridenSQLCatalog}}"/>
+                </div>
+            </div>
+            <div class="sub-control-group" ng-if="newDataset.connectionOption.canOverrideSQLSchema">
+                <label class="control-label" ng-switch="newDataset.connectionOption.connectionType">
+                    <span ng-switch-when="BigQuery">BigQuery dataset</span>
+                    <span ng-switch-default>Schema</span>
+                </label>
+                <div class="sub-controls">
+                    <input type="text" ng-model="newDataset.overrideSQLSchema"
+                           placeholder="{{newDataset.connectionOption.unoverridenSQLSchema}}"/>
+                </div>
+            </div>
+
+            <div class="sub-control-group" ng-if="newDataset.connectionOption.formats.length">
+                <label for="" class="sub-control-label">Format</label>
+                <div class="sub-controls">
+                    <select dku-bs-select
+                            ng-model="newDataset.formatOptionId"
+                            ng-options="format.id as format.label for format in newDataset.connectionOption.formats"/>
+                </div>
+            </div>
+
+            <div class="sub-control-group" ng-if="partitioningOptions.length > 1">
+                <label class="sub-control-label">Partitioning</label>
+                <div class="sub-controls">
+                    <select dku-bs-select ng-model="newDataset.partitioningOption"
+                            ng-options="x.id as x.label for x in partitioningOptions"/>
+                </div>
+            </div>
+
+            <div class="actions" style="margin-top: 10px;">
+                <button class="btn btn--primary btn--large btn--full" ng-click="createAndUseNewOutputDataset(false)"
+                        ng-disabled="forms.newOutputDatasetForm.$invalid">
+                    Create dataset
+                </button>
+            </div>
+            <div block-api-error/>
+        </div>
+
+
+        <div ng-if="uiState.backendWarnings.length">
+            <div class="alert" style="margin-top:10px">
+                <ul>
+                    <li ng-repeat="warning in uiState.backendWarnings track by $index">
+                        <strong>{{warning.title}}</strong> &ndash; {{warning.details}}
+                    </li>
+                </ul>
+            </div>
+            <div class="actions">
+                <button class="btn btn--secondary actions w100" ng-click="uiState.backendWarnings = null">
+                    Change settings
+                </button>
+                <button class="btn btn--danger actions w100" ng-click="createAndUseNewOutputDataset(true)">
+                    Create anyway
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+<div ng-if="uiState.mode == 'select'" class="existing-dataset">
+    <select ng-model="uiState.model" ng-options="d.name as d.name for d in availableDatasets" ng-if="availableDatasets.length > 200"></select>
+    <select dku-bs-select="{liveSearch:true}" data-qa-select="{{qa}}" ng-model="uiState.model" ng-options="d.name as d.name for d in availableDatasets" ng-if="availableDatasets.length <= 200"></select>
+</div>
+
+<div ng-if="isCreationAllowed" class="noflex dku-switches">
+    <div style="clear: both;"></div>
+    <a ng-click="uiState.mode = 'create';" ng-class="{'selected' : uiState.mode == 'create'}">New
+        dataset</a>
+    |
+    <a ng-click="uiState.mode = 'select';" ng-class="{'selected' : uiState.mode == 'select'}">Use
+        existing</a>
+</div>

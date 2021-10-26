@@ -1,0 +1,160 @@
+<div ng-controller="CPythonRecipeController" data-extend-template="/templates/layouts/code-based-recipe-editor-layout.html">
+
+    <div class="mainPane code-based-recipe-main-zone vertical-flex h100" data-block="recipeEditor">
+        <div block-api-error />
+
+        <code-snippet-editor code="script.data"
+            sample-type="'python'"
+            categories="['py-std-dkuapi', 'py-std-3rd', 'user-py-std']"
+            save-category="'user-py-std'"
+            editor-options="editorOptions"
+            resolve-code-for-preview-func="resolveCodeForPreviewFunc"
+            resolve-code-for-insertion-func = "resolveCodeForInsertionFunc"
+            >
+        </code-snippet-editor>
+
+        <div include-no-scope="/templates/recipes/fragments/recipe-editor-statusbar.html" class="noflex"/>
+
+        <div class="bottom-bar noflex">
+            <div class="horizontal-flex">
+                <span class="noflex">
+                    <div class="btn-group dropup" style="margin-right: 5px;">
+                        <button class="btn btn-default"
+                            ng-disabled="isJobRunning()"
+                            title="Only checks query syntax and schema consistency. Does not run the query."
+                            ng-click="startedJob.job = null; validateRecipe()">
+
+                            <i class="dib"
+                                style="width: 15px; position: relative; top: 1px;"
+                                ng-class="{'icon-check': !recipe.params.skipPrerunValidate, 'icon-check-empty': recipe.params.skipPrerunValidate}" />
+                            Validate
+                        </button>
+
+                        <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="padding-right: 12px;">
+                            <span class="caret"></span>
+                        </button>
+
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a ng-disabled="isJobRunning()" ng-click="recipe.params.skipPrerunValidate = !recipe.params.skipPrerunValidate">
+                                    <i class="icon-check" />&nbsp;
+                                    {{recipe.params.skipPrerunValidate ? 'Enable validation before running' : 'Disable validation before running'}}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </span>
+
+                <span class="flex">
+                    <div include-no-scope="/templates/recipes/fragments/continuous-recipe-controls.html" />
+                </span>
+            </div>
+        </div>
+        <div include-no-scope="/templates/recipes/fragments/continuous-activity-result.html" class="noflex recipe-job-result" />
+    </div>
+
+
+    <div data-block="additionalTabsContent">
+        <div ng-if="topNav.tab == 'advanced'" class="dss-page oa small-lr-padding">
+            <div block-api-error/>
+
+            <div class="row-fluid">
+                <div class="horizontal-centerer">
+                    <div class="recipe-settings-section1 w800">
+                        <h1 class="recipe-settings-section1-title">Python environment</h1>
+
+                        <div class="recipe-settings-section2"
+                             code-env-selection-form="recipe.params.envSelection" env-lang="'PYTHON'"></div>
+                    </div>
+                    
+                    <div class="recipe-settings-section1 w800">
+                        <h1 class="recipe-settings-section1-title">Container configuration</h1>
+
+                        <div class="recipe-settings-section2"
+                             container-selection-form="recipe.params.containerSelection"></div>
+                    </div>
+
+                    <div class="recipe-settings-section1 w800" ng-if="recipe.params.codeMode == 'FREE_FORM'">
+                        <h1 class="recipe-settings-section1-title">Parallelization</h1>
+
+                        <form class="dkuform-horizontal recipe-settings-section2">
+                            <div class="control-group">
+                                <label for="" class="control-label">Nb workers</label>
+                                <div class="controls">
+                                    <input type="number" min="1" force-integer ng-model="recipe.params.nbReplicas"></input>
+                                    <span class="help-inline">Number of python processes spawned to execute the recipe</span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="recipe.params.nbReplicas > 1">
+                                <label for="restartOnFailure" class="control-label">Restart on failure</label>
+                                <div class="controls">
+                                    <input id="restartOnFailure" type="checkbox" ng-model="recipe.params.restartOnFailure"></input>
+                                    <span class="help-inline">Restart process replicas independently when they fail</span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="recipe-settings-section1 w800" ng-if="recipe.params.codeMode == 'FUNCTION'">
+                        <h1 class="recipe-settings-section1-title">Parallelization</h1>
+
+                        <form class="dkuform-horizontal recipe-settings-section2">
+                            <div class="control-group">
+                                <label for="" class="control-label">Nb workers</label>
+                                <div class="controls">
+                                    <input type="number" min="1" force-integer ng-model="recipe.params.nbReplicas"></input>
+                                    <span class="help-inline">Number of python processes spawned to execute the recipe</span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="recipe.params.nbReplicas > 1">
+                                <label for="" class="control-label">Pipelining</label>
+                                <div class="controls">
+                                    <input type="number" min="1" force-integer ng-model="recipe.params.pipelineDepth"></input>
+                                    <span class="help-inline">Factor controlling how many rows ahead should be loaded for parallel processing</span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="recipe.params.nbReplicas > 1">
+                                <label for="restartOnFailure" class="control-label">Restart on failure</label>
+                                <div class="controls">
+                                    <input id="restartOnFailure" type="checkbox" ng-model="recipe.params.restartOnFailure"></input>
+                                    <span class="help-inline">Restart process replicas independently when they fail</span>
+                                </div>
+                            </div>
+                            <h1 class="recipe-settings-section1-title">Input stream handling</h1>
+                            <ul ng-repeat="consumption in recipe.params.feedParams.inputs">
+                                <li feed-consumption-settings consumption="consumption" computables-map="computablesMap"/>
+                            </ul>
+                            <h1 class="recipe-settings-section1-title">Output stream handling</h1>
+                            <ul ng-repeat="production in recipe.params.feedParams.outputs">
+                                <li feed-production-settings production="production" computables-map="computablesMap"/>
+                            </ul>
+                        </form>
+                    </div>
+
+                    <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+
+                    <div class="recipe-settings-section1 w800">
+                        <h1 class="recipe-settings-section1-title">Overrides</h1>
+
+                        <form class="dkuform-horizontal recipe-settings-section2">
+                            <div class="control-group">
+                                <label for="" class="control-label">Override variables</label>
+                                <div class="controls">
+                                    <span override-table-link object-to-override="recipe" override-table-parent="recipe"/>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="recipe-settings-section1 w800" ng-if="isPluginDeveloper() && appConfig.pluginDevEnabled">
+                        <h1 class="recipe-settings-section1-title">Plugins</h1>
+
+                        <div class="recipe-settings-section2">
+                            <a class="btn btn-default" ng-click="transformToDevPlugin()">Convert to plugin recipe</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

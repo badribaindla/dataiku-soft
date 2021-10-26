@@ -1,0 +1,80 @@
+<div data-extend-template="/templates/object-details/item-template.html">
+    <div item-header
+        data-block="item-header"
+        color="notebook"
+        icon="{{data.webapp.type |typeToIcon}}"
+        title="{{data.webapp.name}}"
+        href="StateUtils.href.webapp(data.webapp.id, data.webapp.projectKey, {name: data.webapp.name})">
+        {{data.webapp.name}}
+    </div>
+
+    <div data-block-append="left">
+         <div ng-if="!data.securityInfo.forceAuthentication" class="accordion" dku-foldable dku-foldable-right-panel="details.publicWebapp" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Public webapp
+            </h4>
+            <div ng-show="foldableOpen" style="padding:0 15px;">
+                <p>This is a publicly-available webapp</p>
+                <h4>URL</h4>
+                <p style="overflow: visible">
+                    <a target="_blank" rel="noopener" ng-if="data.securityInfo.vanityURL" href="{{appConfig.dssExternalURL}}/public-webapps/{{data.securityInfo.vanityURL}}">
+                        {{appConfig.dssExternalURL}}/public-webapps/{{data.securityInfo.vanityURL}}
+                    </a>
+                    <a target="_blank" rel="noopener" ng-if="!data.securityInfo.vanityURL" href="{{appConfig.dssExternalURL}}/public-webapps/{{data.webapp.projectKey}}/{{data.webapp.id}}">
+                        {{appConfig.dssExternalURL}}/public-webapps/{{data.webapp.projectKey}}/{{data.webapp.id}}
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div data-block="right">
+
+        <!-- Custom Fields -->
+        <div custom-fields-in-side-panel ng-if="appConfig.customFieldsMap[objectType].length > 0 && object && object.customFields" custom-fields="object.customFields" object-type="objectType" save-fn="saveCustomFields" edit-custom-fields="editCustomFields" editable="canWriteProject()"></div>
+
+        <!-- Checklists -->
+        <div class="accordion" ng-if="editable || object.checklists.checklists.length > 0" dku-foldable dku-foldable-right-panel="details.checklists" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Todo Lists <em ng-if="object.checklists.checklists.length > 0">({{ object.checklists.checklists.length }})</em>
+            </h4>
+            <div ng-show="foldableOpen" style="padding:0 15px;">
+                <div ng-repeat="x in object.checklists.checklists">
+                    <div class="checklist">
+                        <div class="pull-right">
+                            <a class="link-danger" ng-click="deleteChecklist($index)"
+                               title="Delete todo list"
+                               style="display:inline-block;margin: 10px;"
+                               ng-if="editable">
+                                <i class="icon-trash" />
+                            </a>
+                        </div>
+                        <h4 class="checklist-title">
+                            <div ng-if="!x.editingTitle">
+                                {{x.title}}
+                                <a class="link-std edit-button" ng-click="startEditChecklistTitle(x)" ng-if="editable">
+                                    <i class="icon-pencil" />
+                                </a>
+                            </div>
+                            <div ng-if="x.editingTitle" class="common-styles-only">
+                                <input type="text" ng-model="state.checklistTitle.newVal" placeHolder="New name" required />
+                                <div style="margin-top: 3px">
+                                    <button class="btn btn--success" ng-click="validateChecklistTitleEdit()">Save</button>
+                                    <button class="btn btn--secondary" ng-click="cancelChecklistTitleEdit()">Cancel</button>
+                                </div>
+                            </div>
+                        </h4>
+                        <p> <span ng-bind-html="x|singleChecklistState" /></p>
+                        <div object-checklist checklist="x" items-only="true" read-only="!editable" />
+                    </div>
+                </div>
+                <div ng-if="editable" class="new-checklist"
+                     style="margin-top: 15px; margin-bottom: 15px">
+                    <a class="std-greylink" ng-click="addChecklist()">
+                        Add a todo list
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,130 @@
+<div class="list-page-4 flex dss-home-page list-page--flat-design">
+    <div ng-if="appConfig.licensedFeatures.bundlesAllowed" data-extend-template="/templates/layouts/list-items-2.html" class="vertical-flex main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            Bundles
+        </span>
+
+        <!--  NEW   -->
+        <div data-block="newItem">
+            <a class="btn btn--secondary" ng-click="setBundleExporterSettings()">Configure content</a>
+            <a class="btn btn--secondary" ui-sref="projects.project.bundlesdesign.new">
+                <span plus-icon />&nbsp;New bundle
+            </a>
+        </div>
+
+        <div data-block="empty">
+            <h1>
+                No bundles in this project
+            </h1>
+            <p>
+                Bundles are versioned snapshots of your project. Creating bundles allows you to deploy your project on {{wl.productShortName}} Automation nodes.
+            </p>
+            <p class="small">
+                <span doclink-wrapper page="deployment/creating-bundles">Read the documentation</span> to learn more.
+            </p>
+            <div class="import-first-dataset">
+                <a disabled-if-ro="" class="btn btn--contained btn--large btn--settings" ui-sref="projects.project.bundlesdesign.new">
+                    <span plus-icon />
+                    &nbsp;Create your first bundle
+                </a>
+            </div>
+        </div>
+
+        <div class="noflex dropdown mass-action-btn" data-block="mass-actions">
+            <input type="checkbox"
+                    class="select-cb"
+                    ng-model="selection.all"
+                    dku-indeterminate="selection.some"
+                    ng-change="updateMassSelectionCheckbox()"
+                    >
+            <a data-toggle="dropdown"
+                class="dropdown-toggle unselectable"
+                ng-class="{disabled: selection.selectedObjects.length == 0, collapsed: selection.none}">
+                <span ng-hide="selection.none">ACTIONS</span>
+                <b class="caret"></b>
+            </a>
+            <ul data-block="mass-action-dropdrop-menu" class="dropdown-menu">
+                <li>
+                    <a ng-click="publishOnDeployer(selection.selectedObject)"
+                       disabled-if="!appConfig.deployerClientEnabled || selection.selectedObjects && selection.selectedObjects.length > 1"
+                       disabled-message="{{ !appConfig.deployerClientEnabled ? 'Deployer is not enabled' : 'Bundles can only be published one at a time' }}">
+                        <i class="icon-push-bundle"/>Publish on Deployer
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="isProjectAdmin() && deleteSelected()" ng-class="{ 'disabled': (selection.selectedObjects === null || selection.selectedObjects.length <= 1) && selection.selectedObject.state !== 'BUILT' }">
+                        <i class="icon-trash"/>Delete
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- ITEM LAYOUT -->
+        <div data-block="item" class="h100">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit h100" dataset="item">
+                <div class="illustration horizontal-flex">
+                    <i class="icon-bundle universe-color bundle"></i>
+                    <div class="illustration__status">
+                        <i ng-show="item.state == 'BUILT'" class="illustration__status-icon icon-dku-success text-success"></i>
+                        <span ng-show="item.state == 'BUILDING'" class="illustration__status-icon dku-loader icon-spin"></span>
+                        <i ng-show="item.state == 'FAILED' || item.state == 'ABORTED'" class="illustration__status-icon icon-dku-error text-error"></i>
+                    </div>
+                </div>
+                <div class="hitContent hitContent--columns h100">
+                    <div class="hit-content-main">
+                        <h4 class="hit-content-main__title">
+                            <a ng-click="goToItem(item)"
+                                show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.bundleId | boldify:selection.filterParams.userQueryResult" tooltip-direction="'tooltip'"></a>
+                        </h4>
+                        <div class="hit-content-main__subtitle">
+                            <span ng-if="item.state === 'BUILT'">
+                                Created by {{item.exportManifest.exportUserInfo.exportedBy}} on {{item.exportManifest.exportUserInfo.exportedOn | date:'yyyy/MM/dd HH:mm'}}
+                            </span>
+                            <span ng-if="item.state === 'ABORTED'">
+                                Aborted
+                            </span>
+                            <span ng-if="item.state === 'BUILDING'">
+                                {{item.progressMsg}}…
+                            </span>
+                            <div ng-if="item.state === 'FAILED'" show-tooltip-on-text-overflow text-tooltip="'Failed - ' + item.futureItem.storedError.detailedMessage" tooltip-direction="'tooltip'"></div>
+                        </div>
+                    </div>
+                    <div class="hit-content__inline-stats" ng-if="item.publishedBundleState">
+                        <div class="hit-content__inline-stat hit-content__inline-stat--single">
+                            <div class="hit-content__inline-stat-label">
+                                <span>
+                                    Published on
+                                    <span ng-if="!appConfig.deployerClientEnabled">
+                                        Deployer
+                                    </span>
+                                    <a ui-sref="projectdeployer.projects.project.bundle.status({publishedProjectKey: item.publishedBundleState.publishedProjectKey, bundleId: item.bundleId})"
+                                       target="blank"
+                                       ng-if="appConfig.deployerMode === 'LOCAL'">
+                                        Deployer
+                                    </a>
+                                    <a href="{{ appConfig.deployerURL + '/project-deployer/projects/' + item.publishedBundleState.publishedProjectKey + '/bundle/' + item.bundleId + '/' }}"
+                                       target="blank"
+                                       ng-if="appConfig.deployerMode === 'REMOTE'">
+                                        Deployer
+                                    </a>
+                                    on {{ item.publishedBundleState.publishedOn | date:'yyyy/MM/dd HH:mm' }}
+                                </span>
+                                <i class="icon-push-bundle icon-push-bundle--list"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <standardized-side-panel page="objects_list" object-type="{{ (selection.selectedObjects.length <= 1) ? ((selection.selectedObject) ? 'BUNDLES_DESIGN' : '') : 'BUNDLES_DESIGN_MULTI' }}" single-type="BUNDLES_DESIGN">
+    </standardized-side-panel>
+
+    <feature-locked feature-name="'Automation servers and bundles'" ng-if="!appConfig.licensedFeatures.bundlesAllowed"></feature-locked>
+</div>

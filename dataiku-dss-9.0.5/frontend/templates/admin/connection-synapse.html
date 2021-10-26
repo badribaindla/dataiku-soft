@@ -1,0 +1,211 @@
+<div ng-controller="SQLConnectionController" class="h100 vertical-flex">
+    <div class="oa vertical-flex">
+        <div class="w100 small-lr-padding">
+            <div class="generic-white-box">
+                <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                <div block-api-error />
+                <form name="connectionParamsForm" class="dkuform-horizontal">
+                    <div class="row-fluid">
+                        <div class="span7">
+
+                            <h2 class="settings-section-title">Basic params</h2>
+                            <fieldset ng-if="connection.params.useURL != true">
+                                <div class="control-group" form-template-element model="connection.params"
+                                field="{name:'host',type:'string', mandatory:true, label:'Host', tooltip:'Mandatory'}" />
+                                <div class="alert alert-warning" ng-show="checkForHttpInHostUrl(connection.params.host)">
+                                    Host should not contain a http(s):// prefix.
+                                </div>
+                            </fieldset>
+                            <fieldset ng-if="connection.params.useURL == true">
+                                <div class="control-group">
+                                    <label class="control-label">Connection URL</label>
+                                    <div class="controls">
+                                        <input type="text" class="input-xlarge" ng-model="connection.params.url"
+                                        ng-required="true"
+                                        placeHolder="jdbc:sqlserver://HOST" />
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Displayed URL</label>
+                                    <div class="controls">
+                                        <input type="text" class="input-xlarge" ng-model="connection.params.displayedUrl"
+                                        ng-required="false"
+                                        placeHolder="jdbc:sqlserver://HOST" />
+                                        <span class="help-inline">Visible URL for the logs</span>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="control-group">
+                                <label for="" class="control-label">Port</label>
+                                <div class="controls">
+                                    <input force-integer type="number" min="-1" max="65535" ng-model="connection.params.port" step="1" class="input-mini" />
+                                </div>
+                            </div>
+                            <div class="control-group" form-template-element model="connection.params"
+                            field="{name:'db', type:'string', label:'Database'}" />
+
+                            <div class="control-group">
+                                <label for="" class="control-label">Login with Kerberos</label>
+                                <div class="controls">
+                                    <label style="display: inline-block;">
+                                        <input type="checkbox" ng-model="connection.params.kerberosLoginEnabled"/>
+                                    </label>
+                                    <button ng-if="connection.params.kerberosLoginEnabled" dku-md-title="Properties" class="btn btn--secondary btn--icon step-help-popover" popover-clazz="step-help-popover"
+                                    dku-md-popover='When activating Kerberos, you should add the necessary Advanced properties.
+
+Typycally, integratedSecurity needs to be set to true, and authenticationScheme to JavaKerberos. For details, see the driver [driver documentation](https://docs.microsoft.com/en-us/sql/connect/jdbc/building-the-connection-url)'>
+                                            <i class="icon-question-sign"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <fieldset ng-if="connection.params.kerberosLoginEnabled">
+                                <div class="control-group">
+                                    <label class="control-label">Principal</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.dssPrincipal"/>
+                                        <span class="help-inline">Principal for the DSS user</span>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Keytab</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.dssKeytabPath"/>
+                                        <span class="help-inline">Absolute path to the keytab to use for DSS</span>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Impersonated user</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.proxyUserName"/>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <div class="control-group" ng-if="!connection.params.kerberosLoginEnabled">
+                                <label for="" class="control-label">Login with Azure OAuth</label>
+                                <div class="controls">
+                                    <label style="display: inline-block;">
+                                        <input type="checkbox" ng-model="connection.params.azureOAuthLoginEnabled"/>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <fieldset ng-if="!connection.params.kerberosLoginEnabled && connection.params.azureOAuthLoginEnabled">
+                                <div class="control-group">
+                                    <label class="control-label">STS URL</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.azureOAuthLoginSTS"/>
+                                        <span class="help-inline">https://...</span>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">Client id</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="connection.params.azureOAuthLoginClientId"/>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-if="connection.credentialsMode == 'GLOBAL'">
+                                    <label class="control-label">Client secret</label>
+                                    <div class="controls">
+                                        <input type="password" ng-model="connection.params.azureOAuthLoginClientSecret"/>
+                                        <span class="help-inline">
+                                            Not required if you use per-user authentication
+                                        </span>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset ng-if="connection.credentialsMode == 'GLOBAL' && !connection.params.kerberosLoginEnabled && !connection.params.azureOAuthLoginEnabled">
+                                <div class="control-group" form-template-element model="connection.params"
+                                field="{name:'user', type:'string', mandatory:connection.params.useURL != true && !connection.params.azureOAuthLoginEnabled, label:'User', tooltip:'Mandatory'}" />
+
+                                <div class="control-group">
+                                    <label for="" class="control-label">Password</label>
+                                    <div class="controls">
+                                        <input type="password" ng-model="connection.params.password" autocomplete="new-password" />
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <!-- hidden azureDWH, since it's always true but we keep it for retrocompatibility -->
+                            <input type="checkbox" ng-model="connection.params.azureDWH" ng-show="false" />
+
+                            <div class="control-group">
+                                <label class="control-label">Advanced JDBC properties</label>
+                                <div class="controls">
+                                    <ng2-connection-properties-list [(items)]="connection.params.properties" (on-validity-change)="setAdvancedPropertiesValidity($event)"></ng2-connection-properties-list>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="" class="control-label">Use custom JDBC URL</label>
+                                <div class="controls">
+                                    <label>
+                                        <input type="checkbox" ng-model="connection.params.useURL"/>
+                                        <span class="help-inline">Used to customize JDBC connection URL</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <h2 class="settings-section-title">Advanced params</h2>
+
+
+                            <div class="control-group">
+                                <label for="" class="control-label">Fetch size</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="connection.params.fetchSize" />
+                                </div>
+                            </div>
+                            <!-- hidden autocommit, since it's always true -->
+                            <input type="checkbox" ng-model="connection.params.autocommitMode" ng-show="false" />
+
+                            <div class="control-group">
+                                <label class="control-label">Automatic fast-write</label>
+                                <div class="controls">
+                                    <label>
+                                        <input type="checkbox" ng-model="connection.params.useAutoFastPath"/>
+                                        <span class="help-inline">Experimental. Automatically uses a Azure Blob connection and fast bulk load into Synapse when using recipes writing data from the outside into Synapse.</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="connection.params.useAutoFastPath">
+                                <label for="" class="control-label">Auto. fast-write connection</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="connection.params.autoFastPathConnection" />
+                                    <span class="help-inline">Name of a Azure Blob connection that will be used as staging area for fast bulk load.</span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="connection.params.useAutoFastPath">
+                                <label for="" class="control-label">Path in connection</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="connection.params.autoFastPathConnectionPath" />
+                                    <span class="help-inline">Path within the auto fast-write connection that will be used for temporary staging data.</span>
+                                </div>
+                            </div>
+
+                            <div include-no-scope="/templates/admin/fragments/connection-post-connect-statements.html" />
+                            <div include-no-scope="/templates/admin/fragments/connection-sql-flags.html" />
+                            <div ng-if="!connection.params.kerberosLoginEnabled" include-no-scope="/templates/admin/fragments/connection-credentials-mode.html" />
+                        </div>
+
+                        <div class="span5">
+                            <div include-no-scope="/templates/admin/fragments/sql-naming-rule.html" />
+                            <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+            </div>
+        </div>
+    </div>
+
+    <div class="small-lr-padding page-top-padding vertical-flex connection-page__connection-testing-section">
+        <div class="vertical-flex h100">
+            <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html"/>
+            <div class="vertical-flex oh" include-no-scope="/templates/admin/fragments/sql-connection-test.html"/>
+            <div include-no-scope="/templates/admin/fragments/connection-sql-mass-import.html"/>
+        </div>
+    </div>
+
+</div>

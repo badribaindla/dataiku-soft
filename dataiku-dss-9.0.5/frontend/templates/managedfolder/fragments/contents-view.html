@@ -1,0 +1,125 @@
+<div class="main-zone h100 fixedPanes" fixed-panes ng-class="{showLeftPane: showLeftPane, showRightPane: showRightPane}">
+    <div class="mainPane vertical-flex">
+        <div block-api-error />
+
+        <!-- header -->
+        <div class="view-header horizontal-flex" style="height: auto;">
+            <!-- path -->
+            <h2 class="main-title flex">
+                <i class="icon-folder-close"></i>
+                <span class="path-element" ng-class="{'browsable': subFolderStartingPoint == '/'}" ng-click="(subFolderStartingPoint == '/') && browseDirectory('/')">{{odb.name}}</span>
+                <span ng-repeat="elt in currentDirectoryParentList"
+                      ng-click="(subFolderStartingPoint.length <= elt.fullPath.length) && browseDirectory(elt.fullPath)"
+                      ng-if="!$first"
+                      ng-class="{'browsable': subFolderStartingPoint.length <= elt.fullPath.length}"
+                      class="path-element">
+                    / {{elt.name}}
+                </span>
+
+                <!-- options -->
+                <i id="qa_folder-action-button" class="icon icon-caret-down" ng-click="openHeaderMenu($event)"></i>
+                <!-- nb files -->
+                <span class="meta" ng-if="odbListing.children.length > 0">
+                    {{odbListing.children.length}} files, {{getFilesSize() | fileSizeOrNA}}
+                </span>
+            </h2>
+            <!-- skins -->
+            <div ng-if="skins.length > 1" style="margin-right: 20px;">
+                <span>Display</span>
+                <select id="qa_virt-webapp_folder-display-select" dku-bs-select="{liveSearch:true}" ng-model="uiState.skin" ng-options="s as (s.desc.meta.label || s.id) for s in skins"></select>
+            </div>
+            <!-- search -->
+            <div class="std-list-search-box" style="display: inline-block">
+                <span class="add-on"> <i class="icon-dku-search"></i>
+                </span>
+                <input id="qa_folder-content-filter-input" type="search" ng-model="query" style="width: 190px;" placeholder="Filter" />
+            </div>
+        </div>
+
+        <!-- content -->
+        <div class="horizontal-flex flex folder-content" ng-if="uiState.skin == defaultViewSkin">
+            <!-- content list -->
+            <div class="content-list-wrapper files-zone" ng-class="{'empty-folder': odbListing.children && odbListing.children.length == 0}">
+                <droparea ng-if="!readOnly" class="h100 droparea-style-v2" drop="uploadFiles(files)" multiple no-upload-on-click is-droppable="uiState.canDrop">
+                    <div class="h100" managed-folder-contents-list />
+                </droparea>
+                <div ng-if="readOnly" class="h100">
+                    <div class="h100" managed-folder-contents-list />
+                </div>
+            </div>
+
+            <!-- content preview -->
+            <div class="content-preview-wrapper" ng-switch="previewedItem">
+                <div class="h100 vertical-flex" ng-switch-default>
+                    <div class="h100 preview-cta" ng-if="!previewedItem">
+                        <div ng-if="odbListing.children.length > 0" class="centered-info">Click a file to preview</div>
+                        <div ng-if="!odbListing.children.length" class="centered-info">No file to preview</div>
+                    </div>
+                    <div ng-if="previewedItem" class="no-flex" managed-folder-preview-header previewed-item="previewedItem" odb="odb" read-only="readOnly" can-download="canDownload"
+                            delete-previewed-item="deletePreviewedItem" decompress-previewed-file="decompressPreviewedFile" create-insight="createInsight" skin-state="skinState"/>
+                    <div ng-if="previewedItem" class="flex" managed-folder-contents-preview previewed-item="previewedItem" odb="odb" read-only="readOnly" decompress-previewed-file="decompressPreviewedFile" skin-state="skinState"/>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex folder-content" ng-if="uiState.skin != defaultViewSkin">
+            <div class="fh fixedPanes" ng-class="{showLeftPane: true, showRightPane: showRightPane}" fixed-panes show-left-pane="true">
+                <div class="leftPane">
+                    <!-- 
+                    <div class="handle" ng-click="toggleLeftPane()"></div>
+                     -->
+                    <div class="container-fluid page-top-padding h100 oa">
+                        <div class="row-fluid">
+                            <div plugin-settings-alert component-type="folder skin" has-settings="pluginDesc.hasSettings" app-config="$root.appConfig" />
+                            <div ng-switch="loadedDesc.id">
+                                <form class="form common-styles-only" name="customConfigForm" ng-switch-default>
+                                     <div custom-params-form
+                                        desc="desc"
+                                        plugin-desc="pluginDesc"
+                                        component-id="loadedDesc.id"
+                                        config="webAppConfig" ></div>
+                                </form>
+                            </div>
+                        </div>
+                        <div ng-if="uiState.skinWebApp.webAppId && appConfig.globalPermissions.mayDevelopPlugins">
+				            <span class="btn-group pull-right">
+				                <button id="qa_webapp_run-action-refresh-button" class="btn btn--secondary" ng-click="uiState.skinWebApp.refreshWebAppView()" >
+				                    <i class="icon-refresh" /> Refresh view
+				                </button>
+				                <button class="btn btn--secondary btn--icon" data-toggle="dropdown" ng-if="uiState.skinWebApp.hasBackend">
+				                    <i class="icon-caret-down" />
+				                </button>
+				                <ul class="dropdown-menu" ng-if="uiState.skinWebApp.hasBackend">
+				                    <li>
+				                        <a href="{{$state.href('projects.project.webapps.webapp.logs', {webAppId: uiState.skinWebApp.webAppId})}}" target="_blank">
+				                            Backend logs
+				                        </a>
+				                    </li>
+				                    <li>
+				                        <a ng-click="uiState.skinWebApp.restartBackend()">
+				                            Restart backend
+				                        </a>
+				                    </li>
+				                    <li>
+				                        <a ng-click="uiState.skinWebApp.regenerateWebAppView()">
+				                            Refresh view and backend
+				                        </a>
+				                    </li>
+				                </ul>
+				            </span>
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="mainPane">
+                    <div class="fh skin-holder">
+                        <div class="placeholder-block" ng-if="!uiState.skin">No skin selected</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- hidden input to upload file -->
+        <input id="hidden-input-file" type="file" name="file" multiple style="display:none;" onchange="angular.element(this).scope().uploadFilesAfterDigest(this.files, this);" />
+    </div>
+</div>

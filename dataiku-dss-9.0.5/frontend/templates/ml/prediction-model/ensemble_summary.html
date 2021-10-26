@@ -1,0 +1,51 @@
+<div ng-controller="TreeEnsembleController">
+    <div block-api-error />
+    <div ng-if="uiState.noTreesFound && !fatalAPIError">
+        <div ng-if="modelData.modeling.skipExpensiveReports" class="alert alert-info">
+            <i class="icon-dku-help"></i>
+            Decision Tree visualisation is unavailable for this model because computation of expensive results was disabled.
+            <br>
+            Retrain the model with computation of expensive results enabled to view the decision tree.
+        </div>
+        <div ng-if="!modelData.modeling.skipExpensiveReports" class="alert alert-error">
+            <i class="icon-dku-error"></i>
+            Decision Tree visualisation is unavailable for this model, it was either trained with a previous
+            version of DSS or computation of expensive results was disabled.
+            <br>
+            Retrain the model (with computation of expensive results enabled) to view the decision tree.
+      </div>
+    </div>
+    <div ng-if="uiState.wasClipped && !uiState.warningHidden" class="alert alert-warning">
+       <span>
+           <i class="icon-dku-error" ng-click="hideWarning()" style="cursor: pointer"></i>
+           Warning : because the number of nodes was too high, only a limited number of trees is shown.
+       </span>
+    </div>
+    <div ng-show="!uiState.noTreesFound">
+        <div class="h100" style="text-align: center">
+            <div class="row-fluid">
+                <div class="span10">
+                    <div class="row-fluid">
+                        <button class="btn btn--secondary" ng-click="uiState.i = 1" ng-disabled="uiState.i <= 1">
+                            <i class="icon-step-backward"></i>
+                        </button>
+                        <button class="btn btn--secondary" ng-click="previousTree()" ng-disabled="uiState.i <= 1">
+                            <i class="icon-backward"></i>
+                        </button>
+                        <input type="number" ng-model="uiState.i" style="width: 40px; margin: 0; height: 16px; text-align: center">
+                        <button class="btn btn--secondary" ng-click="nextTree()" ng-disabled="uiState.i >= uiState.nTrees">
+                            <i class="icon-forward"></i>
+                        </button>
+                        <button class="btn btn--secondary" ng-click="uiState.i = nTrees" ng-disabled="uiState.i >= uiState.nTrees">
+                            <i class="icon-step-forward"></i>
+                        </button>
+                    </div>
+                    <input ng-if="uiState.i>0" type="range" ng-model="uiState.i" min="1" max="{{uiState.nTrees}}">
+                </div>
+            </div>
+        </div>
+        <div style="position: relative">
+            <div decision-tree-control data="currentTree" classes="modelData.classes" core-params="modelData.coreParams" disable-transitions="$stateParams.exportMode"></div>
+        </div>
+    </div>
+</div>

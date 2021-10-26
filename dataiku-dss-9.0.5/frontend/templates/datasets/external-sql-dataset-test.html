@@ -1,0 +1,40 @@
+<div>
+    <div ng-show="testing" class="alert alert-info"> <i class="icon-spinner icon-spin icon-large"></i>
+        Please wait, testing connection ...
+    </div>
+
+    <div ng-show="testResult && !testResult.connectionOK" class="alert alert-error">
+        Connection failed: <span summary-of-error="testResult.connectionError" />
+        <button class="btn btn--secondary" ng-click="test(false, true)">Retry</button>
+    </div>
+    <div ng-show="testResult && testResult.connectionOK && testResult.testedConnectionOnly">
+        <div class="alert alert-info">
+            Connection OK
+            <button ng-show="dataset.params.mode == 'table' && dataset.params.table" class="btn btn--success" ng-click="test(false, true)">Test table</button>
+            <button ng-show="dataset.params.mode == 'table' && !dataset.params.table" class="btn btn--success" disabled >Select a table ....</button>
+            <button ng-show="dataset.params.mode == 'query'" class="btn btn--success" ng-click="test(false, true)">Test query</button>
+
+        </div>
+    </div>
+    <div ng-show="testResult && testResult.connectionOK && !testResult.testedConnectionOnly">
+       
+        <div ng-show="!testResult.queryOK" class="alert alert-error">
+            Connection OK, but query failed: <span summary-of-error="testResult.queryError" />
+            <button ng-show="dataset.params.mode == 'table' && dataset.params.table" class="btn btn--success" ng-click="test(false, true)">Test again</button>
+            <button ng-show="dataset.params.mode == 'table' && !dataset.params.table" class="btn btn--success" disabled >Select a table ....</button>
+            <button ng-show="dataset.params.mode == 'query'" class="btn btn--success" ng-click="test(false, true)">Test again</button>
+        </div>
+        <div ng-show="testResult.queryOK && !testResult.schemaDetection.warningLevel" class="alert alert-success">
+            Connection and {{dataset.params.mode}} OK
+            <button ng-show="dataset.params.mode == 'table' && dataset.params.table" class="btn btn--success" ng-click="test(false, true)">Test again</button>
+            <button ng-show="dataset.params.mode == 'table' && !dataset.params.table" class="btn btn--success" disabled >Select a table ....</button>
+            <button ng-show="dataset.params.mode == 'query'" class="btn btn--success" ng-click="test(false, true)">Test again</button>
+        </div>
+         <div ng-show="testResult.queryOK && testResult.schemaDetection.warningLevel" class="alert alert-error">
+            Connection and {{dataset.params.mode}} OK, but schema issues (see schema tab)
+            <button ng-show="dataset.params.mode == 'table' && dataset.params.table" class="btn btn--success" ng-click="test(false, true)">Test again</button>
+            <button ng-show="dataset.params.mode == 'table' && !dataset.params.table" class="btn btn--success" disabled >Select a table ....</button>
+            <button ng-show="dataset.params.mode == 'query'" class="btn btn--success" ng-click="test(false, true)">Test again</button>
+        </div>
+    </div>
+</div>

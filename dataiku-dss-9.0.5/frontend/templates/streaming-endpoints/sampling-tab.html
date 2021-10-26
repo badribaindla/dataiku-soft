@@ -1,0 +1,57 @@
+<div ng-if="shaker" ng-controller="ConfigureSamplingController" class="shaker-left-column-form shaker-sampling-form-wrapper">
+    <div block-api-error></div>
+
+    <form name="samplingForm" class="common-styles-only">
+        <fieldset>
+            <label for="" class="control-label">Timeout</label>
+            <div class="controls">
+                <input force-integer ng-model="shaker.explorationSampling.selection.timeout" type="number" required />
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <label for="" class="control-label">Nb. records</label>
+            <div class="controls">
+                <input force-integer ng-model="shaker.explorationSampling.selection.maxRecords" type="number" required />
+            </div>
+        </fieldset>
+
+
+        <fieldset>
+            <h2 class="settings-section-title">Filtering</h2>
+            <label class="control-label">
+                <input type="checkbox" ng-model="shaker.explorationSampling.selection.filter.enabled"
+                ng-change="shaker.explorationSampling.selection.filter.enabled ? showFilterModal(false) : onChange()" />
+                Filter records
+            </label>
+
+            <span ng-show="shaker.explorationSampling.selection.filter && shaker.explorationSampling.selection.filter.enabled"
+                class="filter-expression"
+                ng-click="showFilterModal(false)"
+                toggle="tooltip"
+                style="cursor: pointer"
+                title="Click to edit"
+                >
+                <span ng-bind-html="shaker.explorationSampling.selection.filter|filterNiceRepr" />
+            </span>
+        </fieldset>
+
+        <fieldset optional-max-size-mb="shaker.explorationSampling.selection.maxStoredBytes">
+            <h2 class="settings-section-title">Advanced</h2>
+            <label class="control-label">
+                <input type="checkbox" ng-model="$optionalState.hasMaxSize"/>
+                Enforce max sample memory usage
+            </label>
+            <div ng-if="$optionalState.hasMaxSize">
+                <label for="" class="control-label">Max memory usage (MB)</label>
+                <div class="controls">
+                    <input force-integer ng-model="$optionalState.maxSize" type="number" required />
+                </div>
+            </div>
+        </fieldset>
+
+    </form>
+    <div class="text-right">
+        <button ng-click="save()" ng-disabled="!samplingForm.$valid" class="btn btn--primary">Save and refresh sample</button>
+    </div>
+</div>

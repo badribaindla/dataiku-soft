@@ -1,0 +1,87 @@
+{
+    "meta": {
+        "label": "Remove old container images",
+        "description": "Remove old versions of containers, untagged images...",
+        "category" : "DSS maintenance",
+        "icon": "icon-trash"
+    },
+
+    "impersonate": false,
+    "permissions": ["ADMIN"],
+    "resultType": "RESULT_TABLE",
+    "resultLabel": "Deleted containers",
+
+    "macroRoles": [
+        {
+            "type": "PROJECT_MACROS"
+        }
+    ],
+
+    "params": [
+        {
+            "name": "sep_containers",
+            "label" : "Policies",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "rm_dss_images",
+            "label" : "Remove old DSS images",
+            "type": "BOOLEAN",
+            "defaultValue" : true
+        },
+        {
+            "name": "rm_none_images",
+            "label" : "Remove dangling images",
+            "type": "BOOLEAN",
+            "description":"<none>:<none> images",
+            "defaultValue" : true
+        },
+        {
+            "name": "sep_options",
+            "label" : "Options",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "dont_guess_image_name",
+            "label" : "Use custom image base name",
+            "type": "BOOLEAN",
+            "description": "If you specified a name with `-t` when building the base image",
+            "defaultValue" : false
+        },
+        {
+            "name": "custom_image_name",
+            "label" : "Image base name",
+            "type": "STRING",
+            "description":"Without the tag",
+            "defaultValue" : "dku-exec-something",
+            "visibilityCondition": "model.dont_guess_image_name"
+        },
+        {
+            "name": "use_custom_host",
+            "label" : "Use custom DOCKERHOST",
+            "type": "BOOLEAN",
+            "defaultValue" : false
+        },
+        {
+            "name": "custom_docker_host",
+            "label" : "Docker host",
+            "type": "STRING",
+            "visibilityCondition": "model.use_custom_host"
+        },
+        {
+            "name": "perform_deletion",
+            "label" : "Perform deletion",
+            "type": "BOOLEAN",
+            "description":"If not checked, only lists what will be deleted",
+            "defaultValue" : false
+        },
+        {
+            "name": "force_rm",
+            "label" : "Force removal",
+            "type": "BOOLEAN",
+            "description": "Remove all images that match the specified id (`-f` flag)",
+            "defaultValue" : false,
+            "visibilityCondition": "model.perform_deletion"
+        }
+    ]
+}

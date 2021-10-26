@@ -1,0 +1,52 @@
+<div class="sql-notebook-cells-list selectable-list" remaining-height style="background: #fafafa">
+    <div style="text-align: center; padding-top: 40px;color: #999;" ng-show="cells && !cells.length">
+        <h4>No query in this notebook</h4>
+    </div>
+
+    <div ng-show="cells.length" class="header">
+        <!-- {{cells.length}} cells -->
+        <div class="std-list-search-box">
+            <span class="add-on"> <i class="icon-dku-search"></i></span>
+            <input type="search" ng-model="notebookLocalState.cellsQuery" style="width: 256px;" placeholder="Filter..." ui-keydown="{'enter':'filterCells()'}"/>
+        </div>
+    </div>
+
+    <div ng-show="cells && cells.length && filteredCells != cells.length" style="padding: 2px 5px; color: #999; font-style: italic;">
+        Showing {{filteredCells}} of {{cells.length}} cells
+    </div>
+
+    <div class="list-body oa" style="height:{{remainingHeight-60}}px" ui-sortable="{axis:'y', cursor: 'move', handle: '.handle'}" ng-model="cells">
+        <div ng-repeat="cell in cells track by cell.id" ng-show="!cell.$tmpState.filteredOut">
+            <div class="item selectable-item horizontal-flex"
+                ng-class="{error: !cell.$tmpState.runningQuery && cell.$tmpState.results && !cell.$tmpState.results.success,
+                            success: !cell.$tmpState.runningQuery && cell.$tmpState.results.success
+                    }"
+                ng-show="!cell.$localState.selected"
+                full-click>
+                <span class="handle">&vellip;</span>
+                <a ng-click="selectCellAndScroll($index)" class="flex" ng-show="!cell.$localState.selected" main-click>
+                    <i class="icon-code" ng-if="cell.type == 'QUERY'" />
+                    <i class="icon-comment-alt" ng-if="cell.type == 'MARKDOWN'" />
+                    {{cell.name || cell.$localState.query.sql.trim() || (cell.type == 'QUERY' ? 'Empty query' : 'Comment')}}
+                </a>
+                <span class="noflex" ng-if="cell.$tmpState.runningQuery">
+                    <i class="icon-spinner icon-spin" />
+                </span>
+            </div>
+
+            <div class="item selectable-item horizontal-flex selected"
+                ng-show="cell.$localState.selected"
+                >
+                <span class="handle">&vellip;</span>
+                <span class="flex" ng-show="cell.$localState.selected">
+                    <i class="icon-code" ng-if="cell.type == 'QUERY'" />
+                    <i class="icon-comment-alt" ng-if="cell.type == 'MARKDOWN'" />
+                    {{cell.name || cell.$localState.query.sql.trim() || (cell.type == 'QUERY' ? 'Empty query' : 'Comment')}}
+                </span>
+                <span class="noflex" ng-if="cell.$tmpState.runningQuery">
+                    <i class="icon-spinner icon-spin" />
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

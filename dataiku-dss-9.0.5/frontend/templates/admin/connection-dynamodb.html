@@ -1,0 +1,106 @@
+<div ng-controller="DynamoDBConnectionController" class="h100 vertical-flex">
+    <div class="flex">
+        <div class="fh oa">
+            <div class="h100 small-lr-padding">
+                <div class="generic-white-box">
+                    <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                    <div block-api-error />
+
+                    <form name="connectionParamsForm" class="dkuform-horizontal" on-smart-change="testConnection()">
+                        <h2 class="settings-section-title">Connection</h2>
+
+                        <div class="control-group">
+                            <label class="control-label">
+                                Mode
+                            </label>
+                            <div class="controls">
+                                <label class="radio inline">
+                                    <input type="radio" name="modeRadio" ng-model="connection.params.mode" value="WEBSERVICE">
+                                    Use Web Service
+                                </label>
+                                <label class="radio inline">
+                                    <input type="radio" name="modeRadio" ng-model="connection.params.mode" value="LOCAL"> Use Local Instance
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="useDefaultCredentials" class="control-label">Use default credentials</label>
+                            <div class="controls">
+                                <input id="useDefaultCredentials" type="checkbox" ng-model="connection.params.useDefaultCredentials" />
+                                <span class="help-inline">Use credentials from environment, configuration files or instance profile.</span>
+                            </div>
+                        </div>
+                        <fieldset ng-if="!connection.params.useDefaultCredentials">
+                            <div class="control-group"
+                                 form-template-element
+                                 model="connection.params"
+                                 field="{name:'accessKey',type:'string', mandatory:!connection.params.useDefaultCredentials, label:'Access key'}" />
+
+                            <div class="control-group"
+                                 form-template-element
+                                 model="connection.params"
+                                 field="{name:'secretKey',type:'password', mandatory:!connection.params.useDefaultCredentials, label:'Secret key'}" />
+                        </fieldset>
+                        <div dku-if="connection.params.mode == 'WEBSERVICE'">
+                            <div class="control-group" form-template-element model="connection.params"
+                                field="{name:'regionOrEndpoint', type:'string', mandatory:true, label:'Region / Endpoint',
+                                tooltip:'AWS region (e.g. eu-west-1) or custom endpoint (e.g. http[s]://my.dynamodb.endpoint/)'}" />
+                            <div class="control-group">
+                                <label class="control-label">
+                                    Read/Write Capacity Mode
+                                </label>
+                                <div class="controls">
+                                    <label class="radio inline">
+                                        <input type="radio" name="rwCapacityModeRadio" ng-model="connection.params.rwCapacityMode" value="ON_DEMAND">
+                                        On-Demand Mode
+                                    </label>
+                                    <label class="radio inline">
+                                        <input type="radio" name="rwCapacityModeRadio" ng-model="connection.params.rwCapacityMode" value="PROVISIONED"> Provisioned Mode
+                                    </label>
+                                </div>
+                            </div>
+                            <div dku-if="connection.params.rwCapacityMode == 'PROVISIONED'">
+                                <fieldset>
+                                    <div class="control-group" form-template-element model="connection.params"
+                                         field="{name:'readCapacity', type:'long', mandatory:true, label:'Read Capacity Units'}" />
+                                    <div class="control-group" form-template-element model="connection.params"
+                                         field="{name:'writeCapacity', type:'long', mandatory:true, label:'Write Capacity Units'}" />
+                                </fieldset>
+                            </div>
+                        </div>
+                        <div dku-if="connection.params.mode == 'LOCAL'">
+                            <div class="control-group" form-template-element model="connection.params"
+                                 field="{name:'hostname', type:'string', mandatory:true, label:'HostName'}" />
+                            <div class="control-group" form-template-element model="connection.params"
+                                 field="{name:'port', type:'int', mandatory:true, label:'Port'}" />
+                        </div>
+                        <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                    </form>
+                </div>
+                <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                    <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="noflex small-lr-padding page-top-padding">
+        <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html" />
+
+        <div ng-show="testing" class="alert alert-info"> <i class="icon-spin icon-spinner" />Please wait, testing connection
+        </div>
+
+        <div ng-show="!connectionParamsForm.$invalid && testResult">
+            <div ng-show="!testResult.connectionOK && !testResult.configOK" class="alert alert-error"> <i class="icon-dku-error" />Connection failed, configuration problem: {{testResult.configErrorMsg}}
+            </div>
+            <div ng-show="!testResult.connectionOK && testResult.configOK" class="alert alert-error">
+                <i class="icon-dku-error" />
+                Connection failed: {{testResult.connectionErrorMsg}}
+            </div>
+            <div ng-show="testResult.connectionOK" class="alert alert-success">
+                <i class="icon-success" />
+                Connection OK
+            </div>
+        </div>
+    </div>
+</div>

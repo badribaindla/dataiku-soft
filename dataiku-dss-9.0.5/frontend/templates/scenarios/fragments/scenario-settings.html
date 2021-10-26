@@ -1,0 +1,135 @@
+<div class="h100 oa" ng-controller="ScenarioSettingsController">
+    <div block-api-error />
+	<div class="horizontal-centerer">
+		<div class="settings-section1 w800" >
+			<h1 class="settings-section1-title">Run</h1>
+			<form class="dkuform-horizontal settings-section2">
+				<div class="control-group">
+					<label for="" class="control-label">Auto-triggers</label>
+					<div class="controls">
+						<label class="dku-toggle" toggle="tooltip" title="{{ getAutoTriggerDisablingReason(appConfig, projectSummary) }}" style="margin-left: 0;">
+						<input type="checkbox" ng-disabled="getAutoTriggerDisablingReason(appConfig, projectSummary)" ng-model="scenario.active"/>
+                			<span style="display: inline-block" />
+                			<span class="help-inline" style="vertical-align: top">Run the scenario when a trigger activates.</span>
+                		</label>  
+					</div>
+				</div>
+                <div ng-include="'/templates/scenarios/fragments/scenario-delayed-triggers-behavior.html'"></div>
+				<div class="control-group" ng-if="appConfig.isAutomation">
+<!-- 					<label for="" class="control-label">Local scenario</label> -->
+<!-- 					<div class="controls"> -->
+<!-- 						<label class="dku-toggle disabled" style="margin-left: 0;" > -->
+<!--                 			<input type="checkbox" ng-model="scenario.automationLocal" ng-disabled="true"> -->
+<!--                 			<span style="display: inline-block" /> -->
+<!--                 			<span class="help-inline" style="vertical-align: top">The scenario is not cleared when importing a bundle.</span> -->
+<!--                 		</label> -->
+<!-- 					</div> -->
+					<label for="" class="control-label">Origin</label>
+					<div class="controls">
+						{{scenario.automationLocal ? 'local' : 'bundle'}}
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Run as</label>
+					<div class="controls" ng-if="allUsers">
+		                  <select dku-bs-select="{liveSearch:true}" ng-model="scenario.runAsUser" ng-options="user.login as user.login for user in allUsers">
+							  <option value="">Last author of scenario</option>
+		                  </select>
+					</div>
+				</div>
+                
+                <div ng-if="scenario.type == 'custom_python'" code-env-selection-form="scenario.params.envSelection" env-lang="'PYTHON'" selection-label="'Code env'"></div>
+                
+			</form>
+		</div>
+		<div class="settings-section1 w800" >
+			<h1 class="settings-section1-title" style="margin-bottom: 10px;">
+				Triggers
+<!--                 trigger execution info -->
+<!--                 <div ng-if="triggersExecuting && !triggersExecuting.aborted && triggersExecuting.alive"  -->
+<!--                     custom-element-popup cep-position="align-right-bottom" close-on-click="true" class="popover-btn" title="Run triggers..." style="display: inline-block;"> -->
+<!--                     <i class="icon-spin icon-spinner icon-caret-down mainzone cursor-pointer" ng-click="togglePopover(); $event.stopPropagation();"></i> -->
+<!--                     <ul class="popover custom-element-popup-popover dropdown-menu"> -->
+<!--                         <li class="nav-header" style="text-transform: none;"> -->
+<!--                         {{triggersExecuting.progress.states[0].name}} -->
+<!--                         </li> -->
+<!--                         <li> -->
+<!--                             <a ng-click="abortTriggerExecution()">Abort</a> -->
+<!--                         </li> -->
+<!--                     </ul> -->
+<!--                 </div> -->
+				<!-- add trigger button -->
+				<div class="add-trigger pull-right" custom-element-popup cep-position="smart" close-on-click="true" new-custom-python-trigger-menu>
+					<button ng-click="togglePopover()" class="mainzone btn btn--secondary dropdown-toggle">Add trigger <span class="caret"></span></button>
+					<ul class="popover custom-element-popup-popover dropdown-menu">
+						<li full-click>
+							<a ng-click="addTrigger({'type': 'temporal', 'active' : true, 'params' : {'frequency' : 'Hourly', 'hour' : 0, 'minute' : 0, 'count' : 1}})">Time-based trigger</a>
+						</li>
+						<li full-click>
+							<a ng-click="addTrigger({'type': 'ds_modified', 'active' : true, 'params' : {'watches' : []}})">Trigger on dataset change</a>
+						</li>
+						<li full-click>
+							<a ng-click="addTrigger({'type': 'sql_query', 'active' : true, 'params' : {'connection' : '', 'sql' : '', hasLimit : true, limit : 10000}})">Trigger on sql query change</a>
+						</li>
+						<li full-click>
+							<a ng-click="addTrigger({'type': 'follow_scenariorun', 'active' : true, 'params' : {}})">Trigger after scenario</a>
+						</li>
+						<li full-click>
+							<a ng-click="addTrigger({'type': 'custom_python', 'active' : true, 'params' : {'envSelection': {'envMode' : 'INHERIT'}, 'code' : 'from dataiku.scenario import Trigger\nt = Trigger()\nif True: # your condition here\n    t.fire()'}})">Custom trigger</a>
+						</li>
+                        <li ng-if="displayedItems.length > 0" class="divider" />
+                        <li ng-repeat="result in displayedItems" ng-class="{'dropdown-submenu' : result.isSection}">
+                
+                            <a ng-if="result.isSection" href> <i class="{{result.icon}}" />&nbsp;{{result.label}}
+                            </a>
+                            <ul class="dropdown-menu" ng-if="result.isSection">
+                                <li ng-repeat="item in result.items">
+                                    <a ng-if="item.isInfo" ng-click="displayPluginInfo(item.pluginId, true, false)">Learn more...</a>
+                
+                                    <a ng-if="!item.isInfo && !item.disabled" ng-click="addTrigger({'type': item.desc.triggerType, 'active' : true, 'params' : {'config' : {}}})"> <i class="{{item.icon}}" />&nbsp;{{item.label}}</a>
+                
+                                     <a ng-if="!item.isInfo && item.disabled" class="dataset-disabled" title="{{item.reason}}" class="disabled"> <i class="{{item.icon}}" />&nbsp;{{item.label}}</a>
+                                </li>
+                            </ul>
+                
+                            <a ng-click="create(item)" ng-if="!result.isSection && !result.disabled">
+                                <i class="{{result.icon}}" />
+                                {{result.label}}
+                            </a>
+                        </li>
+					</ul>
+				</div>
+			</h1>
+			<ul class="item-list">
+				<li ng-repeat="trigger in scenario.triggers track by $id(trigger)">
+                    <ng-include ng-if="trigger.type && trigger.type === 'temporal'" src="'/templates/scenarios/temporal-trigger-editor.html'"></ng-include>
+					<ng-include ng-if="trigger.type && trigger.type.startsWith('pytrigger_')" src="'/templates/scenarios/plugin-python-trigger-editor.html'"></ng-include>
+                    <ng-include ng-if="trigger.type && !trigger.type.startsWith('pytrigger_') && !trigger.type.startsWith('temporal')" src="'/templates/scenarios/' + trigger.type + '-trigger-editor.html'"></ng-include>
+					<div ng-if="lastTriggerRuns[trigger.id] != null" >
+						<div ng-init="run = lastTriggerRuns[trigger.id]">
+							<span>Last triggered on {{run.timestamp|date: 'yyyy/MM/dd HH:mm:ss'}}</span>
+						</div>
+					</div>
+				</li>
+			</ul>
+		</div>
+		<div class="settings-section1 w800" >
+			<h1 class="settings-section1-title" style="margin-bottom: 10px;">
+				Reporters
+				<div class="add-trigger pull-right" custom-element-popup cep-position="smart" close-on-click="true">
+					<button ng-click="togglePopover()" class="mainzone btn btn--secondary dropdown-toggle">Add reporter <span class="caret"></span></button>
+					<ul class="popover custom-element-popup-popover dropdown-menu">
+						<li full-click ng-repeat="it in availableIntegrationTypes">
+							<a ng-click="addReporter(it.id)">{{it.label}}</a>
+						</li>
+					</ul>
+				</div>
+			</h1>
+			<ul class="item-list">
+				<li ng-repeat="reporter in scenario.reporters track by $id(reporter)">
+					<ng-include src="'/templates/scenarios/reporter-editor.html'"></ng-include>
+				</li>
+			</ul>
+		</div>
+	</div>
+</div>

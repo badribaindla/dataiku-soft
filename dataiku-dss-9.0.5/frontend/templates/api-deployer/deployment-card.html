@@ -1,0 +1,155 @@
+<div class="standard-widget deployment-card"
+     ng-click="redirect()"
+     ng-class="{'standard-widget--disabled': deploymentStatus.currentState === 'DISABLED',
+        'standard-widget--warning': deploymentStatus.currentState === 'WARNING' || deploymentStatus.currentState === 'UNKNOWN' || deploymentStatus.currentState === 'OUT_OF_SYNC',
+        'standard-widget--error': deploymentStatus.currentState === 'LOADING_FAILED' || deploymentStatus.currentState === 'ERROR' || deploymentStatus.currentState === 'UNHEALTHY'}">
+    <div class="standard-container__header standard-container__header--with-totem deployment-card__header simple-columns"
+         style="padding-left: 4px; border-left: 8px {{TaggingService.getDefaultColor(lightStatus.serviceBasicInfo.id)}} solid">
+        <div class="standard-container__titles vertical-flex">
+            <h5 class="vertical-flex standard-container__title">
+                <a ng-show="!dashboardTile"
+                   class="link-object"
+                   ui-sref="apideployer.services.service.status({ serviceId: lightStatus.serviceBasicInfo.id})"
+                   show-tooltip-on-text-overflow
+                   text-tooltip="lightStatus.serviceBasicInfo.name || lightStatus.serviceBasicInfo.id"
+                   tooltip-direction="'tooltip-top'"
+                   observe-resize="false">
+                </a>
+                <div class="deployment-card__header-title"
+                     show-tooltip-on-text-overflow
+                     text-tooltip="lightStatus.serviceBasicInfo.name || lightStatus.serviceBasicInfo.id"
+                     tooltip-direction="'tooltip-top'"
+                     observe-resize="false"
+                     ng-show="dashboardTile"></div>
+            </h5>
+            <div class="horizontal-flex aic">
+                <i class="icon-dku-api-version"></i>
+                <a class="link-object padleft4 deployment-card__header-title"
+                   ng-show="!dashboardTile"
+                   ui-sref="apideployer.services.service.status({ serviceId: lightStatus.serviceBasicInfo.id, versions: APIDeployerDeploymentUtils.getParticipatingVersions(lightStatus.deploymentBasicInfo)})"
+                   show-tooltip-on-text-overflow
+                   text-tooltip="lightStatus.deploymentBasicInfo | deploymentToGenerationList"
+                   tooltip-direction="'tooltip-top'"
+                   observe-resize="false">
+                </a>
+                <div class="padleft4 text-weak deployment-card__header-title"
+                     ng-show="dashboardTile"
+                     show-tooltip-on-text-overflow
+                     text-tooltip="lightStatus.deploymentBasicInfo | deploymentToGenerationList"
+                     tooltip-direction="'tooltip-top'"
+                     observe-resize="false"></div>
+            </div>
+            <div class="text-weak noflex deployment-card__header-title" show-tooltip-on-text-overflow text-tooltip="lightStatus.deploymentBasicInfo.id" tooltip-direction="'tooltip-top'" observe-resize="false"></div>
+        </div>
+        <div class="status-icon">
+            <i class="{{deploymentStatus.currentState |deploymentHealthToIcon}}" title="{{deploymentStatus.message}}" data-container="body" toggle="tooltip"></i>
+        </div>
+    </div>
+    <div class="pad8 deployment-card__body">
+        <ul class="standard-container__list deployment-card__list">
+            <li class="standard-container__list-item standard-container__list-item--single-row" ng-if="!dashboardTile">
+                <span class="standard-container__list-item-title">Created</span>
+                <div class="standard-container__list-item-body horizontal-flex">
+                    <div class="flex-no-shrink"
+                         title="{{ lightStatus.deploymentBasicInfo.creationTag.lastModifiedOn | date:'yyyy-MM-dd – HH:mm:ss' }}"
+                         toggle="tooltip"
+                         placement="top"
+                         container="body">
+                        {{ lightStatus.deploymentBasicInfo.creationTag.lastModifiedOn | friendlyTimeDeltaShort }} by&nbsp;
+                    </div>
+                    <a class="flex-no-grow link-object mx-textellipsis"
+                       title="{{ lightStatus.deploymentBasicInfo.createdByDisplayName || lightStatus.deploymentBasicInfo.creationTag.lastModifiedBy.login }}"
+                       href="/profile/{{ lightStatus.deploymentBasicInfo.creationTag.lastModifiedBy.login }}/"
+                       toggle="tooltip"
+                       placement="top"
+                       container="body">
+                        {{ lightStatus.deploymentBasicInfo.createdByDisplayName || lightStatus.deploymentBasicInfo.creationTag.lastModifiedBy.login }}
+                    </a>
+                </div>
+            </li>
+            <li class="standard-container__list-item standard-container__list-item--single-row">
+                <span class="standard-container__list-item-title">Updated</span>
+                <div class="standard-container__list-item-body horizontal-flex">
+                    <div class="flex-no-shrink"
+                         title="{{ lightStatus.deploymentBasicInfo.versionTag.lastModifiedOn | date:'yyyy-MM-dd – HH:mm:ss' }}"
+                         toggle="tooltip"
+                         placement="top"
+                         container="body">
+                        {{ lightStatus.deploymentBasicInfo.versionTag.lastModifiedOn | friendlyTimeDeltaShort }} by&nbsp;
+                    </div>
+                    <a class="flex-no-grow link-object mx-textellipsis" ng-href="{{ dashboardTile ? '' : '/profile/' + lightStatus.deploymentBasicInfo.versionTag.lastModifiedBy.login+'/'}}"
+                       ng-show="!dashboardTile"
+                       title="{{ lightStatus.deploymentBasicInfo.lastModifiedByDisplayName || lightStatus.deploymentBasicInfo.versionTag.lastModifiedBy.login }}"
+                       toggle="tooltip"
+                       placement="top"
+                       container="body">
+                        {{ lightStatus.deploymentBasicInfo.lastModifiedByDisplayName || lightStatus.deploymentBasicInfo.versionTag.lastModifiedBy.login }}
+                    </a>
+                    <div class="flex-no-grow mx-textellipsis" ng-show="dashboardTile"
+                         ng-show="dashboardTile"
+                         title="{{ lightStatus.deploymentBasicInfo.lastModifiedByDisplayName || lightStatus.deploymentBasicInfo.versionTag.lastModifiedBy.login }}"
+                         toggle="tooltip"
+                         placement="top"
+                         container="body">
+                        {{ lightStatus.deploymentBasicInfo.lastModifiedByDisplayName || lightStatus.deploymentBasicInfo.versionTag.lastModifiedBy.login }}
+                    </div>
+                </div>
+            </li>
+            <li class="standard-container__list-item standard-container__list-item--single-row">
+                <span class="standard-container__list-item-title">Deployed on</span>
+                <span class="standard-container__list-item-body">
+                    <i class="icon-infra universe-color api-deployer"></i>
+                    <a ng-if="!dashboardTile"
+                       ui-sref="apideployer.infras.infra.status({ infraId: lightStatus.infraBasicInfo.id})"
+                       class="link-object padleft4 deployment-card__list-single-row-body-text">
+                        <div show-tooltip-on-text-overflow text-tooltip="lightStatus.infraBasicInfo.id" tooltip-direction="'tooltip-top'" observe-resize="false"></div>
+                    </a>
+                    <div ng-if="dashboardTile"
+                         show-tooltip-on-text-overflow
+                         text-tooltip="lightStatus.infraBasicInfo.id"
+                         tooltip-direction="'tooltip-top'" observe-resize="false"
+                         class="padleft4 deployment-card__list-single-row-body-text"></div>
+                </span>
+            </li>
+            <li class="standard-container__list-item standard-container__list-item--single-row" ng-if="!dashboardTile && lightStatus.infraBasicInfo.type == 'K8S'">
+                <span class="standard-container__list-item-title">K8S replicas</span>
+                <span class="standard-container__list-item-body">{{ heavyStatus.availableReplicas }}</span>
+            </li>
+            <li class="standard-container__list-item standard-container__list-item--single-row" ng-if="!dashboardTile && lightStatus.infraBasicInfo.type == 'K8S'">
+                <span class="standard-container__list-item-title">K8S depl. name</span>
+                <span class="standard-container__list-item-body">
+                    <div show-tooltip-on-text-overflow
+                         text-tooltip="heavyStatus.k8sDeploymentName"
+                         class="deployment-card__list-single-row-body-text"></div>
+                </span>
+            </li>
+            <li class="standard-container__list-item">
+                <tag-edit-popover ng-model="lightStatus.deploymentBasicInfo.tags"
+                           object-type="'LAMBDA_SERVICE'"
+                           editable="false"
+                           responsive="dashboardTile"
+                           manage-link="false"
+                           class="tags-field">
+                </tag-edit-popover>
+            </li>
+            <li class="standard-container__list-item sparkline-container" ng-if="showMonitoring && dashboardTile">
+                <div class="status-icon" ng-if="lightStatus.infraBasicInfo.carbonAPIEnabled  && (deploymentStatus.currentState == 'HEALTHY' || deploymentStatus.currentState == 'WARNING')">
+                    <div class="h100 w100" sparkline="heavyStatus.sparkline" ng-if="heavyStatus.sparkline"/>
+                    <i class="dku-loader icon-spin" ng-if="!heavyStatus.sparkline && !lightStatus.failedToLoadSparkline"/>
+                    <i class="icon-dku-warning"
+                       ng-class="{'text-error': !lightStatus.failedToLoadSparkline.noDataPoint}"
+                       title="{{ lightStatus.failedToLoadSparkline.detailedMessage }}"
+                       container="body"
+                       toggle="tooltip"
+                       ng-if="lightStatus.failedToLoadSparkline"/>
+                </div>
+                <div class="deployment-card__empty text-prompt" ng-if="lightStatus.infraBasicInfo.carbonAPIEnabled && !(deploymentStatus.currentState == 'HEALTHY' || deploymentStatus.currentState == 'WARNING')">
+                    Could not fetch monitoring data
+                </div>
+                <div class="deployment-card__empty text-prompt" ng-if="!lightStatus.infraBasicInfo.carbonAPIEnabled">
+                    Monitoring not enabled for this infra
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>

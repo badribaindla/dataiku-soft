@@ -1,0 +1,64 @@
+<div class="modal modal3 modal-w800 bundle-check-result-modal" auto-size="false" ng-controller="DesignBundleCheckResultModalController">
+
+    <div class="vertical-flex h100">
+        <dku-modal-header modal-class="has-border noflex" >
+            <dku-modal-title>
+                Bundle reversion check for: "{{checkResult.bundleId}}"
+            </dku-modal-title>
+        </dku-modal-header>
+
+        <div class="modal-body flex" ng-switch="uiState.activeTab">
+            <div ng-if="checkResult.error" class="alert alert-danger">
+                <h4>Validation failed</h4>
+                Fatal errors were encountered
+            </div>
+
+            <div ng-if="!checkResult.error && checkResult.warning" class="alert alert-warning">
+                <h4>Validation passed with warnings</h4>
+            </div>
+
+            <div ng-if="!checkResult.error && !checkResult.warning" class="alert alert-info">
+                <h4>Validation successful</h4>
+            </div>
+
+            <div ng-if="hasUDMConflict">
+                Conflicts were detected between the current user defined meanings and the meanings stored in the bundle.<br/>
+            </div>
+
+            <ul class="raw-unstyled-ul">
+                <li ng-repeat="message in checkResult.messages" class="row-fluid info-message-inline-display">
+                    <div class="span2">
+                        <span class="{{DKUConstants.design.alertClasses[message.severity]}} severity">{{message.severity}}</span>
+                    </div>
+                    <div class="span10">
+                        <div class="pull-right" ng-show="message.udmId" style="margin-top: 10px;">
+                            <label style="display: inline-block; font-size: 13px;">
+                                <input type="radio" ng-model="importOptions.meaningsToImport[message.udmId]" ng-value="false" style="vertical-align: top; margin-right: 3px;"/>
+                                Keep current
+                            </label>
+                            <label style="display: inline-block; font-size: 13px;">
+                                <input type="radio" ng-model="importOptions.meaningsToImport[message.udmId]" ng-value="true" style="vertical-align: top; margin-left: 10px; margin-right: 2px;"/>
+                                Use bundle version
+                            </label>
+                            <a style="padding-left: 10px;" ng-click="showDiff=!showDiff">{{showDiff ? 'hide diff' : 'show diff'}}</a>
+                        </div>
+                        <h5>{{message.title}}</h5>
+
+                        {{message.message}}
+
+
+                        <div class="diff" ng-class="{visible: showDiff}" ng-if="message.udmId">
+                            <div class="dku-file-diff">
+                                <pre ng-bind-html="message.formattedDiff" />
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div data-block="modal-footer-block " class="modal-footer modal-footer-std-buttons noflex">
+            <button class="btn btn--text btn--secondary" ng-click="dismiss()">Close</button>
+            <button class="btn btn--text btn--primary" ng-click="doRevert()">Revert project</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,348 @@
+<div class="grouping-recipe visual-recipe-with-steps" ng-show="topNav.tab == 'settings'" close-tooltips-on-exit>
+    <div class="main-recipe-content dss-page vertical-flex">
+        <div block-api-error />
+        <div class="flex" style="position: relative;">
+            <div class="leftPane vertical-flex">
+                <div class="steps flex">
+                    <div recipe-step="inputs" class="inputs"/>
+                    <div recipe-step="preFilter" step-label="Pre-filter"/>
+                    <div recipe-step="computedColumns" step-label="Computed columns"/>
+                    <div recipe-step="group" step-label="Group"/>
+                    <div recipe-step="customValues" step-label="Custom aggregations"/>
+                    <div recipe-step="postFilter" step-label="Post-filter"/>
+                    <div recipe-step="output" step-label="Output"/>
+                    <div ng-if="recipeStatus.topLevelMessages.anyMessage" recipe-step="topLevelMessages" step-label="Warnings" />
+                </div>
+                <div class="run noflex" ng-if="params">
+                    <div include-no-scope="/templates/recipes/visual-recipes-fragments/visual-recipe-run.html"/>
+                    <div engine-selector-button
+                        recipe-status="recipeStatus"
+                        recipe-params="params"
+                        update-status="hooks.updateRecipeStatus"
+                        can-change-engine="canChangeEngine"
+                        />
+                </div>
+            </div>
+
+            <div class="mainPane fh oa" ng-if="params && computablesMap">
+                <div ng-show="uiState.currentStep == 'group'" class="padded-step-settings main-step h100 vertical-flex" style="padding-bottom: 0" close-tooltips-on-exit >
+                    <div class="keys noflex">
+                        <div class="recipe-settings-section1" style="margin: 0;">
+                            <h1 class="recipe-settings-section1-title">Group Keys</h1>
+
+                            <div class="recipe-settings-section2">
+                                <div class="explanation">
+                                    Create a group for each unique combination of these variables
+                                </div>
+                                <ul style="margin: 15px 0 5px 0;">
+                                    <li ng-repeat="col in params.keys" class="column-label-box">
+                                        <div class="horizontal-flex">
+                                            <span class="flex name qa_recipe_group-column-name">
+                                                {{col.column}}
+                                            </span>
+                                            <span class="noflex">
+                                                <small class="type">{{col.type}}</small>
+                                                <a ng-click="removeGroupKey(col);hooks.updateRecipeStatus()"
+                                                    title="remove from group keys">
+                                                    <i class="icon-trash"/>
+                                                </a>
+                                            </span>
+                                        </div>
+                                    </li>
+                                </ul>
+                                <div class="nokeys-message alert" ng-show="params.keys.length===0">
+                                    Add a column or a custom key to group by
+                                    <div class="group-key-selector">
+                                        <select dku-bs-select="{liveSearch: true, width: 200, noneSelectedText: 'Select key to add'}"
+                                            ng-model="groupKeyToAdd"
+                                            ng-options="val as val.column for val in params.values"
+                                            watch-model="params.values"
+                                            class="qa_recipe_group-select-key"
+                                            />
+                                        <a class="btn btn--success qa_recipe_group-add-key" ng-click="addGroupKey(groupKeyToAdd);groupKeyToAdd=null;" ng-disabled="!groupKeyToAdd">
+                                            Add
+                                        </a>
+                                        <span>or</span>
+                                        <a ng-click="uiState.currentStep = 'computedColumns'">
+                                            create a new computed column
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="group-key-selector" ng-show="params.keys.length>0">
+                                    <select dku-bs-select="{liveSearch: true, width: 200, noneSelectedText: 'Select key to add'}"
+                                        ng-model="groupKeyToAdd"
+                                        ng-options="val as val.column for val in params.values"
+                                        watch-model="params.values"
+                                        class="qa_recipe_group-select-key"
+                                        />
+                                    <a class="btn btn--success qa_recipe_group-add-key" ng-click="addGroupKey(groupKeyToAdd); groupKeyToAdd = null;" ng-disabled="!groupKeyToAdd">
+                                        Add
+                                    </a>
+                                    <span>or</span>
+                                    <a ng-click="uiState.currentStep = 'computedColumns'">
+                                        create a new computed column
+                                    </a>
+                                </div>
+
+                                <div class="global-count" style="margin:0">
+                                    <label class="switch" ng-class="{active: params.globalCount}">
+                                        <input type="checkbox" ng-model="params.globalCount" ng-change="updateRecipeStatusLater(700)" id="qa_recipe_compute-count-checkbox">
+                                        Compute count for each group
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex values" style="margin-top:20px">
+                    <div class="recipe-settings-section1 fh oa vertical-flex">
+                        <h1 class="recipe-settings-section1-title noflex">
+                            Per field aggregations
+                            <span>Select <span class="greenbtn">Aggregations</span> to be computed for each field</span>
+                        </h1>
+                        <div class="flex vertical-flex recipe-settings-field-agg" filtered-multi-select-rows ng-model="realValues">
+                            <div class="noflex fattable-default-header">
+                                <div>
+                                    <div custom-element-popup class="mass-action-btn" cep-position="align-left-bottom" cep-offset-left="-26" close-on-click="false" style="margin-left: -5px; margin-right: 5px;">
+                                        <input type="checkbox"
+                                            ng-model="selection.all"
+                                            dku-indeterminate="selection.some"
+                                            ng-change="updateMassSelectionCheckbox();">
+
+                                        <a class="mainzone dropdown-toggle" id="qa_recipe_grouping-mass-action-dropdown"
+                                            ng-click="recomputeAggregationStates(selection.selectedObjects);togglePopover()"
+                                            ng-class="{disabled:selection.none}">
+                                            <span ng-hide='selection.none'>ACTIONS</span>
+                                            <b class="caret"></b>
+                                        </a>
+                                        <ul class="popover custom-element-popup-popover dropdown-menu">
+                                            <div class="section">
+                                                <div class="section-content">
+                                                    <ul class="nav dropdown" style="padding: 10px 10px;margin: 0;">
+                                                        <li>
+                                                            <small>Enable/disable aggregations</small>
+                                                        </li>
+                                                        <li ng-repeat="agg in aggregationTypes track by agg.name">
+                                                            <label>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    class="qa_recipe_grouping-mass-action-checkbox"
+                                                                    ng-model="aggregation.all[agg.name]"
+                                                                    ng-disabled="aggregation.disabled[agg.name]"
+                                                                    dku-indeterminate="aggregation.some[agg.name]"
+                                                                    ng-change="massAction(agg, selection.selectedObjects)"
+                                                                    style="margin: 0 4px" />
+                                                                <span ng-class="{disabled:aggregation.disabled[agg.name]}">{{agg.tooltip || agg.label}}</span>
+                                                            </label>
+                                                        </li>
+                                                        <li>
+                                                            <small>Group keys</small>
+                                                        </li>
+                                                        <li>
+                                                            <a ng-click="massUseAsKeys()">
+                                                                Use as group keys
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </ul>
+                                    </div>
+
+                                    <div>
+                                        {{selection.selectedObjects.length}} / {{selection.allObjects.length}}
+                                    </div>
+
+                                    <div class="filter std-list-search-box">
+                                        <span class="add-on"><i class="icon-dku-search"/></span>
+                                        <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Filter column..." style="width: 250px">
+                                    </div>
+
+                                    <div>
+                                        <input ng-model="uiState.hideUseless" type="checkbox" />
+                                        <small>Hide unused variables</small>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="flex aggregations fattable-default-style" fat-repeat="selection.filteredObjects" as="column" row-height="35" tabindex="0" style="outline:none" ng-keydown="multiSelectKeydown($event, true)">
+                                <div class="aggregation" ng-class="{selected: column.$selected}" full-click>
+                                    <div class="unselectable column-checkbox">
+                                        <span style="display:none;" main-click ng-click="objectClicked(column, $event)"></span> <!-- because checkbox click is prioritary -->
+                                        <div class="mass unselectable">
+                                            <input type="checkbox" ng-model="column.$selected" ng-click="checkBoxChanged(column, $event)" class="qa_recipe_aggregation-checkbox">
+                                        </div>
+                                    </div>
+                                    <div class="unselectable column-name">
+                                        <div class="mx-textellipsis" title="{{column.column}}" ng-bind-html="column.column | boldify:selection.filterParams.userQueryResult"></div>
+                                    </div>
+                                    <div class="column-add-group-key" ng-click="addGroupKey(column)">
+                                        + Group key
+                                    </div>
+                                    <div class="column-type border-right">
+                                        <div style="width: 50px; padding-right: 5px;">{{column.type}}</div>
+                                    </div>
+                                    <div ng-repeat="agg in aggregationTypes track by agg.name" class="column-agg agg-{{agg.name}}">
+                                        <label class="dku-labelled-toggle"
+                                            container="body"
+                                            toggle="tooltip"
+                                            placement="left"
+                                            title="{{
+                                                !engineCanAggr(agg) ? 'Not supported by this engine' :
+                                                !colCanAggr(column, agg) ? 'Not available with type '+column.type :
+                                                agg.tooltip}}">
+                                            <input type="checkbox" ng-model="column[agg.name]" ng-change="updateRecipeStatusLater(700)" ng-disabled="!colCanAggr(column, agg)"/>
+                                            <span>{{agg.label}}</span>
+                                        </label>
+                                    </div>
+                                    <div class="agg-options">
+                                        <span custom-element-popup cep-position="align-right-bottom" ng-if="column.first || column.last || column.concat">
+                                            <a class="mainzone dropdown-toggle" ng-click="togglePopover()" ng-init="initColumnExtraFields(column)">
+                                                <i class="icon-cog" style="color:#999;margin-left: 4px;position: relative;top: 1px;"/>
+                                            </a>
+                                            <div class="popover custom-element-popup-popover dropdown-menu pull-right simple dkuform-horizontal" style="padding: 10px 20px; z-index: 10;">
+                                                <div class="aggregate-popup fattable-popup">
+                                                    <div class="ordered-by" ng-if="column.first || column.last">
+                                                        First/Last ordered by:
+                                                        <select dku-bs-select="{liveSearch:true,width:150}"
+                                                            ng-model="column.orderColumn"
+                                                            ng-options="column.name as column.name for column in getColumns()"
+                                                            />
+                                                    </div>
+                                                    <div container="body" toggle="tooltip" placement="left" title="{{engineCanAggrType('FIRST_NOTNULL') ? null : 'Not available with this engine or DB'}}">
+                                                        <div class="first-last-ignore-nulls" ng-if="column.first || column.last" ng-disabled="engineCanAggrType('FIRST_NOTNULL') != true">
+                                                            First/Last not null:
+                                                            <input type="checkbox" ng-model="column.firstLastNotNull"/>
+                                                        </div>
+                                                    </div>
+                                                    <div ng-if="column.concat && (column.first || column.last)" style="height: 10px;"> </div>
+                                                    <div class="concat-separator" ng-if="column.concat">
+                                                        Concat separator:
+                                                        <input type="text" ng-trim="false" ng-model="column.concatSeparator" style="width: 30px;"/>
+                                                    </div>
+                                                    <div container="body" toggle="tooltip" placement="left" title="{{engineCanAggrType('CONCAT_DISTINCT') ? null : 'Not available with this engine or DB'}}">
+                                                        <div class="concat-distinct" ng-if="column.concat" ng-disabled="engineCanAggrType('CONCAT_DISTINCT') != true">
+                                                            Concat distinct:
+                                                            <input type="checkbox" ng-model="column.concatDistinct"/>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+
+                <div class="computed-columns padded-step-settings" ng-show="uiState.currentStep == 'customValues'">
+                    <div class="formbased-recipe-infozone" style="margin:0">
+                        <h1 class="recipe-settings-section1-title control-label">
+                            Custom aggregations
+                        </h1>
+                        <div class="recipe-settings-section2">
+                            <div class="explanation">
+                                Custom aggregations let you define aggregations using SQL.
+                                <div ng-show="getCulstomValues().length">
+                                    <!-- TODO indicate quoting characters -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <ul>
+                        <li ng-repeat="col in params.values"
+                            computed-column-editor
+                            columns="listColumnsForCumstomColumnsEditor"
+                            class="computed-column"
+                            ng-class="{'invalid': InfoMessagesUtils.getMessageAtLine(recipeStatus.customValues, $index)}"
+                            ng-if="!col.column"
+                            >
+                            <a class="pull-right" ng-click="params.values.splice($index, 1);hooks.updateRecipeStatus();"><i times-icon /></a>
+                            <div class="column-name limited-width" title="{{InfoMessagesUtils.getMessageAtLine(recipeStatus.customValues, $index).message}}">
+                                <input
+                                    type="text"
+                                    class="name-editor"
+                                    ng-model="col.customName"
+                                    ng-blur="hooks.updateRecipeStatus()"
+                                    ng-keyup="keyDownOnNameEditor($event)"
+                                    placeholder="Name ..."
+                                    required
+                                    />
+                            </div>
+                            <div class="column-expression">
+                                <div class="editor">
+                                    <div style="margin-bottom:4px">
+                                        <select dku-bs-select="{titlePrefix:'Store as'}"
+                                            ng-model="col.type"
+                                            ng-options="col.name as col.label for col in columnTypes"
+                                            ng-init="col.type = col.type || 'DOUBLE'"
+                                            ng-blur="hooks.updateRecipeStatus()"
+                                            >
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <textarea
+                                            class="sql-editor"
+                                            ng-model="col.customExpr"
+                                            ui-codemirror="sqlEditorOptions"
+                                            ng-if="sqlEditorOptions"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="error-message" ng-show="InfoMessagesUtils.getMessageAtLine(recipeStatus.customValues, $index)">{{InfoMessagesUtils.getMessageAtLine(recipeStatus.customValues, $index).message}}</div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div style="text-align: center">
+                        <a class="btn btn--secondary" ng-click="addCustomValue()">
+                            <i plus-icon /> Add custom aggregation
+                        </a>
+                    </div>
+                </div>
+
+                <div ng-if="uiState.currentStep == 'preFilter'"
+                    class="padded-step-settings"
+                    ng-scope="{{filterDesc=params.preFilter; dataset=recipe.inputs['main'].items[0].ref; schema=computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema}}">
+                    <div ng-include="'/templates/recipes/visual-recipes-fragments/inline-filter.html'"/>
+                    <div class="text-error" ng-show="InfoMessagesUtils.getMessageAtLine(recipeStatus.preFilter, 1)">
+                        Database error: {{InfoMessagesUtils.getMessageAtLine(recipeStatus.preFilter, 1).message}}
+                    </div>
+                    <div ng-show="params.preFilter.enabled && params.preFilter.uiData.mode == 'CUSTOM'" grel-reference-and-examples></div>
+                </div>
+
+                <div ng-if="uiState.currentStep == 'computedColumns'"
+                    class="padded-step-settings h100 oa"
+                    computed-column-step
+                    computed-column-list-desc="uiState.computedColumns"
+                    dataset="recipe.inputs['main'].items[0].ref"
+                    schema="computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema"
+                    computed-column-list-update-callback="onComputedColumnListUpdate">
+                </div>
+
+                <div ng-if="uiState.currentStep == 'postFilter'"
+                    class="padded-step-settings"
+                    ng-scope="{{
+                        filterDesc=params.postFilter;
+                        schema=recipeStatus.outputSchemaBeforeOverride
+                    }}">
+                    <div ng-include="'/templates/recipes/visual-recipes-fragments/inline-filter.html'"/>
+                    <div class="text-error" ng-show="InfoMessagesUtils.getMessageAtLine(recipeStatus.postFilter, 1)">
+                        Database error: {{InfoMessagesUtils.getMessageAtLine(recipeStatus.postFilter, 1).message}}
+                    </div>
+                    <div ng-show="params.postFilter.enabled && params.postFilter.uiData.mode == 'CUSTOM'" grel-reference-and-examples></div>
+                </div>
+
+                <div ng-show="uiState.currentStep == 'output'" class="fh">
+                    <div data-extend-template="/templates/recipes/visual-recipes-fragments/run-summary.html" class="h100"/>
+                </div>
+
+                <div data-extend-template="/templates/recipes/visual-recipes-fragments/visual-sql-top-level-messages.html" />
+            </div>
+        </div>
+    </div>
+</div>

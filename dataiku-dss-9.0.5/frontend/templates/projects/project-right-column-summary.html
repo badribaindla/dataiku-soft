@@ -1,0 +1,102 @@
+<div class="project-right-column-summary right-column-summary h100">
+
+    <div class="forbidden" ng-if="rightColumnItem.isForbidden">
+        <h4 class="notselected small-lr-padding">You don't have access to this project</h4>
+    </div>
+
+    <div ng-if="!rightColumnItem.isForbidden" class="vertical-flex h100">
+        <div class="project-tile column-header noflex">
+            <!-- Image -->
+            <div class="project-image column-header-image">
+                <a href="{{$state.href('projects.project.home.regular', {projectKey : project.projectKey})}}" main-click>
+                    <croped-project-picture 
+                    project-name="project.name"
+                    project-key="project.projectKey"
+                    img-color="project.imgColor",
+                    img-pattern="project.imgPattern",
+                    show-initials="project.showInitials",
+                    object-type="'PROJECT'"
+                    object-id="project.projectKey"
+                    object-img-hash = "project.objectImgHash"
+                    size-x="80"
+                    size-y="170"
+                    ng-if="project"
+                    />
+                </a>
+            </div>
+            <!-- Project Title -->
+            <div class="column-header-title">
+                <h3 ng-show="project.effectivePermission == 'READER'">
+                    <a href="{{ $state.href('projects.project.pinboard',  {projectKey : project.projectKey}) }}" main-click>{{project.name}}</a>
+                </h3>
+                <h3 ng-show="project.effectivePermission != 'READER'">
+                    <a href="{{$state.href('projects.project.home.regular', {projectKey : project.projectKey})}}" main-click>{{project.name}}</a>
+                </h3>
+            </div>
+        </div>
+        
+        <div class="flex oa">
+            <!-- Project Meta -->
+            <div class="project-meta column-panel">
+                <!-- Project Status -->
+                <div class="project-status" ng-if="project.projectStatus">
+                    <span class="status-color" style="background-color:{{getProjectStatusColor(project.projectStatus)}};"></span> <span class="status-title">{{project.projectStatus}}</span>
+                </div>
+                <!-- Description -->
+                <div class="project-description">
+                    <div from-markdown = "project.shortDesc || project.description" class="description description-on-home" />
+                </div>
+                <!-- Tags -->
+                <div class="project-tags row-cell" ng-click="isProjectAnalystRW() && startEditTags()">
+                    <ul class="tags inline">
+                        <li ng-repeat="tag in project.tags">
+                            <span class="tag" color-contrast="{{ project.tagsFile.tags[tag].color || getDefaultTagColor(tag) }}">
+                                <span ui-global-tag="tag" object-type="'PROJECT'"></span>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Metrics -->
+            <div class="project-metrics column-panel">
+                <h4>Content</h4>
+                <ul> 
+                    <!-- Tasks -->
+                    <li ng-if="project.projectSummaryStatus.totalTasks"><span class="count"><span ng-class="{'uncompleted-todo': project.projectSummaryStatus.checkedTasks < project.projectSummaryStatus.totalTasks}">{{project.projectSummaryStatus.checkedTasks}}</span> / {{project.projectSummaryStatus.totalTasks}}</span> task<span ng-if="project.projectSummaryStatus.totalTasks > 1">s</span></li>
+                    <!-- Scenarios -->
+                    <li ng-if="project.projectSummaryStatus.activeScenarios && project.projectSummaryStatus.activeScenarios < project.projectSummaryStatus.totalScenarios"><span class="count">{{project.projectSummaryStatus.activeScenarios}} / {{project.projectSummaryStatus.totalScenarios}}</span> scenario<span ng-if="project.projectSummaryStatus.activeScenarios > 1">s</span></li>
+                    <li ng-if="project.projectSummaryStatus.activeScenarios && project.projectSummaryStatus.activeScenarios == project.projectSummaryStatus.totalScenarios"><span class="count">{{project.projectSummaryStatus.totalScenarios}}</span> scenario<span ng-if="project.projectSummaryStatus.activeScenarios > 1">s</span></li>
+                    <li ng-if="project.projectSummaryStatus.activeScenarios"><span class="count">{{project.projectSummaryStatus.totalRuns}}</span> run<span ng-if="project.projectSummaryStatus.totalRuns > 1">s</span></li>
+                    <!-- Flow -->
+                    <li ng-if="project.projectSummaryStatus.datasets"><span class="count">{{project.projectSummaryStatus.datasets}}</span> dataset<span ng-if="project.projectSummaryStatus.datasets > 1">s</span></li>
+                    <li ng-if="project.projectSummaryStatus.recipes"><span class="count">{{project.projectSummaryStatus.recipes}}</span> recipe<span ng-if="project.projectSummaryStatus.recipes > 1">s</span></li>
+                    <li ng-if="project.projectSummaryStatus.flowModels"><span class="count">{{project.projectSummaryStatus.flowModels}}</span> model<span ng-if="project.projectSummaryStatus.flowModels > 1">s</span></li>
+                    <!-- Data Analysis -->
+                    <li ng-if="project.projectSummaryStatus.jupyterNotebooks"><span class="count">{{project.projectSummaryStatus.jupyterNotebooks}}</span> notebook<span ng-if="project.projectSummaryStatus.jupyterNotebooks > 1">s</span></li>
+                    <li ng-if="project.projectSummaryStatus.analyses"><span class="count">{{project.projectSummaryStatus.analyses}}</span> analyse<span ng-if="project.projectSummaryStatus.analyses > 1">s</span></li>
+                    <!-- Dashboard -->
+                    <li ng-if="project.projectSummaryStatus.sharedInsights"><span class="count">{{project.projectSummaryStatus.sharedInsights}}</span> insight<span ng-if="project.projectSummaryStatus.sharedInsights > 1">s</span></li>
+                </ul>
+            </div>
+            
+            <!-- Activity -->
+            <div class="project-activity column-panel">
+                <h4>Activity</h4>
+                <svg week-day-heatmap data="project.commits" light="true"
+                    svg-titles formatter="project.commits === 'presenceHours' ? niceHours : null"></svg>
+            </div>
+            
+            <!-- Contributors -->
+            <div class="project-people column-panel">
+                <h4>Contributors</h4>
+                <div class="contributors-wrapper">
+                    <a class="contributor" ng-repeat="contributor in project.contributors" title="{{contributor.displayName}}" href="/profile/{{contributor.login}}/">
+                        <span user-picture="contributor.login" size="23" />
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>

@@ -1,0 +1,217 @@
+<div class="modal modal3" auto-size="false">
+
+    <dku-modal-header modal-class="has-border" >
+        <dku-modal-title>
+            <span ng-if="deletionRequests.length > 1">
+                Delete
+                {{deletionRequests.length}}
+                {{commonTaggableType | niceTaggableType : deletionRequests.length}}
+            </span>
+            <span ng-if="deletionRequests.length == 1">
+                Delete &quot;{{deletionRequests[0].displayName || deletionRequests[0].id}}&quot;
+            </span>
+        </dku-modal-title>
+    </dku-modal-header>
+
+<form class="dkuform-modal-wrapper">
+<div class="modal-body">
+    <div class="row-fluid">
+        <div block-api-error></div>
+
+        <div class="alert alert-danger" ng-show="computedImpact.data.exposedToHiddenProject">
+            <i class="icon-warning-sign" />
+            {{deletionRequests.length>1 ? 'Some of these items are' : 'This item is'}} shared with projects you don't have access to.
+            You should not delete {{deletionRequests.length>1 ? 'them' : 'it'}}.
+        </div>
+
+        <div class="alert" ng-show="computedImpact.data.exposedToProjects.length">
+            {{deletionRequests.length>1 ? 'Some of these items are' : 'This item is'}} shared with:
+            <ul>
+                <li ng-repeat="p in computedImpact.data.exposedToProjects track by p.projectKey">
+                    {{p.projectName}}
+                </li>
+            </ul>
+        </div>
+
+        <div class="alert" ng-show="computedImpact.data.toUnshare.length">
+            <span ng-if="computedImpact.data.toUnshare.length > 1">
+                {{computedImpact.data.toUnshare.length}} items are from other projects, they cannot be deleted, they should be unshared:
+            </span>
+            <span ng-if="computedImpact.data.toUnshare.length == 1">
+                A {{computedImpact.data.toUnshare[0].type | niceTaggableType}} is from another project, it cannot be deleted, it should be unshared:
+            </span>
+            <ul>
+                <li ng-repeat="it in computedImpact.data.toUnshare track by it.id">
+                    {{it.displayName}}
+                </li>
+            </ul>
+        </div>
+
+        <p ng-show="computedImpact.data.deletedRecipes.length
+            || computedImpact.data.deletedDatasets.length
+            || computedImpact.data.deletedAnalyses.length
+            || computedImpact.data.deletedInsights.length
+            || computedImpact.data.deletedScenarios.length
+            || computedImpact.data.deletedDoctorProjects.length
+            || computedImpact.data.changedAPIKeys.length">
+            Deleting {{deletionRequests.length>1 ? 'these' : 'this'}} item{{deletionRequests.length>1 ? 's' : ''}} will have the following effect:
+        </p>
+
+        <ul>
+            <li ng-repeat="recipe in computedImpact.data.deletedRecipes track by recipe.name">
+                <span class="text-error">
+                    <i class="icon-trash" />&nbsp;Delete recipe <strong>{{recipe.name}}</strong> ({{recipe.type|recipeTypeToName}})
+                </span>
+            </li>
+            <li ng-repeat="dataset in computedImpact.data.deletedDatasets track by dataset.name">
+                <span class="text-error">
+                    <i class="icon-trash" />&nbsp;Delete dataset <strong>{{dataset.name}}</strong> ({{dataset.type|datasetTypeToName}})
+                </span>
+            </li>
+            <li ng-repeat="analysis in computedImpact.data.deletedAnalyses track by analysis.id">
+                <span class="text-error">
+                    <i class="icon-trash" />&nbsp;Delete analysis <strong>{{analysis.name}}</strong>
+                </span>
+            </li>
+            <li ng-repeat="worksheet in computedImpact.data.deletedWorksheets track by worksheet.id">
+                <span class="text-error">
+                    <i class="icon-trash" />&nbsp;Delete worksheet <strong>{{worksheet.name}}</strong>
+                </span>
+            </li>
+            <li ng-repeat="insight in computedImpact.data.deletedInsights track by insight.id">
+                <span class="text-error">
+                    <i class="icon-trash" />&nbsp;Delete insight <strong>{{insight.name}}</strong>
+                    <span ng-if="insight.optional">(optionally)</span>
+                </span>
+            </li>
+            <li ng-repeat="dp in computedImpact.data.deletedDoctorProjects">
+                <span class="text-error">
+                    <i class="icon-trash" />&nbsp;Delete model <strong>{{dp.name}}</strong>
+                </span>
+            </li>
+            <li ng-repeat="scenario in computedImpact.data.deletedScenarios track by scenario.id">
+                <span class="text-warning">
+                    <i class="icon-edit" />&nbsp;Drop steps in scenario <strong>{{scenario.name}}</strong>
+                </span>
+            </li>
+            <li ng-repeat="key in computedImpact.data.changedAPIKeys track by key">
+                <span class="text-warning">
+                    <i class="icon-edit" />&nbsp;Modify API key <strong>{{key}}</strong>
+                </span>
+            </li>
+        </ul>
+
+        <p ng-show="nbActions>0">Additionally, you may want to perform the following operation(s):</p>
+
+        <div ng-show="deletionRequests.length===1 && nbActions>0" ng-scope="{{dr=deletionRequests[0]; availableOptions=computedImpact.data.availableOptions[dr.projectKey+'.'+dr.id];}}">
+            <div ng-if="!availableOptions.isDropDataDangerous && availableOptions.canDropData">
+                <label class="checkbox" >
+                    <input type="checkbox"
+                    ng-model="dr.options.dropData"
+                    ng-change="dr.options.dropMetastoreTable = dr.options.dropData">
+                    Drop data
+                </label>
+            </div>
+            <div ng-if="availableOptions.isDropDataDangerous && availableOptions.canDropData">
+                <label class="checkbox" style="display: inline-block;">
+                    <input type="checkbox" ng-disabled="!availableOptions.$doDangerous"
+                    ng-model="dr.options.dropData"
+                    ng-change="dr.options.dropMetastoreTable = dr.options.dropData">
+                    Drop data
+                </label>
+                <label class="checkbox" ng-if="!availableOptions.$doDangerous" style="display: inline-block; margin-left: 20px;">
+                    <input type="checkbox" ng-model="availableOptions.$doDangerous" />
+                    Force
+                </label>
+                <span data-placement="right" dku-md-popover='This object is located at the root of the connection. Clearing it will clear the entire connection, potentially affecting the other datasets or folders using the same connection.' dku-md-title="Dangerous dataset clearing" class="step-help-popover" popover-clazz="step-help-popover" >
+                    <i class="icon-info-sign" style="margin-left: 10px;"></i>
+                </span>
+            </div>
+
+            <label class="checkbox" ng-show="availableOptions.canDropMetastoreTable">
+                <input type="checkbox"
+                ng-disabled="dr.options.dropData"
+                ng-model="dr.options.dropMetastoreTable"  >
+                Drop Metastore table
+            </label>
+
+            <label class="checkbox" ng-show="availableOptions.deleteOrphanInsights">
+                <input type="checkbox"
+                    ng-model="dr.options.deleteOrphanInsights"
+                    >
+                    Delete orphan insights
+            </label>
+        </div>
+
+
+        <table class="table table-striped table-bordered table-hover" style="width: 100%; table-layout: fixed;"ng-show="deletionRequests.length>1 && nbActions>0">
+            <tr>
+                <th style="width: 75%">Item</th>
+                <th style="width: 25%">Actions</th>
+            </tr>
+            <tr ng-repeat="dr in deletionRequests track by dr.projectKey+'.'+dr.type+'.'+dr.id" ng-if="!dr.displayName.includes('.')">
+                <td class="mx-textellipsis" title="{{dr.displayName || dr.id}}">
+                    <i class="{{dr.type | typeToIcon}} {{dr.type |typeToColor}}" />
+                    {{dr.displayName || dr.id}}
+                </td>
+                <td ng-scope="{{availableOptions = computedImpact.data.availableOptions[dr.projectKey+'.'+dr.id]}}">
+                    <div ng-if="availableOptions.canDropData && !availableOptions.isDropDataDangerous">
+                        <label class="checkbox">
+                            <input type="checkbox"
+                                ng-model="dr.options.dropData"
+                                ng-change="dr.options.dropMetastoreTable = dr.options.dropData"
+                                >
+                            Drop data
+                        </label>
+                    </div>                
+                    <div ng-if="availableOptions.canDropData && availableOptions.isDropDataDangerous">
+                        <label class="checkbox" style="display: inline-block;">
+                            <input type="checkbox" ng-disabled="!availableOptions.$doDangerous"
+                                ng-model="dr.options.dropData"
+                                ng-change="dr.options.dropMetastoreTable = dr.options.dropData"
+                                >
+                            Drop data
+                        </label>
+                        <label class="checkbox" ng-if="!availableOptions.$doDangerous" style="display: inline-block; margin-left: 20px;">
+                            <input type="checkbox" ng-model="availableOptions.$doDangerous" />
+                            Force
+                        </label>
+                        <span data-placement="right" dku-md-popover='This object is located at the root of the connection. Clearing it will clear the entire connection, potentially affecting the other datasets or folders using the same connection.' dku-md-title="Dangerous dataset clearing" class="step-help-popover" popover-clazz="step-help-popover" >
+                            <i class="icon-info-sign" style="margin-left: 10px;"></i>
+                        </span>
+                    </div>                
+                
+                    <label class="checkbox" ng-show="availableOptions.canDropMetastoreTable">
+                        <input type="checkbox"
+                            ng-model="dr.options.dropMetastoreTable"
+                            ng-disabled="dr.options.dropData"
+                            >
+                        Drop Metastore table
+                    </label>
+                    <label class="checkbox" ng-show="availableOptions.deleteOrphanInsights">
+                        <input type="checkbox"
+                            ng-model="dr.options.deleteOrphanInsights"
+                            >
+                        Delete orphan insights
+                    </label>
+                    <span ng-show="!availableOptions.canDropMetastoreTable && !availableOptions.canDropData && !availableOptions.deleteOrphanInsights">
+                        No options available
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="modal-footer modal-footer-std-buttons">
+    <div class="pull-right">
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+        <button type="submit" class="btn btn--text btn--danger" ng-click="confirm()" ng-disabled="!computedImpact.data"
+                id="qa_taggable-object_confirm-delete">
+            Confirm
+        </button>
+    </div>
+</div>
+</form>
+
+</div>

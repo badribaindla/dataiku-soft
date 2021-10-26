@@ -1,0 +1,83 @@
+<div class="modal modal3 dku-modal new-scenario-modal" ng-controller="NewScenarioController">
+
+    <dku-modal-header-with-totem modal-totem="icon-play">
+        <dku-modal-title>
+            <span ng-if="selectedObjects.length > 1">
+                Add
+                {{selectedObjects.length}}
+                {{commonTaggableType | niceTaggableType : selectedObjects.length}}
+                to a scenario
+            </span>
+            <span ng-if="selectedObjects.length == 1">
+                Add
+                &quot;{{selectedObjects[0].displayName || selectedObjects[0].id}}&quot;
+                to a scenario
+            </span>
+        </dku-modal-title>
+    </dku-modal-header-with-totem>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <div class="control-group">
+                <label for="" class="control-label">Mode</label>
+                <div class="controls">
+                    <label>
+                        <input type="radio" ng-model="options.creation" ng-value="false" />
+                        Add to existing scenario
+                    </label>
+                    <label>
+                        <input type="radio" ng-model="options.creation" ng-value="true" />
+                        Create scenario
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="options.creation">
+                <label class="control-label">Scenario name</label>
+                <div class="controls">
+                    <input name="scenarioName" ng-model="options.scenarioName" type="text" />
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="options.creation">
+                <label class="control-label">Scenario id</label>
+                <div class="controls">
+                    <input name="scenarioName" ng-model="options.scenarioId" type="text" ng-focus="fillId()" />
+                    <span class="help-inline">Must be unique in the project.</span>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="!options.creation">
+                <label for="" class="control-label">Scenario</label>
+                <div class="controls">
+                    <div object-picker="options.scenarioId"
+                        type="SCENARIO"
+                        error-scope="$parent">
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="" class="control-label">Action</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="options.action" required>
+                        <option value="build_flowitem">Build</option>
+                        <option value="clear_items">Clear</option>
+                        <option value="check_dataset">Run checks</option>
+                        <option value="compute_metrics">Compute metrics</option>
+                        <option value="sync_hive">Synchronize Hive</option>
+                        <option value="update_from_hive">Update from Hive</option>
+                    </select>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="theform.$invalid || !options.scenarioId" ng-click="add()">Add</button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,52 @@
+<div class="modal modal3 modal-w700" auto-size="false">
+
+    <div dku-modal-header-with-totem modal-title="Build" modal-totem="icon-play" />
+
+    <form class="dkuform-modal-horizontal build-dataset-form multiple dkuform-modal-wrapper disablable" ng-disabled="isBuildingDataset" name="theform">
+        <div class="modal-body w100 pad0">
+            <div block-api-error />
+
+            <div class="options">
+                <div class="control-group" style="margin-bottom: 10px">
+                    <label for="buildModeSelect" class="control-label">Handling of dependencies</label>
+                    <div class="controls"><select dku-bs-select ng-model="buildMode" style="height: inherit; margin: 0;" ng-options="x[0] as x[1] for x in buildModes" id="buildModeSelect"/></div>
+                </div>
+
+                <p style="font-size: 14px">
+                    The following {{isAllDatasets() ? 'dataset' : 'item'}}{{computables.length > 1 ? 's' : ''}} will be built:
+                </p>
+            </div>
+
+            <div class="computables">
+                <div ng-repeat="computable in computables" class="computable">
+                    <div class="remove">
+                        <i ng-if="!computable.removed" class="icon-button icon-dku-close" ng-click="removeRestore($index, true)"/>
+                        <i ng-if="computable.removed" class="icon-button icon-undo" ng-click="removeRestore($index, false)"/>
+                    </div>
+
+                    <div class="row-fluid" ng-class="{'removed': computable.removed}">
+                        <div class="span6">
+                            <div class="horizontal-flex">
+                                <i class="{{getIcon(computable)}} icon noflex" />
+                                <h4 class="flex mx-textellipsis" >{{computable.name}}</h4>
+                            </div>
+                        </div>
+
+                        <div partition-selector partitioning="getPartitioning(computable)" build-partitions="computable.buildPartitions" bem-modifier="'partition-selector--inline'" class="span6"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <!--<div class="pull-left">
+                <code>{{compute|json}}</code>
+            </div>-->
+            <button type="button" class="btn btn--text btn--secondary" ng-disabled="theform.$invalid" ng-click="startJobPreview()">Preview</button>
+            <button type="button" class="btn btn--text btn--primary" ng-disabled="theform.$invalid" ng-click="startJob()">Build</button>
+        </div>
+
+    </form>
+
+</div>

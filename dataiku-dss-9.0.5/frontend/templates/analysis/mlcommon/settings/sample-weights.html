@@ -1,0 +1,47 @@
+<div class="design-tab-title">Weighting strategy</div>
+<div class="doctor-settings-page">
+    <div class="row-fluid">
+        <div class="span7">
+            <form class="dkuform-horizontal">
+                <div class="control-group">
+                    <label class="control-label">Method</label>
+                    <div class="controls" >
+                        <select dku-bs-select ng-model="uiState.weightMethod"
+                                ng-change="onChangeWeightMethod()" ng-options="method[0] as method[1] for method in uiState.weightMethods"/>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="uiState.weightMethod=='SAMPLE_WEIGHT' || uiState.weightMethod=='CLASS_AND_SAMPLE_WEIGHT'">
+                    <label class="control-label">Weight variable</label>
+                    <div class="controls" >
+                        <select dku-bs-select="{'liveSearch':true}" ng-model="uiState.sampleWeightVariable"
+                                ng-change="onChangeSampleWeightVariable()" ng-options="feature for feature in potentialWeightFeatures()"/>
+                    </div>
+                </div>
+            </form>
+            <div ng-if="isSampleWeightEnabled() && mlTaskDesign.weight.sampleWeightVariable">
+                <div class="alert alert-warning" style="margin-top:15px;">
+                    All metrics will be weighted by the variable <strong>{{mlTaskDesign.weight.sampleWeightVariable}}</strong>, both for hyperparameters optimization and final evaluation of the model. </p>
+                </div>
+            </div>
+        </div>
+        <div class="span5">
+            <div class="doctor-explanation">
+                <h5>The settings define how each row in the train set is weighted:</h5>
+                <ul>
+                  <li><b>No weighting</b>: all rows will be considered equally.</li>
+                  <li><b>Sample weights</b>: row weights are defined by a column of the dataset (They must be positive).</li>
+                  <li ng-if="isClassification()"><b>Class weights</b>: row weights are defined as inversely proportional to the cardinality of its target class.</li>
+                  <li ng-if="isClassification()"><b>Class and sample weights</b>: row weights are defined as the product of sample weights and class weights.</li>
+                </ul>
+
+                <p ng-if="isClassification()">
+                    In classification tasks, <strong>class weights is the default weighting method</strong>.
+                    <br/>It is meant to ensure that despite class imbalance, the trained model takes each class equally into account.
+                </p>
+                <p ng-if="isRegression()">
+                    In regression tasks, using <strong>no weighting</strong> is the default setting.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

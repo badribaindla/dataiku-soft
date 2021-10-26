@@ -1,0 +1,39 @@
+<div class="modal modal3 multipin-insight-modal dku-modal" ng-controller="CreateAndPinInsightModalController" auto-size="false">
+    <div dku-modal-header-with-totem modal-title="Create insight and add to dashboard" modal-totem="icon-dku-publish" />
+
+    <form name="createAndPinInsightForm" class="dkuform-modal-wrapper">
+
+        <div ng-if="insight && insight.type" class="modal-body">
+
+            <div block-api-error class="modal-error"></div>
+
+            <div class="alert alert-warning qa_modal_msg-warning" ng-if="initiated && pinningOrders.length <= 0">
+                <span ng-if="dashboards.length <= 0 && allDashboardsCount > 0">
+                    This project has no dashboard you can write to.
+                </span>
+                <span ng-if="dashboards.length <= 0 && allDashboardsCount == 0">
+                    This project has no dashboard.
+                </span>
+                Insight will be created without being added to any dashboard.
+            </div>
+
+            <div class="alert alert-warning" ng-if="missingReaderAuthorizations && missingReaderAuthorizations.length > 0">
+                <div>This source is not yet shared with dashboard-only users.</div>
+                <label style="margin-top: 10px" ng-show="projectSummary.canManageDashboardAuthorizations">
+                    <input type="checkbox" ng-model="addReaderAuthorization" style="margin: -1px 5px 0 0"/>
+                    Add this source to authorized objects
+                </label>
+                <div ng-show="!addReaderAuthorization" style="padding-top: 5px;"><i class="icon-warning-sign"></i>&nbsp;<strong>Dashboard-only users won't be able to see this insight.</strong></div>
+            </div>
+
+            <div include-no-scope="/templates/dashboards/insights/multi-pin-insight-table.html" ng-if="dashboards.length > 0"></div>
+
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" id="qa_generic_publish-create-button" ng-click="sendCreateAndPinOrders()">Create</button>
+        </div>
+
+    </form>
+</div>

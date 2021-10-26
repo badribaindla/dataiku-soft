@@ -1,0 +1,209 @@
+<div class="topn-recipe visual-recipe-with-steps" ng-show="topNav.tab == 'settings'" close-tooltips-on-exit>
+    <div class="main-recipe-content dss-page vertical-flex">
+        <div block-api-error />
+        <div class="flex" style="position: relative;">
+            <div class="leftPane vertical-flex">
+                <div class="steps flex">
+                    <div recipe-step class="inputs"/>
+                    <div recipe-step="preFilter" step-label="Pre-filter"/>
+                    <div recipe-step="computedColumns" step-label="Computed columns"/>
+                    <div recipe-step="topn" step-label="Top N"/>
+                    <div recipe-step="retrievedColumns" step-label="Retrieve columns"/>
+                    <div recipe-step="output" step-label="Output"/>
+                    <div ng-if="recipeStatus.topLevelMessages.anyMessage" recipe-step="topLevelMessages" step-label="Warnings" />
+                </div>
+                <div class="run noflex" ng-if="params">
+                    <div include-no-scope="/templates/recipes/visual-recipes-fragments/visual-recipe-run.html"/>
+                    <div engine-selector-button
+                        recipe-status="recipeStatus"
+                        recipe-params="params"
+                        update-status="hooks.updateRecipeStatus"
+                        can-change-engine="canChangeEngine" />
+                </div>
+            </div>
+
+            <div class="mainPane fh oa" ng-if="params && computablesMap">
+                <div ng-show="uiState.currentStep == 'topn'" class="padded-step-settings main-step vertical-flex">
+
+                    <div class="recipe-settings-section1 first-section">
+                        <div class="recipe-settings-section2">
+
+                            <h3>Retrieve the</h3>
+                            <div class="topNBottomMInputs">
+                                <input type="number" ng-model="params.firstRows" min="0"/> top rows<br/>
+                                <input type="number" ng-model="params.lastRows" min="0"/> bottom rows
+                            </div>
+
+                            <h3>sorted by</h3>
+                            <div class="editable-list editable-list--ng1">
+                                <ul class="multipleOrderSelection--list editable-list__items" ui-sortable="{axis:'y', cursor: 'move', cancel:'', handle: '.handle-row'}" ng-model="uiState.orderList">
+                                    <li class="multipleOrderSelection--item editable-list__item" ng-repeat="col in uiState.orderList">
+                                        <i class="handle-row dib editable-list__drag-icon icon-reorder"/>
+                                        <span class="multipleOrderSelection--order dib">{{ col.order+1 }}</span>
+                                        <span class="multipleOrderSelection--coldesc col-desc dib">
+                                            <span class="horizontal-flex">
+                                                <span class="col-name flex" title="{{col.name}}">{{col.name}}</span>
+                                                <span class="col-type noflex">{{ col.type }}</span>
+                                            </span>
+                                        </span>
+                                        <div class="multipleOrderSelection--sort btn-group dib">
+                                            <button type="button" class="btn selectpicker btn--secondary" ng-click="col.desc = !col.desc" title="{{ col.desc ? 'descending' : 'ascending' }}">
+                                                <i ng-class="col.desc ? 'icon-sort-by-attributes-alt' : 'icon-sort-by-attributes'"/>
+                                            </button>
+                                        </div>
+                                        <button class="btn btn--text btn--danger btn-icon editable-list__delete" ng-click="removeOrderColumn(col)"><i class="icon-trash"></i></button>
+                                    </li>
+                                    <li class="multipleOrderSelection--item" ng-if="uiState.orderList.length == 0">
+                                        <span class="noitem-placeholder dib">
+                                            No sort column yet
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="multipleOrderSelection--add"><select dku-bs-select="{liveSearch:true,width:268,noneSelectedText:'Select column for sorting'}" ng-model="orderToAdd" class="qa_recipe_order-to-add" ng-options="col as col.name for col in uiState.columnStatus | filter:{status:'X'}" watch-model="params" ng-change="addOrderColumn(orderToAdd); orderToAdd = null;" /></div>
+
+
+                            <h3>from</h3>
+                            <div><label><input type="radio" ng-model="uiState.fromSelection" value="WHOLE">the whole dataset</label></div>
+                            <div><label><input type="radio" ng-model="uiState.fromSelection" value="GROUPS" class="qa_recipe_topn-from-groups-radio">each group of rows identified by...</label></div>
+                            <ul class="multipleColumnSelection" ng-if="uiState.fromSelection == 'GROUPS'">
+                                <li ng-repeat="col in uiState.columnStatus | filter:{status:'G'} track by $index" class="dib">
+                                    <span class="multipleColumnSelection--item col-desc dib">
+                                        <span class="horizontal-flex">
+                                            <span class="col-name flex" title="{{col.name}}">{{col.name}}</span>
+                                            <span class="col-type noflex">{{col.type}}</span>
+                                            <span class="multipleColumnSelection--action noflex"><a ng-click="col.status = 'X'"><i class="icon-trash"/></a></span>
+                                        </span>
+                                    </span>
+                                </li>
+                                <li class="noitem-placeholder" ng-if="(uiState.columnStatus | filter:{status:'G'}).length == 0">No key selected, rows will be retrieved from the whole dataset</li>
+                                <li class="choice-pending">
+                                    <select dku-bs-select="{liveSearch:true,width:220,noneSelectedText:'Add column to use as key'}"
+                                            ng-model="keyToAdd" ng-options="col as col.name for col in uiState.columnStatus | filter:{status:'X'}"
+                                            watch-model="params"
+                                            ng-change="keyToAdd.status = 'G'; keyToAdd = null;"
+                                            class="qa_recipe_topn-keys-to-add"/>
+                                </li>
+                            </ul>
+
+                        </div>
+                    </div>
+
+                    <div class="recipe-settings-section1">
+                        <div class="recipe-settings-section2">
+
+                            <h3>In addition, compute for each row</h3>
+                            <div><label><input type="checkbox" ng-model="params.duplicateCount"/> count of rows in {{getDsOrGrpLabel()}}</label></div>
+                            <div><label><input type="checkbox" ng-model="params.rowNumber"/> row number within {{getDsOrGrpLabel()}}</label></div>
+                            <div><label><input type="checkbox" ng-model="params.rank"/> rank of row within {{getDsOrGrpLabel()}}</label></div>
+                            <div><label><input type="checkbox" ng-model="params.denseRank"/> dense rank of row within {{getDsOrGrpLabel()}}</label></div>
+
+                        </div>
+                    </div>
+
+                    <div class="recipe-settings-section1">
+                        <div class="recipe-settings-section2">
+
+                            <h3>Remaining rows</h3>
+                            <div>
+                                The remaining rows (that do not match the recipe definition) will
+                                <span ng-show="!recipe.outputs.rejects || recipe.outputs.rejects.items.length == 0">not be retrieved.</span>
+                                <span ng-show="recipe.outputs.rejects.items.length > 0">be retrieved in the <strong>{{ recipe.outputs.rejects.items[0].ref }}</strong> dataset.</span>
+                                <a ng-click="topNav.tab ='io';">Set the output dataset</a>
+                            </div>
+                            <div><a href="{{$root.versionDocRoot}}other_recipes/topn.html" target="_blank">Learn more</a></div>
+
+                        </div>
+                    </div>
+
+                    <div class="recipe-settings-section1" ng-show="recipeStatus.topn.anyMessage">
+                        <div class="recipe-settings-section2">
+                            <div info-messages-raw-list-with-alert="recipeStatus.topn" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div ng-show="uiState.currentStep == 'retrievedColumns'" class="padded-step-settings main-step vertical-flex">
+
+                    <div class="recipe-settings-section1 first-section">
+                        <div class="recipe-settings-section2">
+                            <h3>Select columns to be retrieved</h3>
+
+                            <div><label><input type="radio" ng-model="uiState.retrieveAllColumns" ng-value="true">All columns</label></div>
+                            <div><label><input type="radio" ng-model="uiState.retrieveAllColumns" ng-value="false" id="qa_recipe_topn-retrieve-column-selection-radio">A selection of columns</label></div>
+
+                            <div class="twoPanesColumnSelection horizontal-flex mtop16" ng-show="!uiState.retrieveAllColumns">
+                                <div class="pane discard vertical-flex flex">
+                                    <h5 class="noflex">Available columns ({{ (uiState.columnStatus | filter:{ignore:true}).length }})</h5>
+                                    <div class="colsearch noflex horizontal-flex">
+                                        <input class="flex" type="text" placeholder="Search" ng-model="uiState.discardColumnFilter"/>
+                                        <span class="colsearch-icon noflex"><i class="icon-dku-search"/></span>
+                                    </div>
+                                    <ul class="collist flex oa">
+                                        <li class="collist-item horizontal-flex qa_recipe_available-column" ng-repeat="col in uiState.columnStatus | filter:{ignore:true,name:uiState.discardColumnFilter} track by $index" ng-click="selectLine($event, col, true)" class="horizontal-flex" ng-style="{'background-color': col.$selected ? 'lightblue' : ''}">
+                                            <span class="colname flex" title="{{ col.name }}">{{col.name }}</span>
+                                            <span class="colstatus noflex">{{ getFullStatus(col.status) }}</span>
+                                            <span class="coltype noflex">{{ col.type }}</span>
+                                            <a class="colaction noflex" ng-click="addRetrievedColumns(col); $event.stopPropagation();">&rarr;</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="actions vertical-flex noflex">
+                                    <button type="button" class="btn btn--secondary btn--icon" ng-click="addAllRetrievedColumns()" id="qa_recipe_add-all-columns-button" ng-disabled="(uiState.columnStatus | filter:{ignore:true}).length == 0"><i class="icon-double-angle-right"/></button>
+                                    <button type="button" class="btn btn--secondary btn--icon" ng-click="addRetrievedColumns()" id="qa_recipe_add-single-column-button" ng-disabled="(uiState.columnStatus | filter:{ignore:true,$selected:true}).length == 0" style="margin-bottom: 5px;"><i class="icon-angle-right"/></button>
+                                    <button type="button" class="btn btn--secondary btn--icon" ng-click="removeRetrievedColumns()" id="qa_recipe_remove-single-column-button" ng-disabled="(uiState.columnStatus | filter:{ignore:false,$selected:true}).length == 0" style="margin-top: 5px;"><i class="icon-angle-left"/></button>
+                                    <button type="button" class="btn btn--secondary btn--icon" ng-click="removeAllRetrievedColumns()" id="qa_recipe_remove-all-columns-button" ng-disabled="(uiState.columnStatus | filter:{ignore:false}).length == 0"><i class="icon-double-angle-left"/></button>
+                                </div>
+                                <div class="pane retrieve vertical-flex flex">
+                                    <h5 class="noflex">Selected columns ({{ (uiState.columnStatus | filter:{ignore:false}).length }})</h5>
+                                    <div class="colsearch noflex horizontal-flex">
+                                        <input class="flex" type="text" placeholder="Search" ng-model="uiState.retrieveColumnFilter" ng-disabled="uiState.retrieveAllColumns"/>
+                                        <span class="colsearch-icon noflex"><i class="icon-dku-search"/></span>
+                                    </div>
+                                    <ul class="collist flex oa">
+                                        <li class="collist-item horizontal-flex qa_recipe_retrieved-column" ng-repeat="col in uiState.columnStatus | filter:{ignore:false,name:uiState.retrieveColumnFilter} track by $index" ng-click="selectLine($event, col, false)" class="horizontal-flex" ng-style="{'background-color': col.$selected ? 'lightblue' : ''}">
+                                            <span class="colname flex" title="{{col.name}}">{{col.name}}</span>
+                                            <span class="colstatus noflex">{{ getFullStatus(col.status) }}</span>
+                                            <span class="coltype noflex">{{ col.type }}</span>
+                                            <a class="colaction noflex" ng-click="removeRetrievedColumns(col); $event.stopPropagation();">&times;</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div style="clear:both"/>
+                            <div ng-show="recipeStatus.retrievedColumns.anyMessage" info-messages-raw-list-with-alert="recipeStatus.retrievedColumns" style="padding: 20px 10px;"/>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div ng-if="uiState.currentStep == 'preFilter'"
+                    class="padded-step-settings h100 oa"
+                    ng-scope="{{filterDesc=params.preFilter; dataset=recipe.inputs['main'].items[0].ref; schema=computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema; distinctOptionDisabled=true}}">
+                    <div ng-include="'/templates/recipes/visual-recipes-fragments/inline-filter.html'"></div>
+                    <div class="text-error" ng-show="InfoMessagesUtils.getMessageAtLine(recipeStatus.preFilter, 1)">
+                        Database error: {{InfoMessagesUtils.getMessageAtLine(recipeStatus.preFilter, 1).message}}
+                    </div>
+                    <div ng-show="params.preFilter.enabled && params.preFilter.uiData.mode == 'CUSTOM'" grel-reference-and-examples></div>
+                </div>
+
+                <div ng-if="uiState.currentStep == 'computedColumns'"
+                    class="padded-step-settings h100 oa"
+                    computed-column-step
+                    computed-column-list-desc="uiState.computedColumns"
+                    dataset="recipe.inputs['main'].items[0].ref"
+                    schema="computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema"
+                    computed-column-list-update-callback="onComputedColumnListUpdate">
+                </div>
+
+                <div ng-show="uiState.currentStep == 'output'" class="h100 oa">
+                    <div data-extend-template="/templates/recipes/visual-recipes-fragments/run-summary.html" class="h100"></div>
+                </div>
+
+                <div data-extend-template="/templates/recipes/visual-recipes-fragments/visual-sql-top-level-messages.html" />
+            </div>
+        </div>
+    </div>
+</div>

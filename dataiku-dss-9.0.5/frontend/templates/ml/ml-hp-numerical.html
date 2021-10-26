@@ -1,0 +1,27 @@
+<div class="control-group" ng-class="{required: required}">
+    <label class="control-label">{{label}}</label>
+    <div class="controls">
+        <div class="strategy-mode pull-left" ng-switch="getCurrentMode()">
+            <div ng-switch-when="EXPLICIT" type="text" gs-field ng-model="model.values" ng-attr-min="{{min}}" ng-attr-max="{{max}}"></div>
+            <div ng-switch-when="RANGE">
+                <label class="pull-left number-no-arrow">Min <input ng-model="model.range.min" type="number" step="{{decimal ? 'any' : '1'}}" class="range-field" ng-attr-min="{{min}}" ng-attr-max="{{max}}" ng-class="{'ng-invalid': isInvalidMinMax()}" ng-model-options="{ allowInvalid: true}" ng-attr-required="{{required}}"></label>
+                <label class="pull-left number-no-arrow">Max <input ng-model="model.range.max" type="number" step="{{decimal ? 'any' : '1'}}" class="range-field" ng-attr-min="{{min}}" ng-attr-max="{{max}}" ng-class="{'ng-invalid': isInvalidMinMax()}" ng-model-options="{ allowInvalid: true}" ng-attr-required="{{required}}"></label>
+                <label ng-if="strategy === 'GRID'" class="pull-left">Values count <input ng-model="model.range.nbValues" type="number" class="range-field" min="2" ng-class="{'ng-invalid': isInvalidValuesCount()}" ng-model-options="{allowInvalid: true}" ng-attr-required="{{required}}"></label>
+                <span ng-if="model.range.scaling == 'LINEAR'" class="icon-hp-scaling icon-dku-ml-hp-scaling-uniform" toggle="tooltip" title="Uniform distribution"></span>
+                <span ng-if="model.range.scaling == 'LOGARITHMIC'" class="icon-hp-scaling icon-dku-ml-hp-scaling-log" toggle="tooltip" title="Log uniform distribution"></span>
+            </div>
+            <div class="change-param-mode" ng-switch="getCurrentMode()">
+                <div class="btn-group" ng-switch-when="EXPLICIT">
+                    <button type="button" class="btn btn--secondary icon-hp-mode" ng-click="changeMode('EXPLICIT')" toggle="tooltip" title="Switch to range mode"><i class="icon-dku-ml-hp-range"></i></button>
+                    <button type="button" class="btn btn--secondary icon-hp-mode btn--active" ng-click="changeMode('RANGE')"><i class="icon-dku-ml-hp-explicit"></i></button>
+                </div>
+                <div class="btn-group" ng-switch-when="RANGE">
+                    <button type="button" class="btn btn--secondary icon-hp-mode btn--active" ng-click="changeMode('EXPLICIT')"><i class="icon-dku-ml-hp-range"></i></button>
+                    <button type="button" class="btn btn--secondary icon-hp-mode" ng-click="changeMode('RANGE')" toggle="tooltip" title="Switch to explicit values mode"><i class="icon-dku-ml-hp-explicit"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="help-inline" ng-if="helpInline.length > 0" ng-bind-html="helpInline">
+        </div>
+    </div>
+</div>

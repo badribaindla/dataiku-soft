@@ -1,0 +1,42 @@
+<div ng-repeat="index in explanations.index" class="explanation-card">
+    <div class="explanation-card-header">
+        <div class="explanation-card-header__id pull-left" ng-if="selectedColumn">
+            <div class="explanation-card__title">
+                <span ng-if="results.observations[selectedColumn][index] !== ''"> {{ results.observations[selectedColumn][index] }}</span>
+                <span ng-if="results.observations[selectedColumn][index] === ''"> <i>Empty&nbsp;</i></span>
+            </div>
+                    
+            <div class="explanation-card__subtitle">{{ selectedColumn }}</div>
+        </div>
+        <div class="explanation-card-header__prediction pull-right">
+            <div class="explanation-card__title explanation-card__prediction">{{ results.predictions[index] | number: 3}}</div>
+            <div class="explanation-card__subtitle">{{ subtitle }}</div>
+        </div>
+    </div>
+    <div class="explanation-card-body">
+        <div class="explanation-card-body__caret" ng-click="toggleExplanations(index)">
+            <i class="{{ explanationsHidden[index] ? 'icon-caret-right' : 'icon-caret-down' }}" />
+            Most influential features
+        </div>
+        <table ng-if="!explanationsHidden[index]" class="explanations-table table table-striped">
+            <tr ng-repeat="explanation in explanations.values[index]" ng-init="topExplanation = explanations.values[index][0]">
+                <th ng-style="{ 'width': barContainerWidth + 'px'}" ng-init="barWidth = getBarWidth(topExplanation.value, explanation.value)" title="{{explanation.value | number: 3}}">
+                    <div class="explanation-card__explanation-bar" 
+                        ng-style="{ 'width' : barWidth + 'px', 'background-color': explanation.value > 0 ? '#29AF5D' : '#F44336', 'margin-left': getXBarPosition(topExplanation.value, explanation.value)  + 'px'}"> <div>
+                </th>
+                <th> {{ explanation.featureName }}<span class="explanation-card__subtitle"> = {{ explanation.featureValue }}</span> </th>
+            </tr>
+        </table>
+
+        <div class="explanation-card-body__caret" ng-click="toggleFeatures(index)">
+            <i class="{{ featuresShown[index] ? 'icon-caret-down' : 'icon-caret-right'}}" />
+            Features
+        </div>
+        <table ng-if="featuresShown[index]" class="explanations-table table table-striped">
+                <tr ng-repeat="(column, values) in results.observations" class="explanations-table__feature-row">
+                <th style="width:100px"></th>
+                <th> {{column}}  <span class="explanation-card__subtitle"> =  {{ values[index] }}</span></th>
+            </tr>
+        </table>
+    </div>
+</div>

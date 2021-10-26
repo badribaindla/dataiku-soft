@@ -1,0 +1,39 @@
+<div ng-controller="BuildFlowItemStepController">
+	<div ng-include ="'/templates/scenarios/fragments/step-header.html'" style="display: inline-block;"></div>
+	<div class="alert alert-info">
+		<p>This step lets you build one or several "computable" items of the Flow (build datasets, build managed folders, train saved models)</p>
+		<p style="margin: 0">For partitioned datasets (and folders), you can use partitioning specs</p>
+	</div>
+
+	
+	<form name="setupForm" class="dkuform-horizontal" >
+		
+		<div class="control-group">
+			<step-items-table items="step.params.builds" can-dataset="true" can-managed-folder="true" can-saved-model="true" can-model-evaluation-store="featureFlagEnabled('model_evaluation_stores')" needs-partitions="true" datasets="datasets" savedmodels="savedmodels" managedfolders="managedfolders" modelevaluationstores="modelevaluationstores" action-verb="to build"></step-items-table>
+		</div>
+		<hr />
+		<div class="control-group">
+			<div class="control-group">
+			<label for="" class="control-label">Build mode</label>
+			<div class="controls">
+				<select class="fit" dku-bs-select ng-model="step.params.jobType" ng-options="x[0] as x[1] for x in buildModes"/>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Sync. Hive metastore</label>
+			<div class="controls">
+				<input type="checkbox" ng-model="step.params.refreshHiveMetastore"></input>
+			</div>
+		</div>
+        
+            <label class="control-label">Ignore failure</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="step.params.proceedOnFailure"></input>
+                <span class="help-inline">Don't mark the scenario as failed, even if the build fails (warning: the datasets' states may be incoherent)</span>
+            </div>
+        </div>
+		<div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+
+	</form>
+
+</div>

@@ -1,0 +1,75 @@
+<form ng-controller="DateParserController" on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-parent="processorForm">
+
+    <div include-no-scope="/templates/shaker/processors/processor-applies-to.html" />
+
+    <fieldset ng-show="step.params.appliesTo === 'SINGLE_COLUMN'">
+        <span class="fieldLabel">Output column (Leave empty for in place)</span>
+        <input type="text" ng-model="step.params.outCol"
+            class="submit-on-blur"
+            next-on-enter
+        />
+    </fieldset>
+
+    <fieldset>
+        <span class="fieldLabel">Input date format(s)</span>
+        <span class="modes" ng-show="showSmartDateTool()">
+            <a ng-click="openSmartDateTool()">
+                Find with Smart Date
+            </a>
+        </span>
+        <editable-list ng-model="formatItems" template="formatItemTemplate"
+                transcope="{stepParams: step.params, openSmartDateTool: openSmartDateTool, showSmartDateTool: showSmartDateTool}"
+                add-label="Add format" sortable="true" on-change="formatsChanged"
+                validate="validateFormatList">
+            <div><input type="text" class="dateFormatInput" ng-model="it.format" placeholder="e.g. yyyy-MM-dd"/></div>
+        </editable-list>
+    </fieldset>
+
+    <div ng-repeat="format in step.params.formats" ng-if="format.indexOf('YYYY') > -1">
+        <small style="color: #ff9a00"><i class="icon-warning-sign"></i> Did you mean yyyy?<br/>
+            Uppercase Y refers to the week year. (<a href="http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html" target="_new">details</a>)
+        </small>
+    </div>
+
+    <fieldset>
+
+        <div class="fieldLabel">Locale</div>
+        <select dku-bs-select
+            ng-model="step.params.lang"
+            ng-options="item.value as item.label for item in processor.params[2].advancedChoices"
+            class="submit-on-blur"
+            next-on-enter
+            required>
+        </select>
+
+    </fieldset>
+
+    <div ng-if="step.$translatability.checkedSql">
+        <small style="color: #ff9a00"><i class="icon-warning-sign"></i>This setting will not override the database's locale for parsing day or month names</small>
+    </div>
+
+    <fieldset>
+        <div class="fieldLabel">Timezone</div>
+        <select dku-bs-select
+            ng-model="step.params.timezone_id"
+            ng-options="item.value as item.label for item in processor.params[3].advancedChoices"
+            class="submit-on-blur"
+            next-on-enter
+            required>
+        </select>
+    </fieldset>
+
+    <fieldset ng-show="step.params.timezone_id=='extract_from_ip'||step.params.timezone_id=='extract_from_column'">
+        <div class="fieldLabel">Source column</div>
+        <input type="text" bs-typeahead="step.$stepState.change.columnsBeforeStep"
+            autocomplete="off"
+            ng-trim="false"
+            ng-required="param.mandatory"
+            data-min-length="0"
+            ng-model="step.params.timezone_src"
+            data-provide="typeahead"
+            class="submit-on-blur"
+            next-on-enter/>
+    </fieldset>
+
+</form>

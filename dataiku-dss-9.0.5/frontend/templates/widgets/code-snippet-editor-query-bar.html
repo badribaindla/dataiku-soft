@@ -1,0 +1,36 @@
+<div class="code-snippet-query-zone">
+    <div class="query-bar">
+        <span class="add-on"><i class="icon-dku-search"></i></span>
+        <input type="search" placeholder="Search samples..."
+            ng-model="query.q"
+            dku-local-keypress="{'down': 'displayNextSample()', 'up': 'displayPreviousSample()', 'esc': 'hideSampleOrCloseSelector()', 'enter': 'insertSampleShortcut()'}"
+        />
+    </div>
+    
+    <div class="tag-filter">
+        <div class="tag-list-toggler">
+            <span class="add-on"><i class="icon-tags"></i></span>
+            <button class="has-caret btn"
+                ng-click="toggleTagList()" 
+                ng-class="{'toggled' : showTagList}"
+                ng-disabled="!snippetTags || snippetTags.length == 0">
+                {{snippetTags.length }} tags  <span class="detail" ng-if="selectedTags.length>0">|  {{selectedTags.length}} selected</span>
+                <b class="caret"></b>
+            </button>
+        </div>
+        <div class="tag-list-wrapper" ng-show="showTagList">
+            <ul class="tag-list">
+                <li ng-repeat="tag in snippetTags">
+                    <span class="tag"
+                        ng-class="{'selected' : selectedTags.indexOf(tag) >= 0, 'not-selected' : selectedTags.indexOf(tag) < 0}" 
+                        ng-style="selectedTags.indexOf(tag) >= 0 && {'background-color' : tag.color}"
+                        ng-click="switchTag(tag)"
+                        color-contrast="{{ {true:tag.color, false:'#FFFFFF0'}[selectedTags.indexOf(tag) >= 0] }}"
+                        >
+                        <span class="bullet" style="background-color:{{tag.color}};">&nbsp;</span>{{tag.name}}
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

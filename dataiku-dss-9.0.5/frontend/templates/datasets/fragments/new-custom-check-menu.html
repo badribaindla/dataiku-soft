@@ -1,0 +1,26 @@
+ <div style="display: inline-block" class="dropdown">
+     <a data-toggle="dropdown" class="btn btn--secondary dropdown-toggle">
+         {{title}} <b class="caret"></b>
+     </a>
+     <ul class="dropdown-menu new-dataset-menu">
+         <li ng-repeat="result in displayedItems" ng-class="{'dropdown-submenu' : result.isSection}">
+
+             <a ng-if="result.isSection" href> <i class="{{result.icon}}" />&nbsp;{{result.label}}
+             </a>
+             <ul class="dropdown-menu" ng-if="result.isSection">
+                 <li ng-repeat="item in result.items">
+                     <a ng-if="item.isInfo" ng-click="displayPluginInfo(item.pluginId, true, false)">Learn more...</a>
+
+                     <a ng-if="!item.isInfo && !item.disabled" ng-click="create(item)"> <i class="{{item.icon}}" />&nbsp;{{item.label}}</a>
+
+                      <a ng-if="!item.isInfo && item.disabled" class="dataset-disabled" title="{{item.reason}}" class="disabled"> <i class="{{item.icon}}" />&nbsp;{{item.label}}</a>
+                 </li>
+             </ul>
+
+             <a ng-click="create(item)" ng-if="!result.isSection && !result.disabled">
+                 <i class="{{result.icon}}" />
+                 {{result.label}}
+             </a>
+         </li>
+     </ul>
+ </div>

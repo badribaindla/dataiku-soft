@@ -1,0 +1,39 @@
+<div ng-class="{'main-panel': topNav.tabsType == 'DATASET', 'main-panel--reduced': standardizedSidePanel.opened}">
+    <div class="horizontal-flex row-fluid object-nav no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width" navigator-object>
+        <div std-object-breadcrumb class="flex oh" />
+        <div class="noflex">
+            <a class="mx-out-of-tabs-link"
+                ng-if="datasetFullInfo.directAccessOnOriginal"
+                ui-sref="projects.project.datasets.dataset.explore({projectKey : datasetLoc.projectKey, datasetName : datasetLoc.name})">
+                <i class="icon-arrow-left" />
+                &nbsp;Go to origin dataset in project <strong>{{datasetLoc.projectKey}}</strong>
+            </a>
+
+            <a class="tab" ng-class="{'enabled': topNav.tab == 'explore'}" href="{{$state.href('projects.project.foreigndatasets.dataset.explore')}}" >
+                Explore
+            </a>
+            <a class="tab" ng-show="editableDataset" ng-class="{'enabled': topNav.tab == 'edit'}" href="{{$state.href('projects.project.foreigndatasets.dataset.edit')}}" >
+                Edit
+            </a>
+            <a class="tab" ng-class="{'enabled': topNav.tab == 'visualize'}" ui-sref="projects.project.foreigndatasets.dataset.visualize" >
+                Charts
+            </a>
+            <a class="tab" ng-class="{'enabled': topNav.tab == 'statistics'}" ui-sref="projects.project.foreigndatasets.dataset.statistics" >
+                Statistics
+            </a>
+    
+            <div class="otherLinks">
+                <div class="dib" custom-element-popup cep-position="align-right-bottom">
+                    <button class="mainzone btn btn--outline btn--wide btn--secondary dropdown-toggle has-caretn" onfocus="this.blur();" ng-click="standardizedSidePanel.toggleTab('actions')">
+                        Actions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div ui-view class="dss-page"></div>
+</div>
+
+<standardized-side-panel ng-if="topNav.tabsType == 'DATASET'" page="object" object-type="FOREIGN_DATASET" toggle-tab="{{ standardizedSidePanel.tabToToggle }}">
+</standardized-side-panel>

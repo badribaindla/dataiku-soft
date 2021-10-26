@@ -1,0 +1,162 @@
+<li ng-if="object.nodeType == 'FOREIGN_MANAGED_FOLDER' && !object.forbiddenForeignProject">
+	<a href="{{ $state.href('projects.project.foreignmanagedfolders.managedfolder.view', {projectKey : $stateParams.projectKey, odbId: object.name, sourceProjectKey : object.projectKey  }) }}">
+	    <i class="icon-fixed-width icon-info" />
+		&nbsp;Open
+	</a>
+</li>
+<li ng-if="object.nodeType != 'FOREIGN_MANAGED_FOLDER' || object.forbiddenForeignProject">
+	<a href="{{ $state.href('projects.project.managedfolders.managedfolder.view', {projectKey : object.projectKey, odbId: object.name }) }}">
+	    <i class="icon-fixed-width icon-info" />
+		&nbsp;Open
+	</a>
+</li>
+<li disabled-if-ro ng-show="object.predecessors.length == 1 && object.projectKey == $stateParams.projectKey">
+	<a ng-show="object.projectKey == $stateParams.projectKey" ng-click="GlobalProjectActions.buildManagedFolder(this, object.name); WT1Event('managedfolder-contextual-menu-build')">
+		<i class="icon-fixed-width icon-play" />
+		&nbsp;Build
+	</a>
+</li>
+<li disabled-if-ro ng-show="object.projectKey == $stateParams.projectKey" >
+    <a ng-click="GlobalProjectActions.clearManagedFolder(this, object.name, object.description); WT1Event('managedfolder-contextual-menu-clear')">
+        <i class="icon-fixed-width icon-remove" />
+        &nbsp;Clear
+    </a>
+</li>
+<li ng-show="object.projectKey == $stateParams.projectKey"  class="divider"></li>
+<li disabled-if-ro ng-show="object.projectKey == $stateParams.projectKey" >
+	<a ng-click="deleteFlowItem()">
+		<span class="text-error">
+			<i class="icon-fixed-width icon-trash" />
+			&nbsp;Delete
+		</span>
+	</a>
+</li>
+
+<li ng-if="object.nodeType == 'FOREIGN_MANAGED_FOLDER' && !object.forbiddenForeignProject" class="divider"></li>
+<li ng-if="object.nodeType == 'FOREIGN_MANAGED_FOLDER' && !object.forbiddenForeignProject">
+	<a href="{{ $state.href('projects.project.flow', {projectKey: object.projectKey, id: 'managedfolder_' + object.projectKey + '.' + object.name}, {inherit: false}) }}"> <i class="icon-fixed-width icon-reply" />
+		View source
+	</a>
+</li>
+
+<li ng-if="object.nodeType == 'LOCAL_MANAGED_FOLDER' && (object.accessibleTargetProjects || []).length > 0" class=divider"></li>
+<li ng-if="object.nodeType == 'LOCAL_MANAGED_FOLDER' && (object.accessibleTargetProjects || []).length > 0" class="dropdown-submenu">
+	<a>
+		<i class="icon-fixed-width icon-mail-forward" />
+		View shared folder in
+	</a>
+	<ul class="dropdown-menu">
+		<li ng-repeat="tarPrj in object.accessibleTargetProjects">
+			<a href="{{ $state.href('projects.project.flow', {projectKey: tarPrj.projectKey, id: 'managedfolder_' + object.projectKey + '.' + object.name}, {inherit: false}) }}">
+				<i class="icon-fixed-width icon-dkubird" />
+				{{ tarPrj.name }}
+			</a>
+		</li>
+	</ul>
+</li>
+
+<li class="divider"></li>
+<li disabled-if-ro>
+    <a ng-click="moveToFlowZone(getSelectedTaggableObjectRefs(), false, computeMovingImpact())" id="qa_flow-zone-item">
+        <i class="icon-fixed-width icon-move_to_zone" />
+        Move to a flow zone
+    </a>
+</li>
+<li disabled-if-ro>
+    <a ng-click="shareToFlowZone(getSelectedTaggableObjectRefs())" id="qa_flow-zone-share">
+        <i class="icon-fixed-width icon-share_to_zone" />
+        Share to a flow zone
+    </a>
+</li>
+<li ng-if="object.usedByZones.length && !object.successors.length" disabled-if-ro>
+    <a ng-click="unshareToFlowZone(getSelectedTaggableObjectRefs(), [object.usedByZones[0]])" id="qa_flow-zone-unshare">
+        <i class="icon-fixed-width icon-unshare_to_zone" />
+        Unshare from this zone
+    </a>
+</li>
+<li ng-if="othersZones && !othersZones.includes(object.usedByZones[0])" class="dropdown-submenu">
+    <a>
+        <i class="icon-fixed-width icon-go_to_usage" />
+        Go to usage
+    </a>
+    <ul class="dropdown-menu">
+        <li ng-repeat="zone in othersZones">
+            <a ng-click="zoomToOtherZoneNode(zone)">
+                <i class="icon-fixed-width icon-zone" />
+                {{FlowGraph.node("zone_"+zone).description}}
+            </a>
+        </li>
+    </ul>
+</li>
+<li ng-if="othersZones && othersZones.includes(object.usedByZones[0] || object.ownerZone)" disabled-if-ro>
+    <a ng-click="zoomToOtherZoneNode(object.ownerZone)">
+        <i class="icon-fixed-width icon-go_to_original" />
+        Go to original
+    </a>
+</li>
+
+<li ng-if="object.predecessors.length || object.successors.length" class="divider"></li>
+<li ng-if="object.predecessors.length">
+	<a ng-click="selectPredecessors(object)" ng-mouseover="previewSelectPredecessors()" ng-mouseleave="endPreviewBranch()">
+		<i class="icon-DKU_select_upstream" />&nbsp;Select all upstream
+	</a>
+</li>
+<li ng-if="object.successors.length">
+	<a ng-click="selectSuccessors(object)" ng-mouseover="previewSelectSuccessors()" ng-mouseleave="endPreviewBranch()">
+		<i class="icon-DKU_select_downstream" />&nbsp;Select all downstream
+	</a>
+</li>
+
+<li ng-if="object.predecessors.length || object.successors.length" class="divider"></li>
+<li ng-if="object.predecessors.length">
+	<a ng-click="foldPredecessors(object)" ng-mouseover="previewFoldPredecessors()" ng-mouseleave="endPreviewBranch()">
+		<i class="icon-DKU_collapse_upstream" />&nbsp;Hide all upstream
+	</a>
+</li>
+<li ng-if="object.successors.length">
+	<a ng-click="foldSuccessors(object)" ng-mouseover="previewFoldSuccessors()" ng-mouseleave="endPreviewBranch()">
+		<i class="icon-DKU_collapse_downstream" />&nbsp;Hide all downstream
+	</a>
+</li>
+
+<!-- Tools specific -->
+<li ng-if="tool.type == 'TAGS' && tool.user.getFocusedAsList().length" class="divider" />
+<li disabled-if-ro ng-if="tool.type == 'TAGS' && tool.user.getFocusedAsList().length == 1" >
+	<a class="oh mx-textellipsis" ng-click="tool.actions.setTags(tool.user.getFocusedAsList(), [object], 'TOGGLE');">
+		<i class="icon-fixed-width icon-tag"/>&nbsp;Toggle tag <strong>{{tool.user.getSingleFocused()}}</strong>
+	</a>
+</li>
+<li disabled-if-ro ng-if="tool.type == 'TAGS' && tool.user.getFocusedAsList().length > 1" >
+	<a class="oh" ng-click="tool.actions.setTags(tool.user.getFocusedAsList(), [object], 'ADD');">
+		<i class="icon-fixed-width icon-tag"/>
+
+		<span ng-if="tool.user.getFocusedAsList().length == 1">
+			Add tag <strong>{{tool.user.getFocusedAsList()[0]}}</strong>
+		</span>
+		<span ng-if="tool.user.getFocusedAsList().length > 1">
+			Add <strong>{{tool.user.getFocusedAsList().length}} tags</strong>
+		</span>
+	</a>
+</li>
+<li disabled-if-ro ng-if="tool.type == 'TAGS' && tool.user.getFocusedAsList().length > 1" >
+	<a class="oh" ng-click="tool.actions.setTags(tool.user.getFocusedAsList(), [object], 'REMOVE');">
+		<i class="icon-fixed-width icon-tag"/>
+
+		<span ng-if="tool.user.getFocusedAsList().length == 1">
+			Remove tag <strong>{{tool.user.getFocusedAsList()[0]}}</strong>
+		</span>
+		<span ng-if="tool.user.getFocusedAsList().length > 1">
+			Remove <strong>{{tool.user.getFocusedAsList().length}} tags</strong>
+		</span>
+	</a>
+</li>
+
+
+<li ng-if="tool.type == 'CONNECTIONS' && canChangeConnection(object)" class="divider"></li>
+<li disabled-if-ro ng-if="tool.type == 'CONNECTIONS' && canChangeConnection(object)" >
+	<a ng-click="changeSelectedItemsConnections()">
+		<i class="icon-dataset"/>
+		Change connections
+	</a>
+</li>
+

@@ -1,0 +1,39 @@
+<div class="control-group">
+		<ng-switch on="field.type">
+            <div class="controls" ng-switch-when="boolean">
+				<label >
+		            <input ng-model="model[field.name]" type="checkbox" />
+					{{ field.label || field.name }}
+				    <span class="help-inline" ng-show="field.tooltip">{{ field.tooltip }}</span>
+				</label>
+			</div>
+
+            <div ng-switch-default>
+		        <label class="control-label">{{ field.label || field.name }}</label>
+				<div class="controls">
+				    <ng-switch on="field.type">
+			            <input ng-switch-when="int" force-integer type="number" min="0" ng-model="model[field.name]" step="1" class="input-mini" ng-required="field.mandatory" />
+			            <textarea ng-switch-when="text" ng-trim="false" ng-model="model[field.name]" ng-required="field.mandatory"></textarea>
+			            <select ng-switch-when="simple_select" ng-model="model[field.name]" ng-options="choice for choice in field.choices" ng-required="field.mandatory"></select>
+			            <select ng-switch-when="advanced_select" ng-model="model[field.name]" ng-options="sv.value as sv.label for sv in field.advancedChoices" />
+
+
+			            <input ng-switch-when="char" ng-trim="false" ng-model="model[field.name]" type="text" class="input-mini" ng-required="field.mandatory" convert-special-char/>
+						<input ng-switch-when="charset" ng-model="model[field.name]" type="text" class="input-medium" required />
+
+						<div ng-switch-when="sql_query" style="width: 500px; height: 310px">
+							<textarea ng-model="model[field.name]" ui-codemirror="{
+												mode:'text/x-sql',
+												theme:'elegant',
+												lineNumbers : true,
+												matchBrackets: true}">
+							</textarea>
+						</div>
+                        <input ng-switch-when="password" ng-trim="false" ng-model="model[field.name]" type="password" ng-required="field.mandatory" autocomplete="new-password" />
+                        <input ng-switch-default ng-trim="false" ng-model="model[field.name]" type="text" ng-required="field.mandatory" />
+				    </ng-switch>
+				    <span class="help-inline" ng-show="field.tooltip">{{ field.tooltip }}</span>
+				</div>
+            </div>
+	    </ng-switch>
+</div>

@@ -1,0 +1,120 @@
+<div ng-show="connection.allowManagedDatasets">
+    <h2 class="settings-section-title">Naming rules for new datasets</h2>
+    <p>
+        <small class="help-inline" style="padding: 0">
+            These settings define how managed SQL datasets are mapped to
+            database tables. These settings are only applied when creating a new managed SQL dataset.
+            You can always modify these afterwards in the SQL dataset settings.
+            See <doclink page="/connecting/relocation" title="the documentation" /> for more information.
+        </small>
+    </p>
+
+    <div class="control-group" ng-if="connection.type === 'BigQuery' || connection.type === 'Snowflake'">
+        <label class="control-label" ng-switch="connection.type">
+            <span ng-switch-when="BigQuery">BigQuery project</span>
+            <span ng-switch-when="Snowflake">Database</span>
+            <span ng-switch-default>Catalog</span>
+        </label>
+        <div class="controls">
+            <input type="text" ng-model="connection.params.namingRule.catalog" class="exclude-from-smart-change"/>
+            <div class="help-inline" ng-if="connection.type == 'Snowflake'">
+                Managed datasets will be created in this database. You may reference variables here, they will
+                be expanded dynamically
+            </div>
+            <div class="help-inline" ng-if="connection.type === 'BigQuery'">
+                Managed datasets will be created in this BigQuery project. You may reference variables here, they will
+                be expanded dynamically
+            </div>
+        </div>
+    </div>
+    <div class="control-group" ng-if="connection.type === 'BigQuery' || connection.type === 'Snowflake'">
+        <label class="control-label" ng-switch="connection.type">
+            <span ng-switch-default>Allow catalog override</span>
+            <span ng-switch-when="Snowflake">Allow database override</span>
+            <span ng-switch-when="BigQuery">Allow BigQuery project override</span>
+        </label>
+        <div class="controls">
+            <label>
+                <input type="checkbox" ng-model="connection.params.namingRule.canOverrideCatalogInManagedDatasetCreation" class="exclude-from-smart-change"/>
+                <div class="help-inline" ng-if="connection.type === 'Snowflake'">
+                    If this is enabled, an option to choose a database will be presented to users each time they create a managed dataset on this connection
+                </div>
+                <div class="help-inline" ng-if="connection.type === 'BigQuery'">
+                    If this is enabled, an option to choose a BigQuery project will be presented to users each time they create a managed dataset on this connection
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" ng-switch="connection.type">
+            <span ng-switch-when="BigQuery">BigQuery dataset</span>
+            <span ng-switch-default>Schema</span>
+        </label>
+        <div class="controls">
+            <input type="text" ng-model="connection.params.namingRule.schemaName" class="exclude-from-smart-change"/>
+            <div class="help-inline" ng-if="connection.type !== 'BigQuery'">
+                Managed datasets will be created in this schema. You may reference variables here, they will
+                be expanded dynamically
+            </div>
+            <div class="help-inline" ng-if="connection.type === 'BigQuery'">
+                Managed datasets will be created in this BigQuery dataset. You may reference variables here, they will
+                be expanded dynamically
+            </div>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" ng-switch="connection.type">
+            <span ng-switch-default>Allow schema override</span>
+            <span ng-switch-when="BigQuery">Allow BigQuery dataset override</span>
+        </label>
+        <div class="controls">
+            <label>
+                <input type="checkbox" ng-model="connection.params.namingRule.canOverrideSchemaInManagedDatasetCreation" class="exclude-from-smart-change"/>
+                <div class="help-inline" ng-if="connection.type !== 'BigQuery'">
+                    If this is enabled, an option to choose a schema will be presented to users each time they create a managed dataset on this connection
+                </div>
+                <div class="help-inline" ng-if="connection.type === 'BigQuery'">
+                    If this is enabled, an option to choose a BigQuery dataset will be presented to users each time they create a managed dataset on this connection
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label for="" class="control-label">Table prefix</label>
+        <div class="controls">
+            <input type="text" ng-model="connection.params.namingRule.tableNameDatasetNamePrefix" class="exclude-from-smart-change"/>
+            <div class="help-inline">
+                Table name for new managed datasets will be prefixed by this. You may reference variables here, they will
+                be expanded dynamically
+            </div>
+        </div>
+    </div>
+    <div class="control-group">
+        <label for="" class="control-label">Table suffix</label>
+        <div class="controls">
+            <input type="text" ng-model="connection.params.namingRule.tableNameDatasetNameSuffix" class="exclude-from-smart-change"/>
+            <div class="help-inline">
+                Table name for new managed datasets will be suffixed by this. You may reference variables here, they will
+                be expanded dynamically
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-warning" ng-show="warnings.noVariableInTable">
+        Table and schema name do not include any variable reference. Datasets will be created with absolute names, which is
+        not recommended for relocation purposes and may cause name clashes.
+    </div>
+</div>
+
+<div class="control-group">
+    <h2 class="settings-section-title">Custom properties</h2>
+    <label class="control-label">Advanced connection properties</label>
+    <div class="controls">
+        <ng2-connection-properties-list [(items)]="connection.params.dkuProperties" (on-validity-change)="setAdvancedConnectionPropertiesValidity($event)"></ng2-connection-properties-list>
+        <span class="help-inline">
+            For specific use cases
+        </span>
+    </div>
+</div>

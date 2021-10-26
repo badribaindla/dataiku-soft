@@ -1,0 +1,141 @@
+<div ng-controller="ImpalaRecipeController" data-extend-template="/templates/layouts/code-based-recipe-editor-layout.html">
+    <div class="mainPane code-based-recipe-main-zone vertical-flex h100" data-block="recipeEditor">
+        <div block-api-error />
+        <div ng-if="valCtx.schemaChangeSuggestions.length > 0" class="noflex">
+            <div ng-repeat="suggestion in valCtx.schemaChangeSuggestions" >
+                <div class="alert alert-info">
+                <h4>
+                    <i class="icon-warning-sign"></i>
+                    Incompatible schema
+                </h4>
+                <h5>
+                    The schema of '{{suggestion.dataset.name}}' doesn't match to the output of this Impala recipe.
+                </h5>
+                <ul ng-if="suggestion.reasons.length<5" ng-repeat="incompatibility in suggestion.reasons">
+                    <li>{{incompatibility}}</li>
+                </ul>
+                <button ng-if="suggestion.reasons.length >= 5"
+                    class="btn btn--success"
+                    dku-inline-popover placement="right"
+                    container="body">
+                    <label>
+                        More details
+                        <span class="icon-question-sign"></span>
+                    </label>
+                    <content title="Incompatibilites">
+                        <div>
+                            <ul ng-repeat="incompatibility in suggestion.reasons">
+                                <li>{{incompatibility}}</li>
+                            </ul>
+                        </div>
+                    </content>
+                </button>
+                <button class="btn btn--danger" ng-click="ignoreSchemaChangeSuggestion(suggestion)">Cancel</button>
+                <button class="btn btn--primary" ng-click="updateSchemaFromSuggestion(suggestion)">Update schema</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-warning noflex" ng-show="valCtx.validationResult.schemaResult.suggestion">
+            <h4> <i class="icon-warning-sign"></i>
+                &nbsp;Incompatible schema
+            </h4>
+            <h5>
+                The schema of '{{valCtx.validationResult.schemaResult.suggestion.dataset.name}}' doesn't
+                match to the output of this Impala recipe.
+            </h5>
+
+            <ul ng-if="valCtx.validationResult.schemaResult.suggestion.reasons.length<5" ng-repeat="incompatibility in valCtx.validationResult.schemaResult.suggestion.reasons">
+                <li>{{incompatibility}}</li>
+            </ul>
+            <button ng-if="valCtx.validationResult.schemaResult.suggestion.reasons.length>=5" class="btn btn--success" dku-inline-popover placement="right" container="body">
+                <label>
+                    More details
+                    <span class="icon-question-sign"></span>
+                </label>
+                <content title="Incompatibilites">
+                    <div>
+                        <ul ng-repeat="incompatibility in valCtx.validationResult.schemaResult.suggestion.reasons">
+                            <li>{{incompatibility}}</li>
+                        </ul>
+                    </div>
+                </content>
+            </button>
+
+            <button class="btn btn--danger" ng-click="ignoreSchemaChangeSuggestion()">Cancel</button>
+            <button class="btn btn--primary" ng-click="updateSchemaFromSuggestion()" id="qa_recipe_update-schema-button" ng-show="valCtx.validationResult.schemaResult.outputIsManaged">Update schema</button>
+        </div>
+
+        <div class="alert alert-warning noflex" ng-show="valCtx.validationResult.runResult.datasetInNeedOfSynchronization">
+            <h4> <i class="icon-warning-sign"></i>
+                &nbsp;Missing table
+            </h4>
+            <h5>
+                The Hive table of '{{valCtx.validationResult.runResult.datasetInNeedOfSynchronization}}' doesn't
+                exist in the Hive metastore. The dataset should be built and/or synchronized.
+            </h5>
+
+            <button class="btn btn--secondary" ng-click="visitUnsynchonizedDataset()" >Go to dataset settings</button>
+            <button class="btn btn--primary" ng-click="resynchronizeMetastore()" >Synchronize metastore</button>
+        </div>
+
+        <div code-snippet-editor
+            code="script.data"
+            sample-type="'impala'"
+            categories="[]"
+            save-category="'impala-std'"
+            editor-options="editorOptions"
+            resolve-code-for-preview-func="resolveCodeForPreviewFunc"
+            resolve-code-for-insertion-func = "resolveCodeForInsertionFunc"
+            />
+
+		<div future-waiting response="future" dku-if="future && !future.hasResult"></div>
+
+        <div include-no-scope="/templates/recipes/fragments/recipe-editor-statusbar.html" class="noflex"/>
+
+        <div class="noflex bottom-bar">
+        	<div class="horizontal-flex">
+                <span class="noflex" include-no-scope="/templates/recipes/fragments/code-recipe-validate-query-button.html" />
+                <span class="flex" include-no-scope="/templates/recipes/fragments/code-recipe-run-bottom-bar.html"/>
+        	</div>
+        </div>
+
+        <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"  class="noflex recipe-job-result"/>
+    </div>
+
+
+    <div data-block="additionalTabsContent">
+        <div ng-if="topNav.tab == 'advanced'" class="dss-page oa">
+			<div block-api-error />
+
+ 			<div class="horizontal-centerer">
+				<div class="recipe-settings-section1 w800">
+					<h1 class="recipe-settings-section1-title">Execution options</h1>
+					<form class="dkuform-horizontal recipe-settings-section2">
+						<div class="control-group">
+                            <label for="" class="control-label">Stream mode</label>
+                            <div class="controls">
+                                <input name="forceStream" id="forceStream" type="checkbox" ng-disabled="!fullSqlAvailability.available || !fullSqlAvailability.applicable" ng-model="recipe.params.runInStreamMode" title="{{fullSqlAvailability.reason}}" />
+                                <label class="help-inline" for="forceStream">Do not use Impala to write the output</label>
+                            </div>
+						</div>
+					</form>
+				</div>
+
+                <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+
+				<div class="recipe-settings-section1 w800">
+					<h1 class="recipe-settings-section1-title">Overrides</h1>
+					<form class="dkuform-horizontal recipe-settings-section2">
+						<div class="control-group">
+                            <label for="" class="control-label">Override variables</label>
+                            <div class="controls">
+				                <span override-table-link object-to-override="recipe" override-table-parent="recipe" />
+                            </div>
+						</div>
+					</form>
+				</div>
+			</div>
+        </div>
+    </div>
+</div>

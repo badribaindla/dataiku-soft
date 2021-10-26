@@ -1,0 +1,212 @@
+<div id="flow-tool-zone" ng-show="nodesGraph && !isFlowEmpty">
+    <div ng-if="tool.type && tool.def.template" style="position: absolute; bottom: 19px;" >
+        <div ng-switch on="tool.def.template">
+            <div include-no-scope="{{tool.def.template}}" ng-switch-default />
+        </div>
+    </div>
+
+    <div custom-element-popup class="tool-selector" cep-position="zalign-left-top" cep-width="zfit-main">
+        <a ng-click="togglePopover()" class="mainzone selector btn btn--secondary">
+            <i class="icon-eye-open" />
+            View :
+            <span ng-show="!tool.def">default</span>
+            <span ng-show="tool.def.isTool">active tool</span>
+            <span ng-show="tool.def  && !tool.def.isTool">{{tool.def.getToolDisplayName(tool.currentSession)}}</span>
+            <span class="caret"/>
+        </a>
+
+        <div class="popover custom-element-popup-popover-light flow-tool-selector-popover dropdown-menu">
+
+            <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'FLOW_ZONES'}">
+                <a main-click class="link-std" ng-click="startTool('FLOW_ZONES', {}); togglePopover()">
+                    <i class="icon-zone" /> Flow Zones
+                </a>
+            </div>
+
+            <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'TAGS'}">
+                <a main-click class="link-std" ng-click="startTool('TAGS', {}); togglePopover()">
+                    <i class="icon-tags" /> Tags
+                </a>
+            </div>
+
+            <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'CUSTOM_FIELDS'}" ng-if="appConfig.customFieldsPluginComponentRefs.length">
+                <a main-click class="link-std" ng-click="startTool('CUSTOM_FIELDS', {}); togglePopover()">
+                    <i class="icon-puzzle-piece" /> Metadata fields
+                </a>
+            </div>
+
+            <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'RECIPES_ENGINES'}">
+                <a main-click class="link-std" ng-click="startTool('RECIPES_ENGINES', {}); togglePopover()">
+                    <i class="icon-cogs" /> Recipe engines
+                </a>
+            </div>
+
+            <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'RECIPES_CODE_ENVS'}">
+                <a main-click class="link-std" ng-click="startTool('RECIPES_CODE_ENVS', {}); togglePopover()">
+                    <i class="icon-code" /> Recipe code environments
+                </a>
+            </div>
+
+            <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'CONNECTIONS'}">
+                <a main-click class="link-std" ng-click="startTool('CONNECTIONS', {}); togglePopover()">
+                    <i class="icon-dataset" /> Connections
+                </a>
+            </div>
+
+            <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'SQL_PIPELINES'}">
+                <a main-click
+                   class="link-std"
+                   ng-click="startTool('SQL_PIPELINES', {}); togglePopover()"
+                   ng-if="projectSummary.sqlPipelinesEnabled">
+                    <i class="icon-dku-sql" /> SQL pipelines
+                </a>
+                <span style="color: #999; cursor: not-allowed;"
+                      ng-if="!projectSummary.sqlPipelinesEnabled"
+                      title="SQL pipelines are not enabled in this project"
+                      toggle="tooltip">
+                   <i class="icon-dku-sql" /> SQL pipelines
+                </span>
+            </div>
+
+            <div class="views-group">
+                <h2 ng-if="appConfig.sparkEnabled || appConfig.hiveEnabled || appConfig.impalaEnabled">
+                    <i class="icon-HDFS" /> <span>Hadoop</span>
+                </h2>
+
+                <div full-click class="flow-view" ng-if="appConfig.sparkEnabled" ng-class="{'active-view': tool.def.getName() == 'SPARK_CONFIG'}">
+                    <a main-click class="link-std" ng-click="startTool('SPARK_CONFIG', {}); togglePopover()"> Spark configurations</a>
+                </div>
+
+                <div full-click class="flow-view" ng-if="appConfig.sparkEnabled" ng-class="{'active-view': tool.def.getName() == 'SPARK_ENGINE'}">
+                    <a main-click class="link-std" ng-click="startTool('SPARK_ENGINE', {}); togglePopover()">
+                        Spark engine
+                    </a>
+                </div>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'SPARK_PIPELINES'}">
+                    <a main-click
+                        class="link-std"
+                        ng-click="startTool('SPARK_PIPELINES', {}); togglePopover()"
+                        ng-if="appConfig.sparkEnabled && projectSummary.sparkPipelinesEnabled">
+                        Spark pipelines
+                    </a>
+                    <span style="color: #999; cursor: not-allowed;"
+                        ng-if="appConfig.sparkEnabled && !projectSummary.sparkPipelinesEnabled"
+                        title="Spark pipelines are not enabled in this project"
+                        toggle="tooltip">
+                        Spark pipelines
+                    </span>
+                </div>
+
+                <div full-click class="flow-view" ng-if="appConfig.impalaEnabled" ng-class="{'active-view': tool.def.getName() == 'IMPALA_WRITE_MODE'}">
+                    <a main-click class="link-std" ng-click="startTool('IMPALA_WRITE_MODE', {}); togglePopover()">
+                        Impala write mode
+                    </a>
+                </div>
+
+                <div full-click class="flow-view" ng-if="appConfig.hiveEnabled" ng-class="{'active-view': tool.def.getName() == 'HIVE_MODE'}">
+                    <a main-click class="link-std" ng-click="startTool('HIVE_MODE', {}); togglePopover()">
+                        Hive mode
+                    </a>
+                </div>
+            </div>
+
+            <div class="views-group">
+                <h2>
+                    <i class="icon-calendar" /> <span>Activity</span>
+                </h2>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'CREATION'}">
+                    <a main-click class="link-std" ng-click="startTool('CREATION', {}); togglePopover()">
+                        Creation
+                    </a>
+                </div>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'LAST_MODIFICATION'}">
+                    <a main-click class="link-std" ng-click="startTool('LAST_MODIFICATION', {}); togglePopover()">
+                        Last modification
+                    </a>
+                </div>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'LAST_BUILD'}">
+                    <a main-click class="link-std" ng-click="startTool('LAST_BUILD', {}); togglePopover()">
+                        Last build
+                    </a>
+                </div>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'LAST_BUILD_DURATION'}">
+                    <a main-click class="link-std" ng-click="startTool('LAST_BUILD_DURATION', {}); togglePopover()">
+                        Last build duration
+                    </a>
+                </div>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'RECENT_ACTIVITY'}">
+                    <a main-click class="link-std" ng-click="startTool('RECENT_ACTIVITY', {}); togglePopover()">
+                        Recent modifications
+                    </a>
+                </div>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'SCENARIOS'}">
+                    <a main-click class="link-std" ng-click="startTool('SCENARIOS', {}); togglePopover()">
+                        Scenarios
+                    </a>
+                </div>
+            </div>
+
+            <div class="views-group">
+                <h2>
+                    <i class="icon-code-fork" /> <span>Data</span>
+                </h2>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'PARTITIONING'}">
+                    <a main-click class="link-std" ng-click="startTool('PARTITIONING', {}); togglePopover()">
+                        Partitioning schemes
+                    </a>
+                </div>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'PARTITIONS'}">
+                    <a main-click class="link-std" ng-click="startTool('PARTITIONS', {}); togglePopover()">
+                        Partitions count
+                    </a>
+                </div>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'COUNT_OF_RECORDS'}">
+                    <a main-click class="link-std" ng-click="startTool('COUNT_OF_RECORDS', {}); togglePopover()">
+                        Count of records
+                    </a>
+                </div>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'FILESIZE'}">
+                    <a main-click class="link-std" ng-click="startTool('FILESIZE', {}); togglePopover()">
+                        File size
+                    </a>
+                </div>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'FILEFORMATS'}">
+                    <a main-click class="link-std" ng-click="startTool('FILEFORMATS', {}); togglePopover()">
+                        File format
+                    </a>
+                </div>
+<!--
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'METRICS'}">
+                    <a main-click class="link-std" ng-click="startTool('METRICS', {}); togglePopover()"> Metrics</a>
+                </div>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'CHECKS'}">
+                    <a main-click class="link-std" ng-click="startTool('CHECKS', {}); togglePopover()"> Checks</a>
+                </div> -->
+            </div>
+
+            <div class="views-group">
+                <h2>
+                    <i class="icon-star" /> <span>Other</span>
+                </h2>
+
+                <div full-click class="flow-view" ng-class="{'active-view': tool.def.getName() == 'WATCH'}">
+                    <a main-click class="link-std" ng-click="startTool('WATCH', {}); togglePopover()"> Watched and starred items</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

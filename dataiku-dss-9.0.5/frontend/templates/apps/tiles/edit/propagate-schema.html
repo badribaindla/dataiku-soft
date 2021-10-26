@@ -1,0 +1,56 @@
+<div>
+    <div class="control-group">
+        <label class="control-label">From dataset</label>
+        <div class="controls">
+            <div object-picker="tile.datasetName" type="DATASET"></div>
+            <input type="hidden" ng-model="tile.datasetName" required />
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Behavior</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="tile.behavior" ng-options="m.name as m.label for m in behaviors"/>
+        </div>
+    </div>
+    <!--ng-if: just to fix the codeMirrorSettingService.get('...') that is not evaluated without-->
+    <small>
+        During propagation, some recipes can have their settings altered to account for added or missing columns. For example, a Group recipe can add aggregates for new columns,
+        or drop grouping keys for columns that have been removed. <doclink page="applications/tiles#propagate-schema" title="Read the documentation" /> for more information.
+    </small>
+    <div class="control-group" ng-if='tile'>
+        <label class="control-label">Recipe update options</label>
+        <div class="controls">
+            <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+                <textarea json-object-pretty-view name="updateRecipeOptions" ui-codemirror="codeMirrorSettingService.get('application/json')" ng-model="tile.recipeUpdateOptions"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="control-group" style="margin-bottom: 15px;">
+        <label class="control-label">Excluded recipes</label>
+        <div class="controls">
+            <ng2-values-list [(items)]="tile.excludedRecipes"></ng2-values-list>
+            <span class="help-inline">Names of recipes where propagation should stop</span>
+        </div>
+    </div>
+    <div class="control-group" style="margin-bottom: 15px;">
+        <label class="control-label">Recipes marked as OK</label>
+        <div class="controls">
+            <ng2-values-list [(items)]="tile.markAsOkRecipes"></ng2-values-list>
+            <span class="help-inline">Names of recipes to always consider as OK during propagation</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Partition by dimension</label>
+        <div class="controls">
+            <mapping-editor ng-model="tile.partitionByDim" add-label="Add key/value" />
+            <span class="help-inline">In the case of partitioned flows, sets the default partition value to use when rebuilding, for a specific dimension name</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Partition by computable</label>
+        <div class="controls">
+            <mapping-editor ng-model="tile.partitionByComputable" add-label="Add key/value" />
+            <span class="help-inline">In the case of partitioned flows, sets the partition id to use when building a particular computable. Overrides the default partitioning value per dimension</span>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,20 @@
+<div data-extend-template="/templates/dashboards/insight-tile-template.html" class="h100">
+    <div data-block="content" class="h100 overflow-wrapper">
+        <div ng-switch="tile.tileParams.displayMode" ng-if="insight.$modelData" class="h100" style="padding: 10px;">
+            <div ng-switch-when="json"><pre>{{modelData|json}}</pre></div>
+            <div ng-switch-when="features" include-no-scope="/templates/ml/common/features.html"></div>
+            <div ng-switch-when="preparation" include-no-scope="/templates/ml/common/preparation.html"></div>
+            <div ng-switch-when="skins" class="h100" include-no-scope="/templates/savedmodels/version-skins.html"></div>
+            <div ng-switch-default ng-switch on="insight.$savedModel.miniTask.taskType" class="h100">
+                <div ng-switch-when="CLUSTERING" class="h100 clustering-results-page">
+                    <div class="h100" ng-if="tile.tileParams.displayMode == 'summary'" include-no-scope="/templates/ml/clustering-model/facts.html"></div>
+                    <div ng-if="tile.tileParams.displayMode != 'summary'" include-no-scope="/templates/ml/clustering-model/{{tile.tileParams.displayMode}}.html" class="h100" />
+
+                </div>
+                <div ng-switch-when="PREDICTION" class="h100 prediction-model-report">
+                    <div include-no-scope="/templates/ml/prediction-model/{{tile.tileParams.displayMode}}.html" class="h100" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,417 @@
+<div class="split-recipe visual-recipe-with-steps" 
+     ng-show="topNav.tab == 'settings'" 
+     close-tooltips-on-exit>
+    <div class="main-recipe-content dss-page vertical-flex">
+        <div block-api-error></div>
+        <div class="flex" style="position: relative;">
+
+           <div class="leftPane vertical-flex">
+                <div class="steps flex">
+                    <div recipe-step="inputs" class="inputs"></div>
+                    <div recipe-step="preFilter" step-label="Pre-filter"></div>
+                    <div recipe-step="computedColumns" step-label="Computed columns"></div>
+                    <div recipe-step="splitting" step-label="Splitting"></div>
+                    <div recipe-step="output" step-label="Output"></div>
+                    <div ng-if="recipeStatus.topLevelMessages.anyMessage" recipe-step="topLevelMessages" step-label="Warnings" />
+                </div>
+                <div class="run noflex" ng-if="params">
+                    <div include-no-scope="/templates/recipes/visual-recipes-fragments/visual-recipe-run.html"></div>
+                    <div engine-selector-button
+                        recipe-status="recipeStatus"
+                        recipe-params="params"
+                        update-status="hooks.updateRecipeStatus"
+                        can-change-engine="canChangeEngine">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mainPane fh oa" ng-if="params && computablesMap">
+
+                <div class="padded-step-settings main-step h100 vertical-flex" ng-if="uiState.currentStep == 'splitting' && !params.mode">
+                    <div class="modal-container no-z-index">
+                        <ng-include src="'/templates/recipes/fragments/split-modal.html'"></ng-include>
+                    </div>
+                </div>
+
+                <div ng-if="uiState.currentStep == 'splitting' && params.mode" class="padded-step-settings main-step h100 vertical-flex" style="padding-bottom: 0" close-tooltips-on-exit>
+
+                    <div class="formbased-recipe-infozone split__infozone" ng-if="params.mode == 'VALUES' || params.mode == 'RANGE'">
+                        <form class="dkuform-horizontal form3" name="splitmethod">
+                            <div>
+                                <h1 class="recipe-settings-section1-title pad8 split-mode dib">
+                                    Map values of a single column to the outputs datasets
+                                </h1>
+                                <div class="dib">
+                                    <button class="btn btn--secondary btn-change mleft16" ng-click="showSplitModal()">Change</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="recipe-settings-section1 first-section" ng-if="params.mode == 'VALUES' || params.mode == 'RANGE'">
+                        <form class="dkuform-horizontal form3 recipe-settings-section2">
+                            <div class="control-group text">
+                                <h2 class="recipe-settings-section2__text dib mright8">
+                                    Split on column
+                                </h2>
+                                <div class="dib" ng-class="{'invalid-column-select': !isInColumns(params.column)}">
+                                    <column-select ng-if="getColumns().length"
+                                                   ng-model="params.column"
+                                                   columns="getColumns()"
+                                                   ng-init="initColumn()">
+                                    </column-select>
+                                </div>
+                                <h2 class="recipe-settings-section2__text dib mleft8 mright8">
+                                    based on
+                                </h2>
+                                <div class="dib" 
+                                     title="{{getTooltipTextColumnMode()}}"
+                                     data-toggle="tooltip"
+                                     data-placement="right">
+                                    <select
+                                        ng-disabled="!isInColumns(params.column) || !numericalOrDate(getColumn(params.column))"
+                                        dku-bs-select
+                                        ng-model="params.mode"
+                                        ng-options="m[0] as m[1] for m in valuesSplittingMethods"
+                                        class="qa_recipe_split-mode">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="control-group text" ng-if="params.mode == 'RANGE' && genericType(getColType(params.column)) == 'date'">
+                                <div class="control-label">
+                                    <label>
+                                        <input type="checkbox" ng-model="params.rangeSetTime">
+                                        <span class="recipe-settings-section2-label">Show time of day</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="recipe-settings-section1"
+                        ng-show="params.mode == 'VALUES'"
+                        ng-if="computablesMap && (params.mode == 'VALUES' || uiState.valuesUiComputed)"
+                        ng-init="uiState.valuesUiComputed = true">
+                        <form class="dkuform-horizontal form3 recipe-settings-section2" name="valuesplits">
+                            <div class="control-group title">
+                                <h2 class="control-label recipe-settings-section2__text">
+                                    Value
+                                </h2>
+                                <h2 class="controls recipe-settings-section2__text">
+                                    Output
+                                </h2>
+                            </div>
+                            <div ng-repeat="vs in params.valueSplits" class="control-group mtop8">
+                                <div class="control-label">
+                                    <i class="icon-long-arrow-right arrow pull-right"></i>
+                                    <input type="text" ng-model="vs.value" class="qa_recipe_split-string-value" ng-if="['num', 'boolean'].indexOf(currentGenericType) < 0" placeholder="Enter value" title="Enter value (empty also matches null values)"/>
+                                    <input type="number" ng-model="vs.value" class="qa_recipe_split-num-value" ng-if="currentGenericType == 'num'" placeholder="Enter value" title="Enter value (empty also matches null values)"/>
+                                    <strong ng-if="currentGenericType == 'boolean'">{{vs.value}}</strong>
+                                    <a ng-click="vs.caseSensitive = !vs.caseSensitive" ng-show="currentGenericType == 'string'" title="{{vs.caseSensitive ? 'case sensitive' : 'case insensitive'}}" data-toggle="tooltip" data-placement="top" style="vertical-align: middle;">
+                                        <i class="icon-dku-case_sensitive" ng-class="{'insensitive': !vs.caseSensitive}"></i>
+                                    </a>
+                                </div>
+                                <div class="controls">
+                                    <select dku-bs-select
+                                            ng-model="vs.outputIndex"
+                                            ng-options="x.value as x.label for x in outputsList"
+                                            ng-change="onOutputDatasetChange($index)">
+                                    </select>
+                                    <button ng-click="removeValueSplit($index);" class="btn btn--icon btn--text btn--danger editable-list__delete qa_recipe_trash-ratio" ng-show="currentGenericType != 'boolean' || $index > 1"><i class="icon-trash"></i></button>
+                                </div>
+                            </div>
+                            <div class="control-group mtop8">
+                                <div class="control-label">
+                                    <i class="icon-long-arrow-right arrow pull-right"></i>
+                                    <span class="remaining dku-text text-weak">Other values</span>
+                                </div>
+                                <div class="controls">
+                                    <select dku-bs-select
+                                        class="qa_recipe_split-map-other"
+                                        ng-model="params.defaultOutputIndex"
+                                        ng-options="x.value as x.label for x in outputsList"
+                                        ng-change="onOutputDatasetChange(-1)">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <div class="control-label shares" style="width: inherit;" ng-show="currentGenericType != 'boolean'">
+                                    <button type="button" class="btn btn--text btn--primary qa_recipe_split-add-ratio" ng-click="addValueSplit(params.valueSplits.length);">
+                                        <span class="icon-plus"></span> Add Value
+                                    </button>
+                                </div>
+                            </div>                            
+                        </form>
+                        <div style="clear:both"></div>
+                        <div info-messages-raw-list-with-alert="recipeStatus.splitting" ng-class="{'mtop16': recipeStatus.splitting.maxSeverity}"></div>
+                    </div>
+
+                    <div class="recipe-settings-section1"
+                        ng-show="params.mode == 'RANGE'"
+                        ng-if="computablesMap && (params.mode == 'RANGE' || uiState.rangesUiComputed)"
+                        ng-init="uiState.rangesUiComputed = true">
+                        <split-ranges-selector selected-mode="RANGE"></split-ranges-selector>
+                        <div style="clear:both"/>
+                        <div info-messages-raw-list-with-alert="recipeStatus.splitting" ng-class="{'mtop16': recipeStatus.splitting.maxSeverity}"></div>
+                    </div>                     
+
+
+                    <div class="formbased-recipe-infozone split__infozone" ng-if="params.mode == 'FILTERS'">
+                        <form class="dkuform-horizontal form3" name="splitmethod">
+                            <div>
+                                <h1 class="recipe-settings-section1-title split-mode dib">
+                                    Define a filter for each output dataset
+                                </h1>
+                                <div class="dib">
+                                    <button class="btn btn--secondary btn-change mleft16" ng-click="showSplitModal()">Change</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>                       
+
+                    <div class="recipe-settings-section1 first-section pad16"
+                        ng-show="params.mode == 'FILTERS'"
+                        ng-if="computablesMap && (params.mode == 'FILTERS' || uiState.filtersUiComputed)"
+                        ng-init="uiState.filtersUiComputed = true"
+                        >
+                        <h1 class="recipe-settings-section1-title">
+                            Filters
+                        </h1>
+
+                        <form class="dkuform-horizontal form5" name="filtersplits">
+                            <div ng-repeat="fs in params.filterSplits" class="filter-split">
+                                <div class="control-group">
+                                    <div class="control-label pad0">
+                                        <filter-editor
+                                            filter-desc="fs.filter"
+                                            dataset="inputDatasetName"
+                                            schema="inputSchema"
+                                            model-label="'Match rows that satisfy'"
+                                            must-run-in-database="recipeStatus && recipeStatus.selectedEngine && recipeStatus.selectedEngine.type != 'DSS'"
+                                            hide-sql-filter="true">
+                                        </filter-editor>
+                                    </div>
+                                    <div class="controls">
+                                        <button 
+                                            ng-click="removeFilterSplit($index);" 
+                                            ng-show="params.filterSplits.length > 1"
+                                            class="btn btn--icon btn--text btn--danger pull-right">
+                                            <i class="icon-trash"></i>
+                                        </button>
+                                        <select dku-bs-select
+                                                ng-model="fs.outputIndex"
+                                                ng-change="onOutputDatasetChange($index)"
+                                                ng-options="x.value as x.label for x in outputsList">
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="btn btn--text btn--primary qa_recipe_split-add-filter-split db mleftauto mrightauto mtop8 mbot8" ng-click="addFilterSplit();" style="clear:both">
+                                <i class="icon-plus add"></i> Add filter
+                            </button>
+
+                            <div class="control-group recipe-settings-section2 mbot16 padtop16">
+                                <div class="control-label">
+                                    All other values
+                                </div>
+                                <div class="controls">
+                                    <select dku-bs-select
+                                            class="qa_recipe_split-filter-other"
+                                            ng-model="params.defaultOutputIndex"
+                                            ng-options="x.value as x.label for x in outputsList"
+                                            ng-change="onOutputDatasetChange(-1)">
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                        <div style="clear:both"/>
+                        <div info-messages-raw-list-with-alert="recipeStatus.splitting" ng-class="{'mtop16': recipeStatus.splitting.maxSeverity}"></div>
+                    </div>
+
+
+                    <div class="formbased-recipe-infozone split__infozone" ng-if="params.mode == 'RANDOM' || params.mode == 'RANDOM_COLUMNS'">
+                        <form class="dkuform-horizontal form3" name="splitmethod">
+                            <div>
+                                <h1 class="recipe-settings-section1-title split-mode dib">
+                                    Randomly dispatch data on the output datasets
+                                </h1>
+                                <div class="dib">
+                                    <button class="btn btn--secondary btn-change mleft16" ng-click="showSplitModal()">Change</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="recipe-settings-section1 first-section" ng-if="params.mode === 'RANDOM' || params.mode === 'RANDOM_COLUMNS'">
+                        <form class="dkuform-horizontal form3 recipe-settings-section2">
+                            <div class="control-group text">
+                                <h2 class="recipe-settings-section2__text dib mright8">
+                                    Dispatch mode
+                                </h2>
+                                <div class="dib">
+                                    <select
+                                        dku-bs-select
+                                        ng-model="params.mode"
+                                        ng-options="m[0] as m[1] for m in randomSplittingMethods"
+                                        options-descriptions="randomSplittingMethodsDesc"
+                                        layout="list"
+                                        class="qa_recipe_split-mode">
+                                    </select>
+                                </div>
+                                <span ng-click="openCloseInfo()" class="toggle-show-more mleft8" ng-if="params.mode == 'RANDOM_COLUMNS'">
+                                    <i class="icon-info-sign mright4"></i>
+                                    {{randomColumnsInfoOpen ? "Close Info " : "More Info "}}
+                                </span>
+                            </div>
+                        </form>
+                        <div class="alert alert-info mtop16" ng-if="(params.mode == 'RANDOM_COLUMNS' && randomColumnsInfoOpen)">
+                            Group records based on one or multiple columns, and randomly split the data according to given ratios. This mode ensures all records of a single group to end up in the same output dataset.
+                            <br>
+                            As an example, you can use this mode to create train and test sets containing distinct clients. This would enable training a machine learning model and testing it on previously unseen clients.
+                        </div>
+                    </div>
+
+                    <div class="recipe-settings-section1"
+                        ng-show="params.mode == 'RANDOM'"
+                        ng-if="computablesMap && (params.mode == 'RANDOM' || uiState.randomUiComputed)"
+                        ng-init="uiState.randomUiComputed = true">
+                        <split-shares-selector selected-mode="RANDOM"></split-shares-selector>
+                    </div>
+
+                    <div class="recipe-settings-section1" ng-if="params.mode == 'RANDOM'">
+                        <form class="dkuform-horizontal recipe-settings-section2">
+                            <div class="control-group text mbot8">
+                                <h2 class="control-label recipe-settings-section2__text">
+                                    Set Random Seed
+                                </h2>
+                            </div>
+                            <div class="control-group" style="margin-bottom: 10px;">
+                                <div class="control-label recipe-settings-section2__text">
+                                    <input type="number" 
+                                           ng-model="params.seed" 
+                                           ng-model-options="{allowInvalid: true}" 
+                                           ng-init = "initSeed(params.seed)"
+                                           required/>
+                                    <h3 class="recipe-settings-section2-subtext">
+                                        Using a fixed random seed allows for reproducible result
+                                    </h3>
+                                </div>
+                            </div>
+                        </form>
+                        <div style="clear:both"/>
+                        <div info-messages-raw-list-with-alert="recipeStatus.splitting" ng-class="{'mtop16': recipeStatus.splitting.maxSeverity}"></div>
+                    </div>
+
+                    <div class="recipe-settings-section1" ng-if="params.mode == 'RANDOM_COLUMNS'">
+                        <columns-select title="'Group rows with the same values for columns and randomly dispatch on outputs'"
+                                        get-col-type="getColType"
+                                        columns="getColumns()"
+                                        selected-columns="params.randomColumns"
+                                        has-order="false"
+                                        needs-info="true"
+                                        is-info-open="randomColumnsInfoOpen"
+                                        info-text="Grouping keys must take sufficiently diverse values, otherwise the split cannot be fair."
+                        >
+                        </columns-select>
+                    </div>
+
+                    <div class="recipe-settings-section1"
+                        ng-show="params.mode == 'RANDOM_COLUMNS'"
+                        ng-if="computablesMap && (params.mode == 'RANDOM_COLUMNS' || uiState.randomColumnsUiComputed)"
+                        ng-init="uiState.randomColumnsUiComputed = true">
+                        <split-shares-selector selected-mode="RANDOM_COLUMNS"></split-shares-selector>
+                        <div style="clear:both"/>
+                        <div info-messages-raw-list-with-alert="recipeStatus.splitting" ng-class="{'mtop16': recipeStatus.splitting.maxSeverity}"></div>
+                    </div>
+
+
+                    <div class="formbased-recipe-infozone split__infozone" ng-if="params.mode == 'CENTILE'">
+                        <form class="dkuform-horizontal form3" name="splitmethod">
+                            <div>
+                                <h1 class="recipe-settings-section1-title split-mode dib">
+                                    Dispatch percentiles of sorted data on output datasets
+                                </h1>
+                                <div class="dib">
+                                    <button class="btn btn--secondary btn-change mleft16" ng-click="showSplitModal()">Change</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>                      
+
+                    <div class="recipe-settings-section1 first-section" ng-if="params.mode == 'CENTILE'">
+                        <columns-select title="'Sort according to...'"
+                            get-col-type="getColType"
+                            columns="getColumns()"
+                            selected-columns="params.centileOrders"
+                            has-order="true">
+                        </columns-select>
+                    </div>
+
+                    <div class="recipe-settings-section1"
+                        ng-show="params.mode == 'CENTILE'"
+                        ng-if="computablesMap && (params.mode == 'CENTILE' || uiState.centilesUiComputed)"
+                        ng-init="uiState.centilesUiComputed = true">
+                        <split-shares-selector selected-mode="CENTILE"></split-shares-selector>
+                        <div style="clear:both"/>
+                        <div info-messages-raw-list-with-alert="recipeStatus.splitting" ng-class="{'mtop16': recipeStatus.splitting.maxSeverity}"></div>
+                    </div>
+
+                    <div class="recipe-settings-section1" ng-if="params.mode == 'CENTILE'" ng-hide="true">
+                        <form class="dkuform-horizontal recipe-settings-section2">
+                            <div class="control-group text" style="margin-top: 10px;">
+                                <div class="control-label recipe-settings-section2__text">
+                                    <label class="dku-toggle">
+                                        <input type="checkbox" ng-model="params.centileTDigest" disabled>
+                                        <span />
+                                    </label>
+                                    <span>Faster and approximative percentiles</span>
+                                </div>
+                            </div>
+                            <div class="control-group" style="margin-bottom: 10px;">
+                                <div class="control-label recipe-settings-section2__text">
+                                    <label class="dku-toggle">
+                                        <input type="checkbox" ng-model="params.centileShuffle" disabled>
+                                        <span />
+                                    </label>
+                                    <span>Shuffle rows in output</span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>               
+
+                </div>
+
+
+                <div ng-if="uiState.currentStep == 'preFilter'"
+                    class="padded-step-settings"
+                    ng-scope="{{filterDesc=params.preFilter; dataset=recipe.inputs['main'].items[0].ref; schema=computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema}}">
+                    <div ng-include="'/templates/recipes/visual-recipes-fragments/inline-filter.html'"></div>
+                    <div class="text-error" ng-show="InfoMessagesUtils.getMessageAtLine(recipeStatus.preFilter, 1)">
+                        Database error: {{InfoMessagesUtils.getMessageAtLine(recipeStatus.preFilter, 1).message}}
+                    </div>
+                    <div ng-show="params.preFilter.enabled && params.preFilter.uiData.mode == 'CUSTOM'" grel-reference-and-examples></div>
+                </div>
+
+
+                <div ng-if="uiState.currentStep == 'computedColumns'"
+                    class="padded-step-settings h100 oa"
+                    computed-column-step
+                    computed-column-list-desc="uiState.computedColumns"
+                    dataset="recipe.inputs['main'].items[0].ref"
+                    schema="computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema"
+                    computed-column-list-update-callback="onComputedColumnListUpdate">
+                </div>
+
+
+                <div ng-show="uiState.currentStep == 'output'" class="fh">
+                    <div data-extend-template="/templates/recipes/visual-recipes-fragments/run-summary.html" 
+                         class="h100"></div>
+                </div>  
+
+                <div data-extend-template="/templates/recipes/visual-recipes-fragments/visual-sql-top-level-messages.html" />
+            </div>
+
+        </div>
+    </div>
+</div>

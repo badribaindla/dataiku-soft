@@ -1,0 +1,56 @@
+<div class="modal modal3 multipin-insight-modal multichart-modal dku-modal modal-wide modal-half-panes" ng-controller="CreateAndPinInsightsModalController" auto-size="false">
+    <div dku-modal-header-with-totem modal-title="Create insight and add to dashboard" modal-totem="icon-dku-publish" />
+
+    <form name="createAndPinInsightForm" class="dkuform-modal-wrapper">
+
+        <div ng-if="insightData && insightData.items && insightData.items.length" class="modal-body horizontal-flex">
+            <div class="half-pane quarter-pane">
+                <ul class="noflex items-list" ng-show="insightData.items">
+                    <li id="items-list__item-{{ $index }}" class="items-list__item" ng-repeat="item in insightData.items" scroll-to-me="{{ insightData.items[$index].selected }}" scroll-align="center">
+                        <div ng-if="insightData.type === 'chart'" class="items-list__item-wrap">
+                            <input id="items-list_input-{{ $index }}" class="items-list__input" type="checkbox" ng-model="insightData.items[$index].selected">
+                            <label for="items-list_input-{{ $index }}" class="items-list__label">
+                                <span ng-if="!item.def.thumbnailData" class="no-thumb" ng-inject="ChartIconUtils">
+                                    <img class="items-list__thumbnail" ng-src="{{ChartIconUtils.computeChartIcon(item.def.type, item.def.variant, !!analysisId)}}" ng-if="item.def.type != 'webapp'"/>
+				                    <i class="items-list__thumbnail {{ChartIconUtils.computeChartIcon(item.def.type, item.def.variant, !!analysisId, item.def.webAppType)}}" ng-if="item.def.type == 'webapp'"></i>
+                                </span>
+                                <img class="items-list__thumbnail" ng-if="item.def.thumbnailData" ng-src="{{item.def.thumbnailData}}" dku-better-tooltip dbt-placement="top" dbt-title="{{item.def.name}}" />
+                                <span class="items-list__name" ng-if="item.def.name">{{item.def.name}}</span>
+                            </label>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="half-pane threequarters-pane">
+                <div block-api-error class="modal-error"></div>
+    
+                <div class="alert alert-warning" ng-if="initiated && pinningOrders.length <= 0">
+                    <span ng-if="dashboards.length <= 0 && allDashboardsCount > 0">
+                        This project has no dashboard you can write to.
+                    </span>
+                    <span ng-if="dashboards.length <= 0 && allDashboardsCount == 0">
+                        This project has no dashboard.
+                    </span>
+                    Insight will be created without being added to any dashboard.
+                </div>
+    
+                <div class="alert alert-warning" ng-if="missingReaderAuthorizations && missingReaderAuthorizations.length > 0">
+                    <div>This source is not yet shared with dashboard-only users.</div>
+                    <label style="margin-top: 10px" ng-show="projectSummary.canManageDashboardAuthorizations">
+                        <input type="checkbox" ng-model="addReaderAuthorization" style="margin: -1px 5px 0 0"/>
+                        Add this source to authorized objects
+                    </label>
+                    <div ng-show="!addReaderAuthorization" style="padding-top: 5px;"><i class="icon-warning-sign"></i>&nbsp;<strong>Dashboard-only users won't be able to see this insight.</strong></div>
+                </div>
+    
+                <div include-no-scope="/templates/dashboards/insights/multi-pin-insight-table.html" ng-if="dashboards.length > 0"></div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" id="qa_generic_publish-create-button" ng-disabled="!canCreate()" ng-click="sendCreateAndPinOrders()">Create</button>
+        </div>
+
+    </form>
+</div>

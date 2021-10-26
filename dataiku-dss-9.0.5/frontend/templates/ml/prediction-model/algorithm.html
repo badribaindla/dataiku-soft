@@ -1,0 +1,508 @@
+<div ng-init="preTrain = modelData.modeling; postTrain = modelData.actualParams.resolved; other = modelData.actualParams.other" class="model-info-page">
+
+    <h2 class="settings-section-title" style="margin-top: 5px">Algorithm details</h2>
+
+    <div ng-switch on="postTrain.algorithm" class="model-info-page__algorithm_parameters">
+        <table ng-switch-when="LOGISTIC_REGRESSION" class="table">
+            <tr>
+                <th>Algorithm</th>
+                <td ng-bind="postTrain.algorithm | niceConst" />
+            </tr>
+            <tr>
+                <th>Penalty</th>
+                <td ng-bind="postTrain.logit.penalty || 'none' | capitalize" />
+            </tr>
+            <tr>
+                <th>C</th>
+                <td ng-bind="postTrain.logit.C" />
+            </tr>
+        </table>
+
+
+        <table ng-switch-when="RANDOM_FOREST_CLASSIFICATION" class="table">
+            <tr>
+                <th>Algorithm</th>
+                <td ng-bind="postTrain.algorithm | niceConst" />
+                <th>Split quality criterion</th>
+                <td>Gini</td>
+            </tr>
+            <tr>
+                <th>Number of trees</th>
+                <td ng-bind="postTrain.rf.estimators" />
+                <th>Use bootstrap</th>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <th>Max trees depth</th>
+                <td ng-bind="postTrain.rf.max_tree_depth" />
+                <th>Feature sampling strategy</th>
+                <td ng-bind="postTrain.rf.selection_mode" />
+            </tr>
+            <tr>
+                <th>Min samples per leaf</th>
+                <td ng-bind="postTrain.rf.min_samples_leaf" />
+                <th ng-if="postTrain.rf.selection_mode == 'number'">Used features</th>
+                <td ng-if="postTrain.rf.selection_mode == 'number'" ng-bind="postTrain.rf.max_features" />
+                <th ng-if="postTrain.rf.selection_mode == 'prop'">Used features</th>
+                <td ng-if="postTrain.rf.selection_mode == 'prop'" ng-bind="postTrain.rf.max_feature_prop|smartPercentage" />
+            </tr>
+            <tr>
+                <th>Min samples to split</th>
+                <td ng-bind="other.rf_min_samples_split" />
+            </tr>
+        </table>
+        <table ng-switch-when="EXTRA_TREES" class="table" ng-if="isClassification()">
+            <tr>
+                <th>Algorithm</th>
+                <td ng-bind="postTrain.algorithm | niceConst" />
+                <th>Split quality criterion</th>
+                <td>Gini</td>
+            </tr>
+            <tr>
+                <th>Number of trees</th>
+                <td ng-bind="postTrain.extra_trees.estimators" />
+                <th>Use bootstrap</th>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <th>Max trees depth</th>
+                <td ng-bind="postTrain.extra_trees.max_tree_depth" />
+                <th>Feature sampling strategy</th>
+                <td ng-bind="postTrain.extra_trees.selection_mode" />
+            </tr>
+            <tr>
+                <th>Min samples per leaf</th>
+                <td ng-bind="postTrain.extra_trees.min_samples_leaf" />
+                <th ng-if="postTrain.extra_trees.selection_mode == 'number'">Used features</th>
+                <td ng-if="postTrain.extra_trees.selection_mode == 'number'" ng-bind="postTrain.extra_trees.max_features" />
+                <th ng-if="postTrain.extra_trees.selection_mode == 'prop'">Used features</th>
+                <td ng-if="postTrain.extra_trees.selection_mode == 'prop'" ng-bind="postTrain.extra_trees.max_feature_prop|smartPercentage" />
+            </tr>
+            <tr>
+                <th>Min samples to split</th>
+                <td ng-bind="other.rf_min_samples_split" />
+            </tr>
+        </table>
+        <table ng-switch-when="RANDOM_FOREST_REGRESSION" class="table">
+            <tr>
+                <th>Algorithm</th>
+                <td ng-bind="postTrain.algorithm | niceConst" />
+                <th>Split quality criterion</th>
+                <td>MSE</td>
+            </tr>
+            <tr>
+                <th>Number of trees</th>
+                <td ng-bind="postTrain.rf.estimators" />
+                <th>Use bootstrap</th>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <th>Max trees depth</th>
+                <td ng-bind="postTrain.rf.max_tree_depth" />
+                <th>Feature sampling strategy</th>
+                <td ng-bind="postTrain.rf.selection_mode" />
+            </tr>
+            <tr>
+                <th>Min samples per leaf</th>
+                <td ng-bind="postTrain.rf.min_samples_leaf" />
+                <th ng-if="postTrain.rf.selection_mode == 'number'">Used features</th>
+                <td ng-if="postTrain.rf.selection_mode == 'number'" ng-bind="postTrain.rf.max_features" />
+                <th ng-if="postTrain.rf.selection_mode == 'prop'">Used features</th>
+                <td ng-if="postTrain.rf.selection_mode == 'prop'" ng-bind="postTrain.rf.max_feature_prop|smartPercentage" />
+            </tr>
+            <tr>
+                <th>Min samples to split</th>
+                <td ng-bind="other.rf_min_samples_split" />
+            </tr>
+        </table>
+        <table ng-switch-when="EXTRA_TREES" class="table" ng-if="isRegression()">
+            <tr>
+                <th>Algorithm</th>
+                <td ng-bind="postTrain.algorithm | niceConst" />
+                <th>Split quality criterion</th>
+                <td>MSE</td>
+            </tr>
+            <tr>
+                <th>Number of trees</th>
+                <td ng-bind="postTrain.extra_trees.estimators" />
+                <th>Use bootstrap</th>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <th>Max trees depth</th>
+                <td ng-bind="postTrain.extra_trees.max_tree_depth" />
+                <th>Feature sampling strategy</th>
+                <td ng-bind="postTrain.extra_trees.selection_mode" />
+            </tr>
+            <tr>
+                <th>Min samples per leaf</th>
+                <td ng-bind="postTrain.extra_trees.min_samples_leaf" />
+                <th ng-if="postTrain.extra_trees.selection_mode == 'number'">Used features</th>
+                <td ng-if="postTrain.extra_trees.selection_mode == 'number'" ng-bind="postTrain.extra_trees.max_features" />
+                <th ng-if="postTrain.extra_trees.selection_mode == 'prop'">Used features</th>
+                <td ng-if="postTrain.extra_trees.selection_mode == 'prop'" ng-bind="postTrain.extra_trees.max_feature_prop|smartPercentage" />
+            </tr>
+            <tr>
+                <th>Min samples to split</th>
+                <td ng-bind="other.rf_min_samples_split" />
+            </tr>
+        </table>
+        <table ng-switch-when="SVC_CLASSIFICATION" class="table" ng-switch="postTrain.algorithm">
+            <tr><th>Algorithm</th><td>SVM classifier</td></tr>
+            <tr><th>Kernel</th><td ng-bind="postTrain.svm.kernel" /></tr>
+            <tr ng-if="postTrain.smv.kernel != 'linear'">
+                <th>Kernel coef (gamma)</th>
+                <td ng-if="postTrain.svm.gamma === 'custom'" ng-bind="postTrain.svm.custom_gamma" />
+                <td ng-if="postTrain.svm.gamma !== 'custom'" ng-bind="postTrain.svm.gamma" />
+            </tr>
+            <tr><th>C</th><td ng-bind="postTrain.svm.C" /></tr>
+            <tr ng-if="postTrain.svm.kernel == 'poly' || postTrain.svm.kernel == 'sigmoid'"><th>Independent kernel term</th><td ng-bind="postTrain.svm.coef0" /></tr>
+            <tr><th>Stopping tolerance</th><td ng-bind="postTrain.svm.tol" /></tr>
+            <tr><th>Max iterations</th><td ng-bind="postTrain.svm.max_iter" /></tr>
+        </table>
+        <table ng-switch-when="SVM_REGRESSION" class="table" ng-switch="postTrain.algorithm">
+            <tr><th>Algorithm</th><td>SVM regressor</td></tr>
+            <tr><th>Kernel</th><td ng-bind="postTrain.svm.kernel" /></tr>
+            <tr ng-if="postTrain.smv.kernel != 'linear'">
+                <th>Kernel coef (gamma)</th>
+                <td ng-if="postTrain.svm.gamma === 'custom'" ng-bind="postTrain.svm.custom_gamma" />
+                <td ng-if="postTrain.svm.gamma !== 'custom'" ng-bind="postTrain.svm.gamma" />
+            </tr>
+            <tr><th>C</th><td ng-bind="postTrain.svm.C" /></tr>
+            <tr ng-if="postTrain.svm.kernel == 'poly' || postTrain.svm.kernel == 'sigmoid'"><th>Independent kernel term</th><td ng-bind="postTrain.svm.coef0" /></tr>
+            <tr><th>Stopping tolerance</th><td ng-bind="postTrain.svm.tol" /></tr>
+            <tr><th>Max iterations</th><td ng-bind="postTrain.svm.max_iter" /></tr>
+        </table>
+
+        <table ng-switch-when="SGD_CLASSIFICATION|SGD_REGRESSION" ng-switch-when-separator="|" class="table" ng-switch="postTrain.algorithm">
+            <tr><th>Algorithm</th><td>SGD</td></tr>
+            <tr><th>Loss function</th><td ng-bind="postTrain.sgd.loss" /></tr>
+            <tr ng-if="postTrain.sgd.loss == 'huber'"><th>Epsilon</th><td ng-bind="postTrain.sgd.epsilon" /></tr>
+            <tr><th>Penalty</th><td ng-bind="postTrain.sgd.penalty" /></tr>
+            <tr ng-if="postTrain.sgd.penalty == 'elasticnet'"><th>L1 ratio</th><td ng-bind="postTrain.sgd.l1_ratio" /></tr>
+            <tr><th>Stopping tolerance</th><td ng-bind="preTrain.sgd_grid.tol" /></tr>
+            <tr><th>Max iterations</th><td ng-bind="preTrain.sgd_grid.max_iter" /></tr>
+            <tr><th>Actual iterations</th><td ng-bind="postTrain.sgd.n_iter" /></tr>
+        </table>
+
+         <table ng-switch-when="DECISION_TREE_CLASSIFICATION" class="table">
+            <tr><th>Algorithm</th><td>Decision tree classifier</td></tr>
+            <tr><th>Max tree depth</th><td ng-bind="postTrain.dt.max_depth" /></tr>
+            <tr><th>Split criterion</th><td ng-bind="postTrain.dt.criterion" /></tr>
+            <tr><th>Min samples per leaf</th><td ng-bind="postTrain.dt.min_samples_leaf" /></tr>
+            <tr><th>Splitter</th><td ng-bind="postTrain.dt.splitter" /></tr>
+        </table>
+
+        <table ng-switch-when="RIDGE_REGRESSION" class="table">
+            <tr><th>Algorithm</th><td>Ridge regression (L2)</td></tr>
+            <tr ng-if="postTrain.ridge.alpha"><th>Alpha</th><td ng-bind="postTrain.ridge.alpha" /></tr>
+            <tr ng-if="!postTrain.ridge.alpha"><th>Alpha</th><td ng-bind="other.alpha" /></tr>
+        </table>
+
+        <table ng-switch-when="LASSO_REGRESSION" class="table">
+            <tr><th>Algorithm</th><td>Lasso regression (L1)</td></tr>
+            <tr ng-if="postTrain.lasso.alpha"><th>Alpha</th><td ng-bind="postTrain.lasso.alpha" /></tr>
+            <tr ng-if="!postTrain.lasso.alpha"><th>Alpha</th><td ng-bind="other.alpha" /></tr>
+        </table>
+
+        <table ng-switch-when="LEASTSQUARE_REGRESSION" class="table">
+            <tr><th>Algorithm</th><td>Ordinary Least Squares regression</td></tr>
+        </table>
+
+        <table ng-switch-when="MLLIB_LOGISTIC_REGRESSION" class="table">
+            <tr><th>Algorithm</th><td>Logistic Regression (MLLib)</td></tr>
+            <tr><th>Max iterations</th><td ng-bind="preTrain.mllib_logit_grid.max_iter" /></tr>
+            <tr><th>Lambda (regularization param)</th><td ng-bind="postTrain.mllib_logit.reg_param" /></tr>
+            <tr><th>Alpha (Elastic net param)</th><td ng-bind="postTrain.mllib_logit.enet_param" /></tr>
+        </table>
+
+        <table ng-switch-when="MLLIB_LINEAR_REGRESSION" class="table">
+            <tr><th>Algorithm</th><td>Linear Regression (MLLib)</td></tr>
+            <tr><th>Max iterations</th><td ng-bind="preTrain.mllib_linreg_grid.max_iter" /></tr>
+            <tr><th>Lambda (regularization param)</th><td ng-bind="postTrain.mllib_linreg.reg_param" /></tr>
+            <tr><th>Alpha (Elastic net param)</th><td ng-bind="postTrain.mllib_linreg.enet_param" /></tr>
+        </table>
+
+        <table ng-switch-when="MLLIB_RANDOM_FOREST" class="table">
+            <tr><th>Algorithm</th><td>Random Forest (MLLib)</td></tr>
+            <tr><th>Number of trees</th><td ng-bind="postTrain.mllib_rf.num_trees"/></tr>
+            <tr><th>Maximum depth of tree</th><td ng-bind="postTrain.mllib_rf.max_depth" /></tr>
+            <tr><th>Step size</th><td ng-bind="postTrain.mllib_rf.step_size" /></tr>
+            <tr><th>Feature subset strategy</th><td ng-bind="preTrain.mllib_rf_grid.subset_strategy" /></tr>
+            <tr><th>Impurity</th><td ng-bind="preTrain.mllib_rf_grid.impurity" /></tr>
+            <tr><th>Maximum number of bins</th><td ng-bind="preTrain.mllib_rf_grid.max_bins" /></tr>
+            <tr><th>Maximum memory</th><td ng-bind="preTrain.mllib_rf_grid.max_memory_mb + ' MB'" /></tr>
+            <tr><th>Check point interval</th><td ng-bind="preTrain.mllib_rf_grid.checkpoint_interval" /></tr>
+            <tr><th>Cache node IDs</th><td ng-bind="preTrain.mllib_rf_grid.cache_node_ids" /></tr>
+            <tr><th>Minimum information gain</th><td ng-bind="preTrain.mllib_rf_grid.min_info_gain" /></tr>
+            <tr><th>Minimum instance per node</th><td ng-bind="preTrain.mllib_rf_grid.min_instance_per_node" /></tr>
+            <tr><th>Subsampling rate</th><td ng-bind="preTrain.mllib_rf_grid.subsampling_rate" /></tr>
+            <tr><th>Subsampling seed</th><td ng-bind="preTrain.mllib_rf_grid.seed" /></tr>
+        </table>
+
+        <table ng-switch-when="MLLIB_GBT" class="table">
+            <tr><th>Algorithm</th><td>Gradient Boosted Trees (MLLib)</td></tr>
+            <tr><th>Number of trees</th><td ng-bind="postTrain.mllib_gbt.num_trees"/></tr>
+            <tr><th>Maximum depth of tree</th><td ng-bind="postTrain.mllib_gbt.max_depth"/></tr>
+            <tr><th>Step size</th><td ng-bind="postTrain.mllib_gbt.step_size"/></tr>
+            <tr><th>Impurity</th><td ng-bind="preTrain.mllib_gbt_grid.impurity" /></tr>
+            <tr><th>Maximum number of bins</th><td ng-bind="preTrain.mllib_gbt_grid.max_bins" /></tr>
+            <tr><th>Maximum memory</th><td ng-bind="preTrain.mllib_gbt_grid.max_memory_mb + ' MB'" /></tr>
+            <tr><th>Check point interval</th><td ng-bind="preTrain.mllib_gbt_grid.checkpoint_interval" /></tr>
+            <tr><th>Cache node IDs</th><td ng-bind="preTrain.mllib_gbt_grid.cache_node_ids" /></tr>
+            <tr><th>Minimum information gain</th><td ng-bind="preTrain.mllib_gbt_grid.min_info_gain" /></tr>
+            <tr><th>Minimum instance per node</th><td ng-bind="preTrain.mllib_gbt_grid.min_instance_per_node" /></tr>
+            <tr><th>Subsampling rate</th><td ng-bind="preTrain.mllib_gbt_grid.subsampling_rate" /></tr>
+            <tr><th>Step size</th><td ng-bind="preTrain.mllib_gbt_grid.step_size" /></tr>
+            <tr><th>Subsampling seed</th><td ng-bind="preTrain.mllib_gbt_grid.seed" /></tr>
+        </table>
+
+        <table ng-switch-when="MLLIB_DECISION_TREE" class="table">
+            <tr><th>Algorithm</th><td>Decision Tree (MLLib)</td></tr>
+            <tr><th>Maximum depth of tree</th><td ng-bind="postTrain.mllib_dt.max_depth"/></tr>
+            <tr><th>Ids of cache nodes</th><td ng-bind="preTrain.mllib_dt_grid.cache_node_ids" /></tr>
+            <tr><th>Checkpoint interval</th><td ng-bind="preTrain.mllib_dt_grid.checkpoint_interval" /></tr>
+            <tr><th>Maximum number of bins</th><td ng-bind="preTrain.mllib_dt_grid.max_bins" /></tr>
+            <tr><th>Maximum memory</th><td ng-bind="preTrain.mllib_dt_grid.max_memory_mb + ' MB'" /></tr>
+            <tr><th>Minimum information gain</th><td ng-bind="preTrain.mllib_dt_grid.min_info_gain" /></tr>
+            <tr><th>Minimum instance per node</th><td ng-bind="preTrain.mllib_dt_grid.min_instance_per_node" /></tr>
+        </table>
+
+        <table ng-switch-when="MLLIB_NAIVE_BAYES" class="table">
+            <tr><th>Algorithm</th><td>Naive Bayes (MLLib)</td></tr>
+            <tr><th>Lambda</th><td ng-bind="postTrain.mllib_naive_bayes.lambda"/></tr>
+        </table>
+
+        <table ng-switch-when="XGBOOST_REGRESSION" class="table">
+            <tr><th>Algorithm</th><td>XGBoost</td></tr>
+            <tr><th>Booster</th><td ng-bind="postTrain.xgboost.booster" /></tr>
+            <tr><th>Actual number of trees</th><td ng-bind="postTrain.xgboost.n_estimators" /></tr>
+            <tr>
+                <th>Total iterations computed</th><td ng-bind="modelData.iperf.nBoostedEstimators" />
+                <td ng-if="modelData.iperf.nBoostedEstimators == postTrain.xgboost.n_estimators"
+                    style="color: #666; font-size: 0.8em; font-weight: initial">
+                    <i class="icon-warning-sign" /> Increasing max number of trees may improve performance
+                    (but increases training time)
+                </td>
+            </tr>
+            <tr><th>Max trees depth</th><td ng-bind="postTrain.xgboost.max_depth" /></tr>
+            <tr><th>Eta (learning rate)</th><td ng-bind="postTrain.xgboost.learning_rate" /></tr>
+            <tr><th>Alpha (L1 regularization)</th><td ng-bind="postTrain.xgboost.alpha" /></tr>
+            <tr><th>Lambda (L2 regularization)</th><td ng-bind="postTrain.xgboost.lambda" /></tr>
+            <tr><th>Gamma (Min loss reduction to split a leaf)</th><td ng-bind="postTrain.xgboost.gamma" /></tr>
+            <tr><th>Min sum of instance weight in a child</th><td ng-bind="postTrain.xgboost.min_child_weight" /></tr>
+            <!-- <tr><th>Max delta step</th><td ng-bind="postTrain.xgboost.max_delta_step" /></tr> -->
+            <tr><th>Subsample ratio of the training instance</th><td ng-bind="postTrain.xgboost.subsample" /></tr>
+            <tr><th>Fraction of columns in each tree</th><td ng-bind="postTrain.xgboost.colsample_bytree" /></tr>
+            <!-- <tr><th>Fraction of columns for each split</th><td ng-bind="postTrain.xgboost.colsample_bylevel" /></tr> -->
+            <!-- <tr><th>Balancing of positive and negative weights</th><td ng-bind="postTrain.xgboost.scale_pos_weight" /></tr> -->
+            <!-- <tr><th>Global bias (initial prediction score)</th><td ng-bind="postTrain.xgboost.base_score" /></tr> -->
+            <tr><th>Replace missing values with</th>
+                <td ng-bind="postTrain.xgboost.missing" ng-if="postTrain.xgboost.impute_missing"/><td ng-if="!postTrain.xgboost.impute_missing">NaN</td>
+            </tr>
+            <!-- <tr><th>Seed</th><td ng-bind="postTrain.xgboost.seed" /></tr> -->
+        </table>
+
+        <table ng-switch-when="GBT_CLASSIFICATION|GBT_REGRESSION" ng-switch-when-separator="|" class="table">
+            <tr><th>Algorithm</th><td>Gradient Boosted Trees ({{(postTrain.algorithm === 'GBT_CLASSIFICATION') ? 'Classification' : 'Regression'}})</td></tr>
+            <tr>
+                <th>Loss</th>
+                <td><div ng-switch on="postTrain.gbt.loss">
+                    <span ng-switch-when="deviance">Deviance</span>
+                    <span ng-switch-when="exponential">Exponential</span>
+                    <span ng-switch-when="ls">Least Square</span>
+                    <span ng-switch-when="lad">Least Absolute Deviation</span>
+                    <span ng-switch-when="huber">Huber</span>
+                </div></td>
+            </tr>
+            <tr>
+                <th>Feature sampling strategy</th>
+                <td>
+                    <div ng-switch on="postTrain.gbt.selection_mode">
+                        <span ng-switch-when="auto">Default</span>
+                        <span ng-switch-when="sqrt">Square root</span>
+                        <span ng-switch-when="log2">Logarithm</span>
+                        <span ng-switch-when="number">Fixed number</span>
+                        <span ng-switch-when="prop">Fixed proportion</span>
+                    </div>
+                </td>
+            </tr>
+            <tr><th>Number of boosting stages</th><td ng-bind="postTrain.gbt.n_estimators" /></tr>
+            <tr><th>Eta (learning rate)</th><td ng-bind="postTrain.gbt.learning_rate" /></tr>
+            <tr><th>Max trees depth</th><td ng-bind="postTrain.gbt.max_depth" /></tr>
+            <tr><th>Minimum samples at leaf</th><td ng-bind="postTrain.gbt.min_samples_leaf" /></tr>
+        </table>
+        <table ng-switch-when="XGBOOST_CLASSIFICATION" class="table">
+            <tr><th>Algorithm</th><td>XGBoost</td></tr>
+            <tr><th>Booster</th><td ng-bind="postTrain.xgboost.booster" /></tr>
+            <tr><th>Actual number of trees</th><td ng-bind="postTrain.xgboost.n_estimators" /></tr>
+            <tr>
+                <th>Total iterations computed</th><td ng-bind="modelData.iperf.nBoostedEstimators" />
+                <td ng-if="modelData.iperf.nBoostedEstimators == postTrain.xgboost.n_estimators"
+                    style="color: #666; font-size: 0.8em; font-weight: initial">
+                    <i class="icon-warning-sign" /> Increasing max number of trees may improve performance
+                    (but increases training time)
+                </td>
+            </tr>
+            <tr><th>Max trees depth</th><td ng-bind="postTrain.xgboost.max_depth" /></tr>
+            <tr><th>Eta (learning rate)</th><td ng-bind="postTrain.xgboost.learning_rate" /></tr>
+            <tr><th>Alpha (L1 regularization)</th><td ng-bind="postTrain.xgboost.alpha" /></tr>
+            <tr><th>Lambda (L2 regularization)</th><td ng-bind="postTrain.xgboost.lambda" /></tr>
+            <tr><th>Gamma (Min loss reduction to split a leaf)</th><td ng-bind="postTrain.xgboost.gamma" /></tr>
+            <tr><th>Min sum of instance weight in a child</th><td ng-bind="postTrain.xgboost.min_child_weight" /></tr>
+            <!-- <tr><th>Max delta step</th><td ng-bind="postTrain.xgboost.max_delta_step" /></tr> -->
+            <tr><th>Subsample ratio of the training instance</th><td ng-bind="postTrain.xgboost.subsample" /></tr>
+            <tr><th>Fraction of columns in each tree</th><td ng-bind="postTrain.xgboost.colsample_bytree" /></tr>
+            <!-- <tr><th>Fraction of columns for each split</th><td ng-bind="postTrain.xgboost.colsample_bylevel" /></tr> -->
+            <!-- <tr><th>Balancing of positive and negative weights</th><td ng-bind="postTrain.xgboost.scale_pos_weight" /></tr> -->
+            <!-- <tr><th>Global bias (initial prediction score)</th><td ng-bind="postTrain.xgboost.base_score" /></tr> -->
+            <tr><th>Replace missing values with</th>
+                <td ng-bind="postTrain.xgboost.missing" ng-if="postTrain.xgboost.impute_missing"/><td ng-if="!postTrain.xgboost.impute_missing">NaN</td>
+            </tr>
+            <!-- <tr><th>Seed</th><td ng-bind="postTrain.xgboost.seed" /></tr> -->
+        </table>
+
+        <table ng-switch-when="VERTICA_LOGISTIC_REGRESSION" class="table">
+            <tr><th>Algorithm</th><td>Logistic regression (Vertica)</td></tr>
+            <tr><th>Max number of iterations</th><td ng-bind="postTrain.vertica_max_iterations" /></tr>
+        </table>
+
+        <table ng-switch-when="DECISION_TREE_REGRESSION" class="table">
+            <tr><th>Algorithm</th><td>Decision Tree</td></tr>
+            <tr><th>Maximum depth</th><td ng-bind="postTrain.dt.max_depth" /></tr>
+            <tr><th>Min. samples per leaf</th><td ng-bind="postTrain.dt.min_samples_leaf"/></tr>
+            <tr><th>Split strategy</th><td>
+                <div ng-switch on="postTrain.dt.splitter">
+                    <div ng-switch-when="random">Random</div>
+                    <div ng-switch-when="best">Best</div>
+                </div>
+        </table>
+
+        <table ng-switch-when="NEURAL_NETWORK" class="table">
+            <tr><th>Algorithm</th><td>Artificial Neural Network</td></tr>
+            <tr><th>Activation</th>
+                <td ng-switch on="preTrain.neural_network_grid.activation">
+                    <div ng-switch-when="relu">ReLU</div>
+                    <div ng-switch-when="identity">Identity</div>
+                    <div ng-switch-when="logistic">Logistic</div>
+                    <div ng-switch-when="tanh">Hyperbolic Tangent</div>
+                </td>
+            </tr>
+
+            <tr><th>Alpha</th><td ng-bind="preTrain.neural_network_grid.alpha" /></tr>
+            <tr><th>Max iterations</th><td ng-bind="preTrain.neural_network_grid.max_iter" /></tr>
+            <tr><th>Convergence tolerance</th><td ng-bind="preTrain.neural_network_grid.tol" /></tr>
+            <tr><th>Early stopping</th><td><div yes-no="preTrain.neural_network_grid.early_stopping"></div></td></tr>
+            <tr ng-if="preTrain.neural_network_grid.early_stopping"><th>Validation fraction</th><td ng-bind="preTrain.neural_network_grid.validation_fraction" /></tr>
+            <tr>
+                <th>Solver</th>
+                <td ng-switch on="preTrain.neural_network_grid.solver">
+                    <div ng-switch-when="adam">ADAM</div>
+                    <div ng-switch-when="sgd">Stochastic Gradient Descent</div>
+                    <div ng-switch-when="lbfgs">LBFGS</div>
+                </td>
+                </td>
+            </tr>
+
+            <tbody ng-if="['adam', 'sgd'].indexOf(preTrain.neural_network_grid.solver) >= 0" style="border: 0;">
+                <tr><th>Shuffle data</th><td><div yes-no="preTrain.neural_network_grid.shuffle"></div></td></tr>
+                <tr><th>Intial Learning Rate</th><td ng-bind="preTrain.neural_network_grid.learning_rate_init" /></tr>
+                <tr><th>Automatic batching</th><td><div yes-no="preTrain.neural_network_grid.auto_batch"></div></td></tr>
+                <tr><th>Batch size</th><td ng-bind="preTrain.neural_network_grid.batch_size"/></tr>
+            </tbody>
+
+            <tbody ng-if="preTrain.neural_network_grid.solver == 'adam'" style="border: 0;">
+                <tr><th>beta_1</th><td ng-bind="preTrain.neural_network_grid.beta_1" /></tr>
+                <tr><th>beta_2</th><td ng-bind="preTrain.neural_network_grid.beta_2" /></tr>
+                <tr><th>epsilon</th><td ng-bind="preTrain.neural_network_grid.epsilon" /></tr>
+            </tbody>
+            <tbody ng-if="preTrain.neural_network_grid.solver == 'sgd'" style="border: 0;">
+                <tr>
+                    <th>Learning rate annealing</th>
+                    <td ng-switch on="preTrain.neural_network_grid.learning_rate">
+                        <div ng-switch-when="constant">Constant</div>
+                        <div ng-switch-when="invscaling">Inverse scaling</div>
+                        <div ng-switch-when="adaptive">Adaptive</div>
+                    </td>
+                    </td>
+                </tr>
+
+                <tr><th>power_t</th><td ng-bind="preTrain.neural_network_grid.power_t" /></tr>
+                <tr><th>Momentum</th><td ng-bind="preTrain.neural_network_grid.momentum" /></tr>
+                <tr><th>Use Nesterov momentum</th><td><div yes-no="preTrain.neural_network_grid.nesterovs_momentum"></td></tr>
+
+            </tbody>
+
+
+        </table>
+        <table ng-switch-when="KNN" class="table">
+            <tr><th>Algorithm</th><td>KNN</td></tr>
+            <tr><th>Neighbor finding algorithm</th><td><div ng-switch on="postTrain.knn.algorithm">
+                <div ng-switch-when="auto">Automatic</div>
+                <div ng-switch-when="kd_tree">KD Tree</div>
+                <div ng-switch-when="ball_tree">Ball Tree</div>
+                <div ng-switch-when="brute">Brute force</div>
+            </div></span></td></tr>
+            <tr><th>K</th><td ng-bind="postTrain.knn.k" /></tr>
+            <tr><th>Distance weighting</th><td><span yes-no="postTrain.knn.distance_weighting"></span></td></tr>
+            <tr><th>Leaf size</th><td ng-bind="postTrain.knn.leaf_size" /></tr>
+            <tr><th>p</th><td ng-bind="postTrain.knn.p" /></tr>
+        </table>
+
+        <table ng-switch-when="LARS" class="table">
+            <tr><th>Algorithm</th><td>LASSO-LARS</td></tr>
+            <tr><th>Max number of features</th><td ng-bind="preTrain.lars_grid.max_features" /></tr>
+        </table>
+
+        <table ng-switch-when="VERTICA_LINEAR_REGRESSION" class="table">
+            <tr><th>Algorithm</th><td>Linear regression (Vertica)</td></tr>
+            <tr><th>Max number of iterations</th><td ng-bind="preTrain.vertica_linreg_grid.maxIterations" /></tr>
+        </table>
+        <table ng-switch-when="KERAS_CODE" class="table">
+            <tr><th>Algorithm</th><td>Neural Network built with Keras</td></tr>
+        </table>
+
+        <table ng-switch-default class="table">
+            <tr><th>Algorithm</th><td>{{postTrain.algorithm}}</td></tr>
+        </table>
+    </div>
+
+
+
+
+    <h2 class="settings-section-title" ng-if="modelData.splitDesc.trainRows">Training data</h2>
+
+    <table class="table table-small" ng-if="modelData.splitDesc.trainRows">
+        <tr>
+            <th>Rows (before preprocessing)</th>
+            <td ng-bind="modelData.splitDesc.trainRows" />
+            <th>Rows (after preprocessing)</th>
+            <td ng-bind="modelData.iperf.modelInputNRows" />
+        </tr>
+        <tr>
+            <th>Columns (before preprocessing)</th>
+            <td ng-bind="modelData.splitDesc.schema.columns.length" />
+            <th>Columns (after preprocessing)</th>
+            <td ng-bind="modelData.iperf.modelInputNCols" />
+        </tr>
+        <tr>
+            <th>Matrix type</th>
+            <td>{{modelData.iperf.modelInputIsSparse ? 'sparse' : 'dense'}}</td>
+            <th ng-if="areMetricsWeighted()">Sample weights variable</th>
+            <td ng-if="areMetricsWeighted()" ng-bind="modelData.coreParams.weight.sampleWeightVariable" />
+        </tr>
+        <tr>
+            <th>Estimated memory usage</th>
+            <td ng-bind="modelData.iperf.modelInputMemory|filesize" />
+            <th ng-if="params.algorithm === 'KERAS_CODE'">Number of special features</th>
+            <td ng-if="params.algorithm === 'KERAS_CODE'" ng-bind="modelData.iperf.modelInputNSpecialFeatures" />
+        </tr>
+    </table>
+
+    <div ng-if="preTrain.algorithm === 'SCIKIT_MODEL'">
+        <h2 class="settings-section-title">Code</h2>
+        <div class="code-viewer-wrapper">
+            <div code-viewer code="preTrain.custom_python.code" mime-type="text/x-python"/>
+        </div>
+    </div>
+</div>

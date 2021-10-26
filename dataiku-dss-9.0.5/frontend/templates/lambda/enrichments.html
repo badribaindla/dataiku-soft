@@ -1,0 +1,159 @@
+<div class="design-tab-title noflex">Enrichments</div>
+
+<div class="flex horizontal-flex oa">
+
+    <div class="vertical-flex enrichments-list">
+        <div class="search-header">
+            <div class="std-list-search-box api-endpoint-list-search-box" style="width: 48%;">
+                <span class="add-on"><i class="icon-dku-search"></i></span>
+                <input type="search" ng-model="uiState.filter" placeholder="Search" style="width: calc(100% - 34px)">
+            </div>
+            <div class="header-add">
+                <button style="margin-bottom: 1px;" class="btn btn--secondary" ng-click="addEnrichment()"><strong>+</strong> Add enrichment</button>
+            </div>
+        </div>
+        <div ng-repeat="it in enrichmentsList | filter:uiState.filter" class="central-row horizontal-flex" ng-click="showEnrichment($index)"
+            ng-class="{focused: enrichmentIndex===$index}" full-click>
+            <div class="flex">
+                <label ng-if="it.datasetRef" class="mx-textellipsis text-description" title="Enrichment on {{it.datasetRef}}">Enrichment on <strong>{{it.datasetRef}}</strong></label>
+                <label ng-if="!it.datasetRef" class="mx-textellipsis text-description">Enrichment not configured</label>
+            </div>
+            <div class="noflex align-right">
+                <i class="icon-trash" ng-click="deleteEnrichment($index)"/>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="flex oa" style="display: inline-block; vertical-align: top; margin-top: 10px; margin-left: 10px;"
+        ng-if="enrichmentsList.length>0 && enrichmentIndex>=0" ng-switch="enrichmentIndex">
+        <div ng-switch-default>
+        <form class="dkuform-horizontal">
+            <div class="control-group" ng-controller="SingleEnrichmentController" ng-if="datasets">
+                <div block-api-error />
+                <div class="control-group">
+                    <div class="control-label"><label>Dataset to use for enrichment</label></div>
+                    <div class="controls">
+                        <div dataset-selector="currentEnrichment.datasetRef"
+                            available-datasets="datasets"></div>
+                    </div>
+                </div>
+                <hr/>
+                <div ng-if="currentEnrichment.datasetRef">
+                    <div class="control-group">
+                        <div class="control-label"><label>Deployment policy</label></div>
+                        <div class="controls inline-labels">
+                            <label><input type="radio" name="erpt" ng-model="currentEnrichment.packagingType"
+                                value="REFERENCED">&nbsp;Referenced (SQL only)</label>
+                            <label><input type="radio" name="erpt" ng-model="currentEnrichment.packagingType"
+                                value="BUNDLED_TOCONNECTION">&nbsp;Bundled
+                            </label>
+                        </div>
+                         <!-- display warning only if appConfig.admin b/c info devBundledConnection is in generalSettings which are only accessible to admin  -->
+                        <div class="alert alert-warning"
+                            ng-if="appConfig.admin && it.packagingType === 'BUNDLED_TOCONNECTION' && !devBundledConnection">
+                            No connection for bundled data in the Dev server, please choose one in the General Settings.
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="control-label">
+                        <label>Lookup keys definition</label>
+                    </div> 
+                    <div add-remove ng-model="currentEnrichment.on" class="control-group">
+                        <div class="controls">
+                            <label style="display: inline-block; width: 20.5em">Column</label>
+                            <label style="display: inline-block; width: 15em">Name in query</label>
+                        </div>
+                        <div ng-repeat="lookupKey in currentEnrichment.on track by $index">
+                            <div class="controls lookup-key">
+                                <select dku-bs-select
+                                    asynchronous-load="true"
+                                    ng-model="currentEnrichment.on[$index].resourceLookupCol"
+                                    ng-options="col.name as col.name for col in uiState.columns"
+                                    style="width: 14em;"
+                                ></select>
+                                <i class="arrow icon-arrow-right" style="margin-left: 6px;"/>
+                                <input ng-model="currentEnrichment.on[$index].inputLookupKey" type="text" style="margin-left: 6px; width: 17em;" placeholder="Leave empty for column name"></input>
+                                <i class="icon-trash" ng-click="currentEnrichment.on.splice($index, 1)"/>
+                            </div>
+                        </div>
+                        <div ng-if="currentEnrichment.on.length===0">
+                            <span class="dib lookup-key" style="margin-left: 10px; color: red;">
+                                No lookup key configured
+                            </span>
+                        </div>
+                        <button class="btn btn--secondary controls" ng-click="add({matchType: 'EQ', caseInsensitive: false, normalizeText: false})">+ Add key</button>
+                    </div>
+                    <hr/>
+                    <div class="control-group">
+                        <div class="control-label"><label>Columns to retrieve</label></div>
+                        <div filtered-multi-select-rows ng-model="uiState.columns">
+                            <div class="controls">
+                                <input type="checkbox"
+                                    style="margin-left: 10px"
+                                    id="selectAllCheck"
+                                    ng-model="selection.all"
+                                    dku-indeterminate="selection.some"
+                                    ng-change="updateMassSelectionCheckbox()"/>
+                                <label for="selectAllCheck" style="display: inline-block;">Select all</label>
+
+                                <div class="std-list-search-box std-list-search-box--inline-block" style="width: 150px; margin-left: 40px;">
+                                    <span class="add-on"><i class="icon-dku-search"></i></span>
+                                    <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Filter" style="width: calc(100% - 34px)">
+                                </div>
+                            </div>
+                            <div class="controls columns-list" style="margin-top: 5px">
+                                <div fat-repeat="selection.filteredObjects"
+                                    as="col"
+                                    class="remapping h100"
+                                    row-height="28"
+                                    tabindex="0"
+                                    ng-keydown="multiSelectKeydown($event, true)">
+                                    <div class="column-row" style="padding-left:4px">
+
+                                        <label class="mx-textellipsis text-description" ng-class="{selected: col.$selected}"
+                                            ng-model="col.datasetColumn" style="padding-left: 0px; border-radius: 4px; height: 21.5px;">
+                                            <input class="checkbox" type="checkbox" ng-model="col.$selected" ng-click="checkBoxChanged(col, $event)" style="margin-left: 6px"/>
+                                            {{col.name}}
+                                        </label>
+                                        <i class="icon-arrow-right arrow" style="display: inline-block; margin-left: 8px" ng-if="col.$selected" />
+                                        <input type="text" style="display: inline-block; width: 17em; margin-left: 7px" ng-if="col.$selected" ng-model="col.modelFeature" placeholder="Empty: column name as feature name"></input>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="control-group">
+                        <div class="control-label"><label>Error handling</label></div>
+                        <div class="controls">
+                            <label style="display: inline-block; width: 10em">Unspecified key</label>
+                            <select ng-model="currentEnrichment.missingLookupKeyBehavior">
+                                <option value="DROP_ROW">Drop row</option>
+                                <option value="ERROR">Error</option>
+                                <option value="IGNORE">Ignore</option>
+                            </select>
+                        </div>
+                        <div class="controls">
+                            <label style="display: inline-block; width: 10em">No match</label>
+                            <select ng-model="currentEnrichment.notFoundBehavior">
+                                <option value="DROP_ROW">Drop row</option>
+                                <option value="ERROR">Error</option>
+                                <option value="IGNORE">Ignore</option>
+                            </select><br />
+                        </div>
+                        <div class="controls">
+                            <label style="display: inline-block; width: 10em">Several matches</label>
+                            <select ng-model="currentEnrichment.multiMatchBehavior">
+                                <option value="DROP_ROW">Drop row</option>
+                                <option value="ERROR">Error</option>
+                                <option value="KEEP_FIRST">Keep first</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>

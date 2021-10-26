@@ -1,0 +1,659 @@
+<form class="dkuform-horizontal" name="infraSettingsForm" global-keydown="{'ctrl-s meta-s':'saveInfra()'}">
+    <div class="h100 row-fluid" tab-model="uiState.settingsPane">
+        <div class="span2 offset0 nav-list-sidebar sidebar-admin">
+            <ul>
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('general')}" tab-name="general" label="General settings" />
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('apinodes')}" tab-name="apinodes" label="API Nodes" ng-if="infra.type=='STATIC'" />
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('auditing')}" tab-name="auditing" label="Auditing &amp; queries logging" />
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('static-graphite')}" tab-name="static-graphite" label="Monitoring" ng-if="infra.type=='STATIC'" />
+
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('k8s')}" tab-name="k8s" label="Kubernetes cluster" ng-if="infra.type=='K8S'" />
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('k8s-sizing')}" tab-name="k8s-sizing" label="Sizing and scaling" ng-if="infra.type=='K8S'" />
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('k8s-exposition')}" tab-name="k8s-exposition" label="Services exposition" ng-if="infra.type=='K8S'" />
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('k8s-connections')}" tab-name="k8s-connections" label="Connections" ng-if="infra.type=='K8S'" />
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('k8s-codeenvs')}" tab-name="k8s-codeenvs" label="Code envs" ng-if="infra.type=='K8S'" />
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('k8s-logging')}" tab-name="k8s-logging" label="API Server logging" ng-if="infra.type=='K8S'" />
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('k8s-graphite')}" tab-name="k8s-graphite" label="Monitoring" ng-if="infra.type=='K8S'" />
+
+                <li sidebar-tab-l1-link ng-class="{'invalid': invalidTabs.has('permissions')}" tab-name="permissions" label="Permissions" />
+            </ul>
+            <div class="horizontal-flex" style="margin: 20px; height: auto;"> <!-- no h100 as horizontal-flex does -->
+                <div ng-if="infraIsDirty() && !isInfraSettingsFormInvalid()" class="btn-group save-button flex" style="flex-basis: 50px;">
+                    <button class="btn btn--outline btn--primary btn--full" ng-click="saveInfra()">
+                        <i class="icon-save"></i>
+                        &nbsp;Save
+                    </button>
+                </div>
+                <div ng-if="!infraIsDirty() || isInfraSettingsFormInvalid()" class="btn-group save-button flex" style="flex-basis: 50px;">
+                    <button class="btn btn--outline btn--primary btn--full" disabled >
+                        <i class="icon-save"></i>
+                        &nbsp;Saved!
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="span10 h100 offset0 boxed-next-to-sidebar" ng-switch="uiState.settingsPane">
+
+            <div ng-switch-when="general" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Lifecycle stage</label>
+                        <div class="controls">
+                            <select dku-bs-select="{width: '250px'}"
+                                ng-options="stage.id as (stage.id + ' - ' + stage.desc) for stage in appConfig.apiDeploymentStages"
+                                ng-model="infra.stage"
+                                style="width: 250px" />
+                            <span class="help-inline">All deployments created on this infrastructure will appear in this column in the Deployments screen</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="apinodes" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">List of API nodes</label>
+                        <div class="controls">
+                            <span class="help-inline">List of API nodes with their URL, admin API key and graphite prefix</span>
+                            <editable-list ng-model="infra.apiNodes" add-label="Add an API node" transcope="{getUrlSuffixWarning: getUrlSuffixWarning}">
+                                <editable-list-input type="text" ng-model="it.url" unique="true" required="true" ng-pattern="/^https?:\/\/\S+$/" check-warning="getUrlSuffixWarning" placeholder="URL" style="width: 350px" class="mright8"/>
+                                <editable-list-input type="text" ng-model="it.adminAPIKey" required="true" placeholder="Admin API key" class="mright8"/>
+                                <editable-list-input type="text" ng-model="it.graphitePrefix" placeholder="Graphite prefix" />
+                            </editable-list>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="k8s" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Use DSS global cluster settings</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="infra.cluster.clusterMode" ng-true-value="'INHERIT'" ng-false-value="'EXPLICIT_CLUSTER'"/>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="infra.cluster.clusterMode == 'EXPLICIT_CLUSTER'">
+                        <label class="control-label">Cluster</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.cluster.clusterId" bs-typeahead="k8sClusterIds" />
+                            <span class="help-inline">Use a cluster id, not name. Variables are allowed with a ${} syntax.</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Kubectl context</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.k8sContext" />
+                            <span class="help-inline">kubectl context to use (empty = use default)</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Kubernetes namespace</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.k8sNamespace" />
+                            <span class="help-inline">Kubernetes namespace to use (empty = use default)</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Kube config path</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.k8sConfigPath"/>
+                            <span class="help-inline">Path to the config file for Kubectl (empty = use default)</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Custom properties</label>
+                        <div class="controls">
+                            <ng2-key-values-list 
+                                [(items)]="infra.k8sProperties"
+                                key-placeholder="Property key"
+                                value-placeholder="Property value"
+                                add-label="Add Property">
+                            </ng2-key-values-list>
+                            <span class="help-inline">Additional properties about this config, for use by DSS. For specific use cases.</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Registry host</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.registryHost" />
+                            <span class="help-inline">Hostname of the images registry. Your local "docker" command needs to have write access to this registry, and your Kubernetes cluster needs to have read access to this registry. If not set, the built image is not pushed (only for testing purpose using Minikube)</span>
+                        </div>
+                    </div>
+
+
+                    <div class="control-group" ng-if="infra.registryHost">
+                        <label class="control-label">Image pre-push hook</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="infra.prePushMode" 
+                            ng-options="x[0] as x[1] for x in [['NONE', 'None'], ['ECR', 'Enable push to ECR'], ['ACR', 'Enable push to ACR'], ['CUSTOM', 'Custom script']]" />
+                            <span class="help-inline">
+                                Action to run before pushing an image.
+                                This is usually only required for running on Amazon EKS or Azure AKS
+                            </span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="infra.prePushMode == 'CUSTOM'">
+                        <label class="control-label">Script</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.prePushScript"/>
+                            <span class="help-inline">
+                                Absolute path to a shell script. Receives the repository url, image name &amp; tag as arguments.
+                                This script should support being called on an already-existing image/tag.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Images prefix</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.imagesNamePrefix" />
+                            <span class="help-inline">Prefix all images being pushed by this. When using Google Kubernetes Engine (with gcr.io repository), this needs to start by the <code>project-name/</code></span>
+                        </div>
+                    </div>
+                    <h2 class="settings-section-title mtop0">Advanced settings</h2>
+                    <div class="control-group">
+                        <label class="control-label">Base image tag</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.baseImageTag" />
+                            <span class="help-inline">Leave empty to use the default</span>
+                        </div>
+                    </div>
+
+                    <h2 class="settings-section-title mtop0">Pod settings</h2>
+
+                     <div class="alert alert-info">
+                        These settings control the extensions to the pods of the underlying Kubernetes deployments.
+                        <br />
+                        Pod enhancers can provide additional capabilities, notably for advanced autoscaling. Please refer to the documentation for more details.
+                    </div>
+
+                    <div yaml-modifier="infra.defaultDeploymentModifier" exposable-kind="'API_DEPLOYER'" exposition-usage-context="'API_DEPLOYER_INFRA'" inline-container-config="getInlineContainerConfig()"/>
+                </form>
+            </div>
+            <div ng-switch-when="k8s-exposition" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <div class="alert alert-info">
+                    These settings control how the APIs are exposed to the outside world.
+
+                    These settings can be overridden on a per-deployment basis.
+                </div>
+                <form class="dkuform-horizontal">
+                    <div service-exposition="infra.defaultServiceExposition" exposable-kind="'API_DEPLOYER'" exposition-usage-context="'API_DEPLOYER_INFRA'" inline-container-config="getInlineContainerConfig()"></div>
+                </form>
+            </div>
+
+             <div ng-switch-when="k8s-sizing" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+
+                <form class="dkuform-horizontal">
+                    <h2 class="settings-section-title mtop0">Replication settings</h2>
+                    <div class="alert alert-info">
+                        These settings control the scalability of the underlying Kubernetes deployments.<br />
+                        These settings can be overridden on a per-deployment basis.
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Replica number</label>
+                        <div class="controls">
+                            <input type="number" min="1" ng-model="infra.defaultDeploymentScaling.initialReplicas" />
+                            <span class="help-inline">Number of pod replicas in Kubernetes</span>
+                        </div>
+                    </div>
+                    <div deployment-hpa="infra.defaultDeploymentScaling" exposable-kind="'API_DEPLOYER'" exposition-usage-context="'API_DEPLOYER_INFRA'" inline-container-config="getInlineContainerConfig()" />
+
+                    <h2 class="settings-section-title mtop0">API Node Server Sizing and tuning</h2>
+
+                    <div class="alert alert-info">
+                        These settings control internal sizing parameters of the API node server.<br />
+                        These settings can be overridden on a per-deployment basis.
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">API node server Xmx</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.defaultApiNodeSizing.apimainXmx" />
+                            <span class="help-inline">Max Java heap memory for API node server. Leave empty for default</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">API node server GC</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.defaultApiNodeSizing.apimainGC" />
+                            <span class="help-inline">GC algorithm for API node server. Leave empty for default.</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">API node server opts</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.defaultApiNodeSizing.apimainAdditionalOpts" />
+                            <span class="help-inline">Additional command-line options for API node server. Leave empty for default.</span>
+                        </div>
+                    </div>
+                    <h2 class="settings-section-title mtop0">Container limits</h2>
+
+                    <div class="alert alert-info">
+                        These settings control CPU and memory limits that are set on each container.<br />
+                        These settings can be overridden on a per-deployment basis.<br />
+                        It is recommended to be familiar with Kubernetes "request" and "limit" parameters to use this.
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Memory request</label>
+                        <div class="controls">
+                            <input type="number" force-integer ng-model="infra.defaultContainerLimits.memRequestMB" />
+                            <span class="help-inline">Memory request for containers in MB. -1 = default (inherit namespace settings)</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Memory limit</label>
+                        <div class="controls">
+                            <input type="number" force-integer ng-model="infra.defaultContainerLimits.memLimitMB" />
+                            <span class="help-inline">Memory limit for containers in MB. -1 = default (inherit namespace settings)</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">CPU request</label>
+                        <div class="controls">
+                            <input type="number" ng-model="infra.defaultContainerLimits.cpuRequest" />
+                            <span class="help-inline">CPU request for containers (0.5 = 50% of a core, 2 = 2 cores).  -1 = default (inherit namespace settings)</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">CPU limit</label>
+                        <div class="controls">
+                            <input type="number" ng-model="infra.defaultContainerLimits.cpuLimit" />
+                            <span class="help-inline">CPU limit for containers (0.5 = 50% of a core, 2 = 2 cores). -1 = default (inherit namespace settings)</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Custom limits</label>
+                        <div class="controls">
+                            <ng2-key-values-list 
+                                [(items)]="infra.defaultContainerLimits.customLimits" 
+                                add-label="Add Custom Limit"
+                                key-placeholder="Limit key"
+                                value-placeholder="Limit value">
+                            </ng2-key-values-list>
+                            <span class="help-inline">Custom Kubernetes limits key-value. For example, on Google Kubernetes Engine, use <code>nvidia.com/gpu</code> = <code>1</code> to get a GPU node</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Node selector</label>
+                        <div class="controls">
+                            <textarea style="width: 700px" ng-model="infra.defaultContainerLimits.nodeSelector" placeholder="Optional nodeSelector YAML specification. Must start by 'nodeSelector:' followed by 2-space indented Kubernetes NodeSelector specification" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Affinity</label>
+                        <div class="controls">
+                            <textarea style="width: 700px" ng-model="infra.defaultContainerLimits.affinity" placeholder="Optional pod affinity YAML specification. Must start by 'affinity:' followed by 2-space indented Kubernetes pod affinity specification" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Tolerations</label>
+                        <div class="controls">
+                            <textarea style="width: 700px" ng-model="infra.defaultContainerLimits.tolerations" placeholder="Optional pod tolerations YAML specification. Must start by 'tolerations:' followed by 2-space indented Kubernetes pod affinity specification" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="auditing" class="h100 oa" style="position:relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <!-- Only on K8S because on static, it's configured at the server level -->
+                    <div class="control-group" ng-if="infra.type == 'K8S'">
+                        <label class="control-label">Log queries</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="infra.defaultApiNodeLogging.auditLog.logQueries" />
+                                <span class="help-inline">Log each received query in the audit log</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="infra.type == 'K8S'">
+                        <label class="control-label">Log inputs</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="infra.defaultApiNodeLogging.auditLog.logInputs" />
+                                <span class="help-inline">Log the input (features, params) of each received query in the audit log</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="infra.type == 'K8S'">
+                        <label class="control-label">Log outputs</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="infra.defaultApiNodeLogging.auditLog.logOutputs" />
+                                <span class="help-inline">Log the output (prediction, result) of each received query in the audit log</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Configure reporting to DSS-ES</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="infra.defaultApiNodeLogging.automaticallyConfigureEventServerReporting" />
+                            <span class="help-inline">
+                                Automatically configure audit logging on the API nodes to send events for this deployment to a DSS Event Server.
+                            </span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="infra.defaultApiNodeLogging.automaticallyConfigureEventServerReporting">
+                        <label class="control-label">Event Server URL</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.defaultApiNodeLogging.eventServerURL" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="infra.defaultApiNodeLogging.automaticallyConfigureEventServerReporting">
+                        <label class="control-label">Event Server Auth key</label>
+                        <div class="controls">
+                            <input type="password" autocomplete="new-password" ng-model="infra.defaultApiNodeLogging.eventServerAuthKey" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="infra.defaultApiNodeLogging.automaticallyConfigureEventServerReporting">
+                        <label class="control-label">Trust all certificates</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="infra.defaultApiNodeLogging.trustAllSSLCertificates" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Configure reporting to Kafka</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="infra.defaultApiNodeLogging.automaticallyConfigureKafkaReporting" />
+                            <span class="help-inline">
+                                Automatically configure audit logging on the API nodes to send events for this deployment to Kafka
+                            </span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="infra.defaultApiNodeLogging.automaticallyConfigureKafkaReporting">
+                        <label class="control-label">Kafka connection name</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.defaultApiNodeLogging.kafkaConnectionName" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="infra.defaultApiNodeLogging.automaticallyConfigureKafkaReporting">
+                        <label class="control-label">Kafka topic</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.defaultApiNodeLogging.kafkaTopic" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="k8s-logging" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                 <div class="alert alert-info">
+                    These advanced settings control logging of the API node servers.
+                    These settings can be overridden on a per-deployment basis.
+                </div>
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">log4j.properties</label>
+                        <div class="controls">
+                            <textarea style="width: 300px; height: 150px" ng-model="infra.defaultApiNodeLogging.log4jConfiguration" />
+                            <span class="help-inline">Advanced usage: override default Log4J configuration</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+             <div ng-switch-when="k8s-graphite" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                 <div class="alert alert-info">
+                    These settings control monitoring and charting for deployments.
+                </div>
+                <form class="dkuform-horizontal">
+
+                    <h2 class="settings-section-title mtop0">Reporting to Graphite</h2>
+
+                    <div class="alert alert-info">
+                        These settings control the Carbon server to which the individual API nodes containers will report their statistics.
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Graphite Carbon server address</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.graphiteConfig.graphiteCarbonServerURL" ng-pattern="/^\S+:[0-9]+$/" />
+                            <span class="help-inline">Address (in host:port form) of the Graphite Carbon server to which API nodes report their metrics. Leave empty to disable reporting to Graphite Carbon server</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Graphite Carbon prefix</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.graphiteConfig.graphiteCarbonCommonPrefix" />
+                            <span class="help-inline">This prefix is added to all metrics reported from this infrastructure. A per-deployment prefix is automatically added.</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Graphite Carbon interval</label>
+                        <div class="controls">
+                            <input type="number" ng-model="infra.graphiteConfig.graphiteCarbonIntervalMinutes" ng-pattern="'[0-9]+'" />
+                            <span class="help-inline">Metrics reporting interval in minutes</span>
+                        </div>
+                    </div>
+
+                    <h2 class="settings-section-title mtop0">Metrics charting server</h2>
+
+                     <div class="alert alert-info">
+                        These settings control the CarbonAPI server from which API Deployer fetches aggregated statistics for charts.
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Graphite Carbon server address</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.carbonAPISettings.carbonAPIURL" placeholder="http://host:port" />
+                            <span class="help-inline">URL (http:// form) of the CarbonAPI server. This CarbonAPI must be able to query the Carbon databases populated by the reporting server. Leave empty to disable charts in the Deployments UI</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+             <div ng-switch-when="static-graphite" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                 <div class="alert alert-info">
+                    These settings control monitoring and charting for deployments.
+                </div>
+                <form class="dkuform-horizontal">
+
+                    <h2 class="settings-section-title mtop0">Reporting to Graphite</h2>
+
+                    <div class="alert alert-info">
+                        Setting up reporting to Graphite must be done on each individual API Node that make up this static infrastructure. Please see documentation for more information.
+                    </div>
+
+                    <h2 class="settings-section-title mtop0">Metrics charting server</h2>
+
+                     <div class="alert alert-info">
+                        These settings control the CarbonAPI server from which API Deployer fetches aggregated statistics for charts.
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Graphite Carbon server address</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.carbonAPISettings.carbonAPIURL" ng-pattern="/^https?:\/\/\S+$/" placeholder="http://host:port" />
+                            <span class="help-inline">URL (http:// form) of the CarbonAPI server. This CarbonAPI must be able to query the Carbon databases populated by the reporting server. Leave empty to disable charts in the Deployments UI</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="k8s-connections" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <h2 class="settings-section-title mtop0">Connections</h2>
+
+                    <div class="alert alert-info">
+                        <span>Each of the connection definitions below is a JSON dictionary containing all settings needed by DSS (i.e. type of database, hostname, port).</span>
+                        <span ng-if="appConfig.admin">
+                            <br/>
+                            Select a local connection in the list in order to copy its definition to the clipboard:
+                            <select
+                                dku-bs-select="{liveSearch:true, width:206}"
+                                ng-options="connection.name as connection.name for connection in allConnections"
+                                ng-model="uiState.selectedLocalConnectionName"
+                                ng-change="onLocalConnectionChanged()"
+                                />
+                        </span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Connection for "bundled" data</label>
+                        <div class="controls">
+                            <textarea style="width: 600px; height: 150px" ng-model="infra.bundledConnection" json-object-pretty-view keep-old-if-invalid />
+                            <span class="help-inline">Definition of the connection that will be used to store and query the "bundled" data present in the API Services (for "Dataset Lookup" endpoints and "Prediction" endpoints using "Bundled enrichment" feature)</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Referenced connections</label>
+                        <div class="controls">
+                            <span class="help-inline">You need to add an entry here for each connection that is referenced by any of the endpoints of the API Services (for "Dataset Lookup" endpoints and "Prediction" endpoints using "Referenced enrichment" feature).</span>
+                            <div ng-repeat="(pckConId, remappedConnection) in infra.remappedConnections" style="margin-bottom: 10px;">
+                                <div>
+                                <strong style="font-weight: 500; width: 140px; display: inline-block">Connection name</strong><span class="noflex" style="margin-right: 6px;">{{pckConId}}</span>
+                                 <span style="margin-left: 26px;"><a class="std-link" ng-click="deleteRemappedConnection(pckConId)"><i class="icon-trash" /></a></span>
+                                </div>
+                                <div>
+                                <strong style="font-weight: 500; width: 140px; display: inline-block">Connection definition</strong><textarea ng-model="infra.remappedConnections[pckConId]"  style="width: 600px; height: 150px"  json-object-pretty-view />
+
+                                </div>
+                                <hr />
+                            </div>
+                            <div ng-if="!hasRemappedConnections()" style="margin-bottom: 10px;"><em>No referenced connection set up yet.</em></div>
+                            <div ng-init="newRemappedCon = {}">
+                                <span>Add a referenced connection:&nbsp;</span>
+                                <input type="text" ng-model="newRemappedCon.pckConId" style="width: 130px;" />
+                                <button class="btn btn--secondary" ng-disabled="!newRemappedCon.pckConId" ng-click="infra.remappedConnections[newRemappedCon.pckConId] = {type : 'XXX', params : {} }"><span plus-icon /> ADD</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="k8s-codeenvs" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <h2 class="settings-section-title mtop0">Code envs</h2>
+
+                    <div class="control-group">
+                        <label class="control-label">Prevent override</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="infra.codeEnvsSettings.preventOverrideFromImportedEnvs" />
+                            <span class="help-inline">Prevent override from imported envs</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Extra options for 'pip install'</label>
+                        <div class="controls">
+                            <span class="help-inline">One item per option (so "-i /stuff" must be two items)</span>
+                            <ng2-values-list [(items)]="infra.codeEnvsSettings.pipInstallExtraOptions" add-label="Add option for 'pip install'" value-placeholder="E.g. -i, --trusted-host..."/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Extra options for 'virtualenv'</label>
+                        <div class="controls">
+                            <span class="help-inline">One item per option (so "-i /stuff" must be two items)</span>
+                            <ng2-values-list [(items)]="infra.codeEnvsSettings.virtualenvCreateExtraOptions" add-label="Add option for 'virtualenv'" value-placeholder="E.g. -p, --system-site-packages..."/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Extra options for 'conda create'</label>
+                        <div class="controls">
+                            <span class="help-inline">One item per option (so "-i /stuff" must be two items)</span>
+                            <ng2-values-list [(items)]="infra.codeEnvsSettings.condaCreateExtraOptions" add-label="Add option for 'conda create'" value-placeholder="E.g. --clone, --dev..."/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Extra options for 'conda install'</label>
+                        <div class="controls">
+                            <span class="help-inline">One item per option (so "-i /stuff" must be two items)</span>
+                            <ng2-values-list [(items)]="infra.codeEnvsSettings.condaInstallExtraOptions" add-label="Add option for 'conda install'" value-placeholder="E.g. -n, -p..."/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">CRAN mirror URL</label>
+                        <div class="controls">
+                            <input type="text" ng-model="infra.codeEnvsSettings.cranMirrorURL" />
+                            <span class="help-inline">URL for CRAN mirror</span>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <div ng-switch-when="permissions" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <table sort-table class="table table-striped table-hover permissions" >
+                        <thead>
+                            <tr>
+                                <th colspan="2">Group name</th>
+                                <th>View</th>
+                                <th>Deploy</th>
+                                <th>Admin</th>
+                                <th>&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody add-remove ng-model="infra.permissions">
+                            <tr ng-hide="infra.permissions.length">
+                                <td colspan="13" style="text-align: center; font-size: 16px; line-height: 40px; color: #666">
+                                    No group is granted access to this infrastructure
+                                </td>
+                            </tr>
+                            <tr ng-repeat="perm in infra.permissions">
+
+                                <td colspan="2">{{perm.group}}</td>
+                                <td>
+                                    <label class="checkbox" for="readDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$readDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$readDisabled" ng-model="perm.read" id="readDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkbox" for="deployDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$deployDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$deployDisabled" ng-model="perm.deploy" id="deployDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkbox" for="adminDisabled_{{$index}}" >
+                                        <input type="checkbox" ng-show="perm.$adminDisabled" checked disabled />
+                                        <input type="checkbox" ng-hide="perm.$adminDisabled" ng-model="perm.admin" id="adminDisabled_{{$index}}"/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <a class="link-danger" ng-click="remove($index)"> <i class="icon-trash" /></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div ng-show="unassignedGroups.length" style="margin-bottom: 20px;">
+                        <select dku-bs-select="{liveSearch:true,width:250}"
+                            style="display: inline-block;"
+                            ng-model="newPerm.group"
+                            ng-options="g for g in unassignedGroups"
+                            data-none-selected-text="Select a group..." >
+                        </select>
+                        <button style="display: inline-block;" ng-disabled="!newPerm.group" ng-click="addPermission(infra)" class="btn btn--secondary">
+                            <span plus-icon />
+                            &nbsp;Grant access to group
+                        </button>
+                    </div>
+                    <div class="alert alert-info" style="border-radius: 0px"> <i class="icon-info-sign" />&nbsp;To manage groups go to
+                        <a class="tab" ng-class="{'enabled': $state.includes('admin.groups')}" href="/admin/security/groups/">DSS global administration</a>.
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+</form>

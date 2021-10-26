@@ -1,0 +1,125 @@
+<div class="row-fluid offset0 h100 vertical-flex features-page" ng-if="mlTaskDesign.preprocessing" ng-init="numericPairs = countNumericCombinations()">
+    <div class="noflex design-tab-title">Feature generation</div>
+
+    <div class="flex">
+        <div class="fh">
+
+            <div class="span4 offset0 h100 list-zone">
+                <div class="vertical-flex h100">
+                    <div class="feature-list flex">
+                        <div class="feature-generation-tr horizontal-flex" ng-class="{focused: uiState.generatorPage==='pairwise_linear'}" ng-click="uiState.generatorPage = 'pairwise_linear'" full-click>
+                            <label class="flex" style="padding: 5px 12px; line-height: 40px">
+                                Pairwise linear combinations
+                            </label>
+                            <label class="noflex" style="text-align:right; padding: 5px 12px; line-height: 40px">
+                                <i ng-if="mlTaskDesign.preprocessing.feature_generation.pairwise_linear.behavior != 'DISABLED'" class="text-success icon-ok" />
+                            </label>
+                        </div>
+
+                        <div class="feature-generation-tr horizontal-flex" ng-class="{focused: uiState.generatorPage==='polynomial_combinations'}" ng-click="uiState.generatorPage = 'polynomial_combinations'" full-click>
+                            <label class="flex" style="padding: 5px 12px; line-height: 40px">
+                                Pairwise polynomial combinations
+                            </label>
+                            <label class="noflex" style="text-align:right; padding: 5px 12px; line-height: 40px">
+                                <i ng-if="mlTaskDesign.preprocessing.feature_generation.polynomial_combinations.behavior != 'DISABLED'" class="text-success icon-ok" />
+                            </label>
+                        </div>
+
+                        <div class="feature-generation-tr horizontal-flex" ng-class="{focused: uiState.generatorPage==='manual_interactions'}" ng-click="uiState.generatorPage = 'manual_interactions'" full-click>
+                             <label class="flex" style="padding: 5px 12px; line-height: 40px">
+                                Explicit pairwise interactions
+                            </label>
+                            <label class="noflex" style="text-align:right; padding: 5px 12px; line-height: 40px">
+                                <i ng-if="mlTaskDesign.preprocessing.feature_generation.manual_interactions.interactions.length != 0" class="text-success icon-ok" />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="span8 offset0 h100 main-zone oa">
+                <div class="flex vertical-flex h100 oa query-container">
+
+                    <div style="padding: 15px">
+                        <div ng-if="uiState.generatorPage == 'pairwise_linear'">
+                            <div class="alert alert-info">
+                                This generator generates <strong>A+B</strong> and <strong>A-B</strong> features, 
+                                for each pair of numerical features.
+                            </div>
+                            <div class="alert alert-warning" ng-if="numericPairs &gt;= 500">
+                                This will generate {{numericPairs * 2}} additional features
+                            </div>
+                            <form action="" class="dkuform-horizontal">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Enable</label>
+                                    <div class="controls">
+                                        <select dku-bs-select ng-model="mlTaskDesign.preprocessing.feature_generation.pairwise_linear.behavior">
+                                            <option value="DISABLED">No</option>
+                                            <option value="ENABLED_MANUAL">Yes</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div ng-if="uiState.generatorPage == 'polynomial_combinations'">
+                            <div class="alert alert-info">
+                                This generator generates <strong>A*B</strong> features, 
+                                for each pair of numerical features.
+                            </div>
+                            <div class="alert alert-warning" ng-if="numericPairs &gt;= 500">
+                                This will generate {{numericPairs}} additional features
+                            </div>
+                            <form action="" class="dkuform-horizontal">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Enable</label>
+                                    <div class="controls">
+                                        <select dku-bs-select ng-model="mlTaskDesign.preprocessing.feature_generation.polynomial_combinations.behavior">
+                                            <option value="DISABLED">No</option>
+                                            <option value="ENABLED_MANUAL">Yes</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div ng-if="uiState.generatorPage == 'manual_interactions'">
+                            <div class="alert alert-info">
+                                <p>This generator generates pairwise interactions between features:</p>
+                                <ul>
+                                    <li>Numerical features will be multiplied</li>
+                                    <li>Numerical and categorical features will produce a dummies multiplied by the numerical feature.</li>
+                                    <li>Two categorical features will produce dummies in the cross-product of the two features</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <div ng-repeat="interaction in mlTaskDesign.preprocessing.feature_generation.manual_interactions.interactions" style="margin-bottom: 10px;">
+                                    <div class="horizontal-flex" style="align-items: center">
+                                        <div style="margin: 0px 5px 0px 5px">Interaction between</div>
+                                        <select dku-bs-select="{liveSearch:true}" ng-options="f as f for f in activeFeatures()" ng-model="interaction.column_1" style="max-width: 120px"></select>
+                                        <div style="margin: 0px 5px 0px 5px">and</div>
+                                        <select dku-bs-select="{liveSearch:true}" ng-options="f as f for f in activeFeatures()" ng-model="interaction.column_2" style="max-width: 120px; margin-right: 30px"></select>
+                                        <div class="control-group" style="margin-bottom: 0; margin-left: 5px;">
+                                            <div ng-if="willDummify(interaction)" class="controls" style="margin-left: 0;">
+                                                <input type="number" force-integer ng-model="interaction.max_features" style="width: 50px; max-width: 50px">
+                                                <div class="help-inline">Maximum number of generated columns (0 for unlimited)</div>
+                                            </div>
+                                            <div ng-if="!willDummify(interaction)" class="controls" style="margin-left: 0;">
+                                                <input type="checkbox" ng-model="interaction.rescale">
+                                                <div class="help-inline">Rescale the resulting feature</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex" style="text-align: right">
+                                            <i class="icon-trash cursor-pointer" ng-click="removeInteraction($index)" style="cursor:pointer" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="btn btn--secondary" ng-click="addInteraction()" style=""><span><i class="icon-plus" style="margin-right:10px"/>Add interaction</span></button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

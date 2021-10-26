@@ -1,0 +1,47 @@
+    <div class="vertical-flex h100">
+        <div class="noflex">
+            <button ng-if="shakerWritable" style="float: right" class="btn btn--success"
+                    ng-click="mergeSelectedClusters()" ng-disabled="!nbClustersSelected() >0">
+                Merge selected
+            </button>
+            <p>
+                <select dku-bs-select ng-model="cp.fuzziness" ng-disabled="cp.nowComputing">
+                    <option value=0>Fuzzy</option>
+                    <option value=1>Highly fuzzy</option>
+                </select>
+                <select dku-bs-select ng-model="cp.setBased" ng-disabled="cp.nowComputing">
+                    <option value="true">Compare words</option>
+                    <option value="false">Compare characters</option>
+                </select>
+
+                <button class="btn btn--primary" ng-disabled="cp.nowComputing" ng-click="refreshClusterer()">Compute clusters</button>
+            </p>
+        </div>
+
+        <div class="text-clusters vertical-flex" ng-show="cp.clusters.length && !cp.nowComputing">
+            <p class="noflex"><b>{{cp.clusters.length}}</b> clusters found.</p>
+            <table class="table table-striped facet-table table-small table-condensed flex oa">
+                <tr class="tr-discreet">
+                    <th ng-if="shakerWritable" style="text-align: center">
+                        <input type="checkbox" ng-model="cp.allSelected" ng-change="clustersSelectAll()" />
+                    </th>
+                    <th class="value">Possible clusters</th>
+                    <th ng-if="shakerWritable" class="value">Merge value</th>
+                </tr>
+                <tr ng-repeat="cluster in cp.clusters">
+                    <td ng-if="shakerWritable"><input type="checkbox" ng-model="cp.selected[$index]" /></td>
+                    <td class="value">
+                        <ul><li ng-repeat="value in cluster"><span class="dib mx-textellipsis" ng-bind="value" /></li></ul>
+                    </td>
+                    <td class="value" ng-if="shakerWritable">
+                        <input type="text" class="edit" ng-model="cp.mergeValues[$index]" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div ng-show="!cp.clusters.length && !cp.nowComputing && cp.initialized" class="noflex">
+            <p ng-show="!cp.hasTimedOut"><b>No cluster found</b>. Try different parameters.</p>
+            <p ng-show="cp.hasTimedOut">Calculation <b>timed out</b>. Try reducing the sample size, or another comparison method.</p>
+        </div>
+    </div>
+

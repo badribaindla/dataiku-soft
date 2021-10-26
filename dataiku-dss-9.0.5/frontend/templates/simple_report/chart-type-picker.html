@@ -1,0 +1,402 @@
+<div class="chart-type-selection" ng-class="{'analysis-chart-type-selection' : isInAnalysis}">
+    <!-- Chart types list switch  -->
+    <button class="switch-chart-type-picker" id="qa_charts_chart-type-picker" ng-click="switchChartPicker()" ng-show="!chartPickerVibility.visible">
+        <i class="icon-caret-down"></i>
+        <div ng-if="typeAndVariantToImageMap && chart.def.type != 'webapp'">
+            <img ng-src="{{computeChartIcone(chart.def.type, chart.def.variant)}}"/>
+        </div>
+        <div ng-if="typeAndVariantToImageMap && chart.def.type == 'webapp'">
+            <i class="webapp {{computeChartIcone(chart.def.type, chart.def.variant, chart.def.webAppType)}}"></i>
+        </div>
+        <div ng-if="!typeAndVariantToImageMap" class="no-image-yet" />
+    </button>
+    <!-- Chart types -->
+    <div class="select-chart-type" ng-if="chartPickerVibility.visible">
+        <!-- Tabs Navigation -->
+        <div class = "tabs">
+            <ul class="nav nav-tabs chart-family-nav">
+                <li>
+                    <button class="switch-chart-type-picker" ng-click="switchChartPicker()">
+                        <i class="icon-caret-down"></i>
+                        <img ng-src="{{computeChartIcone(chart.def.type, chart.def.variant)}}" ng-if="chart.def.type != 'webapp'"/>
+                        <i class="webapp {{computeChartIcone(chart.def.type, chart.def.variant, chart.def.webAppType)}}" ng-if="chart.def.type == 'webapp'"></i>
+                    </button>
+                </li>
+                <li ng-class="{active: isFamilyDisplayed('basic')}">
+                    <a class="chart-family-link" ng-click="displayTab('basic')">
+                        <img ng-src="{{isInAnalysis ? '/static/dataiku/images/charts/icons/Chart_Icon_Analysis_basic_graphs.svg': '/static/dataiku/images/charts/icons/Chart_Icon_Dataset_basic_graphs.svg'}}" alt="basics"/>
+                    </a>
+                </li>
+                <li ng-class="{active: isFamilyDisplayed('table')}">
+                    <a class="chart-family-link" ng-click="displayTab('table')">
+                        <img ng-src="{{isInAnalysis ? '/static/dataiku/images/charts/icons/Chart_Icon_Analysis_table_number.svg': '/static/dataiku/images/charts/icons/Chart_Icon_Dataset_table_number.svg'}}" alt="table"/>
+                    </a>
+                </li>
+                <li ng-class="{active: isFamilyDisplayed('scatter')}">
+                    <a class="chart-family-link" ng-click="displayTab('scatter')">
+                        <img ng-src="{{isInAnalysis ? '/static/dataiku/images/charts/icons/Chart_Icon_Analysis_XY.svg': '/static/dataiku/images/charts/icons/Chart_Icon_Dataset_XY.svg'}}" alt="xy"/>
+                    </a>
+                </li>
+                <li ng-class="{active: isFamilyDisplayed('map')}">
+                    <a class="chart-family-link" ng-click="displayTab('map')">
+                        <img ng-src="{{isInAnalysis ? '/static/dataiku/images/charts/icons/Chart_Icon_Analysis_geo.svg': '/static/dataiku/images/charts/icons/Chart_Icon_Dataset_geo.svg'}}" alt="geo"/>
+                    </a>
+                </li>
+                <li ng-class="{active: isFamilyDisplayed('other') || isFamilyDisplayed('webapp')}">
+                    <a class="chart-family-link" ng-click="displayTab('other')">
+                        <img ng-src="{{isInAnalysis ? '/static/dataiku/images/charts/icons/Chart_Icon_Analysis_other.svg': '/static/dataiku/images/charts/icons/Chart_Icon_Dataset_other.svg'}}" alt="other"/>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Tabs -->
+        <div class="chart-family-list">
+            <!-- ---------------------- Basics -------------------- -->
+            <div class="chart-family" ng-class="{active: isFamilyDisplayed('basic')}">
+                <h1>Basics</h1>
+                <div class="chart-pack-list">
+
+                    <div class="chart-pack w50">
+                        <h2>Bar</h2>
+
+                        <div class="chart-type-list">
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('grouped_columns', 'normal')}" id="qa_charts_histogram-chart-type" ng-click="selectChartType('grouped_columns', 'normal')">
+                                <img ng-src="{{computeChartIcone('grouped_columns', 'normal')}}" alt="Histogram"/>
+                                <div class="chart-type-description">
+                                    <h5>Histogram</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type"  ng-class="{'selected' : isChartSelected('stacked_bars', 'normal')}" id="qa_charts_bars-chart-type" ng-click="selectChartType('stacked_bars', 'normal')">
+                                <img ng-src="{{computeChartIcone('stacked_bars', 'normal')}}" alt="Bars"/>
+                                <div class="chart-type-description">
+                                    <h5>Bars</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('stacked_columns', 'normal')}" id="qa_charts_stacked-chart-type" ng-click="selectChartType('stacked_columns', 'normal')">
+                                <img ng-src="{{computeChartIcone('stacked_columns', 'normal')}}" alt="Stacked"/>
+                                <div class="chart-type-description">
+                                    <h5>Stacked</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type"  ng-class="{'selected' : isChartSelected('stacked_bars', 'stacked_100')}" id="qa_charts_bars-100-chart-type" ng-click="selectChartType('stacked_bars', 'stacked_100')">
+                                <img ng-src="{{computeChartIcone('stacked_bars', 'stacked_100')}}" alt="Bars 100%"/>
+                                <div class="chart-type-description">
+                                    <h5>Bars 100%</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('stacked_columns', 'stacked_100')}" id="qa_charts_stacked-100-chart-type" ng-click="selectChartType('stacked_columns', 'stacked_100')">
+                                <img ng-src="{{computeChartIcone('stacked_columns', 'stacked_100')}}" alt="Stacked 100%"/>
+                                <div class="chart-type-description">
+                                    <h5>Stacked 100%</h5>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="chart-pack w50">
+                        <h2>Lines & Curves</h2>
+
+                        <div class="chart-type-list">
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('lines', 'normal')}" id="qa_charts_lines-chart-type" ng-click="selectChartType('lines', 'normal')">
+                                <img ng-src="{{computeChartIcone('lines', 'normal')}}" alt="Lines"/>
+                                <div class="chart-type-description">
+                                    <h5>Lines</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('stacked_area', 'normal')}" id="qa_charts_stacked-area-chart-type" ng-click="selectChartType('stacked_area', 'normal')">
+                                <img ng-src="{{computeChartIcone('stacked_area', 'normal')}}" alt="Stacked Area"/>
+                                <div class="chart-type-description">
+                                    <h5>Stacked Area</h5>
+                                </div>
+                            </div>
+
+                           <div class="chart-type" ng-class="{'selected' : isChartSelected('multi_columns_lines', 'normal')}" id="qa_charts_mix-chart-type" ng-click="selectChartType('multi_columns_lines', 'normal')">
+                                <img ng-src="{{computeChartIcone('multi_columns_lines', 'normal')}}" alt="Mix"/>
+                                <div class="chart-type-description">
+                                    <h5>Mix</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('stacked_area', 'stacked_100')}" id="qa_charts_stacked-area-100-chart-type" ng-click="selectChartType('stacked_area', 'stacked_100')">
+                                <img ng-src="{{computeChartIcone('stacked_area', 'stacked_100')}}" alt="Stacked Area 100%"/>
+                                <div class="chart-type-description">
+                                    <h5>Stacked Area 100%</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                     <div class="chart-pack w50">
+                        <h2>Pie &amp; Donuts</h2>
+
+                        <div class="chart-type-list">
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('pie', 'normal')}" id="qa_charts_pie-chart-type" ng-click="selectChartType('pie', 'normal')">
+                                <img ng-src="{{computeChartIcone('pie', 'normal')}}" alt="Pie"/>
+                                <div class="chart-type-description">
+                                    <h5>Pie</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('pie', 'donut')}" id="qa_charts_donut-chart-type" ng-click="selectChartType('pie', 'donut')">
+                                <img ng-src="{{computeChartIcone('pie', 'donut')}}" alt="Donut"/>
+                                <div class="chart-type-description">
+                                    <h5>Donut</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ---------------------- Tables -------------------- -->
+
+            <div class="chart-family" ng-class="{active: isFamilyDisplayed('table')}">
+                <h1>Tables</h1>
+                <div class="chart-pack-list">
+
+                    <div class="chart-pack h100">
+
+                        <div class="chart-type-list">
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('pivot_table', 'normal')}" id="qa_charts_pivot-chart-type" ng-click="selectChartType('pivot_table', 'normal')">
+                                <img ng-src="{{computeChartIcone('pivot_table', 'normal')}}" alt="Pivot Table"/>
+                                <div class="chart-type-description">
+                                    <h5>Pivot Table</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('pivot_table', 'colored')}" id="qa_charts_pivot-colored-chart-type" ng-click="selectChartType('pivot_table', 'colored')">
+                                <img ng-src="{{computeChartIcone('pivot_table', 'colored')}}" alt="Colored"/>
+                                <div class="chart-type-description">
+                                    <h5>Colored</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ---------------------- Scatters -------------------- -->
+
+            <div class="chart-family" ng-class="{active: isFamilyDisplayed('scatter')}">
+                <h1>Scatters</h1>
+                <div class="chart-pack-list">
+
+                    <div class="chart-pack w50">
+                        <h2>Basic</h2>
+
+                        <div class="chart-type-list">
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('scatter', 'normal')}" id="qa_charts_scatter-plot-chart-type" ng-click="selectChartType('scatter', 'normal')">
+                                <img ng-src="{{computeChartIcone('scatter', 'normal')}}" alt="Scatter Plot"/>
+                                <div class="chart-type-description">
+                                    <h5>Scatter Plot</h5>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="chart-pack w50">
+                        <h2>Grouped</h2>
+
+                        <div class="chart-type-list">
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('grouped_xy', 'normal')}" id="qa_charts_grouped-bubbles-chart-type" ng-click="selectChartType('grouped_xy', 'normal')">
+                                <img ng-src="{{computeChartIcone('grouped_xy', 'normal')}}" alt="Ratio"/>
+                                <div class="chart-type-description">
+                                    <h5>Grouped Bubbles</h5>
+                                    <span>4 statistics per group</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-pack w50 h100">
+                        <h2>Binned</h2>
+
+                        <div class="chart-type-list">
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('binned_xy', 'normal')}" id="qa_charts_bubble-chart-type" ng-click="selectChartType('binned_xy', 'normal')">
+                                <img ng-src="{{computeChartIcone('binned_xy', 'normal')}}" alt="Bubble"/>
+                                <div class="chart-type-description">
+                                    <h5>Bubble</h5>
+                                    <span>2 statistics per round zone</span>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('binned_xy', 'binned_xy_rect')}" id="qa_charts_rectangle-chart-type" ng-click="selectChartType('binned_xy', 'binned_xy_rect')">
+                                <img ng-src="{{computeChartIcone('binned_xy', 'binned_xy_rect')}}" alt="Rectangle"/>
+                                <div class="chart-type-description">
+                                    <h5>Rectangle</h5>
+                                    <span>2 statistics per rectangle zone</span>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('binned_xy', 'binned_xy_hex')}" id="qa_charts_hexagon-chart-type" ng-click="selectChartType('binned_xy', 'binned_xy_hex')">
+                                <img ng-src="{{computeChartIcone('binned_xy', 'binned_xy_hex')}}" alt="Hexagon"/>
+                                <div class="chart-type-description">
+                                    <h5>Hexagon</h5>
+                                    <span>2 statistics per hexagonal zone</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ---------------------- Maps -------------------- -->
+
+            <div class="chart-family" ng-class="{active: isFamilyDisplayed('map')}">
+                <h1>Maps</h1>
+                <div class="chart-pack-list">
+
+                    <div class="chart-pack w50">
+                        <h2>Scatter</h2>
+
+                        <div class="chart-type-list">
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('scatter_map', 'normal')}" id="qa_charts_scatter-map-chart-type" ng-click="selectChartType('scatter_map', 'normal')">
+                                <img ng-src="{{computeChartIcone('scatter_map', 'normal')}}" alt="Scatter Map"/>
+                                <div class="chart-type-description">
+                                    <h5>Scatter Map</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-if="featureFlagEnabled('geofeatures')" ng-class="{'selected' : isChartSelected('density_heat_map', 'normal')}" id="qa_charts_density_heat-map-chart-type" ng-click="selectChartType('density_heat_map', 'normal')">
+                                <img ng-src="{{computeChartIcone('density_heat_map', 'normal')}}" alt="Density Map"/>
+                                <div class="chart-type-description">
+                                    <h5>Density Map</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('geom_map', 'normal')}" id="qa_charts_geo-map-chart-type" ng-click="selectChartType('geom_map', 'normal')">
+                                <img ng-src="{{computeChartIcone('geom_map', 'normal')}}" alt="Geometry Map"/>
+                                <div class="chart-type-description">
+                                    <h5>Geometry Map</h5>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="chart-pack w50">
+                        <h2>Binned</h2>
+
+                        <div class="chart-type-list">
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('grid_map', 'normal')}" id="qa_charts_grid-map-chart-type" ng-click="selectChartType('grid_map', 'normal')">
+                                <img ng-src="{{computeChartIcone('grid_map', 'normal')}}" alt="Grid Map"/>
+                                <div class="chart-type-description">
+                                    <h5>Grid Map</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-pack w50 h100">
+                        <h2>Administrative Map</h2>
+
+                        <div class="chart-type-list" ng-if="!PluginsService.isPluginLoaded('geoadmin')">
+                            <div class="chart-type nice-disabled" >
+                                <img src="/static/dataiku/images/charts/icons/Chart_Icon_Dataset_bubble_on_map.svg" alt="Bubbles"/>
+                                <div class="chart-type-description">
+                                    <h5>Bubbles</h5>
+                                    <span class="reason">You need to install the <strong>Reverse geocoding</strong> plugin</span>
+                                </div>
+                            </div>
+
+                            <div class="chart-type nice-disabled">
+                                 <img src="/static/dataiku/images/charts/icons/Chart_Icon_Dataset_administrative_map.svg" alt="Filled"/>
+                                <div class="chart-type-description">
+                                    <h5>Filled</h5>
+                                    <span class="reason">You need to install the <strong>Reverse geocoding</strong> plugin</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chart-type-list" ng-if="PluginsService.isPluginLoaded('geoadmin')">
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('admin_map', 'normal')}" id="qa_charts_bubble-map-chart-type" ng-click="selectChartType('admin_map', 'normal')">
+                                <img ng-src="{{computeChartIcone('admin_map', 'normal')}}" alt="Bubbles"/>
+                                <div class="chart-type-description">
+                                    <h5>Bubbles</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('admin_map', 'filled_map')}"  id="qa_charts_filled-map-chart-type" ng-click="selectChartType('admin_map', 'filled_map')">
+                                <img ng-src="{{computeChartIcone('admin_map', 'filled_map')}}" alt="Filled"/>
+                                <div class="chart-type-description">
+                                    <h5>Filled</h5>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ---------------------- Other -------------------- -->
+
+            <div class="chart-family" ng-class="{active: isFamilyDisplayed('other') || isFamilyDisplayed('webapp')}">
+                <h1>Other</h1>
+                <div class="chart-pack-list">
+
+                    <div class="chart-pack w50">
+	                    <h2>Other built-in charts</h2>
+
+                        <div class="chart-type-list">
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('boxplots', 'normal')}" id="qa_charts_boxplot-chart-type" ng-click="selectChartType('boxplots', 'normal')">
+                                <img ng-src="{{computeChartIcone('boxplots', 'normal')}}" alt="Boxplot"/>
+                                <div class="chart-type-description">
+                                    <h5>Boxplot</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('lift', 'normal')}" id="qa_charts_lift-chart-type" ng-click="selectChartType('lift', 'normal')">
+                                <img ng-src="{{computeChartIcone('lift', 'normal')}}" alt="Lift chart"/>
+                                <div class="chart-type-description">
+                                    <h5>Lift chart</h5>
+                                </div>
+                            </div>
+
+                            <div class="chart-type" ng-class="{'selected' : isChartSelected('density_2d', 'normal')}" id="qa_charts_density-2d-chart-type" ng-click="selectChartType('density_2d', 'normal')">
+                                <img ng-src="{{computeChartIcone('density_2d', 'normal')}}" alt="2D distribution"/>
+                                <div class="chart-type-description">
+                                    <h5>2D distribution</h5>
+                                    <span>Based on kernel density estimation</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="chart-pack w50" ng-repeat="(pluginId, pluginWebApps) in webApps">
+                        <h2>Plugin: {{pluginId |pluginIdToName}}</h2>
+
+                        <div class="chart-type-list">
+                            <div class="chart-type"
+                                ng-class="{'selected' : isChartSelected('webapp', 'normal', webApp.webappType)}"
+                                ng-click="selectChartType('webapp', 'normal', webApp.webappType)"
+                                ng-repeat="webApp in pluginWebApps">
+                                <i class="{{computeChartIcone('webapp', 'normal', webApp.webappType)}}" alt="Plugin chart"></i>
+                                <div class="chart-type-description">
+                                    <h5 class="mx-textellipsis" title="{{webApp.desc.meta.label || webApp.desc.id}}">{{webApp.desc.meta.label || webApp.desc.id}}</h5>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

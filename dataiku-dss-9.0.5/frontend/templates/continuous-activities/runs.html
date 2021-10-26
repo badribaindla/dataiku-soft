@@ -1,0 +1,67 @@
+<div class="h100 continuous-activity-status" ng-controller="ContinuousActivityRunsController">
+	<div block-api-error />
+	<div class="horizontal-flex">
+		<div class="noflex" style="width: 300px;">
+            <div class="h100 nav-fluid-sidebar vertical-flex">
+                <div class="noflex header">
+                    <button type="button" class="btn btn--secondary pull-right" ng-click="refreshLastRuns()"><i class="icon-refresh"/>&nbsp;Refresh</button>
+                    <h3>Last Runs</h3>
+                </div>
+                <div class="flex">
+                    <ul class="fh oa">
+                        <li ng-repeat="run in lastRuns" ng-click="selectRun(run)" ng-class="{'active': selectedRun.runId == run.runId}" class="row-fluid2">
+                            {{run.runId}}
+                            <div class="pull-right" ng-switch="getFixedUpRunStatus(run, $index)" class="continuous-activity-state">
+                                <span ng-switch-when="running"><i class="icon-spinner icon-spin"></i></span>
+                                <span ng-switch-when="failed"><i class="icon-warning-sign text-warning"></i></span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+		<div class="flex center-children" ng-if="!selectedRun">
+			<div class="dib">Select a run</div>
+		</div>
+        <div class="noflex" style="width: 300px;" ng-if="selectedRun">
+            <div class="h100 nav-fluid-sidebar vertical-flex">
+                <div class="noflex header">
+                    <button type="button" class="btn btn--secondary pull-right" ng-click="refreshLastAttemps()"><i class="icon-refresh"/>&nbsp;Refresh</button>
+                    <h3>Last Attempts</h3>
+                </div>
+                <div class="flex">
+                    <ul class="fh oa">
+                        <li ng-repeat="attempt in lastAttempts" ng-click="selectAttempt(attempt)" ng-class="{'active': selectedAttempt.attemptId == attempt.attemptId}" class="row-fluid2">
+                            {{attempt.attemptId}}
+                            <!-- 
+                            <span class="pull-right" ng-if="attempt.attemptId == continuousActivityPage.state.mainLoopState.attemptId && continuousActivityPage.state.mainLoopState.futureInfo.alive"><i class="icon icon-spinner icon-spin"></i></span>
+                             -->
+                            <div class="pull-right" ng-switch="getFixedUpAttemptStatus(attempt, $index)" class="continuous-activity-state">
+                                <span ng-switch-when="running"><i class="icon-spinner icon-spin"></i></span>
+                                <span ng-switch-when="failed"><i class="icon-warning-sign text-warning"></i></span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+  
+        <div class="flex center-children" ng-if="selectedRun && !selectedAttempt">
+            <div class="dib">Select an attempt</div>
+        </div>
+		<div class="flex" ng-if="selectedRun && selectedAttempt">
+            <div class="fh">
+                <div class="h100 oa">
+                    <!-- don't show error if status is aborted -->
+                    <div ng-if="selectedAttempt.error && selectedAttempt.status == 'failed'" api-error-alert="selectedAttempt.error" closable="true" error-foldable="false" />
+                    <div class="continuous-run-details">
+                        <div style="padding: 8px 16px;">
+                            <a target="_blank" rel="noopener noreferrer" class="nowrap" href="{{getDownloadUrl()}}">Download full log</a>
+                        </div>
+                        <pre id="logTailPre" ng-bind-html="attemptLogTail"></pre>
+                    </div>
+                </div>
+            </div>
+		</div>
+	</div>
+</div>

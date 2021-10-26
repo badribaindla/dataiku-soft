@@ -1,0 +1,128 @@
+<html>
+<body>
+	<script src="/bower_components/jquery/jquery.min.js"></script>
+
+	<style>
+#datagrid_container {
+	width: 600px;
+	height: 400px;
+	position: relative;
+	overflow: scroll;
+}
+
+		</style>
+
+	<div id="datagrid_container">
+		<div id="datagrid"></div>
+	</div>
+
+</body>
+
+	<script>
+
+$(document).ready(function() {
+	var width = 100;
+	var height = 20;
+
+	var lines = 800;
+	var cols = 800;
+
+	var data = [];
+	for (var line = 0; line < lines; line++) {
+		var lineElt = [];
+		for (var col = 0; col < cols; col++) {
+			lineElt.push("L" + line + "C" + col);
+		}
+		data.push(lineElt);
+	}
+	console.info(data);
+
+	var domElts = [];
+	for (var line = 0; line < data.length; line++) {
+		var lineElt = [];
+		for (var col = 0; col < data[line].length; col++) {
+			lineElt.push(null);
+		}
+		domElts.push(lineElt);
+	}
+
+	$("#datagrid").css("width", width * data[0].length);
+	$("#datagrid").css("height", height * data.length);
+	$("#datagrid_container").on("scroll", function(e) {
+		repaint();
+	});
+
+	var freelist = [];
+	var created = 0;
+	function pushFree(x) {
+		freelist.push(x);
+	}
+	function newElt() {
+		if (freelist.length) {
+			return freelist.pop();
+		}
+		++created;
+		var elt = document.createElement("div");
+		//elt.appendChild(document.createTextNode("x"));
+//		console.info(elt);
+		return elt;
+	}
+
+	repaint();
+
+	function repaint(){
+		var minY = $("#datagrid_container").scrollTop() - 2*height;
+		var minX = $("#datagrid_container").scrollLeft() - 2*width;
+
+		var maxY = minY + 400 + 3*height;
+		var maxX = minX + 600 + 3*width;
+		//console.info(st,sl);
+		created = 0;
+		var before = new Date().getTime();
+		var added = 0, removed = 0;
+		for (var line = 0; line < data.length; line++) {
+			for (var col = 0; col < data[line].length; col++) {
+				var eltY = line * height;
+				var eltX = col * width;
+
+				//console.info("elt at ", eltX, eltY)
+				if (eltX > minX && eltX < maxX && eltY > minY && eltY < maxY) {
+					if (domElts[line][col] == null) {
+						++added;
+						var rand = Math.floor((Math.random()*4));
+
+						var de = newElt();
+						de.textContent = data[line][col];
+
+						de.style.position = "absolute";
+						de.style.left = eltX;
+						de.style.top = eltY;
+						de.style.width = width;
+						de.style.height = height;
+						de.style.padding = "1px";
+						de.style["background-color"] = ["#FDD", "#FFD", "#DDF", "#DFD"][rand];
+						$("#datagrid").append(de);
+						domElts[line][col] = de;
+					}
+					//console.info("Elt " + line + "/" + col + " is visible at" + eltX + "," + eltY);
+				} else {
+					if (domElts[line][col] != null) {
+					++removed;
+						var removeElt = domElts[line][col];
+						$(removeElt).detach();
+						pushFree(removeElt);
+						domElts[line][col] = null;
+
+					}
+				}
+			}
+		}
+		console.info("Done, added " +added + " removed " + removed + " created " + created + " free " + freelist.length + " time " +
+			(new Date().getTime() - before));
+
+	}
+})
+
+	</script>
+
+</html>

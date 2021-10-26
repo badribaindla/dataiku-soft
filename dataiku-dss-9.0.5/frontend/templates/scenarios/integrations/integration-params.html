@@ -1,0 +1,374 @@
+
+<div ng-inject="CodeMirrorSettingService">
+    <div ng-if="messaging.type == 'mail-scenario'">
+        <div integration-channel-selector integration-type="'mail'" model="messaging.configuration" field="channelId"
+             scenario-integration-type="messaging.type" bind="mailChannel"></div>
+        <div class="control-group">
+            <label class="control-label">Sender</label>
+            <div class="controls">
+                <span toggle="tooltip"
+                    title="{{mailChannel.sender?'Sender email address for this channel has been configured by your administrator and cannot be overridden.':''}}">
+                    <input class="input-xxlarge" type="text" ng-model="messaging.configuration.sender"
+                        ng-disabled="mailChannel.sender" ng-value="mailChannel.sender || messaging.configuration.sender"></input>
+                </span>
+                <span class="help-inline">Formula-based templating</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Recipients</label>
+            <div class="controls">
+                <input class="input-xxlarge" type="text" ng-model="messaging.configuration.recipient"></input>
+                <span class="help-inline">Formula-based templating</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Subject</label>
+            <div class="controls">
+                <input class="input-xxlarge" type="text" ng-model="messaging.configuration.subject"></input>
+                <span class="help-inline">Formula-based templating</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label for="" class="control-label">Message source</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="messaging.configuration.messageSource">
+                    <option value="INLINE">Inline</option>
+                    <option value="TEMPLATE_FILE">Template file</option>
+                </select>
+            </div>
+        </div>
+
+        <div ng-show="messaging.configuration.messageSource == 'TEMPLATE_FILE'" class="control-group">
+            <label for="" class="control-label">Template</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="messaging.configuration.templateName" ng-options="x.fileName as x.displayName for x in reportTemplates" />
+            </div>
+        </div>
+
+        <div ng-show="messaging.configuration.messageSource == 'INLINE'" class="control-group">
+            <label for="" class="control-label">Send as HTML</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="messaging.configuration.sendAsHTML" />
+            </div>
+        </div>
+
+        <div class="control-group" ng-show="messaging.configuration.messageSource == 'INLINE'">
+            <label for="" class="control-label">Template type</label>
+            <div class="controls">
+                <select ng-model="messaging.configuration.templateFormat" dku-bs-select>
+                    <option value="FREEMARKER">Freemarker</option>
+                    <option value="FORMULA">DSS</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="messaging.configuration.messageSource == 'INLINE'">
+            <div include-no-scope="/templates/scenarios/integrations/inline-message-builder-fragment.html" />
+        </div>
+
+        <div class="control-group">
+            <label for="" class="control-label">Attachments</label>
+            <div class="controls" ng-controller="AttachmentsController">
+            	<div style="height: 40px; line-height: 24px;">
+					<span>
+						{{messaging.configuration.attachments.length}} attachment{{messaging.configuration.attachments.length > 0 ? 's':''}}
+					</span>
+					<div class="add-attachment pull-right" custom-element-popup cep-position="smart" close-on-click="true">
+						<button ng-click="togglePopover()" class="mainzone btn btn--secondary dropdown-toggle">Add attachment <span class="caret"></span></button>
+						<ul class="popover custom-element-popup-popover dropdown-menu">
+							<li full-click ng-repeat="it in availableAttachmentTypes">
+								<a ng-click="addAttachment(it)">{{getAttachmentTypeDisplayName(it)}}</a>
+							</li>
+						</ul>
+					</div>
+            	</div>
+				<ul class="attachment-list">
+					<li ng-repeat="attachment in messaging.configuration.attachments" class="attachment">
+						<div mail-attachment="attachment"></div>
+					</li>
+				</ul>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="messaging.type == 'slack-scenario'">
+        <div class="control-group">
+            <label class="control-label">Use global channel</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="messaging.configuration.useGlobalChannel" />
+                    <span class="help-inline">Use an administrator-defined Slack channel</span>
+                </label>
+            </div>
+        </div>
+
+        <div ng-if="messaging.configuration.useGlobalChannel" integration-channel-selector
+             integration-type="'slack-scenario'" model="messaging.configuration"
+             field="channelId" scenario-integration-type="messaging.type" />
+
+        <div class="control-group" ng-if="!messaging.configuration.useGlobalChannel">
+            <label class="control-label">Mode</label>
+            <div class="controls" ng-if="messaging.configuration" ng-init="messaging.configuration.mode = messaging.configuration.mode || 'WEBHOOK';">
+                <select ng-model="messaging.configuration.mode">
+                    <option value="WEBHOOK">Use incoming webhook</option>
+                    <option value="API">Use API</option>
+                </select>
+            </div>
+        </div>
+        <div class="control-group" ng-if="messaging.configuration.mode == 'API' && !messaging.configuration.useGlobalChannel">
+            <label class="control-label">Authorization token</label>
+            <div class="controls">
+                <input type="text" ng-model="messaging.configuration.authorizationToken"></input>
+                <span class="help-inline">Authentication token of a user or an integration</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="messaging.configuration.mode == 'WEBHOOK' && !messaging.configuration.useGlobalChannel">
+            <label class="control-label">Webhook URL</label>
+            <div class="controls">
+                <input name="webhookUrl" type="url" ng-model="messaging.configuration.webhookUrl" class="webhook-url" required></input>
+                <div ng-if="form.$invalid && form.webhookUrl.$touched">
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!form.$error.required">Please fill this field.</div>
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!form.$error.url">Please enter a valid URL.</div>
+                </div>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!messaging.configuration.useGlobalChannel">
+            <label class="control-label">Use Proxy</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="messaging.configuration.useProxy"></input>
+                <span class="help-inline">Use DSS's proxy settings to connect</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!messaging.configuration.useGlobalChannel">
+            <label class="control-label">Channel</label>
+            <div class="controls">
+                <input type="text" ng-model="messaging.configuration.channel"></input>
+                <span class="help-inline">Id of a Slack channel</span>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="messaging.configuration.mode == 'API'">
+            <label class="control-label">As user</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="messaging.configuration.asUser"></input>
+                <span class="help-inline">Send using the authorization token identity</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!messaging.configuration.asUser || messaging.configuration.mode == 'WEBHOOK'">
+            <label class="control-label">User name</label>
+            <div class="controls">
+                <input type="text" ng-model="messaging.configuration.username"></input>
+                <span class="help-inline">The message will appear as sent by this user</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Icon (emoji)</label>
+            <div class="controls">
+                <input type="text" ng-model="messaging.configuration.iconEmoji"/>
+                <span class="help-inline">Optional: emoji to use as icon</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Icon (url)</label>
+            <div class="controls">
+                <input type="text" ng-model="messaging.configuration.iconUrl"/>
+                <span class="help-inline">Optional: url to use as icon</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Linkify names</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="messaging.configuration.linkNames"></input>
+                <span class="help-inline">Let Slack replace names in the message by links</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label">Slack API</label>
+            <div class="controls" ng-if="messaging.configuration" ng-init="messaging.configuration.messageMode = messaging.configuration.messageMode || 'TEXT_MESSAGE';">
+                <select ng-model="messaging.configuration.messageMode">
+                    <option value="TEXT_MESSAGE">Text message</option>
+                    <option value="BLOCK_KIT_API">Block Kit</option>
+                </select>
+            </div>
+        </div>
+        <div class="control-group" ng-if="messaging.configuration.messageMode == 'TEXT_MESSAGE'">
+            <div include-no-scope="/templates/scenarios/integrations/inline-message-builder-fragment.html" />
+        </div>
+        <div class="control-group" ng-if="messaging.configuration.messageMode == 'BLOCK_KIT_API'">
+            <div class="controls with-codemirror-h200-borders" >
+                <textarea ng-model="messaging.configuration.blocks" ui-codemirror="CodeMirrorSettingService.get('application/json')"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="messaging.type == 'twilio-scenario'">
+        <div integration-channel-selector integration-type="'twilio'" model="messaging.configuration" field="channelId"
+             scenario-integration-type="messaging.type"/>
+        <div class="control-group">
+            <label class="control-label">To number</label>
+            <div class="controls">
+                <input type="text" ng-model="messaging.configuration.toNumber"></input>
+            </div>
+        </div>
+        <div class="control-group">
+            <div include-no-scope="/templates/scenarios/integrations/inline-message-builder-fragment.html" />
+        </div>
+    </div>
+
+    <div ng-if="messaging.type == 'dataset-scenario'">
+        <div class="control-group">
+            <label class="control-label">Project key</label>
+            <div class="controls">
+                <input type="text" ng-model="messaging.configuration.projectKey">
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Dataset name</label>
+            <div class="controls">
+                <input type="text" ng-model="messaging.configuration.datasetName">
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Timestamp</label>
+            <div class="controls">
+                <input type="text" ng-model="messaging.configuration.timestampColumn"></input>
+                <span class="help-inline">Column for the timestamp</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls with-codemirror-h200-borders" >
+                <textarea ng-model="messaging.configuration.message" ui-codemirror="CodeMirrorSettingService.get('application/json')"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="messaging.type == 'shell-scenario'" >
+        <div integration-channel-selector integration-type="'shell-scenario'" model="messaging.configuration"
+             field="channelId" scenario-integration-type="messaging.type"/>
+        <div class="control-group" ng-init="messaging.configuration.variables = messaging.configuration.variables || []">
+            <label class="control-label">All data as variables</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="messaging.configuration.sendEverythingAsVariables"></input>
+                <span class="help-inline">Sending all data as variables might fail if the OS limits environment variables' size</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!messaging.configuration.sendEverythingAsVariables">
+            <label class="control-label">Variables</label>
+            <div class="controls" >
+                <ng2-key-values-list
+                    [(items)]="messaging.configuration.variables"
+                    add-label="Add variable"
+                    key-placeholder="Variable key"
+                    value-placeholder="Variable value">
+                </ng2-key-values-list>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="messaging.type == 'webhook-scenario'" ng-controller="WebhookMessagingController">
+        <div class="control-group" ng-init="messaging.configuration.parameters = messaging.configuration.parameters || []; messaging.configuration.headers = messaging.configuration.headers || []; messaging.configuration.form = messaging.configuration.form || [];">
+            <label class="control-label">Method</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="messaging.configuration.method" ng-options="method for method in methods"></select>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">URL</label>
+            <div class="controls">
+                <input type="text" ng-model="messaging.configuration.url" />
+                <span class="help-inline">URL of the hook</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Use proxy</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="messaging.configuration.useProxy"></input>
+                <span class="help-inline">Use DSS's proxy settings to connect</span>
+            </div>
+        </div>
+        <div class="control-group" >
+            <label class="control-label">Query parameters</label>
+            <div class="controls">
+                <ng2-key-values-list
+                    [(items)]="messaging.configuration.parameters"
+                    add-label="Add parameter"
+                    key-placeholder="Parameter key"
+                    value-placeholder="Parameter value">
+                </ng2-key-values-list>
+            </div>
+        </div>
+        <div class="control-group" >
+            <label class="control-label">Request headers</label>
+            <div class="controls">
+                <ng2-key-values-list
+                    [(items)]="messaging.configuration.headers"
+                    add-label="Add header"
+                    key-placeholder="Header key"
+                    value-placeholder="Header value">
+                </ng2-key-values-list>
+            </div>
+        </div>
+        <div class="control-group" ng-if="['POST','PUT','PATCH'].indexOf(messaging.configuration.method) >= 0">
+            <label class="control-label">Body</label>
+            <div class="controls with-codemirror-h200-borders">
+                <div style="margin-bottom: 10px;">
+                    <select dku-bs-select ng-model="messaging.configuration.mime" ng-options="mime for mime in mimeTypes"></select>
+                </div>
+                <textarea ng-if="messaging.configuration.mime == 'application/json'" ng-model="messaging.configuration.payload" ui-codemirror="jsonEditorOptions"></textarea>
+                <textarea ng-if="messaging.configuration.mime == 'application/xml'" ng-model="messaging.configuration.payload" ui-codemirror="xmlEditorOptions"></textarea>
+                <textarea ng-if="messaging.configuration.mime == 'text/html'" ng-model="messaging.configuration.payload" ui-codemirror="htmlEditorOptions"></textarea>
+                <textarea ng-if="messaging.configuration.mime == 'text/plain'" ng-model="messaging.configuration.payload" ui-codemirror="editorOptions"></textarea>
+                <ng2-key-values-list
+                    ng-if="messaging.configuration.mime == 'application/x-www-form-urlencoded'"
+                    [(items)]="messaging.configuration.form"
+                    add-label="Add field"
+                    key-placeholder="Field key"
+                    value-placeholder="Field value">
+                </ng2-key-values-list>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="messaging.type == 'msft-teams-scenario'" ng-controller="MicrosoftTeamsMessagingController">
+        <div class="control-group">
+            <label class="control-label">Use global channel</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="messaging.configuration.useGlobalChannel" />
+                    <span class="help-inline">Use an administrator-defined Teams channel</span>
+                </label>
+            </div>
+        </div>
+
+        <div ng-if="messaging.configuration.useGlobalChannel" integration-channel-selector
+             integration-type="'msft-teams-scenario'" model="messaging.configuration" field="channelId" scenario-integration-type="messaging.type" />
+
+        <div class="control-group" ng-if="!messaging.configuration.useGlobalChannel">
+            <label class="control-label">Webhook URL</label>
+            <div class="controls">
+                <input name="webhookUrl" type="url" ng-model="messaging.configuration.webhookUrl" class="webhook-url" required></input>
+                <div ng-if="form.$invalid && form.webhookUrl.$touched">
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!form.$error.required">Please fill this field.</div>
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!form.$error.url">Please enter a valid URL.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="!messaging.configuration.useGlobalChannel">
+            <label class="control-label">Use Proxy</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="messaging.configuration.useProxy"></input>
+                <span class="help-inline">Use DSS's proxy settings to connect</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label">Message</label>
+            <div class="controls with-codemirror-h200-borders">
+                <textarea ng-model="messaging.configuration.message" ui-codemirror="jsonEditorOptions"></textarea>
+            </div>
+        </div>
+    </div>
+</div>

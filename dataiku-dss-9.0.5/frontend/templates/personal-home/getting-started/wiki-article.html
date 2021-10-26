@@ -1,0 +1,38 @@
+<div class="getting-started-wiki-article " >
+    <div class="horizontal-flex h100" >
+        <div ng-if="isShowContentsOutline()" class="flex article-outline vertical-flex" ng-controller="WikiTaxonomyController">
+            <h4 class="noflex article-outline__heading" >Content <button type="button" class="btn btn--secondary pull-right" ng-click="wikiLink()">View</button></h4>
+            <div class="flex wiki-taxonomy-list oa flex">
+                <div ng-if="wiki.taxonomy"
+                    tree-view="nodeTreeToDisplay()"
+                    node-name="nodeName"
+                    on-click="onSideBarNodeClick"
+                    node-class="nodeClass"
+                    icon-class="iconClass"
+                    right-icon-class="rightIconClass"
+                    right-icon-title="rightIconTitle"
+                    no-drag="true"
+                    />
+            </div>
+        </div>              
+        <div class="flex h100 vertical-flex" ng-class="{'wiki-body-indent': !isShowContentsOutline()}" >
+            <div class="wiki-article-nav object-nav" >
+                <div class="noflex wiki-article-nav-header">
+                    <span class="wiki-article-nav-header-title">{{ articleMapping[selectedArticleId] }}</span>
+                </div>
+            </div>
+            <div class="flex article-body " >                                               
+                <div  class="wiki-article-content wiki-article-body-main" oa >
+                    <div class="markdown-std markdown-bigger-text" from-markdown="uiState.editedPayload" target-blank="true" project-key="{{$ctrl.projectKey}}" ng-if="uiState.editedPayload"></div>
+                    <div ng-if="!uiState.editedPayload">              
+                        <p ng-if="!uiState.editedPayload">[This article is empty]</p>   
+                    </div>   
+                    <div ng-if="isShowAttachments()" class="oa noflex vertical-flex">
+                        <div include-no-scope="/templates/wikis/article-attachments.html" class="flex vertical-flex"></div>                  
+                    </div>
+                </div>     
+            </div>
+
+        </div>
+    </div>
+<div>

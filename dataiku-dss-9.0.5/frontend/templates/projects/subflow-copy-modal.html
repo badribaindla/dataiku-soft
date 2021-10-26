@@ -1,0 +1,173 @@
+<div class="modal modal3 subflow-copy-modal" global-keydown="{esc: 'dismiss()'}" ng-class="{'wide-modal': messages.anyMessage}">
+
+    <div dku-modal-header-with-totem modal-title="Copy" modal-totem="icon-copy" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper disablable" name="theform">
+        <div class="modal-body" style="max-height: 350px; overflow: auto">
+            <div block-api-error />
+
+            <div class="row-fluid">
+
+                <div ng-class="{span6: messages.anyMessage}" ng-if="!fatalError" style="min-height: 200px;">
+
+                    <div class="control-group">
+                        <label for="" class="control-label">Target</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="options.targetMode">
+                                <option value="CURRENT_PROJECT">Current project</option>
+                                <option value="EXISTING_PROJECT">Existing project</option>
+                                <option value="NEW_PROJECT">Create project</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="options.targetMode == 'EXISTING_PROJECT'">
+                        <label for="" class="control-label">Target project</label>
+                        <div class="controls">
+                            <select dku-bs-select="{liveSearch:true, size:'auto'}"
+                                ng-model="options.targetProjectKey"
+                                ng-options="project.projectKey as project.name for project in projects"
+                                required
+                                >
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="options.targetMode == 'NEW_PROJECT'">
+                        <div class="control-group" >
+                            <label for="newProjectName" class="control-label">Project name</label>
+                            <div class="controls">
+                                <input type="text"
+                                    id="newProjectName"
+                                    placeholder="New project name"
+                                    ng-model="options.targetProjectName"
+                                    required auto-focus="true"
+                                    />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="newProjectKey" class="control-label">Project Key</label>
+                            <div class="controls">
+                                <input type="text"
+                                    id="newProjectKey"
+                                    ng-model="options.targetProjectKey"
+                                    name="projectKey"
+                                    ng-pattern="/^\w+$/"
+                                    placeholder="New project key"
+                                    />
+                                <div class="help-inline">
+                                    The project key is used to reference datasets between projects.
+                                    It cannot be changed once the project is created.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="targetProjectFolderId" class="control-label duplicate-project__folder-label">Destination</label>
+                            <folder-path-input input-id="targetProjectFolderId" browse-fn="browse" folder="folder" path="options.targetProjectFolderId" can-select-fn="canSelect" display-item-fn="getName" class="controls" cant-write-content-verb="You cannot create a in this folder"></folder-path-input>
+                        </div>
+
+                        <div class="alert alert-error" ng-show="!uniqueProjectKey">
+                            <i class="icon-dku-error" /> This project key is already used.
+                        </div>
+                    </div>
+                    <h2 class="subflow-copy-modal-categorie-title" ng-if="hasAnyZone">
+                        Zones
+                    </h2>
+                    <div class="control-group" ng-if="hasAnyZone">
+                        <label for="" class="control-label">Copy zone content</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="options.copyZoneContent" />
+                        </div>
+                    </div>
+                    <h2 class="subflow-copy-modal-categorie-title"
+                        ng-if="hasComputables">
+
+                        <label class="dku-toggle pull-right" ng-if="options.targetMode == 'NEW_PROJECT' || options.targetMode == 'EXISTING_PROJECT' && options.targetProjectKey != $stateParams.projectKey">
+                            <input type="checkbox" ng-model="options.renaming" />
+                            <span/>
+                        </label>
+                        Renaming
+                    </h2>
+                    <div class="control-group" ng-if="(hasAnyDataset) && (options.renaming || (options.targetMode == 'EXISTING_PROJECT' && options.targetProjectKey == $stateParams.projectKey) || options.targetMode == 'CURRENT_PROJECT')">
+                        <strong>Datasets</strong>
+                        <div ng-repeat="(oldName, newName) in options.datasetNames" style="margin-bottom: 3px;">
+                            <label for="" class="control-label ellipsed" title="{{::oldName}}">{{::oldName}}</label>
+                            <div class="controls">
+                                →
+                                <input type="text" ng-model="options.datasetNames[oldName]" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="(hasAnyStreamingEndpoint) && (options.renaming || (options.targetMode == 'EXISTING_PROJECT' && options.targetProjectKey == $stateParams.projectKey) || options.targetMode == 'CURRENT_PROJECT')">
+                        <strong>Streaming endpoints</strong>
+                        <div ng-repeat="(oldName, newName) in options.streamingEndpointNames" style="margin-bottom: 3px;">
+                            <label for="" class="control-label ellipsed" title="{{::oldName}}">{{::oldName}}</label>
+                            <div class="controls">
+                                →
+                                <input type="text" ng-model="options.streamingEndpointNames[oldName]" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="dataCanBeCopiedElements.length">
+                        <label for="" class="control-label">Copy data & saved model versions</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="options.copyData" />
+                            <span dku-better-tooltip
+                                class="backend-warning"
+                                dbt-clazz="copy-data-tooltip"
+                                dbt-placement="right"
+                                dbt-title="{{copyDataTooltipHtml}}"
+                                >
+                                <i class="icon-question-sign" />
+                            </span>
+                        </div>
+                    </div>
+                    <h2 class="subflow-copy-modal-categorie-title">
+                        Tags
+                    </h2>
+                    <div class="control-group">
+                        <label for="" class="control-label">Don't copy tags</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="options.dontCopyTags" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Add tag to the created items</label>
+                        <div class="controls">
+                            <input type="text" ng-model="options.newItemsTag" bs-typeahead="projectTags" />
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="" class="control-label">Add tag to the existing items</label>
+                        <div class="controls">
+                            <input type="text" ng-model="options.oldItemsTag" bs-typeahead="projectTags" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="span6" ng-show="messages.anyMessage" info-messages-raw-list-with-alert="messages" />
+            </div>
+        </div>
+
+
+        <div class="modal-footer modal-footer-std-buttons" ng-if="!fatalError">
+            <button type="submit"
+                class="btn btn--text btn--primary"
+                ng-if="!messages.anyMessage"
+                ng-disabled="theform.$invalid || (options.targetMode == 'NEW_PROJECT' && !uniqueProjectKey)"
+                ng-click="ok()"
+                >
+                Copy
+            </button>
+            <button type="button"
+                class="btn btn--text btn--danger"
+                ng-if="messages.anyMessage"
+                ng-disabled="theform.$invalid || (options.targetMode == 'NEW_PROJECT' && !uniqueProjectKey)"
+                ng-click="ok(true)">
+                Copy anyway
+                </button>
+        </div>
+    </form>
+
+</div>

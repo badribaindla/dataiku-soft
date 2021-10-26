@@ -1,0 +1,119 @@
+<div class="dashboard-page vertical-flex"
+    ng-class="{editable: editable, 'has-grid': editable && showGrid}"
+    ng-mouseup="dashboardClicked($event)"
+    ng-style="page.backgroundColor && {'background-color':page.backgroundColor}">
+
+    <div block-api-error></div>
+
+    <h1 class="page-title dashboard-export-title noflex" ng-show="page.showTitle" ng-class="{'default-background' : !page.backgroundColor}">
+        {{page.title || ('Slide ' + (pageIdx+1))}}
+    </h1>
+
+    <div style="position: relative; flex: 1 0 auto;">
+
+        <div class="fh h100" ng-if="!page.grid.tiles.length" style="z-index: 5;">
+            <div class="centered-info" ng-if="editable">
+                Start building your {{pageIdx == 0 ? 'dashboard' : 'slide'}}
+                <div style="width: 300px; margin: 30px auto; text-align: left;">
+                    <p class="small" style="color:#757575;">
+                        Click on the <i class="icon-plus-sign inline-left-panel-plus" /> button to add tiles to this slide
+                    </p>
+                    <p class="small" style="color:#757575;">
+                        Click on the <i class="icon-plus-sign inline-page-plus" /> button to add slides
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="centered-info" ng-if="!editable">
+                This slide is empty
+                <small ng-if="canEditDashboard" style="font-size: 18px;"><br/><br/>Switch to <a ui-sref="projects.project.dashboards.dashboard.edit">edit mode</a> to add tiles</small>
+            </div>
+        </div>
+
+        <div grid-display background-color="page.backgroundColor" grid-format="dashboard.gridFormat" ng-show="editable && showGrid"/>
+
+        <div ng-if="!gridListRendered && !appConfig.unattendedMode" class="loading">
+            <spinner speed="2"/>
+        </div>
+
+        <ul class="dashboard-grid dashboard-export-grid">
+            <li ng-repeat="tile in page.grid.tiles track by getOrSetTileId(tile)" class="tile-wrapper qa_dashboard_tile"
+                ng-class="{'selected': editable && tile==selectedTile, 'invisible' : !tile.$added, 'transparent' : tile.tileParams.isTransparent}"
+                scroll-to-me="{{editable && tile.$added && tile==selectedTile}}"
+                data-id="{{tile.$tileId}}"
+                data-x="{{tile.box.left >= 0 ? tile.box.left : null }}"
+                data-y="{{tile.box.top >= 0 ? tile.box.top : null }}"
+                data-w="{{tile.box.width}}"
+                data-h="{{tile.box.height}}"
+                ng-init='addTileToGridList(tile)'
+                ng-mouseup="selectTile(tile, $event)"
+                ng-mouseleave="tile.$showOverlay = false;">
+
+                <div class="h100 tile-outline" ng-class="{'deleted': accessMap[tile.insightId] == 'DELETED', 'error-loading': isErrorMap[tile.$tileId]}"
+                     full-click="dashboard" ng-right-click="editable && openTileMenu($event, tile)" style="cursor: {{editable || (tile.clickAction == 'DO_NOTHING') ? 'default' : 'pointer'}}" ng-style="!isErrorMap[tile.$tileId] &&  tile.borderColor && {'border-color' : tile.borderColor, 'border-width' : '2px'}">
+
+                    <a class="tile-link" ng-href="{{getTargetHref(tile)}}" main-click="dashboard" ng-if="!editable && tile.clickAction != 'DO_NOTHING' && DashboardUtils.tileCanLink(tile)"></a>
+
+                    <div class="h100 vertical-flex" style="position: relative;">
+                        <div class="tile-options noflex horizontal-flex" ng-if="tile.showTitle != 'NO' || editable" ng-class="{'display-on-hover' : tile.showTitle == 'MOUSEOVER' && !editable}">
+
+                            <!-- Warning sign if insight is not accessible to readers -->
+                            <div class="noflex" ng-if="editable && insightsMap[tile.insightId] && accessMap[tile.insightId] == 'ANALYST'">
+                                <i class="icon-warning-sign" style="color: #c09853; margin-right: 7px; cursor: pointer;"
+                                   ng-click="openInsightAccessModal(insightsMap[tile.insightId])" dashboard-no-select />
+                            </div>
+                            <div class="noflex error-text-color" ng-if="editable && tile.displayMode == 'IMAGE' && (accessMap[tile.insightId] == 'DELETED' || accessMap[tile.insightId] == 'NOT_EXPOSED')">
+                                <i class="icon-warning-sign" style="margin-right: 7px; cursor: pointer;" /> INSIGHT {{accessMap[tile.insightId]}}
+                            </div>
+                            <div class="tile-title oh" style="flex: 0 1 auto;" ng-if="tile.showTitle">
+                                <div class="mx-textellipsis">{{ tile.title || insightsMap[tile.insightId].name }}</div>
+                            </div>
+                            <div class="tile-target flex">
+                                <a ng-if="tile.tileType == 'INSIGHT'" dashboard-no-select href="{{getTargetHref(tile)}}"><i class="icon-external-link" /></a>
+                            </div>
+                            <div class="tile-actions noflex" ng-if="editable">
+                                <a ng-click="openMoveCopyTileModal(tile)"><i class="icon-copy" /></a>
+                                <a ng-click="deleteTile(tile)" ><i class="icon-trash" dashboard-no-select /></a>
+                            </div>
+                        </div>
+
+                        <div class="flex">
+                            <div class="fh h100">
+                                <div ng-if="tile.tileType != 'INSIGHT' || tile.displayMode == 'IMAGE' || insightsMap[tile.insightId]">
+                                    <dashboard-tile
+                                            tile="tile"
+                                            editable="editable"
+                                            insight="insightsMap[tile.insightId]"
+                                            hook="hook"
+                                            class="fh"
+                                            style="overflow: hidden;"
+                                    />
+                                </div>
+
+                                <div ng-if="tile.displayMode == 'INSIGHT' && tile.displayMode != 'IMAGE' && !insightsMap[tile.insightId]" ng-switch on="accessMap[tile.insightId]" class="h100">
+                                    <div ng-switch-when="DELETED" class="centered-info">
+                                        Insight deleted
+                                    </div>
+
+                                    <div ng-switch-when="ANALYST" class="vertical-flex fh center-children">
+                                        <i class="icon-warning-sign text-error" toggle="tooltip" title="Insight not accessible to dashboard users" placement="bottom" container="body" style="font-size: 40px" />
+                                    </div>
+
+                                    <div ng-switch-when="NOT_EXPOSED" class="vertical-flex fh center-children">
+                                        <i class="icon-warning-sign text-error" toggle="tooltip" title="Foreign source not exposed to this project" placement="bottom" container="body" style="font-size: 40px" />
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </li>
+            <li class='position-highlight'><div class='inner'></div></li>
+        </ul>
+    </div>
+	<span id="dashboard-export-toolbox-anchor"></span>
+</div>

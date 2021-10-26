@@ -1,0 +1,72 @@
+<div class="paned-settings-page-pane">
+    <h1>Flow build</h1>
+    <div class="section">
+        <h2 id="concurrent-activities">Concurrent activities</h2>
+        <form class="dkuform-horizontal">
+
+
+            <div class="control-group">
+                <label for="maxRunningActivities" class="control-label">Global limit</label>
+                <div class="controls">
+                    <input type="number" id="maxRunningActivities" required min="0" ng-model="generalSettings.maxRunningActivities" />
+                    <span class="help-inline">
+                        Globally limit the number of concurrent activities (zero for "unlimited").
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="maxRunningActivitiesPerJob" class="control-label">Per job limit</label>
+                <div class="controls">
+                    <input type="number" id="maxRunningActivitiesPerJob" required min="1" ng-model="generalSettings.maxRunningActivitiesPerJob" />
+                    <span class="help-inline">
+                        Limit the number of concurrent activities for each job.
+                    </span>
+                </div>
+            </div>
+            <div class="job-max-activities-per-tag">
+                <h3>Additional limits</h3>
+                <small>
+                    Define here additional limits using a key/value syntax. The key can be a custom string to add limits on plugin recipes.
+                    It can also can be formatted using a "category/item" pattern to add limits on well known categories such as 'user', 'project', 'recipeType' and 'tag'.
+                    For example, to limit the number of concurrent activities triggered by 'john' to 2, add a new key 'user/john' with a corresponding value of 2.
+                </small>
+                <ng2-key-values-list 
+                    [(items)]="generalSettings.maxRunningActivitiesPerKey" 
+                    key-placeholder="Limit key"
+                    value-placeholder="Limit value"
+                    add-label="Add Limit">
+                </ng2-key-values-list>
+            </div>
+        </form>
+    </div>
+    <div class="section">
+
+        <h2 id="cross-project-datasets-handling">Cross-project datasets handling</h2>
+
+        <div class="alert alert-warning">
+            Dataiku recommends not changing these settings
+        </div>
+
+        <form class="dkuform-horizontal">
+
+            <div class="control-group">
+                <label for="" class="control-label">Access to datasets</label>
+                <div class="controls" >
+                    <select dku-bs-select ng-model="generalSettings.computablesAvailabilityMode">
+                        <option value="EXPOSED_ONLY">Explicitly exposed only</option>
+                        <option value="ALL_ACCESSIBLE_AVAILABLE">All accessible</option>
+                    </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Default build behaviour</label>
+                <div class="controls" >
+                    <select dku-bs-select ng-model="generalSettings.globalCrossProjectBuildBehaviour">
+                        <option value="STOP_AT_BOUNDARIES">Stop recursion at boundaries</option>
+                        <option value="TRAVERSE_BOUNDARIES">Traverse project boundaries</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

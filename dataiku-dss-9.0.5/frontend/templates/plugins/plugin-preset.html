@@ -1,0 +1,44 @@
+<div class="repeatable-config-block" ng-scope="{{errorScope = this}}">
+    <div block-api-error />
+    <h2 class="plugin-preset__name">
+        {{preset.name}}
+        <a class="link-danger" ng-click="remove(preset)" ng-if="remove != null">
+            <i class="icon-trash" />
+        </a>
+    </h2>
+
+    <form class="dkuform-horizontal">
+        <div class="control-group">
+            <label for="" class="control-label">Description</label>
+            <div class="controls">
+                <textarea ng-model="preset.description" style="height: 70px; width: 480px" />
+            </div>
+        </div>
+    </form>
+
+    <form ng-if="parameterSetDesc.desc.pluginParams && parameterSetDesc.desc.pluginParams.length > 0" class="dkuform-horizontal">
+        <h3>Plugin-level settings</h3>
+        <autoconfig-form params="parameterSetDesc.desc.pluginParams"
+                         model="preset.pluginConfig"
+                         plugin-id="pluginDesc.id"
+                         component-id="parameterSetDesc.id"
+                         error-scope="errorScope">
+        </autoconfig-form>
+    </form>
+
+    <form ng-if="parameterSetDesc.desc.params && parameterSetDesc.desc.params.length > 0" class="dkuform-horizontal">
+        <h3 ng-show="parameterSetDesc.desc.pluginParams && parameterSetDesc.desc.pluginParams.length > 0">Component-level settings</h3>
+        <h3 ng-show="parameterSetDesc.desc.pluginParams && parameterSetDesc.desc.pluginParams.length == 0">Settings</h3>
+        <autoconfig-form params="parameterSetDesc.desc.params"
+                         model="preset.config"
+                         plugin-id="pluginDesc.id"
+                         component-id="parameterSetDesc.id"
+                         error-scope="errorScope">
+        </autoconfig-form>
+    </form>
+
+    <div class="control-group">
+        <h3>Permissions</h3>
+        <div plugin-preset-security-permissions preset="preset"></div>
+    </div>
+</div>

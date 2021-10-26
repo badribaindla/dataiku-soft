@@ -1,0 +1,365 @@
+<div class="h100" ng-controller="ScenarioRunsController">
+	<div block-api-error />
+	<div class="row-fluid h100">
+		<div class="span3 h100"><div class="h100 nav-fluid-sidebar vertical-flex">
+			<div class="noflex header">
+				<button type="button" class="btn btn--secondary pull-right"
+					ng-click="refreshRunsAndSteps()"><i class="icon-refresh"/>&nbsp;Refresh</button>
+				<h3>Run logs</h3>
+			</div>
+			<div class="flex"><ul class="fh oa">
+				<li ng-repeat="run in lastRuns" ng-click="selectRun(run)" ng-class="{'active': selectedRun.runId == run.runId}"
+						class="row-fluid2">
+					<span ng-if="!run.futureId" ng-switch="run.result.outcome" class="span1 scenario-results">
+						<i ng-switch-when="SUCCESS" class="icon-check-sign success" />
+						<i ng-switch-when="WARNING" class="icon-warning-sign warning" />
+						<i ng-switch-when="FAILED" class="icon-remove-sign failed" />
+						<i ng-switch-default class="icon-ban-circle aborted" />
+					</span>
+					<span ng-if="run.futureId" class="span1"><i class="icon-refresh"/></span>
+					<strong class="span5" style="text-transform: capitalize">{{run.futureId ? 'Running' : (run.result.outcome.toLowerCase() || '?')}}</strong>
+					<span ng-if="!run.futureId" class="span6 lining-nums" style="opacity: .8">{{run.start | date: 'MMM. d HH:mm:ss'}}</span>
+					<span ng-if=" run.futureId" class="span6 lining-nums"><button class="btn btn--danger" ng-click="abortScenario(run);">ABORT</button></span>
+					<div style="margin-left: 8.5%">{{ getTriggerName(run.trigger.trigger)}}&nbsp;</div> <!-- always at least a space -->
+				</li>
+			</ul></div>
+		</div></div>
+		<div class="span9 h100 oa center-children" ng-if="!selectedRun">
+			<div class="dib">Select a run</div>
+		</div>
+		<div class="span9 h100 oa" ng-if="selectedRun">
+			<div class="run-details">
+				<div class="row-fluid">
+					<div class="span6">
+						<h3 class="dib run-title" style="text-transform: capitalize">{{selectedRun.futureId ? 'Unfinished'
+							: (selectedRun.result.outcome.toLowerCase() || '?')}} run
+							<i ng-if="selectedRun.result && selectedRun.result.thrown" title="{{selectedRun.result.thrown.message}}" class="icon-warning-sign"></i></h3> &emsp;
+						<span class="nowrap trigger-title">{{getTriggerName(selectedRun.trigger.trigger)}}</span>
+						<div ng-if="selectedRun.result.abortMessage" class="scenario-results"><i class="icon-warning-sign warning" />&nbsp;{{selectedRun.result.abortMessage}}</div>
+					</div>
+					<div class="span2">
+						<a class="nowrap" href="{{getRunLogURL(selectedRun)}}" target="_blank">View scenario log</a><br />
+						<a class="nowrap" ng-click="downloadRunDiagnosis(selectedRun)">Download diagnosis</a>
+					</div>
+					<div class="span2 lining-nums time-column-header">on {{selectedRun.start|date: "yyyy-MM-dd 'at&nbsp;'HH:mm"}}</div>
+					<div class="span2 lining-nums time-column-header" ng-if="selectedRun.end > 0">runtime {{selectedRun.end - selectedRun.start|durationHHMMSS}}</div>
+				</div>
+				<div class="row-fluid">
+					<div class="span12">
+						<strong>Details</strong>
+					</div>
+					<div class="row-fluid step" ng-repeat-start="stepRun in selectedRunStepRuns">
+						<div class="span1 scenario-results" style="text-align: right"
+								ng-if="stepRun.result.outcome" ng-switch="stepRun.result.outcome">
+							<i ng-switch-when="SUCCESS" class="icon-check-sign success" />
+							<i ng-switch-when="WARNING" class="icon-warning-sign warning" />
+							<i ng-switch-when="FAILED" class="icon-remove-sign failed" />
+							<i ng-switch-default class="icon-ban-circle aborted" />
+						</div>
+						<div class="span1" ng-if="!stepRun.result.outcome" style="text-align: right">
+							<i class="icon-refresh icon-spin" />
+						</div>
+						<div class="span5">
+							<strong>{{getDisplayType(stepRun.step)}}</strong>
+							&mdash;
+							<span class="step-name">{{stepRun.step.name}}</span>
+							<span class="step-name" ng-if="stepRun.retryIndex &gt; 0">&mdash; Retry #{{stepRun.retryIndex}}</span>
+						</div>
+						<div class="span2">
+							<a class="nowrap" href="{{getStepRunLogURL(selectedRun, stepRun)}}" target="_blank">View step log</a>
+						</div>
+						<div class="span2 lining-nums">at {{stepRun.start|date: 'HH:mm'}}</div>
+						<div class="span2 lining-nums" ng-if="stepRun.end > 0">{{stepRun.end - stepRun.start | durationHHMMSS}}</div>
+						<div class="span2 lining-nums" ng-if="!(stepRun.end > 0)">not finished</div>
+					</div>
+					<div class="row-fluid report-item"
+						ng-repeat="reportItem in stepRun.additionalReportItems | orderBy: 'start'">
+						<div class="span11 offset1" ng-switch="reportItem.type">
+							<span class="scenario-results" style="text-align: right" ng-if="reportItem.outcome" ng-switch="reportItem.outcome">
+								<i ng-switch-when="SUCCESS" class="icon-check-sign success" />
+								<i ng-switch-when="WARNING" class="icon-warning-sign warning" />
+								<i ng-switch-when="FAILED" class="icon-remove-sign failed" />
+								<i ng-switch-default class="icon-ban-circle aborted" />
+							</span>
+							<span ng-if="!reportItem.outcome" style="text-align: right"><i class="icon-refresh icon-spin" /></span>
+							&emsp;
+							<span ng-switch-when="TRIGGER_FIRED"><i class="icon-play" /> Trigger fired</span>
+							<span ng-switch-when="JOB_EXECUTED">
+								<i class="icon-play" /> Triggered job
+								<a ui-sref="projects.project.jobs.job({jobId: reportItem.jobId})">{{reportItem.jobId}}</a>
+							</span>
+							<span ng-switch-when="BUILT_DATASET">
+								<i class="icon-dku-nav_dataset" />
+								{{reportItem.target.datasetName}} in {{reportItem.target.projectKey}}
+								<span ng-show="reportItem.target.partition && reportItem.target.partition !== 'NP'">
+									(partition: {{reportItem.target.partition}})</span>
+							</span>
+							<span ng-switch-when="BUILT_FOLDER">
+								<i class="icon-box" />
+								Built folder {{(reportItem.info ? reportItem.info.name : null) || reportItem.target.folderId}} in {{reportItem.target.projectKey}}
+                                <span ng-show="reportItem.target.partition && reportItem.target.partition !== 'NP'">
+                                    (partition: {{reportItem.target.partition}})</span>
+							</span>
+                            <span ng-switch-when="BUILT_MODEL">
+                                <i class="icon-machine_learning_regression" />
+                                Built model {{(reportItem.info ? reportItem.info.name : null) || reportItem.target.modelId}} in {{reportItem.target.projectKey}}
+                            </span>
+                            <span ng-switch-when="BUILT_STREAMING_ENDPOINT">
+                                <i class="icon-double-angle-right" />
+                                Built streaming endpoint {{reportItem.target.streamingEndpointId}} in {{reportItem.target.projectKey}}
+                            </span>
+                            <span ng-switch-when="BUILT_EVALUATION_STORE">
+                                <i class="icon-model-evaluation-store" />
+                                Built evaluation store {{(reportItem.info ? reportItem.info.name : null) || reportItem.target.evaluationStoreId}} in {{reportItem.target.projectKey}}
+                            </span>
+							<span ng-switch-when="CHECKED_FLOW_ELEMENT_CONSISTENCY">
+								Checked consistency on
+								<span ng-switch="reportItem.target.type">
+                                    <a ng-switch-when="DATASET"
+                                        ui-sref="projects.project.datasets.dataset.edit({projectKey:reportItem.target.projectKey,datasetName:reportItem.target.datasetName})">
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </a>
+                                    <a ng-switch-when="MANAGED_FOLDER"
+                                        ui-sref="projects.project.managedfolders.managedfolder.view({projectKey:reportItem.target.projectKey,odbId:reportItem.target.folderId})">
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </a>
+                                    <a ng-switch-when="SAVED_MODEL"
+                                        ui-sref="projects.project.savedmodels.savedmodel.summary({projectKey:reportItem.target.projectKey,smId:reportItem.target.modelId})">
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </a>
+                                    <a ng-switch-when="RECIPE"
+                                        ui-sref="projects.project.recipes.recipe({projectKey:reportItem.target.projectKey,recipeName:reportItem.target.recipeName})">
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </a>
+                                    <span ng-switch-default>
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </span>
+								</span>
+							</span>
+							<span ng-switch-when="CHECKED_DATASET">
+								<i class="icon-check-sign" />
+								Checked <span ng-switch="reportItem.target.type">
+                                    <a ng-switch-when="DATASET"
+                                        ui-sref="projects.project.datasets.dataset.status.checks({projectKey:reportItem.target.projectKey,datasetName:reportItem.target.datasetName})">
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </a>
+                                    <a ng-switch-when="DATASET_PARTITION"
+                                        ui-sref="projects.project.datasets.dataset.status.checks({projectKey:reportItem.target.projectKey,datasetName:reportItem.target.datasetName})">
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </a>
+                                    <a ng-switch-when="MANAGED_FOLDER"
+                                        ui-sref="projects.project.managedfolders.managedfolder.status.checks({projectKey:reportItem.target.projectKey,odbId:reportItem.target.folderId})">
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </a>
+                                    <a ng-switch-when="MANAGED_FOLDER_PARTITION"
+                                        ui-sref="projects.project.managedfolders.managedfolder.status.checks({projectKey:reportItem.target.projectKey,odbId:reportItem.target.folderId})">
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </a>
+                                    <a ng-switch-when="SAVED_MODEL"
+                                        ui-sref="projects.project.savedmodels.savedmodel.status.checks({projectKey:reportItem.target.projectKey,smId:reportItem.target.modelId})">
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </a>
+                                    <a ng-switch-when="SAVED_MODEL_PARTITION"
+                                        ui-sref="projects.project.savedmodels.savedmodel.status.checks({projectKey:reportItem.target.projectKey,smId:reportItem.target.modelId})">
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </a>
+                                    <span ng-switch-default>
+                                        {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+                                    </span>
+								</span>
+							</span>
+							<span ng-switch-when="COMPUTED_METRICS">
+								<i class="icon-jobsdb" />
+								Computed metrics on {{getReportTargetItemDisplayName(reportItem.target, reportItem.info)}}
+							</span>
+                            <span ng-switch-when="SYNCED_DATASET">
+                                <i class="icon-visual_prep_sync_recipe" />
+                                Synced hive metastore {{reportItem.target.datasetName}} in {{reportItem.target.projectKey}}
+                            </span>
+                            <span ng-switch-when="UPDATED_FROM_HIVE">
+                                <i class="icon-visual_prep_sync_recipe" />
+                                Update dataset {{reportItem.target.datasetName}} in {{reportItem.target.projectKey}} from hive metastore
+                            </span>
+							<span ng-switch-when="CODE_EXECUTED">
+								<i class="icon-code" /> Ran
+								<span ng-if="reportItem.target.type == 'SQL_CONNECTION'">SQL on {{reportItem.target.connection}}</span>
+								<span ng-if="reportItem.target.type == 'PYTHON'">python script</span>
+							</span>
+							<span ng-switch-when="CREATED_JUPYTER_EXPORT">
+								<i class="icon-dku-nav_notebook" />
+								Created export for notebook <em>{{(reportItem.info ? reportItem.info.name : null) || reportItem.target.notebookId}}</em> in {{reportItem.target.projectKey}}
+							</span>
+							<span ng-switch-when="CREATED_DASHBOARD_EXPORT">
+								<i class="icon-dku-dashboard" />
+								Exported <a ui-sref="projects.project.dashboards.dashboard.view({projectKey:reportItem.target.projectKey,dashboardId:reportItem.target.dashboardId})">
+									dashboard {{reportItem.target.dashboardName}} from {{reportItem.target.projectKey}}
+                                </a> into folder <a ui-sref="projects.project.managedfolders.managedfolder.view({projectKey:reportItem.target.projectKey,odbId:reportItem.target.folderId})">
+									{{reportItem.target.folderName}}
+								</a>
+							</span>
+							<span ng-switch-when="CREATED_WIKI_ARTICLE_EXPORT">
+								<i class="icon-dku-wiki" />
+								Exported <a ui-sref="projects.project.wiki.article.view({projectKey:reportItem.target.projectKey,articleId:reportItem.target.articleId})">
+									wiki article {{reportItem.target.articleName}} from {{reportItem.target.projectKey}}
+                                </a> into folder <a ui-sref="projects.project.managedfolders.managedfolder.view({projectKey:reportItem.target.projectKey,odbId:reportItem.target.folderId})">
+									{{reportItem.target.folderName}}
+								</a>
+							</span>
+							<span ng-switch-when="CREATED_WIKI_EXPORT">
+								<i class="icon-dku-wiki" />
+								Exported wiki of project {{reportItem.target.projectKey}}
+								</a> into folder <a ui-sref="projects.project.managedfolders.managedfolder.view({projectKey:reportItem.target.projectKey,odbId:reportItem.target.folderId})">
+									{{reportItem.target.folderName}}
+								</a>
+							</span>
+							<span ng-switch-when="CREATED_MODEL_DOCUMENTATION_EXPORT"
+								model-documentation-export-result report-item="reportItem.target">
+							</span>
+							<span ng-switch-when="STEP_DONE"></span>
+                            <span ng-switch-when="SCENARIO_DONE">
+                                Ran scenario <a ui-sref="projects.project.scenarios.scenario.runs.list({projectKey: reportItem.target.projectKey, scenarioId: reportItem.target.scenarioId})">{{(reportItem.info ? reportItem.info.name : null) || reportItem.target.scenarioId}}</a> in {{reportItem.target.projectKey}}
+                            </span>
+                            <span ng-switch-when="MADE_LAMBDA_PACKAGE">
+                                Packaged API service <a ui-sref="projects.project.lambdaservices.service.endpoints({projectKey: reportItem.target.projectKey, serviceId: reportItem.target.serviceId})">{{reportItem.target.serviceId}}</a> in {{reportItem.target.projectKey}}
+                            </span>
+                            <span ng-switch-when="PUBLISHED_LAMBDA_PACKAGE">
+                                Published version
+                                <a ng-if="appConfig.deployerMode === 'LOCAL' && stepRun.result.outcome !== 'FAILED'"
+                                   ui-sref="apideployer.services.service.status({serviceId: reportItem.target.serviceId, versions: reportItem.packageId })">
+                                    {{ reportItem.packageId }}</a>
+								<a ng-if="appConfig.deployerMode === 'REMOTE' && stepRun.result.outcome !== 'FAILED'"
+								   href="{{ appConfig.deployerURL }}/api-deployer/services/{{ reportItem.target.serviceId }}/?versions={{ reportItem.packageId }}"
+								   target="blank">
+                                    {{ reportItem.packageId }}&nbsp;<i class="icon-external-link"></i></a>
+								<span ng-if="appConfig.deployerMode === 'DISABLED' || stepRun.result.outcome === 'FAILED'">
+                                    {{ reportItempackageId.packageId }}
+                                </span>
+								on {{ reportItem.target.serviceId }}
+							</span>
+                            <span ng-switch-when="MADE_BUNDLE">
+                                Created bundle <a ui-sref="projects.project.bundlesdesign.list">{{reportItem.target.bundleId}}</a> on {{reportItem.target.projectKey}}
+                            </span>
+							<span ng-switch-when="PUBLISHED_BUNDLE">
+								Published bundle
+								<a ng-if="appConfig.deployerMode === 'LOCAL' && stepRun.result.outcome !== 'FAILED'"
+								   ui-sref="projectdeployer.projects.project.bundle.status({bundleId: reportItem.target.bundleId, publishedProjectKey: reportItem.target.projectKey})">
+									{{reportItem.target.bundleId}}</a>
+								<a ng-if="appConfig.deployerMode === 'REMOTE' && stepRun.result.outcome !== 'FAILED'"
+								   target="blank"
+								   href="{{appConfig.deployerURL}}/project-deployer/projects/{{reportItem.target.projectKey}}/bundle/{{reportItem.target.bundleId}}/">
+									{{reportItem.target.bundleId}}&nbsp;<i class="icon-external-link"></i></a>
+								<span ng-if="appConfig.deployerMode === 'DISABLED' || stepRun.result.outcome === 'FAILED'">
+									{{reportItem.target.bundleId}}
+								</span>
+								on {{reportItem.target.projectKey}}
+							</span>
+                            <span ng-switch-when="ACTIVATED_PUBLISHED_PACKAGE">
+								Activated {{reportItem.deployerType === 'api' ? 'version' : 'bundle'}} {{reportItem.publishedPackageId}} on deployment
+								<a ng-if="appConfig.deployerMode === 'LOCAL' && stepRun.result.outcome !== 'FAILED'" ui-sref="{{reportItem.deployerType + 'deployer.deployments.deployment.status({deploymentId: reportItem.target.deploymentId})'}}">
+									{{reportItem.target.deploymentId}}
+								</a>
+								<a ng-if="appConfig.deployerMode === 'REMOTE' && stepRun.result.outcome !== 'FAILED'" target="blank" href="{{appConfig.deployerURL}}/{{reportItem.deployerType}}-deployer/deployments/{{reportItem.target.deploymentId}}/">
+									{{reportItem.target.deploymentId}}&nbsp;<i class="icon-external-link"></i>
+								</a>
+								<span ng-if="appConfig.deployerMode === 'DISABLED' || stepRun.result.outcome === 'FAILED'">
+									{{reportItem.target.deploymentId}}
+								</span>
+							</span>
+                            <span ng-switch-when="PRODUCED_BY_RUNNABLE" class="runnable-tile">
+                                Produced output <a ng-click="reportItem.$showResult = !reportItem.$showResult"><i class="icon-eye mx-link-nodecoration"></i></a>
+                                <div runnable-result ng-if="reportItem.$showResult" class="inline-runnable-result"
+                                        scenario-run="selectedRun"
+                                        step-run="stepRun"
+                                        result-label="reportItem.resultLabel"
+                                        result-type="reportItem.resultType"
+                                        result-data="reportItem.target"></div>
+                            </span>
+                            <span ng-switch-when="SET_UP_CLUSTER">
+                                Created cluster <a ui-sref="admin.clusters.cluster({clusterId: reportItem.target.clusterId })">{{reportItem.target.clusterId}}</a>
+                            </span>
+                            <span ng-switch-when="TORE_DOWN_CLUSTER">
+                                Destroyed cluster <a ui-sref="admin.clusters.cluster({clusterId: reportItem.target.clusterId })">{{reportItem.target.clusterId}}</a>
+                            </span>
+                            <span ng-switch-when="STARTED_CLUSTER">
+                                Started/Attached cluster <a ui-sref="admin.clusters.cluster({clusterId: reportItem.target.clusterId })">{{reportItem.target.clusterId}}</a>
+                            </span>
+                            <span ng-switch-when="STOPPED_CLUSTER">
+                                Stopped/Detached cluster <a ui-sref="admin.clusters.cluster({clusterId: reportItem.target.clusterId })">{{reportItem.target.clusterId}}</a>
+                            </span>
+                            <span ng-switch-when="STARTED_CONTINUOUS_ACTIVITY">
+                                Started continuous activity <a ui-sref="projects.project.continuous-activities.continuous-activity.runs({projectKey: reportItem.target.projectKey, continuousActivityId: reportItem.target.continuousActivityId })">{{reportItem.target.continuousActivityId}}</a>
+                            </span>
+                            <span ng-switch-when="STOPPED_CONTINUOUS_ACTIVITY">
+                                Stopped continuous activity <a ui-sref="projects.project.continuous-activities.continuous-activity.runs({projectKey: reportItem.target.projectKey, continuousActivityId: reportItem.target.continuousActivityId })">{{reportItem.target.continuousActivityId}}</a>
+                            </span>
+                            <span ng-switch-when="RELOAD_SCHEMA">
+                                Schema reload for <a ui-sref="projects.project.datasets.dataset.settings({projectKey: reportItem.target.projectKey, datasetName: reportItem.target.datasetName, '#':'schema'})">{{reportItem.target.datasetName}}</a> (+{{reportItem.detectedButNotInSchema}} -{{reportItem.inSchemaButNotDetected}})
+                            </span>
+						</div>
+						<div class="span10 offset1" ng-if="reportItem.thrown">
+							<div class="alert alert-error" style="word-break: break-word"><strong ng-if="reportItem.thrown.clazz">{{
+								reportItem.thrown.clazz}}<br></strong>{{reportItem.thrown.message}}</div>
+						</div>
+						<div class="span10 offset1" ng-if="reportItem.logTail.lines.length && reportItem.type !== 'JOB_EXECUTED'">
+							<a ng-show="!reportItem.logTail.shown" ng-click="reportItem.logTail.shown = true">Show log tail</a>
+							<pre style="white-space: pre-line; height: 6em; overflow-y: auto;"
+								ng-show="reportItem.logTail.shown">{{reportItem.logTail.text}}</pre>
+						</div>
+					</div>
+                    <div class="row-fluid report-item" ng-repeat-end ng-init="reportItem = stepRun.result">
+                        <div class="span10 offset1" ng-if="reportItem.thrown">
+                            <div class="alert alert-error" style="word-break: break-word"><strong ng-if="reportItem.thrown.clazz">{{
+                                reportItem.thrown.clazz}}<br></strong>{{reportItem.thrown.message}}</div>
+                        </div>
+                        <div class="span10 offset1" ng-if="reportItem.logTail.lines.length && reportItem.type !== 'JOB_EXECUTED'">
+                            <a ng-show="!reportItem.logTail.shown" ng-click="reportItem.logTail.shown = true">Show log tail</a>
+                            <pre smart-log-tail="reportItem.logTail" ng-show="reportItem.logTail.shown"/>
+                        </div>
+                    </div>
+				</div>
+				<div class="row-fluid" ng-if="selectedRun.message">
+					<div class="span12">
+						<strong>Message</strong>
+					</div>
+					<div class="row-fluid message">
+						<pre>{{selectedRun.message}}</pre>
+					</div>
+				</div>
+				<div class="row-fluid" ng-if="selectedRun.result.logTail.lines.length">
+					<div class="span12">
+						<strong>Log tail</strong>
+					</div>
+					<div class="span11 logs">
+                        <pre smart-log-tail="selectedRun.result.logTail"/>
+					</div>
+				</div>
+				<div class="row-fluid" ng-if="selectedRunDetails.scenarioRun.reportersStates.length">
+					<div class="span12">
+						<strong>Reporters</strong>
+					</div>
+					<div ng-repeat="rs in selectedRunDetails.scenarioRun.reportersStates">
+						<div class="row-fluid step">
+							<div class="span1 scenario-results" style="text-align: right">
+								<i ng-if="rs.error " class="icon-remove-sign failed"/>
+                                <i ng-if="rs.activated && !rs.error && rs.messages && rs.messages.warning" class="icon-warning-sign warning"  />
+                                <i ng-if="rs.activated && !rs.error && !(rs.messages && rs.messages.warning)" class="icon-check-sign success"  />
+								<i ng-if="!rs.activated && !rs.error" class="icon-ban-circle" />
+							</div>
+							<div class="span5">
+								<strong>{{rs.messagingType}}</strong> reporter <span ng-show="rs.reporterName">- {{rs.reporterName}}</span>
+							</div>
+						</div>
+                        <div class="row-fluid" ng-if="rs.messages && rs.messages.anyMessage">
+                            <div info-messages-raw-list="rs.messages"/>
+                        </div>
+						<div class="row-fluid" ng-if="rs.error">
+							<div class="span10 offset1" ng-if="rs.error">
+								<div api-error-alert="rs.error" />
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

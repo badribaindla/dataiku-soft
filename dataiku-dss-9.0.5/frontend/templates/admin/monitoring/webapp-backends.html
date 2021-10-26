@@ -1,0 +1,79 @@
+<div class="tasks-list h100 oa">
+    <button class="btn btn--secondary" ng-click="refreshList()">
+        <i class="icon-refresh" />&nbsp;Refresh
+    </button>
+
+    <div block-api-error />
+
+    <form class="dkuform-horizontal">
+        <ul class="backends-list">
+            <li ng-repeat="backend in backends"
+                class="item backend"
+                ng-init="target = {objectType:'WEB_APP', projectKey: backend.projectKey, objectId:backend.webAppId, details: {objectDisplayName: backend.webAppName, webappType: backend.type} }"
+                >
+                <div ng-if="backend.backendState && backend.backendState.futureInfo">
+                    <h2 class="settings-section-title" style="display: inline-block;">
+                        <span dss-object-link item="target" class="target" />
+                        in project
+                        <a href="{{StateUtils.href.project(target.projectKey)}}">{{backend.projectKey}}</a>
+                        <div class="pull-right">
+                            <button class="btn btn--danger" ng-click="stopBackend(backend)">Stop</button>
+                            <button class="btn btn--success" ng-click="restartBackend(backend)">Restart</button>
+                        </div>
+                    </h2>
+                    <div class="control-group" ng-if="backend.backendState.futureInfo.payload.extras.crashCount != null">
+                        <label class="control-label">Crashed</label>
+                        <div class="controls">
+                            <span>{{backend.backendState.futureInfo.payload.extras.crashCount}}</span>
+                            <button class="btn btn--secondary"
+                                style="margin-left: 30px;"
+                                ng-if="backend.backendState.lastCrashLogTail && backend.backendState.futureInfo.payload.extras.crashCount > 0"
+                                ng-click="backend.backendState.$showLastCrashLogTail = !backend.backendState.$showLastCrashLogTail;"
+                                >
+                                {{backend.backendState.$showLastCrashLogTail ? 'hide' : 'show'}} last crash
+                            </button>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="backend.backendState.lastCrashLogTail && backend.backendState.$showLastCrashLogTail">
+                        <div class="controls">
+                            <pre smart-log-tail="backend.backendState.lastCrashLogTail"></pre>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="backend.backendState.futureInfo.payload.extras.pid">
+                        <label class="control-label">Process PID</label>
+                        <div class="controls">
+                            <span>{{backend.backendState.futureInfo.payload.extras.pid}}</span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="backend.backendState.futureInfo.payload.extras.port">
+                        <label class="control-label">Port</label>
+                        <div class="controls">
+                            <span>{{backend.backendState.futureInfo.payload.extras.port}}</span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="backend.backendState.currentLogTail">
+                        <label class="control-label">Log tail</label>
+                        <div class="controls">
+                            <pre smart-log-tail="backend.backendState.currentLogTail"></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-if="!backend.backendState || !backend.backendState.futureInfo">
+                    <h2 class="settings-section-title" style="display: inline-block;">
+                        <span dss-object-link item="target" class="target" />
+                        in project
+                        <a href="{{StateUtils.href.project(target.projectKey)}}">{{backend.projectKey}}</a>
+                        <div class="pull-right">
+                            <button class="btn btn--success" ng-click="restartBackend(backend)">Start</button>
+                        </div>
+                    </h2>
+                    <div class="control-group">
+                        <label class="control-label">Not running</label>
+                    </div>
+                </div>
+                <!-- <div><pre>{{backend.backendState|json}}</pre></div> -->
+            </li>
+        </ul>
+    </form>
+</div>

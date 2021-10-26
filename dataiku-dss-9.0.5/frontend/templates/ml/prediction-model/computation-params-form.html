@@ -1,0 +1,49 @@
+<ul class="dropdown-menu" style="padding: 15px;" listen-keydown="{'enter': 'save()', 'esc': 'dismiss()' }">
+    <form class="dkuform-horizontal recipe-settings-section2" name="computationParamsForm">
+        <li><div class="control-group">
+            <label for="" class="control-label">{{sampleSizeLabel}}</label>
+            <div class="controls">
+                <input type="number" required ng-model="uiState.computationParams.sample_size" min="1" step="1" />
+                <div class="help-inline">
+                    {{ sampleSizeHelp }}
+                </div>
+            </div>
+        </div></li>
+        <li><div class="control-group">
+            <label for="" class="control-label">Random seed</label>
+            <div class="controls">
+                <input type="number" required ng-model="uiState.computationParams.random_state" />
+                <div class="help-inline">Using a fixed random seed allows for reproducible result</div>
+            </div>
+        </div></li>
+        <li><div class="control-group" ng-if="!hideNbJobs">
+            <label for="" class="control-label">Parallelism</label>
+            <div class="controls">
+                <input type="number" required ng-model="uiState.computationParams.n_jobs" ng-class="{'ng-invalid': uiState.computationParams.n_jobs === 0 }" />
+                <div class="help-inline">Number of cores used for parallel training. (-1 means 'all cores')
+                </div>
+            </div></li>
+        </div>
+
+        <li><div class="control-group">
+            <label for="debugModeCheckbox" class="control-label">Debug mode</label>
+            <div class="controls">
+                <input type="checkbox" id="debugModeCheckbox" ng-model="uiState.computationParams.debug_mode"/>
+                <label for="debugModeCheckbox" class="help-inline">Output all logs (slower)</label>
+            </div>
+        </div></li>
+        <div class="alert" ng-if="(lastRandomState && uiState.computationParams.random_state !== lastRandomState) || (lastSampleSize && uiState.computationParams.sample_size !== lastSampleSize)">
+            Computing with new sample settings will erase the previous computations
+        </div>
+        <li style="float:right">
+            <button ng-click="dismiss()" class="btn btn--contained">
+                Cancel
+            </button>
+            <button type="submit"
+                class="btn btn--contained btn--publish"
+                ng-disabled="!computationParamsForm.$valid || uiState.computationParams.n_jobs === 0"
+                ng-click="save()">Apply
+            </button>
+        </li>
+    </form>
+</ul>

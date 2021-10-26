@@ -1,0 +1,67 @@
+<div class="pad24 empty-list-cta" ng-if="!uiState.selectedBundle.scenarios">
+    No bundle selected.
+</div>
+<div ng-if="uiState.selectedBundle.scenarios">
+    <div class="pad24 control-group">
+        <label class="control-label">Disable automatic triggers</label>
+        <div class="controls">
+            <input type="checkbox" ng-model="deploymentSettings.disableAutomaticTriggers">
+            <span class="help-inline">
+                Scenarios on the Automation node project can only be started manually.
+            </span>
+        </div>
+    </div>
+    <div class="dku-border-top pad24">
+        <div class="empty-list-cta" ng-if="!uiState.selectedBundle.scenarios.length">
+            No scenarios found in selected bundle.
+        </div>
+        <div ng-if="uiState.selectedBundle.scenarios.length">
+            <div class="alert alert-info"> <i class="icon-info-sign" />
+                For each scenario, you can override its current auto-trigger activation status on the Automation node. Modifications will be applied after the next deployment update.
+                You can either enable <i class="deployment-settings__scenario-icon--activated icon-ok" /> auto-triggers, disable <i class="deployment-settings__scenario-icon--deactivated icon-dku-error" /> them,
+                or choose not to override <i class="icon-minus" /> the behavior defined on the Automation node.
+            </div>
+            <table class="table deployment-settings__scenarios">
+                <thead>
+                    <tr>
+                        <th>Scenarios in bundle</th>
+                        <th>Last Modified</th>
+                        <th class="nowrap tar" style="width: 25%;">
+                            <button class="btn btn--primary btn--text" ng-click="toggleScenarios()" ng-disabled="deploymentSettings.disableAutomaticTriggers">
+                                <span ng-if="allScenariosActive()">De</span>activate All
+                            </button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="scenario in uiState.selectedBundle.scenarios">
+                        <td>
+                            {{ scenario.name }} ({{ scenario.id }})
+                        </td>
+                        <td>{{ scenario.versionTag.lastModifiedOn | friendlyTimeDeltaShort}} by {{scenario.versionTag.lastModifiedBy.login }}</td>
+                        <td class="tar">
+                            <div class="btn-toggle deployer-settings-toggle">
+                                <label class="deployer-settings-toggle__label" toggle="tooltip" title="Use Automation node setting" data-placement="top">
+                                    <input type="radio" name="options-{{$index}}" ng-model="deploymentSettings.scenariosToActivate[scenario.id]" ng-value="" ng-disabled="deploymentSettings.disableAutomaticTriggers" checked>
+                                    <span class="btn btn--secondary btn--icon deployer-settings-toggle__button">
+                                        <i class="deployer-settings-toggle__option icon-minus"></i>
+                                    </span> 
+                                </label><label class="deployer-settings-toggle__label" toggle="tooltip" title="Enable scenario" data-placement="top">
+                                    <input type="radio" name="options-{{$index}}" ng-model="deploymentSettings.scenariosToActivate[scenario.id]" ng-value="true"ng-disabled="deploymentSettings.disableAutomaticTriggers">
+                                    <span class="btn btn--secondary btn--icon deployer-settings-toggle__button deployer-settings-toggle__button--activated">
+                                        <i class="deployer-settings-toggle__option deployer-settings-toggle__option icon-ok"></i>
+                                    </span>
+                                </label><label class="deployer-settings-toggle__label" toggle="tooltip" title="Disable scenario" data-placement="top">
+                                    <input type="radio" name="options-{{$index}}" ng-model="deploymentSettings.scenariosToActivate[scenario.id]" ng-value="false"ng-disabled="deploymentSettings.disableAutomaticTriggers">
+                                    <span class="btn btn--secondary btn--icon deployer-settings-toggle__button deployer-settings-toggle__button--deactivated">
+                                        <i class="deployer-settings-toggle__option deployer-settings-toggle__option icon-dku-error"></i>
+                                    </span>
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

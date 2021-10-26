@@ -1,0 +1,24 @@
+<div class="h100 vertical-flex">
+    <div block-api-error />
+    <div class="noflex streaming-explore__sampling">
+        <span>Up to&nbsp;</span>
+        <input type="number" force-integer ng-model="uiState.limit"></input>
+        <span>&nbsp;records, up to&nbsp;</span>
+        <input type="number" force-integer ng-model="uiState.timeout"></input>
+        <span>&nbsp;seconds</span>
+        <button class="btn btn--primary" type="button" ng-click="collectSample()" style="margin-left: 20px;">Collect sample</button>
+    </div>
+    <div class="flex">
+        <div class="fh oa">
+            <div class="container-fluid streaming-explore__preview">
+                <div future-waiting response="captureFuture" ng-if="captureFuture && !captureFuture.hasResult"></div>
+                <!-- abuse the dataset field to pass the streaming endpoint -->
+                <div simple-detection-preview-table dataset="streamingEndpoint" table="sample.data.table" headers="sample.data.table.headers" schema-is-user-editable="false"/>
+                <div class="alert alert-info" ng-if="sample.data.table != null && sample.data.table.rows.length == 0">No rows captured</div>
+                <div class="alert alert--danger" ng-if="sample.error">
+                    {{sample.error}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

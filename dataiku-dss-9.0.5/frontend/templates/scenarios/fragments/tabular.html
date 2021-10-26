@@ -1,0 +1,50 @@
+<div class="fh">
+    <!-- background for the plot --> 
+    <div class="activity horizontal-flex" >
+        <div class="headers noflex">
+        </div><!-- 
+     --><div class="cells flex" style="border-left: 1px solid #F2F2F2">
+        </div>
+    </div>
+</div>
+<div class="activity horizontal-flex" >
+    <div class="headers noflex">
+        <div class="gantt-header">
+            <div class="filter-box" >
+                <div class="std-list-search-box" style="display: inline-block">
+                    <span class="add-on"><i class="icon-dku-search"></i></span>
+                    <input type="search" ng-model="uiState.stepQuery" style="width: 180px;" placeholder="Search steps" />
+                </div>
+            </div>
+        </div>
+        <div class="gantt-items">
+            <ul>
+                <li class="item" ng-repeat="item in rows" ng-mouseenter="hoverOver(item.uniqueId, true)" ng-mouseleave="hoverOver(item.uniqueId, false)" ng-class="{'item-scenario' : item.target.type == 'SCENARIO' && item.depth == 0, 'item-hovered' : isHovered(item)}" >
+                    <div ng-if="item.subItems == null || item.subItems.length == 0" class="horizontal-flex">
+                        <div class="noflex"  style="width: {{15*(item.depth+1)}}px;">
+                        </div>
+                        <div class="flex">
+                            <div ng-include="'/templates/scenarios/fragments/report-item-header.html'" ng-init="inGantt= true" class="fh"></div>
+                        </div>
+                    </div>
+                    <div full-click ng-if="item.subItems.length > 0" class="horizontal-flex">
+                        <div class="noflex" style="width: {{15*(item.depth)}}px;" ng-click="item.expanded = !item.expanded" >
+                            <!-- filler -->
+                        </div>
+                        <div class="noflex" style="width: 15px;" ng-click="item.expanded = !item.expanded" main-click>
+                            <i class="icon" ng-class="{'icon-caret-down': item.expanded, 'icon-caret-right': !item.expanded}" style="font-size: 15px;"></i>
+                        </div>
+                        <div class="flex">
+                            <div ng-include="'/templates/scenarios/fragments/report-item-header.html'" ng-init="inGantt= true" class="fh"></div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div><!-- 
+ --><div class="cells flex" >
+        <div class="fh">
+            <svg class="chart" hierarchical-activity rows="rows" columns="report.columns" report-range="reportRange" hovered="hovered" apply-hover="applyHover" can-write-project="canWriteProject()"></svg>
+        </div>
+    </div>
+</div>

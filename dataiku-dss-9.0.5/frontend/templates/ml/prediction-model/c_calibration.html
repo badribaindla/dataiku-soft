@@ -1,0 +1,58 @@
+
+<div class="row-fluid h100" ng-controller="CalibrationCurveController">
+    <div ng-if="hasCalibrationData()">
+        <div class="span8 h100 w100-on-dashboard">
+            <div class="vertical-flex h100">
+                <div class="noflex" style="margin-left: 2em">
+                    <span ng-if="modelData.coreParams.calibration.calibrationMethod !== 'NO_CALIBRATION'">
+                    The model was calibrated with the <b>{{uiState.calibrationMethod}}</b> method.<br>
+                    </span>
+                    <div  puppeteer-hook-1>
+                        <select ng-if="isMulticlass()" dku-bs-select="{titlePrefix:'Class'}"
+                                ng-model="calibrationClass" ng-change="setCalibrationClass(calibrationClass)"
+                                ng-options="c for c in modelData.classes | orderBy"/>
+                    </div>
+                    <span ng-if="isMulticlass()" style="margin-left: 1em">
+                    The calibration loss for this class is
+                    <code ng-bind="calibrationLoss | number : 4" />.
+                    </span>
+                    <span ng-if="!isMulticlass()">
+                    The calibration loss is
+                    <code ng-bind="calibrationLoss | number : 4" />.
+                    </span>
+              </div>
+                <div class="flex h100">
+                    <div class="fh h100">
+                        <div style="height:700px; width: 100%; padding-top: 1em; box-sizing: border-box;">
+                            <svg id="calibrationChartContainer" ng-if="modelData.coreParams"
+                                 class="chart-std-font" style="width: 100%; height: 100%"
+                                 bc-calibration-curve data="data" data-colors="colors"
+                                 disable-transitions="$stateParams.exportMode" puppeteer-hook-2 puppeteer-hook-element-content-loaded></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="span4 hide-on-dashboard">
+            <div class="doctor-explanation">
+                <h1>Calibration of predicted probabilities</h1>
+                <p> Calibration denotes the consistency between predicted probabilities
+                  and their actual frequencies observed on a test dataset.</p>
+                <p>A perfectly calibrated model should have a calibration curve that
+                  is exactly on the diagonal line.</p>
+                <p> In reality the calibration curve is often quite distinct from the diagonal line
+                  and the average distance between the two measures the quality of the calibration.</p>
+                <p> The calibration loss is computed as the absolute difference between the
+                  calibration curve and the diagonal, averaged over the test set, weighted by the number
+                  of elements used to compute each point (or the sum of sample weights when it applies).</p>
+            </div>
+            <button class="mtop10 btn btn--secondary export-btn" ng-click="exportCalibrationData()">
+                Export data
+            </button>
+        </div>
+    </div>
+
+    <div ng-if="!hasCalibrationData()" class="alert alert-info">
+        Calibration curve data unavailable for this model. Try retraining the model !
+    </div>
+</div>

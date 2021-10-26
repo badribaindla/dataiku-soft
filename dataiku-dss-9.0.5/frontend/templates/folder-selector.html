@@ -1,0 +1,60 @@
+<div ng-class="{'has-dataset' : currentlySelected}"
+    full-click
+    class="mainzone dss-object-selector-mainzone has-caret"
+    title="{{currentlySelected.smartName}}"
+    ng-if="!transclude">
+    <span class="caret"></span>
+    <span ng-show="currentlySelected">
+        <a class="trigger" main-click ng-click="togglePopover()">{{currentlySelected.label || currentlySelected.smartName}}</a>
+        <br />
+        <small style="text-transform: capitalize;">
+            <a href="{{$root.StateUtils.href.managedFolder(currentlySelected.smartName)}}">View</a>
+        </small>
+    </span>
+
+    <a main-click
+        ng-show="!currentlySelected"
+        class="trigger"
+        ng-click="togglePopover()">No folder selected
+    </a>
+</div>
+
+<div ng-if="transclude" ng-transclude class="mainzone"></div>
+
+<div class="dss-object-selector-popover popover">
+    <div class="search-wrapper">
+        <input type="search" autofocus ng-model="filter.query" placeholder="Filter&hellip;" />
+    </div>
+
+    <div class="list-zone">
+        <div ng-repeat="group in displayedGroups" class="group">
+            <hr />
+            <h4>{{group.title}}</h4>
+            <ul class="dss-object-selector__items">
+                <li ng-repeat="object in group.folders"
+                    ng-class="{ disabled: !object.usable, selected: (currentlySelected==object)}"
+                    class="dss-object-selector__item"
+                    full-click
+                    scroll-to-me="{{currentlySelected==object}}">
+
+                    <span class="dss-object-selector__item-icon">
+                        <i class="icon-box universe-color dataset"></i>
+                    </span>
+                    <span main-click ng-click="itemClicked(object)" ng-if="object.localProject"
+                        class="dss-object-selector__item-name">
+                        {{object.label || object.name}}
+                        <span class="dss-object-selector__item-type">
+                            (Folder id: {{object.id}})
+                        </span>
+                    </span>
+                    <span main-click ng-click="select(object)" ng-if="!object.localProject">
+                        {{object.label || object.name}} (from project {{object.projectKey}})
+                        <span class="dss-object-selector__item-type">
+                            (Folder id: {{object.id}})
+                        </span>
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </ul>
+</div>

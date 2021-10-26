@@ -1,0 +1,52 @@
+<div class="main-panel main-panel--jupyter-notebook h100 vertical-flex" ng-class="{'main-panel--reduced': standardizedSidePanel.opened} " navigator-object>
+    <div class="object-nav horizontal-flex no-transitions-on-load main-panel__movable-element main-panel__movable-element--using-width">
+        <div std-object-breadcrumb class="flex oh" />
+        <div class="noflex">
+            <div class="otherLinks">
+                <div ng-if="snippetsType != null" class="dib" code-snippet-editor-switch code-samples-selector-visible="uiState.codeSamplesSelectorVisible"></div>
+                <button ng-if="isProjectAnalystRW() && notebook.content.metadata.associatedRecipe.length"
+                    class="btn btn--secondary"
+                    ng-click="saveBackToRecipe(notebook)"
+                    title="This notebook is associated to recipe '{{notebook.content.metadata.associatedRecipe}}'"
+                    >
+                    <i class="icon-save"/> Save back to recipe
+                </button>
+                <button ng-if="isProjectAnalystRW() && !notebook.content.metadata.associatedRecipe.length"
+                    class="btn btn--secondary"
+                    ng-click="createRecipeFromNotebook(notebook)"
+                    >
+                    <i class="icon-plus"/> Create recipe
+                </button>
+                <button class="btn btn--secondary" ng-click="forceReloadJupyterNotebook()">
+                    <i class="icon-repeat"/> Force reload
+                </button>
+
+                <div class="dropdown" ng-if="isProjectAnalystRW() || canWriteDashboards()">
+                    <button class="mainzone btn btn--secondary" id="qa_generic_actions-dropdown" onfocus="this.blur();"
+                            ng-click="standardizedSidePanel.toggleTab('actions')">
+                        Actions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="position: relative" ng-if="uiState.codeSamplesSelectorVisible && snippetsType != null">
+        <code-snippet-sample-selector
+            style="min-height: 400px;width: 100%; position: absolute"
+            insert-code-func="copySnippetToClipboard_"
+            code-samples-selector-visible="uiState.codeSamplesSelectorVisible"
+            insert-button-label="'COPY TO CLIPBOARD'"
+            sample-type="snippetsType"
+            categories="snippetsCategories"
+            save-category="snippetsSaveCategory"
+        />
+    </div>
+    <div block-api-error></div>
+    <ng-include src="'/templates/notebooks/jupyter_notebook_error.html'"></ng-include>
+    <dku-frame id="jupyter-iframe" iframe-src="{{notebookURL}}" style="flex: 1">
+        Your browser doesn't support IFrames
+    </dku-frame>
+</div>
+
+<standardized-side-panel page="object" object-type="JUPYTER_NOTEBOOK" toggle-tab="{{ standardizedSidePanel.tabToToggle }}" close-on-click-outside="true">
+</standardized-side-panel>

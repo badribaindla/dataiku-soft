@@ -1,0 +1,47 @@
+{
+    "meta": {
+        "label": "Clear model versions",
+        "description": "Delete oldest inactive versions of models to free up disk space",
+        "category" : "DSS maintenance",
+        "icon" : "icon-trash"
+    },
+
+    "impersonate": false,
+    "permissions" : ["WRITE_CONF"],
+    "resultType" : "HTML",
+    "resultLabel" : "Deleted logs",
+    "macroRoles": [     
+        {
+             "type": "SAVED_MODEL",
+             "targetParamsKey": "model_id"
+         },
+         {
+             "type": "PROJECT_MACROS"
+         }
+     ],
+
+    "params": [
+        {
+            "name": "model_id",
+            "label": "User-readable name",
+            "type": "MODEL",
+            "description": "Model for which to delete inactive versions",
+            "mandatory": true
+        },
+        {
+            "name": "keep_versions",
+            "label": "Number of versions to keep (includes active version)",
+            "type": "INT",
+            "defaultValue": 3,
+            "minI":1
+        },
+        {
+            "name": "perform_deletion",
+            "label" : "Perform deletion",
+            "type": "BOOLEAN",
+            "description":"If not checked, only lists what will be deleted",
+            "mandatory" : true,
+            "defaultValue" : false
+        }        
+    ]
+}

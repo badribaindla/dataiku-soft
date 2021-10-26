@@ -1,0 +1,59 @@
+<div ng-controller="RecipeCopyController" class="modal modal3 code-based-recipe-creation-modal io-modal" auto-size="false" >
+
+    <div class="vertical-flex h100">
+        <div dku-modal-header-with-totem
+            modal-class="noflex"
+            modal-totem="{{ recipe.type |recipeTypeToIcon}}"
+            modal-title="Copy {{ recipe.type |recipeTypeToName}} recipe" />
+
+        <div class="flex">
+            <form class="fh dkuform-modal-wrapper" name="newRecipeForm">
+                <div class="modal-body h100" >
+                    <div block-api-error></div>
+                    <div class="row-fluid recipe-modal-io h100" ng-if="computablesMap">
+                        <div class="half-pane vertical-flex">
+                            <h4 class="header-text noflex">
+                                <i class="icon-dku-quick_go_input" />&nbsp;Input{{hasSingleInput ? '' : 's'}}
+                            </h4>
+
+                            <div class="flex oa" include-no-scope="/templates/recipes/recipe-copy-inputs.html"/>
+                        </div>
+                        <div class="half-pane vertical-flex" style="position:relative">
+                            <h4 class="header-text noflex">
+                                <i class="icon-dku-quick_go_input" />&nbsp;Output{{hasSingleOutput ? '' : 's'}}
+                            </h4>
+
+                            <!-- Show all replacements when recipe has (potentially) several outputs -->
+                            <div class="flex oa" include-no-scope="/templates/recipes/recipe-copy-outputs.html" ng-if="!isSingleOutputRecipe && !uiState.editingOutput" />
+                            <!-- Edit role for multiple outputs recipes -->
+                            <div class="fh oa" style="top: 45px;" ng-if="!isSingleOutputRecipe && uiState.editingOutput"> <!-- TODO @layout ugly ugly ugly :( -->
+                                <div include-no-scope="/templates/recipes/io/modal-output-add-list.html"/>
+                            </div>
+                            <!-- Display select output for single output recipe -->
+                            <div class="flex oa" include-no-scope="/templates/recipes/recipe-copy-single-output.html" ng-if="isSingleOutputRecipe" />
+
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="noflex modal-footer modal-footer-std-buttons" data-block="buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit"
+                ng-disabled="!formIsValid() || creatingRecipe"
+                class="btn btn--text btn--primary"
+                ng-click="copy(false)"
+                ng-if="io.newOutputTypeRadio != 'create' || !uiState.backendWarnings.length">
+                Create recipe
+            </button>
+            <button type="submit"
+                ng-disabled="!formIsValid() || creatingRecipe"
+                class="btn btn--text btn--danger"
+                ng-click="copy(true)"
+                ng-if="io.newOutputTypeRadio == 'create' && uiState.backendWarnings.length">
+                Create recipe anyway
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,1 @@
+df <- dkuSparkReadDataset(sqlContext, "mydataset")

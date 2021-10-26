@@ -1,0 +1,75 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-grand-parent="processorForm">
+
+    <li class="processor-field applies-to" ng-controller="AppliesToProcessorController">
+        <fieldset>
+            <span class="fieldLabel">
+                Input columns
+                <span class="modes" ng-hide="appliesToDisabled">
+                    <a ng-click="step.params.appliesTo = 'COLUMNS'; checkAndRefresh()"
+                       ng-class="step.params.appliesTo == 'COLUMNS' ? 'selected' : ''">multiple</a>
+                    |
+                    <a ng-click="step.params.appliesTo = 'PATTERN'; checkAndRefresh()"
+                       ng-class="step.params.appliesTo == 'PATTERN' ? 'selected' : ''">pattern</a>
+                </span>
+            </span>
+    
+            <ng-switch on="step.params.appliesTo">
+                <div ng-switch-when="COLUMNS" ng-init="clearEmptyColumns();">
+                    <ng2-values-list 
+                        [(items)]="step.params.columns"
+                        [suggestions]="step.$stepState.change.columnsBeforeStep"
+                        add-label="Add a column" 
+                        (on-blur)="checkAndRefresh()"
+                        (on-delete)="checkAndRefresh()"
+                        value-placeholder="E.g. a column of the schema">
+                    </ng2-values-list>
+                </div>
+                <div ng-switch-when="PATTERN">
+                    <input
+                            type="text"
+                            class="submit-on-blur"
+                            ng-trim="false"
+                            ng-model="step.params.appliesToPattern"
+                            ng-required="true"
+                            next-on-enter />
+                </div>
+            </ng-switch>
+        </fieldset>
+    </li>
+
+    <li class='processor-field'>
+    
+        <fieldset child-focus>
+            <span class="fieldLabel">Output column</span>
+            <input
+                type="text"
+                class="submit-on-blur"
+                ng-trim="false"
+                ng-model="step.params.outputColumn"
+                ng-required="true"
+                next-on-enter />
+        </fieldset>
+
+        <fieldset child-focus>
+            <label>
+                <input ng-model="step.params.useDefaultValue" type="checkbox" ng-change="checkAndRefresh()"/>
+                Use a default value
+                <div class="help-inline">
+                    Define an output value if no selected column contains numerical data
+                </div>
+            </label>
+        </fieldset>
+
+        <fieldset ng-show="step.params.useDefaultValue" child-focus>
+            <span class="fieldLabel">Default value</span>
+            <input type="number"
+                force-double
+                step="any"
+                ng-model="step.params.defaultValue"
+                ng-required="true"
+                class="submit-on-blur"
+                next-on-enter
+            />
+        </fieldset>
+    </li>
+</form>

@@ -1,0 +1,94 @@
+<div ng-controller="SQLConnectionController" class="h100 vertical-flex">
+    <div class="oa vertical-flex">
+        <div class="w100 small-lr-padding">
+            <div class="generic-white-box">
+                <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                <div block-api-error />
+
+                <form name="connectionParamsForm" class="dkuform-horizontal">
+                    <div class="row-fluid">
+                        <div class="span7">
+                            <h2 class="settings-section-title">Basic params</h2>
+                            <div class="control-group" ng-if="false">
+                                <label class="control-label">Credentials</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="connection.params.credentialsMode"
+                                    ng-options="x[0] as x[1] for x in [['KEYPAIR', 'Private key'], ['ENVIRONMENT', 'Environment']]"
+                                    options-descriptions="['Private key', 'Use credentials from environment variables']"/>
+                                </div>
+                            </div>
+                            <fieldset ng-if="connection.params.credentialsMode == 'KEYPAIR'">
+                                <div class="control-group" form-template-element model="connection.params"
+                                    field="{name:'keyPath',type:'string', mandatory:true, label:'Private key', tooltip:'Mandatory. Must contains either the full path on the DSS server to the key file (.json or .p12) - Recommended, or the key as a JSON formatted string'}" />
+                                <div class="control-group" form-template-element model="connection.params"
+                                    field="{name:'serviceAccountEmail',type:'string', mandatory:false, label:'Service account e-mail', tooltip:'Mandatory if private key contains the path to a .p12 file. Ignored otherwise'}" />
+                            </fieldset>
+                            <div class="control-group" form-template-element model="connection.params"
+                                 field="{name:'projectId',type:'string', mandatory:true, label:'Project ID', tooltip:'Mandatory'}" />
+
+                            <h2 class="settings-section-title">Advanced params</h2>
+                            <div class="control-group">
+                                <label for="" class="control-label">Driver to use</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="connection.params.driverMode"
+                                            ng-options="x[0] as x[1] for x in [['CUSTOM', 'User-provided'],['DRIVERLESS', 'Built-in (experimental)']]" />
+                                </div>
+                            </div>
+                            <div class="control-group" form-template-element model="connection.params"
+                                 ng-if="connection.params.driverMode == 'CUSTOM'"
+                                 field="{name:'jarsDirectory',type:'string', mandatory:false, label:'Driver jars directory', tooltip:'Path to a directory containing the JDBC driver jars. The path can be absolute or relative to the DSS data directory. If empty, jars must be copied in [DSS home]/lib/jdbc directory.'}" />
+
+                            <div class="control-group" ng-if="connection.params.driverMode == 'CUSTOM'">
+                                <label  class="control-label">Advanced JDBC properties</label>
+                                <div class="controls">
+                                    <ng2-connection-properties-list [(items)]="connection.params.properties" (on-validity-change)="setAdvancedPropertiesValidity($event)"></ng2-connection-properties-list>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">Automatic fast-write</label>
+                                <div class="controls">
+                                    <label>
+                                        <input type="checkbox" ng-model="connection.params.useAutoFastPath"/>
+                                        <span class="help-inline">Experimental. Automatically uses a GCS connection and fast bulk load into BigQuery when using recipes writing data from the outside into BigQuery.</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="connection.params.useAutoFastPath">
+                                <label for="" class="control-label">Auto. fast-write connection</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="connection.params.autoFastPathConnection" />
+                                    <span class="help-inline">Name of a GCS connection that will be used as staging area for fast bulk load.</span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="connection.params.useAutoFastPath">
+                                <label for="" class="control-label">Path in connection</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="connection.params.autoFastPathConnectionPath" />
+                                    <span class="help-inline">Path within the auto fast-write connection that will be used for temporary staging data.</span>
+                                </div>
+                            </div>
+                            <div include-no-scope="/templates/admin/fragments/connection-post-connect-statements.html" />
+                        </div>
+
+                        <div class="span5">
+                            <div include-no-scope="/templates/admin/fragments/sql-naming-rule.html" />
+                            <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+            </div>
+        </div>
+    </div>
+
+    <div class="small-lr-padding page-top-padding vertical-flex connection-page__connection-testing-section">
+        <div class="vertical-flex h100">
+            <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html"/>
+            <div class="vertical-flex oh" include-no-scope="/templates/admin/fragments/sql-connection-test.html"/>
+            <div include-no-scope="/templates/admin/fragments/connection-sql-mass-import.html"/>
+        </div>
+    </div>
+</div>

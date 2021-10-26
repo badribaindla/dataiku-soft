@@ -1,0 +1,41 @@
+<div class="animation-controls mbot20" ng-controller="StdAggregatedChartDefController">
+    <div dku-foldable open="false" open-on-drag-enter>
+        <h2 class="foldable-title" id="qa_charts_subchart-submenu-header" ng-click="foldableToggle()">
+            <div class="pull-right nb-records" ng-if="chart.def.facetDimension.length" title="{{chart.def.facetDimension[0].column}}">
+                {{chart.def.facetDimension[0].column}}
+            </div>
+            <i class="{{foldableOpen ? 'icon-caret-down' : 'icon-caret-right'}}" />
+            Subcharts
+        </h2>
+        <div class="filtersZone zdroppable" ng-show="foldableOpen" ng-class="{'empty':chart.def.facetDimension.length==0, 'notempty': chart.def.facetDimension.length >0}">
+            <div data-block="dim1-placeholder"  class="empty-placeholder no-icon">
+                Drop to create subcharts
+            </div>
+            <div class="chartdef-dropzone-main" id="qa_charts_subcharts-dropzone" monovalued-std-aggr-dimension-zone list="chart.def.facetDimension" is-second-dimension="true" accept-callback="acceptDimension" />
+
+
+            <form class="dkuform-chart-options" ng-if="chart.def.facetDimension.length">
+                <div class="control-group">
+                    <div class="controls">
+                        <label>
+                            Chart height
+                            <div dku-slider="" min="50" max="500" value="chart.def.chartHeight" id="qa_charts_subchart-height-slider" nb-decimal-places="0" class="ng-isolate-scope"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-group" style="margin-top: 20px">
+                    <div class="controls">
+                        <label ng-show="ChartFeatures.hasSingleXAxis(chart.def)">
+                            <input type="checkbox" ng-model="chart.def.singleXAxis" /> Common X Axis
+                        </label>
+                        <label>
+                            <input type="checkbox" ng-model="chart.def.multiTooltips" /> Display tooltip on each subchart
+                        </label>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>

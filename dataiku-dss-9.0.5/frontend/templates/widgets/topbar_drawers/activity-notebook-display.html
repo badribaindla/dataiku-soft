@@ -1,0 +1,80 @@
+<div class="notebook" ng-init="session = notebook.activeSessions.length ? notebook.activeSessions[0] : null;">
+    <div class="future-icon">
+        <div class="h100 center-children">
+            <i class="icon-dku-nav_notebook universe-color notebook" />
+        </div>
+    </div>
+
+    <div class="future-body">
+        <div class="abort"
+            ng-show="notebook.activeSessions.length"
+            ng-click="notebook.confirming = true;"
+            ng-mouseenter="notebook.hoverClose = true"
+            ng-mouseleave="notebook.hoverClose = false"
+            ng-class="{hovered : notebook.hoverClose}">
+            <span>Unload</span>
+            <del>&times;</del>
+        </div>
+        <div class="name mx-textellipsis">Notebook in memory</div>
+        <div class="details">
+            <span class="target">
+                <a href="{{StateUtils.href.jupyterNotebook(notebook.name, notebook.projectKey)}}">{{notebook.name}}</a>
+                in
+                <span ng-if="$stateParams.projectKey != notebook.projectKey">
+                    <a href="{{StateUtils.href.project(notebook.projectKey)}}">{{notebook.projectName || notebook.projectKey}}</a>
+                </span>
+                <span ng-if="$stateParams.projectKey == notebook.projectKey">current project</span>
+            </span>
+            <span ng-if="inAdmin && session && session.sessionCreator != appConfig.user.login">
+                <span class="separator">|</span>
+                <span class="owner">
+                    by
+                    <a href="/profile/{{session.sessionCreator}}/">
+                        {{session.sessionCreatorDisplayName || '@'+session.sessionCreator}}
+                    </a>
+                </span>
+            </span>
+            <span class="duration" ng-if="notebook.lastModifiedOn">
+                <span class="separator">|</span>
+                Notebook last modified {{notebook.lastModifiedOn | friendlyTimeDelta}}
+            </span>
+        </div>
+        <div class="details">
+            <span ng-if="session && session.sessionId">
+            	Session
+                <span ng-if="inAdmin">
+                     {{session.sessionId}}
+                </span>
+                <span ng-if="inAdmin" class="separator">|</span>
+                <span>
+                    started {{session.sessionStartTime | friendlyTimeDelta}}
+                </span>
+            </span>
+        </div>
+        <div class="details">
+            <span ng-if="session && session.kernelId">
+            	Kernel
+                <span ng-if="inAdmin">
+                     {{session.kernelId}}
+                </span>
+                <span ng-if="inAdmin" class="separator">|</span>
+                <span>
+                    state:  {{session.kernelExecutionState }}
+                </span>
+                <span class="separator">|</span>
+                <span>
+                    Connected sockets: {{session.kernelConnections }}
+                </span>
+                <span class="separator">|</span>
+                <span >
+                    Last recorded activity: {{session.kernelLastActivityTime | friendlyTimeDelta }}
+                </span>
+            </span>
+        </div>
+    </div>
+    <div future-abort-confirmation="notebook"
+        abort-msg="'Unload the notebook?'"
+        abort-title="'Unload'"
+        abort-fn="abortNotebook(session.sessionId)" >
+    </div>
+</div>

@@ -1,0 +1,58 @@
+<!-- Tags fit in container: display all tags -->
+<div id="tag-list" ng-show="canTagsFit" class="responsive-tags-list tags inline" ng-class="{ 'visibility-hidden': !hasFitBeenChecked }">
+    <span ng-repeat="tag in items" class="tag responsive-tags-list__tag" data-tag="{{tag}}"
+          color-contrast="{{ tagsMap[tag].color.substring(1) || '#999999'}}"
+          onclick="editable && window.globalPopoverTagClickCallback(event);">
+        <span ui-global-tag="tag" object-type="objectType"></span>
+    </span>
+    <span ng-if="editable && objectType === 'PROJECT'" ng-repeat="category in globalTagsCategories track by $index">
+        <span class="help-text tag responsive-tags-list__tag" data-category="{{category}}" onclick="window.globalPopoverTagClickCallback(event)">
+            <i plus-icon></i> Add {{category}}
+        </span>
+    </span>
+    <span ng-if="editable && objectType === 'PROJECT'" class="help-text tag responsive-tags-list__tag" onclick="window.globalPopoverTagClickCallback(event);">
+        <i plus-icon></i> Add tags
+    </span>
+</div>
+
+<!-- Tags do not fit in container: display one tag and the rest in a popover -->
+<div class="responsive-tags-list tags inline h100" ng-show="(items.length || globalTagsCategories.length) && !canTagsFit" ng-class="{ 'visibility-hidden': !hasFitBeenChecked }">
+    <span ng-repeat="tag in fittingTags.tags" class="tag responsive-tags-list__tag" data-tag="{{tag}}"
+          color-contrast="{{ tagsMap[tag].color.substring(1) || '#FDB423'}}"
+          onclick="window.globalPopoverTagClickCallback(event);">
+        <span ui-global-tag="tag" object-type="objectType"></span>
+    </span>
+    <span ng-if="editable && objectType === 'PROJECT'" ng-repeat="category in fittingTags.categories" class="tag responsive-tags-list__tag help-text"
+          data-category="{{category}}" onclick="window.globalPopoverTagClickCallback(event)">
+        <i plus-icon></i> Add {{category}}
+    </span>
+
+    <span ng-show="fittingTags.tags.length + fittingTags.categories.length < items.length + globalTagsCategories.length"
+          dku-inline-popover container="body" on="{{ !editable ? 'hover' : '' }}" class="tag responsive-tags-list__tag responsive-tags-list__tag-button">
+
+        <label><i class="icon-dku-more"></i></label>
+
+        <content title="<span class='responsive-tags-list__popover-title'>More tags</span>">
+            <ul class="tags inline responsive-tags-list__popover-list">
+                <li ng-repeat="tag in items track by $index" ng-if="$index >= fittingTags.tags.length" class="pad0">
+                    <span class="tag responsive-tags-list__tag" data-tag="{{tag}}"
+                          color-contrast="{{ tagsMap[tag].color.substring(1) || '#FDB423'}}" onclick="window.globalPopoverTagClickCallback(event);">
+                        <span ui-global-tag="tag" object-type="objectType"></span>
+                    </span>
+                </li>
+                <li ng-repeat="category in globalTagsCategories track by $index" class="pad0"
+                    ng-if="editable && objectType === 'PROJECT' && $index >= fittingTags.categories.length">
+                    <span class="help-text tag responsive-tags-list__tag" data-category="{{category}}" onclick="window.globalPopoverTagClickCallback(event)">
+                        <i plus-icon></i> Add {{category}}
+                    </span>
+                </li>
+                <li ng-if="editable && objectType === 'PROJECT'" class="pad0">
+                    <span class="help-text tag responsive-tags-list__tag" onclick="window.globalPopoverTagClickCallback(event);">
+                        <i plus-icon></i> Add tags
+                    </span>
+                </li>
+            </ul>
+        </content>
+        
+    </span>
+</div>

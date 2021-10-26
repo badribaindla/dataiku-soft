@@ -1,0 +1,184 @@
+<div class="recipe-settings-section1 w800">
+    <h1 class="recipe-settings-section1-title">
+        Engine:
+        <div engine-selector-button
+            recipe-type="recipe.type"
+            recipe-status="recipeStatus"
+            recipe-params="params"
+            update-status="hooks.updateRecipeStatus"
+            can-change-engine="canChangeEngine"
+            hide-status="true"
+            style="display: inline-block;"/>
+    </h1>
+
+    <form class="dkuform-horizontal recipe-settings-section2" ng-switch="recipeStatus.selectedEngine.type">
+        <div ng-switch-when="SPARK">
+            <div spark-override-config config="params.engineParams.sparkSQL.sparkConfig" class="recipe-settings-section2" />
+
+            <div spark-datasets-read-params read-params="params.engineParams.sparkSQL.readParams" />
+
+            <div class="control-group">
+                <label class="control-label">Spark engine</label>
+                <div class="controls" >
+                    <select dku-bs-select ng-model="params.engineParams.sparkSQL.executionEngine" >
+                        <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+                        <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+                        <option value="DATABRICKS">Databricks</option>
+                    </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Hive metastore</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="params.engineParams.sparkSQL.useGlobalMetastore"/>
+                    <span class="help-inline">
+                        Use global Hive metastore
+                    </span>
+                </div>
+            </div>
+
+            <recipe-pipeline-config config="params.engineParams.sparkSQL" any-pipeline-type-enabled="anyPipelineTypeEnabled()"></recipe-pipeline-config>
+
+            <div class="control-group">
+                <label for="" class="control-label">Pre-execution queries</label>
+                <div class="controls">
+                    <div class="codemirror" style="height:210px;overflow-y: scroll;">
+                        <textarea ng-model="params.engineParams.sparkSQL.preQueries" ui-codemirror="codeMirrorSettingService.get('text/x-sql')" ></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div ng-switch-when="IMPALA">
+            <div class="control-group">
+                <label for="" class="control-label"> Stream mode </label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="params.engineParams.impala.forceStreamMode" id="forceStream"/>
+                    <label for="forceStream" class="help-inline"> Do not use Impala to write the output </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Pre-execution queries</label>
+                <div class="controls">
+                    <div class="codemirror" style="height:210px;overflow-y: scroll;">
+                        <textarea ng-model="params.engineParams.impala.preQueries" ui-codemirror="codeMirrorSettingService.get('text/x-sql')" ></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div ng-switch-when="HIVE">
+            <div class="control-group" >
+                <label class="control-label">Execution engine</label>
+                <div class="controls" >
+                    <select dku-bs-select ng-model="params.engineParams.hive.executionEngine" >
+                        <option value="HIVECLI_LOCAL">(Deprecated) Hive CLI (Isolated metastore)</option>
+                        <option value="HIVECLI_GLOBAL">(Deprecated) Hive CLI (Global metastore)</option>
+                        <option value="HIVESERVER2">HiveServer2</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="" class="control-label">Runtime config.</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="params.engineParams.hive.inheritConf" ng-options="x for x in appConfig.hiveExecutionConfigs" />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="" class="control-label">Additional configuration</label>
+                <div class="controls">
+                    <small style="margin-bottom: 10px; display: inline-block;">
+                    Define here additional configuration keys for the Hive job
+                    </small>
+                    <ng2-key-values-list
+                        [(items)]="params.engineParams.hive.hiveconf"
+                        add-label="Add additional configuration"
+                        key-placeholder="Configuration key"
+                        value-placeholder="Configuration value">
+                    </ng2-key-values-list>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="" class="control-label">Pre-execution queries</label>
+                <div class="controls">
+                    <div class="codemirror" style="height:210px;overflow-y: scroll;">
+                        <textarea ng-model="params.engineParams.hive.preQueries"
+                            ui-codemirror="codeMirrorSettingService.get('text/x-sql')" >
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div ng-switch-when="TDCH">
+            <div  class="control-group">
+                <label for="" class="control-label">Distribution method</label>
+                <div ng-if="recipeStatus.selectedEngine.variant == 'HADOOP_TO_TERADATA' " style=" margin-left: 200px;margin-bottom: 4px;" class="control">
+                    <select dku-bs-select ng-model="params.engineParams.tdchParams.splitMode" >
+                        <option value="DEFAULT">Default</option>
+                        <option value="INTERNAL_FASTLOAD">Internal fastload</option>
+                    </select>
+                    <small class="help-inline">Internal fastload is generally faster. Refer to TDCH documentation for more information.</small>
+                </div>
+                <div ng-if="recipeStatus.selectedEngine.variant == 'TERADATA_TO_HADOOP'"  style=" margin-left: 200px;margin-bottom: 4px;" class="control">
+                    <select dku-bs-select ng-model="params.engineParams.tdchParams.splitMode">
+                        <option value="DEFAULT">Default</option>
+                        <option value="BY_HASH">Split by hash</option>
+                        <option value="BY_AMP">Split by AMPs<option>
+                        <option value="BY_PARTITION">Split by partition </option>
+                        <option value="BY_VALUE">Split by value</option>
+                    </select>
+                    <small class="help-inline">Split by AMP may be faster, split by hash may offer better parallelism. Refer to TDCH documentation for more information.</small>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="" class="control-label">Number of mappers</label>
+                <div class="controls">
+                    <input type="number" ng-model="params.engineParams.tdchParams.numberOfExecutors" id="tdExec" style="width: 220px;"/>
+                    <small for="tdExec" class="help-inline">Controls maximum parallelism of the TDCH job</small>
+                </div>
+            </div>
+
+        </div>
+
+        <div ng-switch-when="SQL">
+            <recipe-pipeline-config config="params.engineParams.sqlPipelineParams" any-pipeline-type-enabled="anyPipelineTypeEnabled()"></recipe-pipeline-config>
+        </div>
+
+        <div ng-switch-default>
+            <div style="margin-top: 35px;" class="placeholder-block" ng-if="recipe.type != 'window'">
+                <i class="icon-ok" />
+                No settings required
+            </div>
+            <div ng-if="recipe.type == 'window'">
+                <div class="control-group" ng-init="params.legacyUnboundedWindowStreamBehavior = params.legacyUnboundedWindowStreamBehavior == null ? true : params.legacyUnboundedWindowStreamBehavior">
+                    <label for="" class="control-label">Default to unbounded</label>
+                    <div class="controls">
+                        <input type="checkbox" ng-model="params.legacyUnboundedWindowStreamBehavior" />
+                        <span class="help-inline" style="display: inline">
+                            If checked, not specifying limits on a window definition means the window is implicitely unbounded preceeding and unbounded following. If unchecked,
+                            the window is implicitelu unbounded preceeding and 0 following (which is the usual default in SQL databases)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </form>
+</div>
+
+<div class="recipe-settings-section1 w800" ng-if="showOverrideTable">
+    <h1 class="recipe-settings-section1-title">Overrides</h1>
+    <form class="dkuform-horizontal recipe-settings-section2">
+        <div class="control-group">
+            <label for="" class="control-label">Override variables</label>
+            <div class="controls">
+                <span override-table-link object-to-override="recipe" override-table-parent="recipe" />
+            </div>
+        </div>
+    </form>
+</div>

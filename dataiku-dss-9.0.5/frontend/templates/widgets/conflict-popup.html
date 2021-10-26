@@ -1,0 +1,21 @@
+<div class="conflict-popup">
+    <div class="conflict {{ conflict.warn ? 'conflict--warn': '' }}" ng-repeat="conflict in conflicts">
+        <div class="conflict__header">
+            <i class="icon-warning-sign" ng-if="conflict.warn"></i>
+            {{conflict.title}}
+        </div>
+        <div class="conflict__user {{user.active? 'conflict__user-active': ''}} {{currentUserLogin === user.userLogin ? 'conflict__user--current': ''}}" ng-repeat="user in conflict.users">
+            <span class="conflict__user-activity">&bull;</span>
+            <span class="conflict__user-picture" user-picture="user.userLogin" size="24"></span>
+            &nbsp;{{user.userDisplayName}}
+            <span ng-if="conflict.warn && currentUserLogin === user.userLogin && user.nbWindows > 1">
+                ({{user.nbWindows}})
+            </span>
+        </div>
+    </div>
+    <div class="conflict" ng-show="conflicts.length === 0">
+        <div class="conflict__header conflict__header--no-user">
+            No user connected
+        </div>
+    </div>
+</div>

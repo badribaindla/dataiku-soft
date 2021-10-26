@@ -1,0 +1,44 @@
+<div class="modal modal3 modal-w800" auto-size="false">
+	<div class="vertical-flex h100">
+		<div dku-modal-header modal-title="{{modalTitle}}" />
+
+		<div class="modal-body flex">
+			<div ng-hide="hideAlertHeader">
+				<div ng-if="data.maxSeverity == 'ERROR'" class="alert alert-danger">
+					<h4>Errors were encountered</h4>
+				</div>
+				<div ng-if="data.maxSeverity == 'WARNING'" class="alert alert-warning">
+					<h4>Warnings were encountered</h4>
+				</div>
+				<div ng-if="data.maxSeverity == 'SUCCESS'" class="alert alert-success">
+					<h4>Success</h4>
+				</div>
+				<div ng-if="data.maxSeverity == 'INFO'" class="alert alert-info">
+					<h4>Information</h4>
+				</div>
+			</div>
+
+			<ul class="raw-unstyled-ul">
+				<li ng-repeat="message in data.messages" class="row-fluid info-message-inline-display {{ 'qa_modal_msg-' + message.severity.toLowerCase() }}">
+					<div class="span2">
+						<span class="{{DKUConstants.design.alertClasses[message.severity]}} severity">{{message.severity}}</span>
+					</div>
+					<div class="span10">
+						<span class="pull-right mtop10 smallgrey" pull-right ng-show="message.code">{{message.code}}</span>
+						<h5>{{message.title}}</h5>
+						<span ng-show="message.message && !message.details">{{message.message}}</span>
+						<span ng-show="message.details" class="message-details">{{message.details}}</span>
+					</div>
+				</li>
+			</ul>
+
+			<div ng-show="log && log.lines.length > 0">
+			 	<pre smart-log-tail="log" style="max-height: 250px;"/>
+			</div>
+
+		</div>
+		<div data-block="modal-footer-block " class="modal-footer modal-footer-std-buttons noflex">
+			<button class="btn btn--text btn--secondary" ng-click="dismiss()">OK</button>
+		</div>
+	</div>
+</div>

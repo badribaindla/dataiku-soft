@@ -1,0 +1,1 @@
+How to read DSS global and project variables from the Custom Python function environment in a Prepare recipe

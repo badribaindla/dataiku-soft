@@ -1,0 +1,416 @@
+<div ng-controller="PredictionTrainingRecipeEditor">
+    <div class="top-level-tabs objecttype-recipe">
+        <div class="horizontal-flex row-fluid object-nav" >
+            <div class="flex oh" std-object-breadcrumb />
+            <div class="noflex" tab-model="topNav.tab" tab-active-class="enabled">
+                <a class="tab" tab-active="summary"  tab-set="summary" >Summary</a>
+                <a class="tab" tab-active="settings" tab-set="settings">Settings</a>
+                <a class="tab" tab-active="io"       tab-set="io"      >Input / Output</a>
+                <a class="tab" tab-active="advanced" tab-set="advanced">Advanced</a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'gitlog'}" ng-click="topNav.tab='gitlog'">
+                    History
+                </a>
+                <div class="otherLinks">
+                    <div style="display: inline-block" ng-if="desc.generatingModelId">
+                        <a class="btn btn--contained btn--alt btn--analysis" ng-click="goToAnalysisModel()">
+                            <i class="icon-dku-nav_analysis"/>
+                            <span>View original analysis</span>
+                        </a>
+                    </div>
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-save-button.html" />
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-tabs-other-links.html" />
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-io-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+    <div class="dss-page" ng-if="topNav.tab == 'settings'">
+        <div ng-if="isMLBackendType('VERTICA')" class="noflex alert alert-warning">
+            <strong>Vertica ML backend is no longer supported:</strong>
+            <br />
+            Cannot run recipe.
+        </div>
+
+        <div block-api-error />
+
+        <div class="h100 vertical-flex">
+            <div class="flex">
+                <div class="fh">
+                    <div class="h100 oa">
+                        <div class="horizontal-centerer">
+                            <div style="background-color: #ffffff">
+                                <div ng-show="recipeStatus.allMessagesForFrontend.anyMessage" style="padding: 10px">
+                                    <div info-messages-raw-list-with-alert="recipeStatus.allMessagesForFrontend" />
+                                </div>
+                            </div>
+                            <div class="formbased-recipe-infozone w800">
+                                <ul>
+                                    <li> <strong>{{desc.script.steps.length}}</strong>
+                                        preparation steps are applied
+                                    </li>
+                                    <li> <strong>{{desc.modeling.algorithm}}</strong>
+                                        algorithm is used
+                                    </li>
+                                    <li ng-if="desc.core.time.enabled">
+                                        <strong>{{desc.core.time.timeVariable}}</strong> is set as time variable
+                                    </li>
+                                    <li ng-if="desc.core.weight.weightMethod==='SAMPLE_WEIGHT'">
+                                        <strong>{{desc.core.weight.sampleWeightVariable}}</strong> is set as sample weight variable
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="actions pull-right"></div>
+
+                        <div class="horizontal-centerer" ng-if="isPartitionedModel()">
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Partitioned source version</h1>
+                                <div class="recipe-settings-section2">
+                                    <p>
+                                        You can choose which saved model version you wish to use to retrain partitions
+                                    </p>
+                                    <form class="dkuform-horizontal">
+                                        <div class="control-group">
+                                            <label class="control-label">Version</label>
+                                            <div class="controls">
+                                                <select dku-bs-select layout="list"
+                                                        ng-model="desc.partSource"
+                                                        ng-options="x[0] as x[1] for x in partitionedSourceOptions"
+                                                        options-descriptions="partitionedSourceDescs">
+                                                </select>
+                                                <input type="text"
+                                                       ng-model="desc.partSourceVersionId"
+                                                       ng-if="desc.partSource === 'EXPLICIT_VERSION'"
+                                                       required/>
+                                            </div>
+
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="horizontal-centerer" ng-if="desc.splitParams.ttPolicy == 'SPLIT_SINGLE_DATASET'">
+
+                            <div class="recipe-settings-section1 w800" ng-if="desc.backendType != 'VERTICA'">
+                                <h1 class="recipe-settings-section1-title">Sampling</h1>
+                                <div class="recipe-settings-section2">
+                                    <p ng-if="isMLBackendType('PY_MEMORY')">
+                                        If your dataset does not fit in your RAM, you may want to subsample the set on which splitting will be performed
+                                    </p>
+                                    <form class="dkuform-horizontal">
+                                        <div sampling-form-without-partitions selection="desc.splitParams.ssdSelection" />
+                                        <div class="control-group required" ng-if="isMLBackendType('MLLIB')">
+                                            <label for="" class="control-label">Random seed for test sub-sampling</label>
+                                            <div class="controls">
+                                                <input type="number" ng-model="desc.splitParams.subSamplingSeed" />
+                                                <div class="help-inline">
+                                                    Test data is sub-sampled if necessary at max. 1M records.<br />
+                                                    Using a fixed random seed allows for reproducible result
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Training operation mode</h1>
+                                <div class="recipe-settings-section2">
+                                    <p>You can choose how the training recipe works</p>
+
+                                    <ul>
+                                        <li>Perform the train/test splitting normally. {{desc.splitParams.ssdTrainingRatio * 100|number:0}} % of the input data is used. Performance results are available.</li>
+                                        <!--<li>Train on 100% of the input data. Performance results are not available.</li>
+                                        <li>Perform both. The actual model runs on 100% of the input data, and the train/test splitting is used to make performance results available. Strongly increases training time.</li>-->
+                                        <li>Train on 100% of the input data, and also perform the train/test splitting. The actual model runs on 100% of the input data, and the train/test splitting is used to make performance results available. Strongly increases training time.</li>
+                                        <li ng-if="isMLBackendType('PY_MEMORY') && !desc.core.time.enabled">Split the dataset in {{desc.splitParams.nFolds}} folds and each fold is independently used as a separate testing set, with the remaining {{desc.splitParams.nFolds - 1 }} folds used as a training set. Gives error margins on metrics, but strongly increases training time</li>
+                                    </ul>
+                                    <p ng-if="isMLBackendType('PY_MEMORY') && desc.core.calibration.calibrationMethod !== 'NO_CALIBRATION'"> Note that since probability calibration is enabled, a fraction of the input dataset will be used to learn the calibration parameters so the model is not trained on 100% of the data. For normal train/test splitting the test set is also used for the calibration.</p>
+
+                                    <select dku-bs-select ng-model="desc.operationMode" ng-change="operationModeChanged(desc.operationMode)">
+                                        <option value="TRAIN_SPLITTED_ONLY">Split</option>
+                                        <!--<option value="TRAIN_FULL_ONLY">Train on 100%</option>-->
+                                        <option value="TRAIN_SPLITTED_AND_FULL">Train on 100% and split for results</option>
+                                        <option value="TRAIN_KFOLD" ng-if="isMLBackendType('PY_MEMORY') && !desc.core.time.enabled">Train with K-fold cross-test</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Splitting</h1>
+                                <form class="dkuform-horizontal recipe-settings-section2">
+                                    <div class="control-group required">
+                                        <label for="" class="control-label">Split</label>
+                                        <div class="controls controls--with-dku-bs-select-and-help-inline">
+                                            <select dku-bs-select ng-model="desc.splitParams.ssdSplitMode">
+                                              <option ng-if="!desc.core.time.enabled" value="RANDOM">Randomly</option>
+                                              <option ng-if="desc.core.time.enabled" value="SORTED">Based on time variable</option>
+                                            </select>
+                                            <div class="help-inline" ng-if="desc.core.time.enabled">
+                                                The variable <b>{{desc.core.time.timeVariable}}</b> will be used to sort the data before splitting
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group required" ng-if="!desc.splitParams.kfold">
+                                        <label for="" class="control-label">Train ratio</label>
+                                        <div class="controls">
+                                            <input type="number" ng-model="desc.splitParams.ssdTrainingRatio" step="0.001" />
+                                            <div class="help-inline">
+                                                Proportion of the sample that goes to the train set; The rest goes to the test set.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group required" ng-if="desc.splitParams.kfold">
+                                        <label class="control-label">Number of folds</label>
+                                        <div class="controls">
+                                            <input type="number" force-integer min="2" max="1000" step="1" ng-model="desc.splitParams.nFolds" />
+                                            <div class="help-inline">
+                                                Number of folds to divide the dataset into
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="!desc.core.time.enabled" class="control-group required">
+                                        <label for="" class="control-label">Random seed</label>
+                                        <div class="controls">
+                                            <input type="number" ng-model="desc.splitParams.ssdSeed" />
+                                            <div class="help-inline">Using a fixed random seed allows for reproducible result</div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="horizontal-centerer" ng-if="desc.splitParams.ttPolicy == 'EXPLICIT_FILTERING_TWO_DATASETS'">
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Train set: {{recipe.inputs.main.items[0].ref}}</h1>
+                                <form class="dkuform-horizontal recipe-settings-section2">
+                                    <div sampling-form-without-partitions
+                                        selection="desc.splitParams.eftdTrain.selection"
+                                        ng-if="desc.backendType != 'VERTICA'"/>
+
+                                    <h1 class="recipe-settings-section1-title">
+                                        Distinct
+                                        <label class="dku-toggle pull-right">
+                                            <input type="checkbox" ng-model="desc.splitParams.eftdTrain.filter.distinct"/>
+                                            <span/>
+                                        </label>
+                                    </h1>
+
+                                    <h1 class="recipe-settings-section1-title">
+                                        Filter
+                                        <label class="dku-toggle pull-right">
+                                            <input type="checkbox" ng-model="desc.splitParams.eftdTrain.filter.enabled"/>
+                                            <span/>
+                                        </label>
+                                    </h1>
+
+                                    <div filter-editor
+                                        ng-if="computablesMap && desc.splitParams.eftdTrain.filter.enabled"
+                                        ng-show="desc.splitParams.eftdTrain.filter.enabled"
+                                        filter-desc="desc.splitParams.eftdTrain.filter"
+                                        dataset="recipe.inputs['main'].items[0].ref"
+                                        schema="computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema"
+                                        hide-sql-filter="true"
+                                        />
+                                </form>
+                            </div>
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Test set: {{recipe.inputs.test.items[0].ref}}</h1>
+                                <form class="dkuform-horizontal recipe-settings-section2">
+                                    <div sampling-form-without-partitions
+                                        selection="desc.splitParams.eftdTest.selection"
+                                        ng-if="desc.backendType != 'VERTICA'"/>
+
+                                    <h1 class="recipe-settings-section1-title">
+                                        Distinct
+                                        <label class="dku-toggle pull-right">
+                                            <input type="checkbox" ng-model="desc.splitParams.eftdTest.filter.distinct"/>
+                                            <span/>
+                                        </label>
+                                    </h1>
+
+                                    <h1 class="recipe-settings-section1-title">
+                                        Filter
+                                        <label class="dku-toggle pull-right">
+                                            <input type="checkbox" ng-model="desc.splitParams.eftdTest.filter.enabled"/>
+                                            <span/>
+                                        </label>
+                                    </h1>
+
+                                    <div filter-editor
+                                        ng-if="computablesMap && desc.splitParams.eftdTest.filter.enabled"
+                                        ng-show="desc.splitParams.eftdTest.filter.enabled"
+                                        filter-desc="desc.splitParams.eftdTest.filter"
+                                        dataset="recipe.inputs['main'].items[0].ref"
+                                        schema="computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema"
+                                        hide-sql-filter="true"
+                                        />
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="horizontal-centerer" ng-if="desc.splitParams.ttPolicy == 'EXPLICIT_FILTERING_SINGLE_DATASET'">
+
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Train set</h1>
+                                <form class="dkuform-horizontal recipe-settings-section2">
+                                    <div sampling-form-without-partitions
+                                        selection="desc.splitParams.efsdTrain.selection"
+                                        ng-if="desc.backendType != 'VERTICA'"/>
+
+                                    <h1 class="recipe-settings-section1-title">
+                                        Distinct
+                                        <label class="dku-toggle pull-right">
+                                            <input type="checkbox" ng-model="desc.splitParams.efsdTrain.filter.distinct"/>
+                                            <span/>
+                                        </label>
+                                    </h1>
+
+                                    <h1 class="recipe-settings-section1-title">
+                                        Filter
+                                        <label class="dku-toggle pull-right">
+                                            <input type="checkbox" ng-model="desc.splitParams.efsdTrain.filter.enabled"/>
+                                            <span/>
+                                        </label>
+                                    </h1>
+
+                                    <div filter-editor
+                                        ng-if="computablesMap && desc.splitParams.efsdTrain.filter.enabled"
+                                        ng-show="desc.splitParams.efsdTrain.filter.enabled"
+                                        filter-desc="desc.splitParams.efsdTrain.filter"
+                                        dataset="recipe.inputs['main'].items[0].ref"
+                                        schema="computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema"
+                                        hide-sql-filter="true"
+                                        />
+                                </form>
+                            </div>
+
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Test set</h1>
+                                <form class="dkuform-horizontal recipe-settings-section2">
+                                    <div sampling-form-without-partitions
+                                        selection="desc.splitParams.efsdTest.selection"
+                                        ng-if="desc.backendType != 'VERTICA'"/>
+
+                                    <h1 class="recipe-settings-section1-title">
+                                        Distinct
+                                        <label class="dku-toggle pull-right">
+                                            <input type="checkbox" ng-model="desc.splitParams.efsdTest.filter.distinct"/>
+                                            <span/>
+                                        </label>
+                                    </h1>
+
+                                    <h1 class="recipe-settings-section1-title">
+                                        Filter
+                                        <label class="dku-toggle pull-right">
+                                            <input type="checkbox" ng-model="desc.splitParams.efsdTest.filter.enabled"/>
+                                            <span/>
+                                        </label>
+                                    </h1>
+
+                                    <div filter-editor
+                                        ng-if="computablesMap && desc.splitParams.efsdTest.filter.enabled"
+                                        ng-show="desc.splitParams.efsdTest.filter.enabled"
+                                        filter-desc="desc.splitParams.efsdTest.filter"
+                                        dataset="recipe.inputs['main'].items[0].ref"
+                                        schema="computablesMap[recipe.inputs['main'].items[0].ref].dataset.schema"
+                                        hide-sql-filter="true"
+                                        />
+                                </form>
+                            </div>
+                        </div>
+
+
+                        <div class="horizontal-centerer" ng-if="isMLBackendType('PY_MEMORY') || isMLBackendType('KERAS')">
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Container configuration</h1>
+                                <div class="recipe-settings-section2" container-selection-form="recipe.params.containerSelection"></div>
+
+                                <form class="dkuform-horizontal recipe-settings-section2" ng-if="isMLBackendType('PY_MEMORY')">
+                                    <h2 class="recipe-settings-section2-title">Hyperparameters search</h2>
+                                    <ml-hp-distribution
+                                            search-params="desc.modeling.grid_search_params"
+                                            has-selected-k8s-container="hasSelectedK8sContainer"
+                                    />
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="horizontal-centerer" ng-if="isMLBackendType('MLLIB') || isMLBackendType('H2O')">
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Spark configuration</h1>
+                                <div spark-override-config config="desc.sparkParams.sparkConf" task="desc" task-type="MLLib" class="recipe-settings-section2" ></div>
+                                <form class="dkuform-horizontal recipe-settings-section2">
+                                    <div class="control-group">
+                                        <label class="control-label">Spark engine</label>
+                                        <div class="controls" >
+                                            <select dku-bs-select ng-model="desc.sparkParams.sparkExecutionEngine" >
+                                                <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+                                                <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+                                                <option value="DATABRICKS">Databricks</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="horizontal-centerer" ng-if="featureFlagEnabled('model_evaluation_stores')">
+                            <div class="recipe-settings-section1 w800">
+                                <h1 class="recipe-settings-section1-title">Labels</h1>
+                                <form class="dkuform-horizontal recipe-settings-section2">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Labels to add to a version of a saved model on training</label>
+                                        <div class="controls">
+                                            <ng2-key-values-list
+                                                [(items)]="recipe.labels"
+                                                add-label="Add a label"
+                                                key-placeholder="Label key"
+                                                value-placeholder="Label value"
+                                            ></ng2-key-values-list>
+                                            <div class="help-inline">
+                                                Optional. Informative labels for the model.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="noflex job-result-pane" ng-if="valCtx.preRunValidationError || startedJob.jobId">
+                <div class="recipe-settings-floating-result">
+                    <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="recipe-settings-floating-run">
+            <div
+                class="recipe-settings-floating-run__container"
+                disabled-if="isMLBackendType('VERTICA')"
+                disabled-message="Vertica ML backend is no longer supported">
+                <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-partitions.html"></div>
+                <div include-no-scope="/templates/recipes/fragments/run-job-buttons.html"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div ng-if="topNav.tab == 'advanced'" class="small-lr-padding dss-page oa">
+        <div class="horizontal-centerer">
+            <div include-no-scope="/templates/recipes/fragments/recipe-advanced-common.html" />
+        </div>
+    </div>
+
+</div>

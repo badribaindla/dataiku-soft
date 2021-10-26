@@ -1,0 +1,52 @@
+<div ng-controller="NotificationsReporterController" project-integrations-editor messaging="reporter.messaging" messaging-variables-behavior>
+    <div ng-include ="'/templates/scenarios/fragments/reporter-header.html'"></div>
+
+    <form name="descriptionForm" class="dkuform-horizontal reporter-form" ng-if="!reporter.$hidden"> <!-- ng-show is not sufficient, the codeMirror doesn't get refreshed -->
+
+        <div class="control-group">
+            <div class="control-label">Type</div>
+            <div class="controls">
+                <select ng-model="reporter.messaging.type" ng-options="type.id as type.label for type in integrationTypes" />
+            </div>
+        </div>
+
+
+        <div ng-if="channels == null || channels.length == 0">
+            <div class="control-group" ng-if="isDSSAdmin()">
+                <label class="control-label">Messaging channel</label>
+                <div class="controls">
+                    <span>No available channel. You need to define them in the <a href="{{$state.href('admin.general')}}">Administration</a> section.</span>
+                </div>
+            </div>
+            <div class="control-group" ng-if="!isDSSAdmin()">
+                <label class="control-label">Messaging channel</label>
+                <div class="controls">
+                    <span>No available channel. Your DSS administrator needs to define them in the Administration section.</span>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="channels.length > 0">
+            <div class="control-group">
+                <label class="control-label">Messaging channel</label>
+                <div class="controls">
+                    <select dku-bs-select ng-if="channels" ng-model="reporter.messaging.channelId" ng-options="channel.id as channel.label for channel in channels"></select>
+                </div>
+            </div>
+
+            <div ng-show="reporter.messaging.channelId">
+
+                <!-- Then the messaging configuration itself -->
+                <div messaging-configuration-editor2 messaging="reporter.messaging" reporter="reporter" available-variables="availableVariables" datasets="datasets" dataset-smart-names="datasetSmartNames"/>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Raw format</label>
+                    <div class="controls">
+                        <input type="checkbox" ng-model="reporter.rawFormat" />
+                        <span class="help-inline">Send events as JSON rather than human readable strings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

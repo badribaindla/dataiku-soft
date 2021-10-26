@@ -1,0 +1,45 @@
+<div data-extend-template="/templates/object-details/item-template.html">
+    <div data-block="right">
+        <!-- Recipes -->
+        <div class="accordion" ng-if="data.creatingRecipe || data.recipes.length" dku-foldable dku-foldable-right-panel name="details.recipes" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Recipes <em>({{(data.creatingRecipe ? 1 : 0) + data.recipes.length}})</em>
+            </h4>
+            <ul ng-show="foldableOpen">
+                <li ng-if="data.creatingRecipe" class="horizontal-flex">
+                    <span class="mx-textellipsis flex">
+                        <i class="object-icon universe-color {{data.creatingRecipe.type | recipeTypeToIcon}} {{data.creatingRecipe.type | recipeTypeToColor}}"></i>
+                        <a href="{{StateUtils.href.recipe(data.creatingRecipe.name, data.creatingRecipe.projectKey)}}">{{data.creatingRecipe.name}}</a>
+                    </span>
+                    <span class="info noflex">
+                        parent recipe
+                    </span>
+                </li>
+                <li ng-repeat="recipe in data.recipes">
+                    <span class="mx-textellipsis">
+                        <i class="object-icon universe-color {{recipe.type | recipeTypeToIcon}} {{recipe.type | recipeTypeToColor}}"></i>
+                        <a href="{{StateUtils.href.recipe(recipe.name, recipe.projectKey)}}">{{recipe.name}}</a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- MEs -->
+        <div class="accordion" ng-if="data.evaluations" dku-foldable dku-foldable-right-panel name="details.evaluations" open="true">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"></i>
+                Model evaluations <em>({{data.evaluations.length}})</em>
+            </h4>
+            <ul ng-show="foldableOpen">
+                <li ng-repeat="evaluation in data.evaluations" class="horizontal-flex">
+                    <span class="flex mx-textellipsis">
+                        <a href="{{StateUtils.href.modelEvaluation(evaluation.ref.id, evaluation.ref.runId, evaluation.ref.projectKey)}}" >{{evaluation.ref.runId}}</a>
+                    </span>
+                </li>
+                <li ng-if="data.evaluations.length == 0" class="horizontal-flex">
+                    <span class="flex mx-textellipsis">No model evaluation</span>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+</div>

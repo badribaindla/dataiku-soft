@@ -1,0 +1,58 @@
+<div ng-init="params = modelData.modeling" class="model-info-page">
+
+    <h2 class="settings-section-title" style="margin-top: 5px">Algorithm details</h2>
+
+    <table class="table algorithms-page__algorithm_parameters">
+        <tr>
+            <th>Backend</th>
+            <td ng-bind="modelData.backendType | niceMLBackendType" />
+        </tr>
+        <tr ng-switch on="params.algorithm">
+            <th>Algorithm</th>
+            <td ng-switch-when="KMEANS">KMeans</td>
+            <td ng-switch-when="MiniBatchKMeans">Mini-Batch KMeans</td>
+            <td ng-switch-when="WARD">Agglomerative clustering</td>
+            <td ng-switch-when="SPECTRAL">Spectral clustering</td>
+            <td ng-switch-when="DBSCAN">DBSCAN</td>
+            <td ng-switch-when="VERTICA_KMEANS">KMeans</td>
+            <td ng-switch-default ng-bind="params.algorithm | niceConst" />
+        </tr>
+        <tr> <th>Number of clusters</th> <td ng-bind="params.k" /> </tr>
+        <tbody ng-if="params.algorithm === 'DBSCAN'">
+            <tr> <th>Epsilon</th> <td ng-bind="params.epsilon" /> </tr>
+            <tr> <th>Min. sample ratio</th> <td ng-bind="(params.min_sample_ratio * 100).toFixed(0) + '&nbsp;%'" /> </tr>
+        </tbody>
+        <tbody ng-if="params.algorithm === 'SPECTRAL'">
+            <tr> <th>Affinity measure</th> <td ng-bind="params.affinity | niceConst" /> </tr>
+            <tr ng-if="params.affinity !== 'nearest_neighbors'"> <th>Gamma</th> <td ng-bind="params.gamma" /> </tr>
+            <tr ng-if="params.affinity === 'polynomial' || params.affinity === 'sigmoid'">
+                <th>Coef0</th> <td ng-bind="params.coef0" /> </tr>
+        </tbody>
+    </table>
+
+    <div ng-if="modelData.perf.train_nb_records">
+        <h2 class="settings-section-title">Training data</h2>
+        <table class="table table-small">
+            <tr>
+                <th>Rows (before preprocessing)</th>
+                <td ng-if="modelData.splitDesc.trainRows > 0" ng-bind="modelData.splitDesc.trainRows" />
+                <td ng-if="modelData.splitDesc.fullRows > 0" ng-bind="modelData.splitDesc.fullRows" />
+                <th>Rows (after preprocessing)</th>
+                <td ng-bind="modelData.perf.train_nb_records" />
+            </tr>
+            <tr>
+                <th>Columns (before preprocessing)</th>
+                <td ng-bind="modelData.splitDesc.schema.columns.length" />
+                <th>Columns (after preprocessing)</th>
+                <td ng-bind="modelData.perf.train_nb_features" />
+            </tr>
+        </table>
+    </div>
+
+    <div ng-if="params.algorithm === 'SCIKIT_MODEL'">
+        <h2 class="settings-section-title">Code</h2>
+        <div class="code-viewer-wrapper">
+            <div code-viewer code="params.scikit_clf" mime-type="text/x-python"/>
+        </div>
+    </div>
+</div>

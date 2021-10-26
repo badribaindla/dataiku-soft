@@ -1,0 +1,35 @@
+<div class="modal modal3 future-progress-modal">
+    <div class="noflex has-border" modal-totem="icon-download" dku-modal-header modal-title="Build report for download..." />
+
+	<div class="modal-body">
+		<div block-api-error />
+
+        <div ng-show="!finalResponse && !done">
+            <progress-bar neutral="{{percentage}}" allow-empty="true" class="progress-striped" active="true"  ng-if="futureResponse != null"></progress-bar>
+            <progress-bar error="{{percentage}}"   allow-empty="true" class="progress"         active="false" ng-if="futureResponse == null"></progress-bar>
+            <div class="future-progress-bar">
+                <div style="width: {{percentage}}%"></div>
+            </div>
+            <p ng-bind-html="stateLabels"></p>
+        </div>
+        <div ng-show="aborted">
+            <p ng-if="aborted">Download aborted</p>
+        </div>
+
+		<div ng-show="finalResponse && !aborted && !finalResponse.ok">
+			<p>Download failed</p>
+            <div ng-if="conversionFailure" api-error-alert="conversionFailure" />
+            <pre ng-if="logTail" smart-log-tail="logTail"/>
+		</div>
+	</div>
+
+	<div class="modal-footer modal-footer-std-buttons">
+		<div ng-show="!finalResponse && !done" class="running-time pull-left">
+			started {{futureResponse.runningTime | friendlyDurationShort}} ago
+		</div>
+
+        <button ng-show="!finalResponse && !done" type="button" ng-click="abort()" class="btn btn--text btn--danger">Abort</button>
+        <button ng-show="!finalResponse && done" type="button" ng-click="dismiss()" class="btn btn--text btn--danger">Close</button>
+        <button ng-show="finalResponse && !done" type="button" ng-click="dismiss()" class="btn btn--text btn--primary">Close</button>
+	</div>
+</div>

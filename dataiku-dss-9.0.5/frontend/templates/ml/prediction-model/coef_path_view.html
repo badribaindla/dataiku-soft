@@ -1,0 +1,64 @@
+<div class="coef-path">
+    <div class="horizontal-flex">
+        <div class="graph-container noflex">
+            <div class="graph-width graph-slider">
+                <div class="alert alert-info" style="position: relative" ng-if="windowParams.displayHelp">
+                    <i class="icon-remove" ng-click="hideHelp()"></i>
+                    This graph displays the coefficients as the regularization coefficient varies. On the left, regularization
+                    is maximal and all coefficients tend to zero. On the right, regularization is low. The horizontal
+                    dashed lines show when a new coefficient becomes zero. Use the slider to change the regularization
+                    parameter and inspect the impact on coefficients on the right.
+                </div>
+                <input type="range" ng-model="slide" min="0" max="300" class="graph-width">
+            </div>
+            <svg id="coef-path-container" class="chart-std-font">
+                <g id="graph">
+
+                </g>
+            </svg>
+        </div>
+        <div class="coef-container flex">
+            <div class="number-header">
+                Displaying <strong>{{nCoefs}}</strong> non-zero coefficients.
+            </div>
+            <div class="selected-feature ellipsed">
+                <span ng-if="selectedFeature == null">
+                    Hover over a curve to see the corresponding feature.
+                </span>
+                <span ng-if="selectedFeature != null" ng-style="{color: colorScales(selectedFeature)}"
+                     style="font-size: 14pt">
+                    {{features[selectedFeature] | mlFeature}}
+                </span>
+            </div>
+            <div style="min-width: 250px; max-height: 400px; overflow: auto">
+                <table style="margin:auto">
+                    <tr ng-repeat="i in coefIndex">
+                        <td class="feature" title="{{features[i] | mlFeature}}"
+                            ng-mouseover="mouseoverCurve(i, false)"
+                            ng-mouseout="mouseoutCurve(i, false)"
+                            ng-style="{'color': featureTextColor(i) }">
+                            {{features[i] | mlFeature}}
+                        </td>
+                        <td class="coef-bar">
+                            <div class="horizontal-flex">
+                                <div style="width:35px; min-width: 35px;">
+                                    <div class="pull-right" style="height: 10px; background-color: red;"
+                                         ng-style="{'width': coefWidth(coefs[i])}" ng-if="coefs[i] <= 0"></div>
+                                </div>
+                                <div style="width:35px; min-width: 35px;">
+                                    <div style="height: 10px; background-color: green"
+                                         ng-style="{'width': coefWidth(coefs[i])}"
+                                         ng-if="coefs[i] > 0"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="coef-value">
+                            <span ng-if="coefs[i] > 0.0 || coefs[i] < 0.0">{{coefs[i].toFixed(2)}}</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>

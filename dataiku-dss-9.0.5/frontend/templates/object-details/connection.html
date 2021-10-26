@@ -1,0 +1,117 @@
+
+<div data-extend-template="/templates/object-details/item-template.html"
+     ng-controller="ConnectionDetailsController as ctrl" class="object-details__connections">
+
+    <div data-block-append="left">
+
+        <div class="line " ng-if="data.creationTag">
+            <h4>Creation</h4>
+            <p style="overflow: visible">
+                <span ng-if="data.creationTag.lastModifiedOn" title="">{{data.creationTag.lastModifiedOn | friendlyTimeDeltaShort}}</span>
+                <span ng-if="data.creationTag.lastModifiedBy.login">
+                        by
+                        <a href="/profile/{{data.creationTag.lastModifiedBy.login}}/" title="{{ data.timeline.createdBy.displayName || data.creationTag.lastModifiedBy.login }}" class="avatar" style="margin-left: 5px;"
+                           toggle="tooltip" placement="left" animation="false">
+                        <span user-picture="data.creationTag.lastModifiedBy.login" size="24" class="avatar24"></span>
+                    </a>
+                    </span>
+
+            </p>
+        </div>
+        <div class="accordion " dku-foldable dku-foldable-right-panel name="details.indexing" open="true">
+            <div style="position: relative;">
+                <h4 class="accordion-title" ng-click="foldableToggle()" style="position: relative;">
+                    <i class="{{foldableChevronClazz}}"/>
+                    Indexing
+                </h4>
+                <i class="icon-warning-sign"
+                   style="padding-right: 5px;padding-left: 5px; margin-right: 10px;     position: absolute; right:10px; top: 50%; transform: translate(-50%, -50%);"
+                   ng-click="showMessages(data.indexingMetadata.messages)"
+                   dku-better-tooltip dbt-placement="left" dbt-title="Indexing report"
+                   ng-show="data.indexingMetadata.messages && ['ERROR','WARNING'].includes(data.indexingMetadata.messages.maxSeverity)"></i>
+            </div>
+
+            <div ng-show="foldableOpen">
+                <div class="line" ng-if="data.type === 'HDFS'" style=" display: block; text-align: center;">
+                    <a ui-sref="admin.connections.hiveindexing()">Index Hive connections</a>
+                </div>
+                <div class="line" ng-if="!isIndexable(data) && data.type !== 'HDFS'" style="color: #999; display: block; text-align: center;">
+                    Not applicable
+                </div>
+                <div class="line" ng-if="isIndexable(data)">
+                    <button class="btn btn--secondary pull-right" ng-click="indexConnection()" style="width: 100%;"
+                            ng-disabled="data.indexingMetadata.currentJobId">
+                        index connection
+                    </button>
+                </div>
+
+                <div class="line" ng-if="data.indexingMetadata && data.indexingMetadata.processingProgress">
+                    <h4>Current job running time</h4>
+                    <p>{{data.indexingMetadata.processingProgress.runningTime | friendlyDuration}}</p>
+                </div>
+
+                <div class="line" ng-if="data.indexingMetadata && data.indexingMetadata.lastScanDate">
+                    <h4>Last scanned date</h4>
+                    <p>{{data.indexingMetadata.lastScanDate == 0 ? 'N/A' : (data.indexingMetadata.lastScanDate |
+                        friendlyTimeDeltaShort)}}</p>
+                </div>
+                <div class="line" ng-if="data.indexingMetadata.lastScanDuration && data.indexingMetadata.lastScanDuration > 0">
+                    <h4>Last scanning duration</h4>
+                    <p>{{data.indexingMetadata.lastScanDuration | friendlyDuration}}</p>
+                </div>
+                <div class="line" ng-if="data.indexingMetadata && data.indexingMetadata.lastIndexDate">
+                    <h4>Last indexed date</h4>
+                    <p>{{data.indexingMetadata.lastIndexDate == 0 ? 'N/A' : (data.indexingMetadata.lastIndexDate |
+                        friendlyTimeDeltaShort)}}</p>
+                </div>
+                <div class="line" ng-if="data.indexingMetadata.lastIndexDuration && data.indexingMetadata.lastIndexDuration > 0">
+                    <h4>Last indexing duration</h4>
+                    <p>{{data.indexingMetadata.lastIndexDuration | friendlyDuration}}</p>
+                </div>
+                <div class="line" ng-if="data.indexingMetadata.tableCount">
+                    <h4>Scanned tables</h4>
+                    <p>{{data.indexingMetadata.tableCount}}</p>
+                </div>
+                <div class="line" ng-if="data.indexingMetadata.columnsCount">
+                    <h4>Scanned columns</h4>
+                    <p>{{data.indexingMetadata.columnsCount}}</p>
+                </div>
+                <div class="line" ng-if="data.indexingMetadata.pseudoColumnsCount">
+                    <h4>Scanned pseudocolumns</h4>
+                    <p>{{data.indexingMetadata.pseudoColumnsCount}}</p>
+                </div>
+                <div class="line" ng-if="data.indexingMetadata.indicesCount">
+                    <h4>Scanned indices</h4>
+                    <p>{{data.indexingMetadata.indicesCount}}</p>
+                </div>
+                <div class="line" ng-if="data.indexingMetadata.foreignKeysCount">
+                    <h4>Scanned foreign keys</h4>
+                    <p>{{data.indexingMetadata.foreignKeysCount}}</p>
+                </div>
+            </div>
+        </div>
+        <div class="accordion " dku-foldable dku-foldable-right-panel name="details.groupAccess" open="true" ng-if="data.type !== 'hiveserver2'">
+            <h4 class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableChevronClazz}}"/>
+                Group access
+            </h4>
+            <div ng-show="foldableOpen">
+
+                <div class="line" style="display: flex;">
+                    <h4 >Freely usable by</h4>
+                    <p ng-if="data.usableBy === 'ALL'">Everyone</p>
+                    <ul ng-if="data.usableBy === 'ALLOWED'" style="text-align: right; flex: 1;">
+                        <li ng-repeat="group in data.allowedGroups">{{group}}</li>
+                    </ul>
+                </div>
+                <div class="line" style="display: flex;">
+                    <h4 >Details readable by</h4>
+                    <p ng-if="data.detailsReadability.readableBy === 'ALL'">Everyone</p>
+                    <p ng-if="data.detailsReadability.readableBy === 'NONE'">Nobody</p>
+                    <ul ng-if="data.detailsReadability.readableBy === 'ALLOWED'" style="text-align: right">
+                        <li ng-repeat="group in data.detailsReadability.allowedGroups">{{group}}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

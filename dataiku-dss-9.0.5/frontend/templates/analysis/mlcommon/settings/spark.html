@@ -1,0 +1,54 @@
+<div class="design-tab-title">Spark</div>
+<div class="doctor-settings-page h100 oa">
+    <div spark-override-config config="mlTaskDesign.sparkParams.sparkConf" task="mlTaskDesign" task-type="MLLib" />
+
+    <form class="dkuform-horizontal" style="margin-top: 2em">
+        <div class="control-group">
+            <label class="control-label">Spark engine</label>
+            <div class="controls" >
+                <select dku-bs-select ng-model="mlTaskDesign.sparkParams.sparkExecutionEngine" >
+                    <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+                    <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+                    <option value="DATABRICKS">Databricks</option>
+                </select>
+            </div>
+        </div>
+        <div class="control-group" ng-if="mlTaskDesign.taskType == 'PREDICTION'">
+            <label class="control-label" for="skipExpensiveReports">Skip expensive reports</label>
+            <label class="controls">
+                <input type="checkbox" id="skipExpensiveReports" ng-model="mlTaskDesign.modeling.skipExpensiveReports">
+                <span class="help-inline">Don't compute expensive report screens. Faster scoring but less model insights.</span>
+            </label>
+        </div>
+        <div class="control-group">
+            <span class="control-label">Checkpoint before fit</span>
+            <div class="controls">
+                <label class="radio">
+                    <input type="radio" ng-model="mlTaskDesign.sparkParams.sparkCheckpoint" name="checkpointRadio" value="NONE">
+                    None
+                </label>
+                <label class="radio">
+                    <input type="radio" ng-model="mlTaskDesign.sparkParams.sparkCheckpoint" name="checkpointRadio" value="RESILIENT">
+                    Resilient
+                    <span class="help-inline">Checkpoint on HDFS. Requires a checkpoint directory.</span>
+                </label>
+                <label class="radio">
+                    <input type="radio" ng-model="mlTaskDesign.sparkParams.sparkCheckpoint" name="checkpointRadio" value="LOCAL">
+                    Local
+                    <span class="help-inline">
+                        Checkpoint on local filesystem.
+                        Faster but not fault-tolerant, not compatible with dynamic allocation.
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group" ng-show="mlTaskDesign.sparkParams.sparkCheckpoint == 'RESILIENT'">
+            <label class="control-label" for="sparkCheckpointDir">Checkpoint directory</label>
+            <div class="controls">
+                <input type="text" id="sparkCheckpointDir"
+                       ng-model="mlTaskDesign.sparkParams.sparkCheckpointDir" ng-required="mlTaskDesign.sparkParams.sparkCheckpoint == 'RESILIENT'">
+                <span class="help-inline">HDFS path if running on cluster</span>
+            </div>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,57 @@
+<div class="row-fluid dashboard-overflow-wrapper">
+    <div class="span7 w100-on-dashboard" ng-if="modelData.perf.liftVizData">
+        <div style="height:400px; width: 100%; border-bottom: 1px #ccc solid">
+            <svg class="chart-std-font" style="width: 100%; height: 100%"
+                 bc-gain-chart data="modelData.perf.liftVizData"
+                 multi-line-chart data-xs="xs" data-ys="ys" data-labels="labels"
+                 data-axes="['Observations by decreasing probability', 'Positive cases captured']"
+                 data-colors="colors" data-format="'%'"
+                 puppeteer-hook-1 disable-transitions="$stateParams.exportMode"></svg>
+        </div>
+        <div style="height:300px; width: 100%;">
+            <svg class="chart-std-font" style="width: 100%; height: 100%" bc-per-bin-lift-chart data="modelData.perf.liftVizData"
+                 puppeteer-hook-2 disable-transitions="$stateParams.exportMode"></svg>
+        </div>
+    </div>
+    <div class="span7 w100-on-dashboard" ng-if="!modelData.perf.liftVizData">
+        <div class="alert alert-warning">
+            Could not compute lift data.<br />
+            This can be caused by an extreme imbalance between classes
+            (e.g. very rare occurrence of <code ng-bind="modelData.classes[1]" />).
+        </div>
+    </div>
+    <div class="span5 doctor-explanation">
+        <h1>Probabilities and lift</h1>
+        <p> A binary classifier produces a probability that a given record is "positive" (here, that
+            <code ng-bind="modelData.coreParams.target_variable" /> is <code ng-bind="modelData.classes[1]" />).<br />
+            The <strong>lift</strong> is the <strong>ratio</strong>
+            between the results of this model and the results obtained with a random model.<br />
+            Lift curves are particularly useful for "targeting" kinds of problems
+            (churn prevention, marketing campaign targeting, ...)</p>
+
+        <h1>Cumulative Lift Curve</h1>
+        <p> The goal of this curve is to visualize the benefits of using a model for targeting a subset
+            of the population. On the horizontal axis, we show the percentage of the population which is
+            targeted and on the vertical axis the percentage of found positive records.</p>
+        <p> The <strong style="color: {{colors[ys.length-1]}}">dotted diagonal</strong> illustrates a
+            random model (i.e., targeting 40% of the population will find 40% of the positive records).</p>
+        <p> The <strong style="color: {{colors[ys.length-2]}}">wizard curve above</strong> shows a perfect
+            model (there are {{ 100 * modelData.perf.liftVizData.wizard.positives /
+                modelData.perf.liftVizData.wizard.total | number:0 }}% positive records in your test set,
+            so a perfect model would target only this)</p>
+        <p> <span ng-if="ys.length &lt;= 3"><strong style="color: {{colors[0]}}">This curve</strong> shows</span>
+            <span ng-if="ys.length &gt; 3"><strong>The other curves</strong> (one per fold) show</span>
+            the actual percentage of actual positives found by this model. The steeper the curve, the better.</p>
+
+        <h1>Per-bin lift chart</h1>
+        <p> This chart sorts the observations by deciles of decreasing predicted probability.
+            It shows the <strong>lift</strong> in each of the bins.</p>
+        <p> If there is 20% of positives in your test set, but 60% in the first bin of probability then the
+            lift of this first bin is 3.<br />
+            This means that targeting only the observations in this bin would yield 3 times as many positive
+            results as a random sampling (equally sized bars at the level of the dotted line).</p>
+        <p> The bars should decrease progressively from left to right, and the higher the bars on the left,
+            the better.</p>
+
+    </div>
+</div>

@@ -1,0 +1,33 @@
+<div data-extend-template="/templates/recipes/single-output-recipe-creation.html" ng-controller="GroupingRecipeCreationController">
+    <div data-block="settings">
+        <div class="control-group">
+            <label for="" class="control-label">Input dataset</label>
+            <div class="controls">
+                <div dataset-selector="io.inputDataset" available-datasets="availableInputDatasets" class="qa_recipe_available-datasets-dropdown" ></div>
+            </div>
+        </div>
+
+        <div ng-if="io.inputDataset && !(activeSchema && !activeSchema.columns.length)" class="control-group">
+            <label for="" class="control-label">
+                Group By
+            </label>
+            <div class="controls" ng-if="activeSchema.columns.length">
+                <select dku-bs-select="{liveSearch:true}"
+                    required ng-model="io.targetVariable"
+                    ng-options="column.name as column.name for column in activeSchema.columns"
+                    watch-model="activeSchema"
+                    auto-focus-child="true"
+                    id="qa_recipe_groupby-select"></select>
+            </div>
+        </div>
+        <div ng-if="io.inputDataset && !(activeSchema && !activeSchema.columns.length)" class="dku-tiny-text-sb text-prompt">
+            <i class="icon-info-sign mright4"></i> Additional grouping keys can be added later.
+        </div>
+    </div>
+    <div
+        data-block="requirements"
+        class="recipe-modal-io__disabled-explanation">
+        <div ng-if="!io.inputDataset">This recipe requires an input dataset.</div>
+        <div ng-if="io.inputDataset && !io.targetVariable && !(activeSchema && !activeSchema.columns.length)">This recipe requires a grouping key.</div>
+    </div>
+</div>

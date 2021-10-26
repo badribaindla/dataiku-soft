@@ -1,0 +1,76 @@
+<div class="modal modal3 modal-wide">
+    <div dku-modal-header-with-totem modal-title="Models to compare" />
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body">
+            Show
+            <select dku-bs-select multiple="multiple" ng-model="driftModalState.selectedLabels"
+                ng-options="l as labelSuffix(l) group by labelPrefix(l) for l in driftModalState.allLabels">
+            </select>
+
+            <div class="noflex std-list-search-box list-control-widget model-evaluations__textual-filter">
+                <span class="add-on">
+                    <i class="icon-dku-search"></i>
+                </span>
+                <input type="search" ng-model="filterQuery.userQuery" placeholder="Search.." style="width: 130px">
+            </div>
+
+            <br>
+            
+            <div class="drift-reference-selection-table">
+                <table class="drift-reference-selection-table__table" sort-table>
+                    <tr>
+                        <th class="drift-reference-selection-table__sticky"></th>
+                        <th class="drift-reference-selection-table__sticky">Model / evaluation ID</th>
+                        <th class="drift-reference-selection-table__sticky" sort-col="{{ label }}" ng-repeat="label in driftModalState.selectedLabels">
+                            {{ label }}
+                        </th>
+                    </tr>
+                    <tr>
+                        <th colspan="{{ driftModalState.selectedLabels.length + 2 }}" class="drift-reference-selection-table__head">
+                            Current model</th>
+                    </tr>
+                    <tr>
+                        <td class="drift-reference-selection-table__cell"></td>
+                        <td class="drift-reference-selection-table__cell">{{ driftModalState.currentMe.runId.replace('_', '_&shy;') }}</td>
+                        <td class="drift-reference-selection-table__cell" 
+                            ng-repeat="label in driftModalState.selectedLabels">
+                            {{ driftModalState.currentMe.labels.get(label) }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th colspan="{{ driftModalState.selectedLabels.length + 2 }}" class="drift-reference-selection-table__head">
+                            Reference model
+                        </th>
+                    </tr>
+                    <tr ng-repeat="me in driftModalState.filteredCompatibleReferences | orderBy:sortValue(sortColumn):sortDescending"
+                        class="cursor-pointer"
+                        ng-click="driftModalState.selectedReference = me">
+                        <td class="drift-reference-selection-table__cell">
+                            <input type="radio" name="selectedReference" ng-model="driftModalState.selectedReference" ng-value="me">
+                        </td>
+                        <td class="drift-reference-selection-table__cell">{{ me.refStr ||  me.ref.fullId }}</td>
+                        <td class="drift-reference-selection-table__cell"
+                            ng-repeat="label in driftModalState.selectedLabels">
+                            {{ me.labels.get(label) }}
+                        </td>
+                    </tr>
+                    <tr ng-if="driftModalState.filteredCompatibleReferences.length == 0">
+                        <td class="drift-reference-selection-table__cell" colspan="{{ 2+driftModalState.selectedLabels.length }}">
+                            There are no compatible model or model evaluations available or they are filtered out by search query
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </form>
+    <div class="modal-footer modal-footer-std-buttons">
+        <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">
+            Cancel
+        </button>
+
+        <button type="submit" ng-disabled="!driftModalState.selectedReference" class="btn btn--text btn--primary"
+            ng-click="save()">
+            Compute
+        </button>
+    </div>
+</div>

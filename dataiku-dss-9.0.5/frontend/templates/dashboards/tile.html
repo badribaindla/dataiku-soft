@@ -1,0 +1,96 @@
+<div class="dashboard-tile">
+
+    <!-- INSIGHT -->
+    <div ng-if="tile.tileType == 'INSIGHT' || tile.tileType == 'IMAGE'" class="h100">
+        <div class="vertical-flex h100">
+            <div ng-switch on="tile.displayMode">
+                <div ng-switch-when="INSIGHT" ng-switch on="insight">
+                    <div ng-switch="insight.type" ng-switch-default class="h100 fh">
+                        <div ng-switch-when="dataset_table" dataset-table-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="chart" chart-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="discussions" discussions-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="static_file" static-file-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="jupyter" jupyter-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="metrics" metrics-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="managed-folder_content" managed-folder-content-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="saved-model_report" saved-model-report-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="web_app" web-app-insight-tile insight="insight" tile="tile" hook="hook" editable="editable" class="h100" />
+                        <div ng-switch-when="report" report-insight-tile insight="insight" tile="tile" hook="hook" editable="editable" class="h100" />
+                        <div ng-switch-when="scenario_last_runs" scenario-last-runs-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="scenario_run_button" scenario-run-button-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="project_activity" project-activity-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="runnable-button" runnable-button-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="article" article-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                        <div ng-switch-when="eda" eda-insight-tile insight="insight" tile="tile" hook="hook" class="h100" />
+                    </div>
+                </div>
+
+                <div ng-switch-when="IMAGE" class="h100 fh">
+                    <div class="h100 oa insight-image" ng-class="getResizeImageClass(tile.resizeImageMode)">
+                        <totem
+                            ng-if="tile.imageId"
+                            class="h100"
+                            project-key="$stateParams.projectKey"
+                            object-type="'DASHBOARD_TILE'"
+                            object-id="tile.imageId"
+                            editable="false"
+                        />
+
+                        <div ng-if="!tile.imageId" class="center-children">
+                            <div class="insight-image-placeholder">
+                                <i class="icon-picture">
+                                </i>
+                                <div ng-click="openUploadPictureDialog(tile)" class="btn btn--secondary btn-upload-image">Upload image</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="INSIGHT_DESC" class="h100 fh">
+                    <div style="justify-content: center; align-items: center;" class="h100 oa vertical-flex" ng-if="insight.description || insight.shortDesc">
+                        <p ng-if="insight.shortDesc" from-markdown="insight.shortDesc" class="noflex" style="padding: 0 10px;"></p>
+                        <hr ng-if="insight.shortDesc && insight.description" class="noflex" style="width: 80%" />
+                        <p ng-if="insight.description" from-markdown="insight.description" class="noflex" style="padding: 0 10px;"></p>
+                    </div>
+
+                    <div ng-if="!insight.description && !insight.shortDesc" class="fh h100">
+                        <div class="centered-info">
+                            Insight has no description
+                            <span ng-show="editable">(<a ui-sref="projects.project.dashboards.insights.insight.summary({insightId: insight.id, insightName: (insight.name | slugify)})">edit</a>)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-switch-when="IMAGE_AND_INSIGHT_DESC" class="h100 fh">
+                    <div class="h100 oa insight-image insight-image-and-desc" ng-class="getResizeImageClass(tile.resizeImageMode)">
+                        <totem
+                                ng-if="tile.imageId"
+                                style="cursor: inherit; flex: 0 0 auto;"
+                                project-key="$stateParams.projectKey"
+                                object-type="'DASHBOARD_TILE'"
+                                object-id="tile.imageId"
+                                editable="false"
+                        />
+                        <div ng-if="!tile.imageId" class="center-children">
+                            <div class="insight-image-placeholder">
+                                <i class="icon-picture">
+                                </i>
+                                <div ng-click="openUploadPictureDialog(tile)" class="btn btn--secondary btn-upload-image">Upload image</div>
+                            </div>
+                        </div>
+                        <div ng-if="insight.description || insight.shortDesc" class="description-wrapper">
+                            <p ng-if="insight.shortDesc" from-markdown="insight.shortDesc" style="padding: 0 10px;"></p>
+                            <hr ng-if="insight.shortDesc && insight.description" style="width: 80%" />
+                            <p ng-if="insight.description" from-markdown="insight.description" style="padding: 0 10px;"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div ng-if="tile.tileType == 'TEXT'" text-tile tile-params="tile.tileParams" class="h100 text-tile"  ng-class="{'one-row': tile.box.height == 1, 'one-col': tile.box.width == 1}"/>
+
+    <div ng-if="tile.tileType == 'IFRAME'" iframe-tile tile="tile" hook="hook" tile-params="tile.tileParams" editable="editable" class="h100" />
+</div>

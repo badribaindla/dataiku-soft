@@ -1,0 +1,37 @@
+<div class="control-group required">
+    <label class="control-label">Distribution</label>
+    <div class="controls">
+        <label>
+            <input ng-model="$ctrl.searchParams.distributed" type="radio" ng-value="false">
+            Single machine
+        </label>
+        <label>
+            <input type="radio" ng-value="true"
+                   ng-model="$ctrl.searchParams.distributed"
+                   ng-disabled="!$ctrl.hasSelectedK8sContainer()"
+            >
+            Distribute search over
+            <input force-integer type="number" style="width: 8ch" min="1" max="100" size="3" step="1"
+                   ng-model="$ctrl.searchParams.nContainers"
+                   ng-disabled="!$ctrl.searchParams.distributed"
+            >
+            Kubernetes container(s)
+            <span ng-if="!$ctrl.hasSelectedK8sContainer()"
+                  toggle="tooltip"
+                  ng-attr-title="{{ $ctrl.getK8sRuntimeEnvTooltip() }}"
+            >
+                <i class="icon-warning-sign text-warning" />
+            </span>
+        </label>
+    </div>
+</div>
+<div class="control-group required">
+    <label class="control-label">
+        Number of threads <span ng-if="$ctrl.searchParams.distributed">per container</span>
+    </label>
+    <div class="controls">
+        <input force-integer type="number" min="-1" max="100" size="3" step="1"
+               ng-model="$ctrl.searchParams.nJobs">
+        <div class="help-inline">-1 for auto</div>
+    </div>
+</div>

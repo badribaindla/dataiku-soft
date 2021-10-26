@@ -1,0 +1,29 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-grand-parent="processorForm">
+    <div include-no-scope="/templates/shaker/processors/processor-applies-to.html" />
+
+    <fieldset>
+        <span class="fieldLabel">New position</span>
+        <select 
+            dku-bs-select
+            ng-model="step.params.reorderAction"
+            class="submit-on-blur" 
+            next-on-enter>
+                <option label="At beginning" value="AT_START" >At beginning</option>
+                <option label="Before another column..." value="BEFORE_COLUMN">Before another column...</option>
+                <option label="After another column..." value="AFTER_COLUMN">After another column...</option>
+                <option label="At end" value="AT_END">At end</option>
+        </select>
+    </fieldset>
+
+    <fieldset ng-show="step.params.reorderAction == 'BEFORE_COLUMN' || step.params.reorderAction == 'AFTER_COLUMN'">
+        <span class="fieldLabel">Other column</span>
+        <input
+            type="text"
+            ng-model="step.params.referenceColumn"
+            class="submit-on-blur"
+            bs-typeahead="step.$stepState.change.columnsBeforeStep" 
+            autocomplete="off" 
+            data-provide="typeahead"
+            next-on-enter/>
+    </fieldset>
+</form>

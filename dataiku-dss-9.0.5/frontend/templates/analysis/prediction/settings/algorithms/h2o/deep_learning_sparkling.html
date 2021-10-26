@@ -1,0 +1,200 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Deep Learning (H2O)
+    </div>
+    <div data-block="algorithm-description">
+        H2O’s Deep Learning is based on a multi-layer feed-forward artificial neural network that is trained with stochastic gradient descent using back-propagation. The network can contain a large number of hidden layers consisting of neurons with selected activation functions. Each compute node trains a copy of the global model parameters on its local data with multi-threading (asynchronously), and contributes periodically to the global model via model averaging across the network.
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group required">
+            <label class="control-label">Hidden Layers</label>
+            <div class="controls">
+                <div type="text" gs-field not-grid allow-dubs="true" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.hidden"></div>
+                <div class="help-inline">
+                    Hidden layer sizes (e.g. 20, 10 will train a network with two hidden layers, with 20 and 10 neurons respectively).
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">epochs</label>
+            <div class="controls">
+                <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.epochs" />
+                <div class="help-inline">
+                    Number of iterations on the dataset to train the model.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">l1</label>
+            <div class="controls">
+                <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.l1" />
+                <div class="help-inline">
+                    L1 regularization (can add stability through sparsity, and improve generalization; i.e. causes small weights to become 0)
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">l2</label>
+            <div class="controls">
+                <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.l2" />
+                <div class="help-inline">
+                    L2 regularization (can add stability and improve generalization, avoids heavy weights)
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Activation function</label>
+            <div class="controls">
+                <div style="position: relative">
+                    <select dku-bs-select ng-model="mlTaskDesign.modeling.deep_learning_sparkling.activation" options-descriptions="['Causes sparse non-smooth linear activation.',
+                    'Causes sparse smoothed linear activation.',
+                    'Causes activation to be governed the largest of the neuron inputs.',
+                    'Causes the neuron to saturate (output does not vary) for high levels of activation.']">
+                        <option value="RECTIFIER">Rectifier</option>
+                        <option value="EXP_RECTIFIER">Exponential rectifier</option>
+                        <option value="MAXOUT">Max out</option>
+                        <option value="TANH">Tanh</option>
+                    </select>
+                </div>
+                <div class="help-inline">
+                    Activation function for the neurons.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">max_w2</label>
+            <div class="controls">
+                <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.max_w2" />
+                <div class="help-inline">
+                    Maximum gradient norm (can improve training stability, especially when using a rectifier-like activation function).
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Dropout</label>
+            <div class="controls">
+                <div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.dropout" /> Train with dropout
+                    </label>
+                </div>
+                <div class="help-inline">
+                    Use dropout (causes sparse random activation of neurons, improving model generation by forcing all neurons to learn a more global view of the data).
+                </div>
+            </div>
+        </div>
+        <div ng-if="mlTaskDesign.modeling.deep_learning_sparkling.dropout">
+            <div class="control-group">
+                <label class="control-label">Input dropout ratio</label>
+                <div class="controls">
+                    <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.input_dropout_ratio" />
+                    <div class="help-inline">
+                        Input layer dropout ratio (probability of neuron not activating). Values lower than 0.2 recommended.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Hidden dropout ratio</label>
+                <div class="controls">
+                    <div type="text" gs-field decimal="true" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.hidden_dropout_ratios"></div>
+                    <div class="help-inline">
+                        Hidden layer dropout ratios (probability of neuron not activating). Values lower than 0.5 recommended. Input one value for each hidden layer, separated by commas. Example: with two hidden layers, <em>0.1, 0.5</em>.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Training Method</label>
+            <div class="controls">
+                <div>
+                    <div class="radio-button-box">
+                        <label class="checkbox-label">
+                            <label class="radio">
+                                <input type="radio" name="random_forest_auto" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.use_adaptative" ng-value="true" class="ng-valid ng-dirty"> Adaptative
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="random_forest_auto" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.use_adaptative" ng-value="false" class="ng-valid ng-dirty"> Momentum
+                            </label>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="mlTaskDesign.modeling.deep_learning_sparkling.use_adaptative">
+            <div class="control-group">
+                <label class="control-label">rho</label>
+                <div class="controls">
+                    <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.rho" />
+                    <div class="help-inline">
+                        Adaptive learning rate decay factor. The "memory" the model keeps of data to compute its adaptative learning rate decay at this rate. Values between 0.9 and 0.999 recommended.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">epsilon</label>
+                <div class="controls">
+                    <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.epsilon" />
+                    <div class="help-inline">
+                        Adaptive learning rate smoothing factor (to avoid divisions by zero and allow progress). Values between 1e-4 and 1e-10 recommended.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="! mlTaskDesign.modeling.deep_learning_sparkling.use_adaptative">
+            <div class="control-group">
+                <label class="control-label">Learning rate</label>
+                <div class="controls">
+                    <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.rate" />
+                    <div class="help-inline">
+                        Learning rate (higher => less stable, lower => slower convergence)
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Learning rate annealing</label>
+                <div class="controls">
+                    <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.rate_annealing" />
+                    <div class="help-inline">
+                        Learning rate annealing: rate / (1 + rate_annealing * samples)
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Learning rate decay</label>
+                <div class="controls">
+                    <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.rate_decay" />
+                    <div class="help-inline">
+                        The learning rate decay parameter controls the change of learning rate across layers. For example, assume the rate parameter is set to 0.01, and the rate decay parameter is set to 0.5. The learning rate for the weights connecting the input and first hidden layer is 0.01, the learning rate for the weights connecting the first and the second hidden layer is 0.005, etc.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Momentum start</label>
+                <div class="controls">
+                    <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.momentum_start" />
+                    <div class="help-inline">
+                        The amount of momentum at the beginning of training.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Momentum ramp</label>
+                <div class="controls">
+                    <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.momentum_ramp" />
+                    <div class="help-inline">
+                        The amount of learning for which momentum increases (assuming momentum_stable is larger than momentum_start). The ramp is measured in the number of training samples.
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Momentum stable</label>
+                <div class="controls">
+                    <input type="text" ng-model="mlTaskDesign.modeling.deep_learning_sparkling.momentum_stable" />
+                    <div class="help-inline">
+                        The momentum_stable parameter controls the final momentum value reached after momentum_ramp training samples. The momentum used for training remains the same for training beyond reaching that point.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,72 @@
+<div class="modal modal3 dku-modal" ng-controller="APIDeployerDeploymentCreationModalController">
+    <div dku-modal-header-with-totem modal-title="New deployment" modal-totem="icon-plus" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <div class="control-group">
+                <label class="control-label">Service</label>
+                <div class="controls">
+                    <select dku-bs-select="{liveSearch:true,width:206}"
+                        ng-options="svc.id as (svc.name + ' (' + svc.id + ')') for svc in serviceBasicInfoList"
+                        ng-model="newDepl.publishedServiceId"
+                        ng-disabled="disabledServiceAndVersionInputs"
+                        required />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Service version</label>
+                <div class="controls">
+                    <select dku-bs-select
+                        ng-options="v for v in versionsIds"
+                        ng-model="newDepl.versionId"
+                        ng-disabled="!newDepl.publishedServiceId || disabledServiceAndVersionInputs"
+                        required />
+                    <span class="help-inline">
+                        <span ng-if="newDepl.publishedServiceId && versionsIds && !versionsIds.length" class="text-error">
+                            No available version
+                        </span>
+                        <span ng-if="versionsIds.length > 1">
+                            You can use multiple API service versions within a single deployment (see the deployment settings)
+                        </span>
+
+                    </span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Infrastructure</label>
+                <div class="controls">
+                    <select
+                        dku-bs-select="{liveSearch:true,width:206}"
+                        ng-options="inf.id as (inf.id + ' (' + inf.type + ')') group by inf.stage for inf in infraBasicInfoList"
+                        ng-model="newDepl.infraId"
+                        required />
+                    <span class="help-inline"></span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Deployment ID</label>
+                <div class="controls">
+                    <input type="text" ng-model="newDepl.id" required ng-pattern="/^[_A-Za-z0-9-]+$/" check-unique exclude="deploymentIdList"/>
+                    <span class="help-inline">alphanumeric characters, hyphens and underscores</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit"
+                class="btn btn--text btn--primary"
+                ng-disabled="(!newDepl.id || !newDepl.publishedServiceId || !newDepl.infraId)"
+                ng-click="ok()"
+                >
+                Deploy
+            </button>
+        </div>
+    </form>
+</div>

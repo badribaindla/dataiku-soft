@@ -1,0 +1,72 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Generalized Linear Model (H2O)
+    </div>
+    <div data-block="algorithm-description">
+        Generalized Linear Models (GLM) estimates regression models for outcomes following distributions from the exponential family. In addition to the Gaussian (i.e. normal) distribution, these include Poisson, binomial, gamma and Tweedie distributions. Each serves a different purpose, and depending on distribution and link function choice, it can be used either for prediction or classification. For example, choosing a gaussian distribution will lead to ordinary least squares regression, while a binomial distribution will lead to logistic regression.
+        <br/>
+        <strong>NOTE : </strong> Due to its implementation, H2O's GLM does not support unknown categories in categorical features consistently when scoring. As a result, if such a situation may arise, another category handling method (such as dummification) should be chosen.
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group" ng-if="isRegression()">
+            <label class="control-label">Family</label>
+            <div class="controls">
+                <div style="position: relative">
+                    <select dku-bs-select ng-model="mlTaskDesign.modeling.glm_sparkling.family">
+                        <option value="bernoulli">Bernoulli</option>
+                        <option value="gaussian">Gaussian</option>
+                        <option value="poisson">Poisson</option>
+                        <option value="gamma">Gamma</option>
+                        <option value="tweedie">Tweedie</option>
+                    </select>
+                </div>
+                <div class="help-inline">
+                    The loss/ link function used to build the model. It is recommended to leave the default value unless you are familiar with this kind of model.
+                </div>
+            </div>
+        </div>
+        <div class="control-group" ng-if="mlTaskDesign.modeling.glm_sparkling.family == 'tweedie' ">
+            <label class="control-label">Tweedie power</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.glm_sparkling.tweedie_variance_power" />
+                <div class="help-inline">Tweedie variance power.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Alpha</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.glm_sparkling.alpha" />
+                <div class="help-inline">
+                    Elastic net regularization coefficient. A value of 0 means lasso (l1) regularization, while a value of 1 means ridge (l2) regularization.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Lambda</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.glm_sparkling.lambda" />
+                <div class="help-inline">
+                    Regularization strength. Higher values will lead to better generalization, but higher bias, while lower values may lead to overfitting.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Max iterations</label>
+            <div class="controls">
+                <input type="number" force-integer min="-1" max="10000" ng-model="mlTaskDesign.modeling.glm_sparkling.max_iter" />
+                <div class="help-inline">
+                    Maximum number of iterations over the dataset for training. -1 will lead to infinite iterations, with stopping governed by the Beta Epsilon parameter. Note that this may lead to very long training times.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Beta Epsilon</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.glm_sparkling.beta_epsilon" />
+                <div class="help-inline">Stops training if the coefficients haven't varied by this amount between iterations.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

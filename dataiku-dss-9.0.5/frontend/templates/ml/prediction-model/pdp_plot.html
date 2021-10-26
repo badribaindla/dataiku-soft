@@ -1,0 +1,128 @@
+<div ng-controller="PdpPlotController">
+    <div  class="span8 pdp-left-panel" with-computation-params-popin>
+        <form class="dkuform-horizontal post-train-variable-selection">
+            <div class="control-group required">
+                <label class="control-label post-train-variable-selection__select-text">Select your variable</label>
+                <div class="controls">
+                    <ml-column-select-with-type
+                        ng-if="alreadyComputedFeatures"
+                        per-feature="modelData.preprocessing.per_feature"
+                        ng-model="uiState.selectedFeature"
+                        authorized-types="authorizedFeaturetypes"
+                        authorized-roles="['INPUT']"
+                        already-computed-columns="alreadyComputedFeatures">
+                    </ml-column-select-with-type>
+                </div>
+            </div>
+            <button 
+                class="btn btn--contained btn--alt btn--publish"
+                disabled-if="!!readOnly" disabled-message="Cannot compute, read only"
+                ng-disabled="!canCompute()"
+                ng-click="computeSelectedFeature()">Compute
+            </button>
+            <button ng-click="computeAll()" 
+                disabled-if="!!readOnly" disabled-message="Cannot compute, read only"
+                class="btn btn--alt btn--wireframe pdp-btn-compute-all">
+                Compute all
+            </button>
+            <span class="computation-params-gear" ng-click="toggleComputationParamsPopin($event)">
+                <i class="icon-gear"></i>
+            </span>
+        </form>
+        <div ng-if="uiState.selectedFeature && data[uiState.selectedFeature] && !computedPostTraining[uiState.selectedFeature] && !uiState.bannerHidden" 
+            class="doctor-explanation doctor-explanation--pdp">
+            <span ng-if="isKFolding">The following partial dependence has been auto-computed after training on the <strong>full dataset</strong><span ng-if="areMetricsWeighted()">, <strong>without the sample weights</strong></span>.
+                You can recompute it <span ng-if="areMetricsWeighted()">with the sample weights</span> and get the feature distribution.</span>
+            <span ng-if="!isKFolding">The following partial dependence has been auto-computed after training on the <strong>train set</strong><span ng-if="areMetricsWeighted()">, <strong>without the sample weights</strong></span>.
+                You can recompute it on the test set<span ng-if="areMetricsWeighted()"> with the sample weights,</span> and get the feature distribution.</span>
+            <i class="icon-dku-error doctor-explanation__close" ng-click="hideBanner()"></i>
+        </div>
+        <div ng-if="!uiState.selectedFeature">
+            <div class="post-train-empty-state">
+                <div class="post-train-empty-state__title">Partial dependence</div>
+                <p class="post-train-empty-state__explanation">Partial dependence plots show the dependence of a model to one of its features, <br> averaging the other features</p>
+                <img src="/static/dataiku/images/partial-dependencies-illustration.png" width="600px">
+            </div>
+        </div>
+
+        <div ng-if="uiState.selectedFeature && !data[uiState.selectedFeature]">
+            <div class="post-train-empty-state">
+                <div class="post-train-empty-state__title"> Partial dependence not computed yet </div>
+                <p class="post-train-empty-state__explanation"> Compute now to discover dependence of this model to <strong>{{ uiState.selectedFeature }}</strong> </p>
+                <button class="btn btn--contained btn--alt btn--publish post-train-empty-state__btn"
+                disabled-if="!!readOnly" disabled-message="Cannot compute, read only" 
+                ng-disabled="!canCompute()" ng-click="computeSelectedFeature()">Compute</button>
+            </div>
+        </div>
+
+        <div ng-if="uiState.selectedFeature && data[uiState.selectedFeature]">
+            <div class="post-train-results__number">
+                    <span ng-if="featuresType[uiState.selectedFeature] === 'NUMERIC'">{{ nbPoints[uiState.selectedFeature] }} bins for</span>
+                    <span ng-if="featuresType[uiState.selectedFeature] === 'CATEGORY'"> {{ nbPoints[uiState.selectedFeature] }} most frequent modalities of</span>
+                    <strong>{{ uiState.selectedFeature }}</strong>, computed on {{ computedOnStr() }}
+                </div>
+            <div class="pdp-chart" 
+                ng-switch="featuresType[uiState.selectedFeature]">
+                <div ng-switch-when="NUMERIC">
+                    <svg multi-lines-with-bar-chart
+                        style="height: 55vh" class="chart-std-font"
+                        data="data[uiState.selectedFeature]"
+                        xlabel="uiState.selectedFeature"
+                        y1-label="'Partial dependence'"
+                        y2-label="'Distribution'"
+                        is-date="isDate[uiState.selectedFeature]"></svg>
+                </div>
+                <div ng-switch-when="CATEGORY" 
+                    id="partialDependenceChartContainer"
+                    multi-grouped-h-bar-chart-with-h-bar-chart
+                    chart1-data="data[uiState.selectedFeature]"
+                    chart1-svg-id="'main-chart'"
+                    chart1-title="'Partial dependence'"
+                    chart2-data="distributions[uiState.selectedFeature]"
+                    chart2-svg-id="'second-chart'"
+                    chart2-title="'Distribution'"
+                    labels-remaping="labelsRemaping"
+                    ng-style= "{ height: heights[uiState.selectedFeature] + 'px' }">
+                    <svg id="main-chart" class="span8 chart-std-font"></svg>
+                    <svg id="second-chart" class="span4 chart-std-font"></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="span4 pdp-right-panel">
+        <div class="doctor-explanation">
+            <h1>Reading tips</h1>
+            <p>
+                A partial dependence plot shows the dependence of the predicted response on a single feature.
+                The x axis displays the value of the selected feature, while the y axis displays the partial dependence.
+            </p>
+            <p ng-if="isRegression()">
+                The value of the partial dependence is by how much the prediction is higher or lower than average.
+            </p>
+            <p ng-if="isBinaryClassification()">
+                The value of the partial dependence is by how much the log-odds are higher or lower than those of the
+                average probability.
+            </p>
+            <p ng-if="isMulticlass()">
+                The value of the partial dependence for a class is by how much the log-odds for this class are higher or
+                lower than those of the average class probability.
+            </p>
+            <div ng-if="uiState.selectedFeature && featuresType[uiState.selectedFeature] === 'CATEGORY'">
+                Special modalities:
+                <ul>
+                    <li><strong>{{ labelsRemaping["__DKU_OTHERS__"] }}</strong>: This is the aggregation of the modalities that are not displayed (weighted by their distribution)</li>
+                    <li><strong>{{ labelsRemaping["__DKU_UNREPRESENTED__"] }}</strong>: This emulates a modality that the model doesn't know, it has been clipped by the feature handling or this modality is not present in the train set</li>
+                    <li><strong>modality*</strong>: This modality is not represented in the model (see above)</li>
+                    <li><strong>modality**</strong>: This modality is dropped by the preprocessing, no partial dependence can be computed</li>
+                </ul>
+            </div>
+            <p ng-if="isBinaryClassification() || isMulticlass()">
+                <em>Note : the log-odds for a probability <code>p</code> are defined as <code>log(p / (1 - p))</code>.
+                    They are strictly increasing, ie. higher log odds mean higher probability.</em>
+            </p>
+            <p ng-if="isKFolding">
+                <em>Note: because you are using k-fold cross-testing, the partial dependence is computed on the full dataset.</em>
+            </p>
+        </div>
+    </div>
+</div>

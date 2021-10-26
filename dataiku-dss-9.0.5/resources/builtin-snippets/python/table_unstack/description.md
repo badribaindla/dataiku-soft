@@ -1,0 +1,1 @@
+Unstack is the process of transforming index values into columns. It is the opposite of stack.

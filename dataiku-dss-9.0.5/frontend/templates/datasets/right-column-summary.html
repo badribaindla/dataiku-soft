@@ -1,0 +1,774 @@
+<div class="object-right-column-summary object-right-column-summary-multitab h100 vertical-flex" ng-if="selection.selectedObject">
+    <div item-header
+        class="noflex"
+        href="datasetHref"
+        color="dataset"
+        icon="{{(datasetType || dataset.type) | datasetTypeToIcon}}"
+        title="{{selection.selectedObject.name}}">
+        {{datasetSmartName}}
+    </div>
+    <div class="column-header-tabs noflex" ng-if="!$state.current.name.startsWith('projects.project.datasets.dataset') && !$state.current.name.startsWith('projects.project.foreigndatasets.dataset') && !$state.current.name.startsWith('projects.project.flow') && !$state.current.name.startsWith('projects.project.datasets.list')"> <!-- (datasets have this template in their action menu) -->
+        <div class="tab" ng-class="{active: uiState.activeTab == 'details'}" ng-click="uiState.activeTab = 'details'" wt1-click-id="rightpaneldataset_details">
+            <div class="title">Details</div>
+        </div>
+        <div class="tab" ng-class="{active: uiState.activeTab == 'discussions'}" ng-click="uiState.activeTab = 'discussions'" ng-if="selection.selectedObject.nodeType != 'FOREIGN_DATASET'" wt1-click-id="rightpaneldataset_discussions">
+            <div class="title">Discussions</div>
+        </div>
+        <div class="tab" ng-class="{active: uiState.activeTab == 'actions'}" ng-click="uiState.activeTab = 'actions'" wt1-click-id="rightpaneldataset_actions">
+            <div class="title">Actions</div>
+        </div>
+    </div>
+
+    <div block-api-error class="noflex oa mh300"/>
+
+    <div class="flex oa">
+        <div ng-switch="uiState.activeTab" class="h100">
+
+            <!-- DETAILS tab -->
+            <div ng-switch-when="details" class="details-tab h100 oa">
+                <object-details
+                    object-type="DATASET"
+                    object-data="datasetFullInfo"
+                    context="right-column"
+                    hover-intent-callback="QuickView"
+                    editable="canWriteProject()"
+                    edit-custom-fields="editCustomFields">
+                </object-details>
+            </div>
+
+            <!-- SCHEMA tab -->
+            <div ng-switch-when="schema" class="details-tab h100 oa">
+                <div class="accordion no-border" ng-if="dataset.schema.columns.length" dku-foldable open="true">
+                    <h4 class="accordion-title-schema">
+                        Schema ({{dataset.schema.columns.length}})
+                    </h4>
+                    <div class="std-list-search-box horizontal-flex" style="padding:0px 15px 15px 15px;">
+                        <span class="add-on" style="font-size: 14px"><i class="icon-dku-search"></i></span>
+                        <input type="search" ng-model="standardizedSidePanel.schemaSearchColumn" placeholder="Search" style="width:100%">
+                    </div>
+                    <ul>
+                        <li ng-repeat="column in dataset.schema.columns | filter:standardizedSidePanel.schemaSearchColumn" class="horizontal-flex">
+                            <span class="flex mx-textellipsis">{{column.name}}</span>
+                            <span class="info noflex">{{column.type}}</span>
+                        </li>
+                    </ul>
+                </div>
+                <div ng-if="dataset.schema.columns.length === 0" class="mx-center-children mtop16">
+                    <p class="text-disabled">No schema yet</p>
+                </div>
+            </div>
+
+            <!-- DISCUSSIONS tab -->
+            <div ng-switch-when="discussions" class="object-summary-tab-content discussions-tab h100 oa">
+                <div ng-if="selection.selectedObject.nodeType == 'FOREIGN_DATASET'" style="padding: 6px 10px; color: #ccc; font-weight: lighter;">
+                    Discussions are not available for foreign datasets
+                </div>
+                <div discussions-widget
+                    ng-if="selection.selectedObject.nodeType != 'FOREIGN_DATASET'"
+                    class="h100"
+                    watch-object="selection.selectedObject"
+                    selected-item="{projectKey: selection.selectedObject.projectKey, type: 'DATASET', id: selection.selectedObject.name}"
+                    />
+            </div>
+
+            <!-- ACTIONS tab -->
+            <div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+                <!-- First unnamed section -->
+
+                <div class="icons-grey icons-main icons-section icons-ellipsed" ellipsed-list>
+                    <div ng-if="isLocalDataset && !$state.current.name.startsWith('projects.project.datasets.dataset')"
+                        simple-right-col-action-href
+                        href="{{$state.href('projects.project.datasets.dataset.explore', {datasetName: selection.selectedObject.name})}}"
+                        label="Explore"
+                        icon="icon-dku-explore"
+                        title="Open the dataset"
+                        toggle="tooltip"
+                        wt1-click-id="rightpaneldataset_actions_explore" />
+
+                    <div ng-if="!isLocalDataset && !$state.current.name.startsWith('projects.project.foreigndatasets.dataset')"
+                         simple-right-col-action-href
+                         href="{{$state.href('projects.project.foreigndatasets.dataset.explore',{datasetFullName: dataset.smartName})}}"
+                         label="Explore"
+                         icon="icon-dku-explore"
+                         title="Open the dataset"
+                         toggle="tooltip"
+                         wt1-click-id="rightpaneldataset_actions_explore" />
+
+                    <div simple-right-col-action-href
+                        ng-if="$state.current.name.startsWith('projects.project.datasets.dataset')"
+                        href="{{$state.href('projects.project.flow', { id : 'dataset_' + $stateParams.projectKey + '.' + $stateParams.datasetName })}}"
+                        label="View in flow"
+                        icon="icon-sitemap icon-rotate-90"
+                        />
+
+                    <div simple-right-col-action-href
+                        ng-if="$state.current.name.startsWith('projects.project.foreigndatasets.dataset')"
+                        href="{{$state.href('projects.project.flow', { id : 'dataset_' + dataset.smartName })}}"
+                        label="View in flow"
+                        toggle="tooltip"
+                        icon="icon-sitemap icon-rotate-90"
+                        />
+
+                    <div ng-if="dataset.type == 'Inline'"
+                        simple-right-col-action-href
+                        href="{{$state.href('projects.project.datasets.dataset.edit', {datasetName: selection.selectedObject.name})}}"
+                        label="Edit"
+                        icon="icon-pencil"
+                        title="Modify data for an editable dataset"
+                        toggle="tooltip"
+                        wt1-click-id="rightpaneldataset_actions_edit" />
+
+                    <div ng-if="isLocalDataset && datasetFullInfo.buildable"
+                        simple-right-col-action-click
+                        on-click="buildDataset()"
+                        label="Build"
+                        icon="icon-play"
+                        disabled-if-ro
+                        title="(Re)Compute the data for this dataset"
+                        toggle="tooltip"
+                        wt1-click-id="rightpaneldataset_actions_build" />
+
+                    <div simple-right-col-action-click
+                        ng-if="isLocalDataset"
+                        on-click="startApplyTagging()"
+                        label="Tag"
+                        icon="icon-tags"
+                        disabled-if-ro
+                        wt1-click-id="rightpaneldataset_actions_tag" />
+
+                    <div ng-if="!isLocalDataset && datasetFullInfo.directAccessOnOriginal"
+                        simple-right-col-action-href
+                        href="{{$state.href('projects.project.datasets.dataset.explore', {projectKey: dataset.projectKey, datasetName: dataset.name})}}"
+                        label="View source"
+                        icon="icon-reply"
+                        title="View this shared dataset in its original project"
+                        toggle="tooltip"
+                        wt1-click-id="rightpaneldataset_actions_exploreproject" />
+
+                    <div simple-right-col-action-click
+                        on-click="exportDataset(dataset.projectKey, dataset.name)"
+                        label="Export"
+                        icon="icon-dku-download"
+                        disabled-if="!projectSummary.canExportDatasetsData"
+                        title="{{projectSummary.canExportDatasetsData ? 'Download data or export it' : 'You don\'t have the permission to export data from this project'}}"
+                        toggle="tooltip"
+                        wt1-click-id="rightpaneldataset_actions_export" />
+
+                    <div simple-right-col-action-click
+                        ng-if="canWriteDashboards()"
+                        on-click="createAndPin(dataset.smartName)"
+                        label="Publish"
+                        icon="icon-dku-publish"
+                        title="Publish on a dashboard"
+                        toggle="tooltip"
+                        wt1-click-id="rightpaneldataset_actions_publish" />
+
+                    <div simple-right-col-action-click
+                        ng-if="isLocalDataset"
+                        ng-inject="ExposedObjectsService"
+                        on-click="ExposedObjectsService.exposeSingleObject('DATASET', dataset.name)"
+                        label="Share"
+                        icon="icon-dku-share"
+                        disabled-if="!projectSummary.canManageExposedElements"
+                        title="{{projectSummary.canManageExposedElements ? 'Share with other projects and users' : 'You don\'t have the permission to share objects from this project'}}"
+                        toggle="tooltip"
+                        wt1-click-id="rightpaneldataset_actions_share" />
+
+                    <div simple-right-col-action-click
+                         ng-if="isLocalDataset && $state.current.name.startsWith('projects.project.datasets.dataset')"
+                         ng-inject="Navigator"
+                         on-click="Navigator.showForTopNav()"
+                         label="Navigate"
+                         icon="icon-compass"
+                         title="Navigate around (Shift + A)"
+                         toggle="tooltip"
+                         wt1-click-id="rightpaneldataset_actions_navigate" />
+
+                    <div simple-right-col-action-click
+                         ng-if="isLocalDataset"
+                         ng-show="!isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(true)"
+                         label="{{ actionLabels.WATCH }}"
+                         icon="icon-eye-open"
+                         ng-attr-title="{{ actionTooltips.WATCH }}"
+                         data-toggle="tooltip"
+                         wt1-click-id="rightpaneldataset_actions_togglewatch"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-if="isLocalDataset"
+                         ng-show="isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(false)"
+                         label="{{ actionLabels.UNWATCH }}"
+                         icon="icon-eye-close"
+                         ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                         data-toggle="tooltip"
+                         wt1-click-id="rightpaneldataset_actions_togglewatch"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-if="isLocalDataset"
+                         ng-show="!selection.selectedObject.interest.starred"
+                         on-click="starObjects(true)"
+                         label="{{ actionLabels.STAR }}"
+                         icon="icon-star"
+                         ng-attr-title="{{ actionTooltips.STAR }}"
+                         data-toggle="tooltip"
+                         wt1-click-id="rightpaneldataset_actions_togglestar"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-if="isLocalDataset"
+                         ng-show="selection.selectedObject.interest.starred"
+                         on-click="starObjects(false)"
+                         label="{{ actionLabels.UNSTAR }}"
+                         icon="icon-star-empty"
+                         ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                         data-toggle="tooltip"
+                         wt1-click-id="rightpaneldataset_actions_togglestar"
+                    />
+
+                    <div simple-right-col-action-click
+                        ng-if="canWriteProject() && isLocalDataset && appConfig.customFieldsPluginComponentRefs.length"
+                        on-click="editCustomFields()"
+                        label="Metadata"
+                        icon="icon-dku-fields"
+                        title="Edit metadata of this dataset"
+                        toggle="tooltip"
+                        wt1-click-id="rightpaneldataset_actions_editcf" />
+
+                    <div simple-right-col-action-click
+                        ng-if="canWriteProject() && isLocalDataset && dataset.managed"
+                        on-click="clearSelected()"
+                        class="icons-danger"
+                        label="Clear data"
+                        icon="icon-remove"
+                        title="Delete the data of this dataset"
+                        toggle="tooltip"
+                        wt1-click-id="rightpaneldataset_actions_clear" />
+
+                    <div simple-right-col-action-click
+                        ng-if="isLocalDataset"
+                        ng-class="{'icons-danger': isProjectAnalystRW()}"
+                        on-click="isProjectAnalystRW() && deleteSelected()"
+                        label="Delete"
+                        icon="icon-trash"
+                        title="Delete this dataset (and its data)"
+                        toggle="tooltip"
+                        wt1-click-id="rightpaneldataset_actions_delete"
+                        disabled-if-ro />
+
+                    <div simple-right-col-action-click
+                        ng-if="!menuState.hideMoreActions && menuState.useFullMoreActions"
+                        ng-click="hideMoreActions()"
+                        stop-propagation
+                        class="more"
+                        icon="icon-dku-ellipsis-vertical"
+                        title="More actions"
+                        toggle="tooltip"
+                        wt1-click-id="rightpaneldataset_actions_more" />
+
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                </div>
+
+                <div class="fullwidth-action">
+                    <button type="button"
+                        class="btn btn--contained btn--alt btn--xlarge btn--xwide btn--lab"
+                        ng-click="clickTab('lab')"
+                        title="Visual analysis and code notebooks"
+                        wt1-click-id="rightpaneldataset_actions_lab"
+                        >
+                        <i class="icon-dku-lab"></i>Lab
+                    </button>
+                </div>
+
+                <!-- Visual recipes section -->
+                <div dku-foldable dku-foldable-right-panel open="true" class="accordion" name="actions.visualRecipes">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}"></i>
+                        Visual recipes
+                    </h4>
+                    <div ng-show="foldableOpen" class="icons-section icons-visual" disabled-block-if-ro >
+
+                        <div simple-right-col-action-click
+                            on-click="showCreateSyncModal(dataset.smartName, dataset.zone)"
+                            label="Sync"
+                            icon="icon-visual_prep_sync_recipe"
+                            title="Copy the dataset to another connection"
+                            wt1-click-id="rightpaneldataset_actions_recipesync"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="showCreateShakerModal(dataset.smartName, dataset.zone)"
+                            label="Prepare"
+                            icon="icon-visual_prep_cleanse_recipe"
+                            title="Clean and enrich your data interactively"
+                            wt1-click-id="rightpaneldataset_actions_recipeprepare"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="showCreateSamplingModal(dataset.smartName, dataset.zone)"
+                            label="Sample / Filter"
+                            icon="icon-visual_prep_filter-sample_recipe"
+                            class="action--long"
+                            title="Select a subset of the dataset's rows, via rules or sampling"
+                            wt1-click-id="rightpaneldataset_actions_recipesample"></div>
+                        <div simple-right-col-action-click
+                            on-click="showCreateGroupingModal(dataset.smartName, dataset.zone)"
+                            label="Group"
+                            icon="icon-visual_prep_group_recipe"
+                            title="Group the dataset by keys and compute aggregations per group"
+                            wt1-click-id="rightpaneldataset_actions_recipegroup"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="showCreateDistinctModal(dataset.smartName, dataset.zone)"
+                            label="Distinct"
+                            icon="icon-visual_prep_distinct_recipe"
+                            title="Select only distinct values from a dataset"
+                            wt1-click-id="rightpaneldataset_actions_recipedistinct"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="showCreateWindowRecipeModal(dataset.smartName, dataset.zone)"
+                            label="Window"
+                            icon="icon-visual_prep_window_recipe"
+                            title="Perform SQL-like 'Window calculations' on a dataset (moving averages, filter by order of appearance, ...)"
+                            wt1-click-id="rightpaneldataset_actions_recipewindow"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="showCreateJoinModal(getSmartNames(), dataset.zone)"
+                            label="Join with..."
+                            icon="icon-visual_prep_join_recipe"
+                            title="Merge datasets together, with join keys. Select keys, type of join, and columns to fetch"
+                            wt1-click-id="rightpaneldataset_actions_recipejoin"
+                            />
+                        <div simple-right-col-action-click
+                             on-click="showCreateFuzzyJoinModal(getSmartNames())"
+                             label="Fuzzy join"
+                             icon="icon-visual_prep_fuzzyjoin_recipe"
+                             title="Merge datasets together using inexact matching of join keys. Select keys, type of join, distance thresholds and columns to fetch"
+                             wt1-click-id="rightpaneldataset_actions_recipe_fuzzyjoin"
+                        />
+
+                        <div simple-right-col-action-click
+                            on-click="showCreateSplitModal(dataset.smartName, dataset.zone)"
+                            label="Split"
+                            icon="icon-visual_prep_split_recipe"
+                            title="Split a single dataset into several ones, based on rules or column values"
+                            wt1-click-id="rightpaneldataset_actions_recipesplit"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="showCreateTopNModal(dataset.smartName, dataset.zone)"
+                            label="Top N"
+                            icon="icon-visual_prep_topn_recipe"
+                            title="Keep a subset of all rows sharing a same key"
+                            wt1-click-id="rightpaneldataset_actions_recipetopen"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="showCreateSortModal(dataset.smartName, dataset.zone)"
+                            label="Sort"
+                            icon="icon-visual_prep_sort_recipe"
+                            title="Sort the dataset"
+                            wt1-click-id="rightpaneldataset_actions_recipesort"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="showCreatePivotModal(dataset.smartName, dataset.zone)"
+                            label="Pivot"
+                            icon="icon-visual_prep_pivot_recipe"
+                            title="Pivot rows to columns"
+                            wt1-click-id="rightpaneldataset_actions_recipepivot"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="showCreateVStackModal(getSmartNames(), dataset.zone)"
+                            label="Stack"
+                            icon="icon-visual_prep_vstack_recipe"
+                            title="Concatenate several datasets"
+                            wt1-click-id="rightpaneldataset_actions_recipestack"
+                            />
+
+                        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                    </div>
+                </div>
+
+
+                <div include-no-scope="/templates/datasets/right-column-summary-code.html" />
+
+                <div dku-foldable dku-foldable-right-panel open="true" class="accordion" ng-show="selectablePlugins.length != 0" name="actions.pluginRecipes">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}"></i>
+                        Plugin recipes
+                    </h4>
+                    <div ng-show="foldableOpen" class="icons-section icons-plugins" disabled-block-if-ro >
+                        <div ng-repeat="plugin in selectablePlugins" simple-right-col-action-click on-click="showCreateRecipeFromPlugin(plugin.pluginId, {DATASET : [dataset.smartName]}, dataset.zone)" label="{{plugin.label}}" title="{{plugin.label}}" icon="{{plugin.icon}}" />
+                        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                    </div>
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel open="true" class="accordion" name="actions.otherRecipes">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}"></i>
+                        Other recipes
+                    </h4>
+
+                    <div ng-show="foldableOpen" class="icons-section icons-section-wrap" disabled-block-if-ro style="margin-bottom: 20px;">
+                        <div simple-right-col-action-click
+                            on-click="showCreateExportModal(dataset.smartName, dataset.zone)"
+                            label="Export to folder"
+                            icon="icon-visual_export_recipe"
+                            class="icons-visual"
+                            title="Export one or several datasets to a managed folder"
+                            wt1-click-id="rightpaneldataset_actions_recipefolder"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="showCreateUpdateModal(dataset.smartName, dataset.zone)"
+                            label="Push to editable"
+                            icon="icon-visual_push_to_editable_recipe"
+                            class="icons-visual"
+                            title="Advanced use cases with an editable dataset."
+                            wt1-click-id="rightpaneldataset_actions_recipeeditable"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="GlobalProjectActions.newPredictionScoringRecipeFromDataset(this, dataset.smartName, dataset.zone)"
+                            label="Predict"
+                            icon="icon-score_recipe"
+                            class="icons-machine_learning"
+                            title="Apply a (previously created) prediction model"
+                            wt1-click-id="rightpaneldataset_actions_recipepredict"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="GlobalProjectActions.newClusteringScoringRecipeFromDataset(this, dataset.smartName, dataset.zone)"
+                            label="Cluster"
+                            icon="icon-score_recipe"
+                            class="icons-machine_learning"
+                            title="Apply a (previously created) clustering model"
+                            wt1-click-id="rightpaneldataset_actions_recipecluster"
+                            />
+                        <div simple-right-col-action-click
+                            on-click="GlobalProjectActions.newEvaluationRecipeFromDataset(this, dataset.smartName, dataset.zone)"
+                            label="Evaluate"
+                            icon="icon-evaluation_recipe"
+                            class="icons-machine_learning"
+                            title="Evaluate a (previously created) prediction model"
+                            wt1-click-id="rightpaneldataset_actions_recipeevaluate"
+                            />
+                        <div simple-right-col-action-click
+                            ng-if="featureFlagEnabled('model_evaluation_stores')"
+                            on-click="GlobalProjectActions.newStandaloneEvaluationRecipeFromDataset(this, dataset.smartName, dataset.zone)"
+                            label="Evaluate (standalone)"
+                            icon="icon-standalone_evaluation_recipe"
+                            class="icons-machine_learning"
+                            title="Compute metrics on a scored dataset"
+                            wt1-click-id="rightpaneldataset_actions_recipestandaloneevaluate"
+                            />
+
+                        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                    </div>
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel name="actions.webapps" open="true" class="accordion" ng-if="(webappRoles['DATASET'] && webappRoles['DATASET'].length != 0) || (webappRoles['DATASETS'] && webappRoles['DATASETS'].length != 0)" >
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}"></i>
+                        Webapps
+                    </h4>
+
+                    <div ng-show="foldableOpen" class="icons-section icons-section-wrap" disabled-block-if-ro style="margin-bottom: 20px;">
+
+                        <div simple-right-col-action-click
+                            ng-repeat="item in webappRoles['DATASET']"
+                            ng-show="item.applicableToForeign || isLocalDataset"
+                            on-click="createWebAppForDataset(item.loadedWebApp, item.roleTarget, dataset.smartName)"
+                            label="{{item.label}}"
+                            icon="{{item.icon}}"
+                            class="icons-visual"
+                            title=""
+                            >
+                        </div>
+
+                        <div simple-right-col-action-click
+                            ng-repeat="item in webappRoles['DATASETS']"
+                            ng-show="item.applicableToForeign || isLocalDataset"
+                            on-click="createWebAppForDataset(item.loadedWebApp, item.roleTarget, [dataset.smartName])"
+                            label="{{item.label}}"
+                            icon="{{item.icon}}"
+                            class="icons-visual"
+                            title=""
+                            >
+                        </div>
+
+                        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                    </div>
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel open="true" class="accordion" name="actions.flowZones" ng-if="$state.current.name.startsWith('projects.project.flow')">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}" />
+                        Flow Zones
+                    </h4>
+                    <div ng-show="foldableOpen" class="icons-section icons-flow-zones" disabled-block-if-ro >
+                        <div simple-right-col-action-click
+                             on-click="moveToFlowZone(getSelectedTaggableObjectRefs(), false, computeMovingImpact())"
+                             label="Move"
+                             icon="icon-move_to_zone"
+                             title="Move to a flow zone"
+                        />
+                        <div simple-right-col-action-click
+                             on-click="shareToFlowZone(getSelectedTaggableObjectRefs())"
+                             label="Share"
+                             icon="icon-share_to_zone"
+                             title="Share to a flow zone"
+                        />
+                        <div simple-right-col-action-click
+                             ng-if="selection.selectedObject.usedByZones.length && !selection.selectedObject.successors.length"
+                             on-click="unshareToFlowZone(getSelectedTaggableObjectRefs(), [selection.selectedObject.usedByZones[0]])"
+                             label="Unshare"
+                             icon="icon-unshare_to_zone"
+                             title="Unshare from this flow zone"
+                        />
+                        <div simple-right-col-action-click
+                             ng-if="$state.current.name.startsWith('projects.project.flow') && isDatasetZoneInput()"
+                             on-click="zoomToOtherZoneNode(selection.selectedObject.ownerZone)"
+                             label="Original"
+                             toggle="tooltip-bottom"
+                             title="Zoom on original node in other zone"
+                             icon="icon-go_to_original"
+                        />
+                        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                    </div>
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel name="actions.otherActions" open="true" class="accordion other-actions">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}"></i>
+                        Other actions
+                    </h4>
+
+                    <div ng-show="foldableOpen">
+                        <ul class="simple-list" style="margin-bottom: 10px;">
+                            <li ng-if="!isLocalDataset">
+                                <a class="link-std" href="{{$state.href('projects.project.flow', {projectKey: selection.selectedObject.projectKey})}}" wt1-click-id="rightpaneldataset_actions_gotoproject">
+                                    <i class="icon-mail-reply"></i> Go to source project
+                                </a>
+                            </li>
+                            <other-action-list-item icon='icon-trash'
+                                                    wt1-click-id="rightpaneldataset_actions_unshare"
+                                                    label='Stop sharing to this project'
+                                                    on-click='unshare()'
+                                                    show-condition="isProjectAnalystRW() && !isLocalDataset"/><!-- isProjectAnalystRW is not required but that would be weird -->
+                            <other-action-list-item icon='icon-fixed-width icon-list'
+                                                    wt1-click-id="rightpaneldataset_actions_startschema"
+                                                    label='Start schema propagation from here'
+                                                    on-click="startTool('PROPAGATE_SCHEMA', {projectKey: dataset.projectKey, datasetName: dataset.name})"
+                                                    show-condition="isProjectAnalystRW() && (!tool || tool.type != 'PROPAGATE_SCHEMA') && $state.current.name.includes('flow')"/>
+                            <other-action-list-item icon='icon-fixed-width icon-play'
+                                                    wt1-click-id="rightpaneldataset_actions_addtoscenario"
+                                                    label='Add to a scenario'
+                                                    on-click="addSelectedToScenario()"
+                                                    show-condition="isProjectAnalystRW() && isLocalDataset"/>
+                            <other-action-list-item icon='icon-fixed-width icon-dataset'
+                                                    wt1-click-id="rightpaneldataset_actions_changeconnection"
+                                                    label='Change connection'
+                                                    on-click="changeSelectedItemsConnections()"
+                                                    show-condition="isProjectAnalystRW() && !$state.current.name.includes('explore') && canChangeConnection(selection.selectedObject)"/>
+                            <other-action-list-item icon='icon-fixed-width icon-copy'
+                                                    wt1-click-id="rightpaneldataset_actions_copy"
+                                                    label='Copy'
+                                                    on-click="copyAllSelected()"
+                                                    show-condition="isProjectAnalystRW() && isLocalDataset && $state.current.name.includes('flow')"/>
+                            <other-action-list-item icon='icon-fixed-width icon-dku-hive'
+                                                    wt1-click-id="rightpaneldataset_actions_synchive"
+                                                    label='Sychronize Hive metastore'
+                                                    on-click="resynchronizeMetastore()"
+                                                    show-condition="isProjectAnalystRW() && !$state.current.name.includes('explore') && canSyncMetastore(selection.selectedObject) && isLocalDataset"/>
+                            <other-action-list-item icon='icon-fixed-width icon-refresh'
+                                                    wt1-click-id="rightpaneldataset_actions_updatestatus"
+                                                    label='Update status (count of record, file size)'
+                                                    on-click="updateStatuses()"
+                                                    show-condition="isLocalDataset && $state.current.name.includes('flow')"/>
+                            <other-action-list-item icon='icon-fixed-width icon-refresh'
+                                                    wt1-click-id="rightpaneldataset_actions_setautocount"
+                                                    label='Set auto count of records'
+                                                    on-click="setAutoCountOfRecords(true)"
+                                                    show-condition="isProjectAnalystRW() && isLocalDataset && $state.current.name.includes('flow')"/>
+                            <other-action-list-item icon='icon-fixed-width icon-forward'
+                                                    label='Allow build virtualization (for pipelines)'
+                                                    on-click='setVirtualizable(true)'
+                                                    wt1-click-id='rightpaneldataset_actions_togglevirtualization'
+                                                    show-condition="showAllowVirtualizationAction()"
+                                                    enable-condition="anyPipelineTypeEnabled()"
+                                                    disabled-tooltip='Pipelines are not enabled on this project'/>
+                            <other-action-list-item icon='icon-fixed-width icon-forward'
+                                                    label='Stop build virtualization (for pipelines)'
+                                                    on-click='setVirtualizable(false)'
+                                                    wt1-click-id='rightpaneldataset_actions_togglevirtualization'
+                                                    show-condition="showStopVirtualizationAction()"
+                                                    enable-condition="anyPipelineTypeEnabled()"
+                                                    disabled-tooltip='Pipelines are not enabled on this project'/>
+
+
+                            <li ng-if="canWriteProject() && isLocalDataset && (dataset && !dataset.managed)">
+                                 <a class="link-std icons-danger" ng-click="clearSelected()" wt1-click-id="rightpaneldataset_actions_clear_external">
+                                     <i class="icon-fixed-width icon-remove icons-danger"></i> Clear data
+                                 </a>
+                             </li>
+
+                            <div ng-show="(macroRoles['DATASET'] && macroRoles['DATASET'].length != 0) || (macroRoles['DATASETS'] && macroRoles['DATASETS'].length != 0)">
+                                <hr />
+                                <li ng-repeat="item in macroRoles['DATASET']"
+                                    ng-show="item.applicableToForeign || isLocalDataset">
+                                    <a class="link-std" ng-click="showCreateRunnable(item.runnable, item.roleTarget, dataset.smartName)">
+                                        <i class="icon-fixed-width {{item.icon}}"></i> {{item.label}}
+                                    </a>
+                                </li>
+                                <li ng-repeat="item in macroRoles['DATASETS']"
+                                    ng-show="item.applicableToForeign || isLocalDataset">
+                                    <a class="link-std" ng-click="showCreateRunnable(item.runnable, item.roleTarget, [dataset.smartName])">
+                                        <i class="icon-fixed-width {{item.icon}}"></i> {{item.label}}
+                                    </a>
+                                </li>
+                            </div>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAB tab -->
+            <div ng-switch-when="lab" ng-controller="DatasetLabController" class="object-summary-tab-content lab-tab h100 oa">
+                <div dku-foldable dku-foldable-right-panel open="true" class="accordion" name="actions.visualRecipes">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}"></i>
+                        Visual analysis <span ng-if="analyses.length">({{analyses.length}})</span>
+                    </h4>
+                    <div ng-show="foldableOpen">
+                        <div class="icons-section icons-section-wrap icons-analysis" disabled-block-if-ro >
+                            <div simple-right-col-action-click
+                                on-click="newAnalysis(dataset.smartName)"
+                                label="New Analysis"
+                                icon="icon-dku-nav_analysis"
+                                title="Create a new visual analysis"
+                                wt1-click-id="rightpaneldataset_lab_visualanalysis">
+                            </div>
+                            <div simple-right-col-action-click
+                                on-click="newPrediction(undefined, dataset.smartName)"
+                                label="AutoML Prediction"
+                                icon="icon-dku-automl-prediction"
+                                title="Create a new prediction model"
+                                wt1-click-id="rightpaneldataset_lab_prediction">
+                            </div>
+                            <div simple-right-col-action-click
+                                on-click="newDeepLearningPrediction(dataset.smartName)"
+                                label="Deep Learning Prediction"
+                                icon="icon-dku-deeplearning-prediction"
+                                title="Create a new deep learning prediction model"
+                                wt1-click-id="rightpaneldataset_lab_deeplearningprediction">
+                            </div>
+                            <div simple-right-col-action-click
+                                on-click="newClustering(dataset.smartName)"
+                                label="AutoML Clustering"
+                                icon="icon-dku-automl-clustering"
+                                title="Create a new deep learning prediction model"
+                                wt1-click-id="rightpaneldataset_lab_clustering">
+                            </div>
+                            <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                        </div>
+
+                        <div class="flex oa padleft16 padright16 padbot16">
+                            <div ng-if="analyses && !analyses.length" class="lab-items-empty-state">
+                                <h4>No analysis yet.</h4>
+                            </div>
+                            <ul ng-if="analyses.length" class="selectable-items-list selectable-items-list--no-margins right-panel-selectable-items-list">
+                                <li title="{{analysis.name}}" 
+                                    ui-sref="projects.project.analyses.analysis.script({analysisId: analysis.id})" 
+                                    ng-repeat="analysis in (analyses | orderBy: '-createdOn' | limitTo:3)" 
+                                    class="selectable-item right-panel-selectable-item selectable">
+                                    <i class="right-panel-selectable-item__icon icon {{analysis.icon}} universe-color analysis"></i>
+                                    <div class="right-panel-selectable-item__content">
+                                        <div class="selectable-item__title"><a ui-sref="projects.project.analyses.analysis.script({analysisId: analysis.id})" class="selectable-item__title">{{analysis.name}}</a></div>
+                                        <div class="selectable-item__description" ng-repeat="task in analysis.mlTasks | limitTo:3">
+                                            {{task.name}}
+                                            &#8226; 
+                                            <span ng-if="task.modelCount">
+                                                {{ task.modelCount }} {{ 'model' | plurify : task.modelCount }}
+                                                in {{ task.sessionCount }} {{ 'session' | plurify : task.sessionCount }}
+                                            </span>
+                                            <span ng-if="!task.modelCount">
+                                                No model yet
+                                            </span>
+                                        </div>
+                                        <div ng-if="analysis.mlTasks.length > 3">
+                                            + {{analysis.mlTasks.length - 3}} more...
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <a ng-if="analyses.length > 3" ui-sref="projects.project.analyses.list({datasetId:datasetSmartName})" class="mtop16 dib">+ {{analyses.length - 3}} more...</a>
+                        </div>
+                    </div>
+                </div>
+                <div dku-foldable dku-foldable-right-panel open="true" class="accordion" name="actions.visualRecipes">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}"></i>
+                        Code Notebooks <span ng-if="notebooks.length">({{notebooks.length}})</span>
+                    </h4>
+                    <div ng-show="foldableOpen">
+                        <div class="icons-section icons-section-wrap icons-notebooks" disabled-block-if-ro >
+                            <div simple-right-col-action-click
+                                on-click="newNotebook()"
+                                label="New"
+                                icon="icon-dku-nav_notebook"
+                                title="Create a new notebook"
+                                wt1-click-id="rightpaneldataset_lab_notebook">
+                            </div>
+                            <div simple-right-col-action-click
+                                on-click="newNotebookFromTemplate()"
+                                label="Predefined template"
+                                icon="icon-dku-nav_notebook"
+                                title="Create a new notebook from a pre-defined template"
+                                wt1-click-id="rightpaneldataset_lab_templatednotebook">
+                            </div>
+                            <div simple-right-col-action-click
+                                on-click="newNotebookFromFile()"
+                                label="Upload"
+                                icon="icon-upload"
+                                title="Create a new notebook from an existing file"
+                                wt1-click-id="rightpaneldataset_lab_importednotebook">
+                            </div>
+                            <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                        </div>
+
+                        <div class="flex oa padleft16 padright16 padbot16">
+                            <div ng-if="notebooks && !notebooks.length" class="lab-items-empty-state">
+                                <h4>No notebook yet.</h4>
+                                <p>You can create a new notebook, use one of our predefined templates or upload one.</p>
+                            </div>
+                            <ul ng-if="notebooks.length" class="selectable-items-list selectable-items-list--no-margins right-panel-selectable-items-list">
+                                <li title="{{notebook.name}}" 
+                                    ui-sref="{{ notebook.type === 'SQL' ? 
+                                        'projects.project.notebooks.sql_notebook({notebookId: notebook.id})'
+                                        : 'projects.project.notebooks.jupyter_notebook({notebookId: notebook.name})' }}"  
+                                    ng-repeat="notebook in (notebooks | orderBy: ['-type', '-lastModified'] | limitTo:3) track by notebook.id" 
+                                    class="selectable-item right-panel-selectable-item selectable">
+                                    <i class="right-panel-selectable-item__icon icon icon-dku-{{notebook.icon}} universe-color notebook"></i>
+                                    <div class="right-panel-selectable-item__content">
+                                        <div class="selectable-item__title">
+                                            <a ui-sref="{{ notebook.type === 'SQL' ? 
+                                                'projects.project.notebooks.sql_notebook({notebookId: notebook.id})'
+                                                : 'projects.project.notebooks.jupyter_notebook({notebookId: notebook.name})' }}" class="selectable-item__title">
+                                                {{notebook.name}}
+                                            </a>
+                                        </div>
+                                        <div ng-switch="notebook.type" class="selectable-item__description">
+                                            <span ng-switch-when="JUPYTER">Jupyter ({{notebook.language}}{{getCodeEnvHint(notebook)}}{{getContainerHint(notebook)}})</span>
+                                            <span ng-switch-when="SQL">SQL | {{notebook.niceConnection || notebook.connection}}</span>
+                                            <span ng-switch-when="HIVE">HIVE | {{notebook.niceConnection || notebook.connection}}</span>
+                                            <span ng-switch-when="IMPALA">IMPALA | {{notebook.niceConnection || notebook.connection}}</span>
+                                            <span ng-switch-when="SPARKSQL">SPARKSQL | {{notebook.niceConnection || notebook.connection}}</span>
+                                            <span ng-show="notebook.lastModified"> | Modified {{ notebook.lastModified|friendlyTimeDeltaShort }}</span>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <a ng-if="notebooks.length > 3" ui-sref="projects.project.notebooks.list({datasetId:datasetSmartName})" class="mtop16 dib">+ {{notebooks.length - 3}} more...</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

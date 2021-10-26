@@ -1,0 +1,42 @@
+<div ng-controller="SQLQueryTriggerController">
+	<div ng-include ="'/templates/scenarios/fragments/trigger-header.html'"></div>
+	<form name="descriptionForm" class="dkuform-horizontal trigger-form" ng-if="trigger.$expanded"> <!-- ng-show is not sufficient, the codeMirror doesn't get refreshed -->
+		<div class="control-group">
+			<label class="control-label">Run every (seconds)</label>
+
+			<div class="controls">
+                <input type="number" ng-model="trigger.delay" min="5" required />
+			</div>
+		</div>
+        <div ng-include="'/templates/scenarios/fragments/trigger-grace-delay-settings.html'" />
+		<div class="control-group">
+			<label class="control-label">Connection</label>
+
+			<div class="controls">
+                  <select required dku-bs-select="{liveSearch:true,size:'auto'}" ng-model="trigger.params.connection" ng-options="connection.name as (connection.label + ' (' + connection.type + ')') group by connection.type for connection in connections | orderBy:'type + name'" />
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">SQL Script</label>
+
+			<div class="controls">
+		        <textarea ng-model="trigger.params.sql" ui-codemirror="codeMirrorSettingService.get('text/x-sql')"></textarea>
+			</div>
+		</div>
+		<div class="control-group">
+			<label class="control-label">Limit</label>
+
+			<div class="controls">
+				<input type="checkbox" ng-model="trigger.params.hasLimit" required />
+				<span class="help-inline">
+	                Limit the number of lines read from the database
+				</span>
+			</div>
+
+			<div class="controls">
+				<input type="number" ng-if="trigger.params.hasLimit" ng-model="trigger.params.limit" min="0" required />
+			</div>
+		</div>
+	</form>
+
+</div>

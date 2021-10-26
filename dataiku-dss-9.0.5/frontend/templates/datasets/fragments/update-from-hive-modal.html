@@ -1,0 +1,55 @@
+<div class="modal modal3 update-from-hive-modal">
+    <div dku-modal-header-with-totem modal-title="Update from hive" modal-totem="icon-dku-quick_go_input" />
+    <form name="importForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body">
+            <div block-api-error />
+            <div class="alert alert-info" ng-if="hiveCheckInProgress == true">Checking Hive table...</div>
+            <div ng-if="hiveCheckInProgress == false && hiveSyncOutcome != 'SUCCESS'">
+                <div class="alert alert-error" >
+                    Failed to check : {{hiveSyncMessage}}
+                </div>
+            </div>            
+            <div ng-if="hiveCheckInProgress == false && hiveSyncOutcome == 'SUCCESS'">
+                <div class="alert alert-info" ng-if="connectionIsSubdirSynchronized">
+                    The connection uses subdirectory permission synchronization. It is not advised to update from the Hive table.
+                </div>
+                <div class="alert alert-info" ng-if="schemaIncompatibilities && schemaIncompatibilities.length > 0">
+                    <h6>Schema is different</h6>
+                    <ul ng-if="schemaIncompatibilities.length<5" ng-repeat="incompatibility in schemaIncompatibilities">
+                        <li>{{incompatibility}}</li>
+                    </ul>
+                    <button ng-if="schemaIncompatibilities>=5" class="btn btn--success" dku-inline-popover placement="right" container="body">
+                        <label>
+                            More details
+                            <span class="icon-question-sign"></span>
+                        </label>
+                        <content title="Incompatibilites">
+                            <div>
+                                <ul ng-repeat="incompatibility in schemaIncompatibilities">
+                                    <li>{{incompatibility}}</li>
+                                </ul>
+                            </div>
+                        </content>
+                    </button>
+                </div>
+                <div class="alert alert-info" ng-if="partitioningIncompatibility">
+                    {{partitioningIncompatibility}}
+                </div>
+                <div class="alert alert-info" ng-if="connectionIncompatibility">
+                    {{connectionIncompatibility}}
+                </div>
+                <div class="alert alert-info" ng-if="!connectionIncompatibility && pathIncompatibility">
+                    {{pathIncompatibility}}
+                </div>
+                <div class="alert alert-info" ng-if="!hasIncompatibilities()">
+                    Everything is already up to date.
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-disabled="hiveSyncOutcome != 'SUCCESS' || !hasIncompatibilities()" ng-click="dismiss(); resynchronizeDataset();">Update</button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,55 @@
+apiVersion: __API_VERSION__
+kind: Deployment
+metadata:
+  name: __K8S_DEPLOYMENT_ID__
+  # __DKU_LABELS_AND_ANNOTATIONS__
+  # To add labels to pods and deployments, set a dku.kubernetes.apideployer.extraLabels key
+  # To add annotations to pods and deployments, set a dku.kubernetes.apideployer.extraAnnotations key
+spec:
+  selector:
+    matchLabels:
+      dataiku.com/dku-apideployer-infra-id: __INFRA_ID__
+      dataiku.com/dku-apideployer-deployment-id: __DEPLOYMENT_ID__
+  replicas: __NB_REPLICAS__
+  template:
+    metadata:
+      # __DKU_LABELS_AND_ANNOTATIONS__
+      # To add labels to pods and deployments, set a dku.kubernetes.apideployer.extraLabels key
+      # To add annotations to pods and deployments, set a dku.kubernetes.apideployer.extraAnnotations key
+    spec:
+      containers:
+      - name: apinode-container
+        image: __IMAGE_TAG__
+        ports:
+        - containerPort: 12000
+
+__RESOURCE_SECTION__
+
+        env:
+          - name: DKU_GRAPHITE_ADDITIONAL_PREFIX
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: DKU_APIDEPLOYER_K8S_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: DKU_APINODE_FAIL_IF_START_ABORTED
+            value: "true"
+
+        livenessProbe:
+          httpGet:
+            path: __SERVICE_ISALIVE_PROBE_PATH__
+            port: 12000
+          initialDelaySeconds: 600
+          periodSeconds: 50
+
+        readinessProbe:
+          httpGet:
+            path: __SERVICE_ISALIVE_PROBE_PATH__
+            port: 12000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+      # __DKU_KUBERNETES_NODESELECTOR__
+      # __DKU_KUBERNETES_AFFINITY__
+      # __DKU_KUBERNETES_TOLERATIONS__

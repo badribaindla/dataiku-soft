@@ -1,0 +1,608 @@
+<div>
+    <div class="h100 row-fluid" tab-model="uiState.settingsPane">
+        <div class="span2 offset0 nav-list-sidebar sidebar-admin">
+            <ul>
+                <li sidebar-tab-l2-link tab-name="general" label="General settings" />
+                <li sidebar-tab-l2-link tab-name="authentication" label="Authentication" />
+                <li sidebar-tab-l2-link tab-name="endpoints" label="Endpoints tuning" />
+                <li sidebar-tab-l2-link tab-name="auditing" label="Audit logging" />
+                <li sidebar-tab-l2-link ng-if="lightStatus.infraBasicInfo.type == 'STATIC'" tab-name="static-health" label="Health monitoring" />
+                <li sidebar-tab-l2-link ng-if="lightStatus.infraBasicInfo.type == 'STATIC'" tab-name="static-rolling" label="Rolling updates" />
+
+                <li sidebar-tab-l2-link ng-if="lightStatus.infraBasicInfo.type == 'K8S'" tab-name="k8s-setup" label="Pod setup" />
+                <li sidebar-tab-l2-link ng-if="lightStatus.infraBasicInfo.type == 'K8S'" tab-name="k8s-sizing" label="Sizing and scaling" />
+                <li sidebar-tab-l2-link ng-if="lightStatus.infraBasicInfo.type == 'K8S'" tab-name="k8s-exposition" label="Service exposition" />
+            </ul>
+        </div>
+
+        <div class="span10 h100 offset0 boxed-next-to-sidebar" ng-switch="uiState.settingsPane">
+
+            <div ng-switch-when="general" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Enabled</label>
+                        <div class="controls">
+                            <label class="dku-toggle" style="margin-left: 0;">
+                                <input type="checkbox" ng-model="deploymentSettings.enabled" />
+                                <span/>
+                            </label>
+                            <span class="help-inline"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Active version mode</label>
+                        <div class="controls">
+                            <select dku-bs-select="{width: 206}"
+                                ng-model="deploymentSettings.generationsMapping.mode"
+                                ng-options="m.id as m.name for m in generationsMappingModes"
+                                />
+                            <span class="help-inline">Which service versions are used to handle API calls</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="deploymentSettings.generationsMapping.mode == 'SINGLE_GENERATION'">
+                        <label class="control-label">Version</label>
+                        <div class="controls">
+                            <select dku-bs-select
+                                ng-model="deploymentSettings.generationsMapping.generation"
+                                ng-options="v.id as v.id for v in lightStatus.packages"
+                                />
+                        </div>
+                    </div>
+
+
+                    <div class="control-group" ng-if="deploymentSettings.generationsMapping.mode == 'MULTI_GENERATION'">
+                        <label class="control-label">Strategy</label>
+                        <div class="controls">
+                            <select
+                                dku-bs-select="{width:206}"
+                                ng-model="deploymentSettings.generationsMapping.strategy"
+                                ng-options="s.id as s.name for s in generationsMappingStrategies"
+                                />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="deploymentSettings.generationsMapping.mode == 'MULTI_GENERATION'">
+                        <label class="control-label">Entries</label>
+                        <div class="controls">
+                            <textarea json-object-pretty-view ng-model="deploymentSettings.generationsMapping.entries" style="width: 100%; box-sizing: border-box; min-height: 100px"/>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Tags</label>
+                        <div class="controls">
+                            <tag-edit-popover get-all-tags="getAllTags()"
+                                ng-model="deploymentSettings.tags"
+                                object-type="'LAMBDA_SERVICE'"
+                                manage-link="false"
+                                class="tags-field">
+                            </tag-edit-popover>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="lightStatus.infraBasicInfo.type == 'K8S'">
+                        <label class="control-label">API Service Annotations</label>
+                        <div class="controls">
+                            <textarea ng-model="deploymentSettings.annotations"></textarea>
+                            <span class="help-inline">You can add Kubernetes annotations to the generated service here. Add one line per annotation as if it was in the service template (without indentation).</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">API Service id. once deployed</label>
+                        <div class="controls">
+                            <input type="text" ng-model="deploymentSettings.deployedServiceId" placeholder="{{deploymentSettings.publishedServiceId}}" />
+                            <span class="help-inline">You can choose to deploy this service under a different identifier in the API nodes. This "deployed service id" will appear in the URL. Useful for static API nodes deployment to deploy several times the same service to a given infrastructure. Do not change once a deployment has been activated. Leave empty to use the original API service id ({{deploymentSettings.publishedServiceId}})</span>
+                        </div>
+                    </div>
+                    <div class="control-group"  ng-if="lightStatus.infraBasicInfo.type == 'K8S'">
+                        <label class="control-label">Custom properties</label>
+                        <div class="controls">
+                            <ng2-key-values-list 
+                                [(items)]="deploymentSettings.properties"
+                                key-placeholder="Property key"
+                                value-placeholder="Property value"
+                                add-label="Add Property">
+                            </ng2-key-values-list>
+                            <span class="help-inline">Additional properties about this deployment.</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+
+            <div ng-switch-when="authentication" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div class="alert alert-info">These settings control how access control is done on the API</div>
+
+                    <div class="control-group">
+                        <label class="control-label">Mode</label>
+                        <div class="controls">
+                            <select
+                                dku-bs-select="{width:206}"
+                                ng-model="deploymentSettings.auth.authMode"
+                                ng-options="g[0] as g[1] for g in [['INHERIT_DEV', 'Use settings and keys defined in the API designer'],['PUBLIC', 'Make this service public (no auth)'],['API_KEYS', 'Generate new API keys']]"
+                                />
+                            <span class="help-inline">Authentification mode for API endpoints</span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="deploymentSettings.auth.authMode == 'API_KEYS'">
+                        <label class="control-label">API keys</label>
+                        <div class="controls">
+                            <table class="table table-hover table-striped">
+                                <tr><th>Key</th><th>Label</th><th>Description</th><th>Created on</th><th>Created by</th><th>Edit</th><th>Del</th></tr>
+                                <tr ng-repeat="k in deploymentSettings.auth.apiKeys">
+                                    <td>
+                                        <code ng-if="k.key" ng-bind="k.key" />
+                                        <em ng-if="!k.key">Save to generate</em>
+                                    </td>
+                                    <td ng-bind="k.label"></td>
+                                    <td ng-bind="k.description"></td>
+                                    <td ng-bind="k.createdOn | date: 'yyyy-MM-dd HH:mm'"></td>
+                                    <td ng-bind="k.createdBy"></td>
+                                    <td ng-click="editAPIKey(k)" title="Edit this key" style="cursor: pointer"><i class="icon-edit" /></td>
+                                    <td ng-click="deploymentSettings.auth.apiKeys.splice($index, 1)" title="Delete this key" style="cursor: pointer"><i class="icon-trash" /></td>
+                                </tr>
+                                <tr ng-if="!deploymentSettings.auth.apiKeys.length"><td colspan="7" style="font-style: italic">No API key yet.</td></tr>
+                            </table>
+                            <button type="button" class="btn btn--secondary" ng-click="newAPIKey()">New API key</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="endpoints" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <div class="alert alert-info">
+                    These settings allow you to control the performance tuning on a per-endpoint basis.<br />
+                    These settings override global settings defined at the infrastructure level.<br />
+                    Please refer to DSS documentation for details on these settings.
+                </div>
+                <form class="dkuform-horizontal">
+                    <div style="margin-bottom: 20px; font-size: 16px; color: #777" ng-if="!deploymentSettings.endpointsServerSideConfigs.length">There is no endpoint configuration set up yet.</div>
+                    <div ng-repeat="endpoint in deploymentSettings.endpointsServerSideConfigs track by $index" style="margin-top: 20px;">
+                        <div class="control-group">
+                            <div class="controls">
+                                <strong>{{endpoint.endpointId}}</strong>
+                                <a class="std-link" ng-click="deploymentSettings.endpointsServerSideConfigs.splice($index, 1)"><i class="icon-trash" /></a>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Enpoint ID</label>
+                            <div class="controls">
+                                <input type="text" ng-model="endpoint.endpointId" />
+                                <span class="help-inline">Unique identifier of the endpoint</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Pooling max pipelines</label>
+                            <div class="controls">
+                                <input type="number" ng-model="endpoint.config.pool.ceil" />
+                                <span class="help-inline">Maximum number of allocated pipelines</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Pooling min pipelines</label>
+                            <div class="controls">
+                                <input type="number" ng-model="endpoint.config.pool.floor" />
+                                <span class="help-inline">Minimum number of allocated pipelines</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Pooling cruise pipelines</label>
+                            <div class="controls">
+                                <input type="number" ng-model="endpoint.config.pool.cruise" />
+                                <span class="help-inline">Cruise number of allocated pipelines, minimum number of allocated pipelines before freed pipeline is destroyed for a new one</span>
+                                <span class="help-inline">Must be between minimum and maximum number of pipelines</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Pooling queue length</label>
+                            <div class="controls">
+                                <input type="number" ng-model="endpoint.config.pool.queue" />
+                                <span class="help-inline">Maximum number of queued resquests when all pipelines are busy</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Pooling request timeout</label>
+                            <div class="controls">
+                                <input type="number" ng-model="endpoint.config.pool.timeout" />
+                                <span class="help-inline">Timeout for requests in milliseconds</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">SQL eviction time</label>
+                            <div class="controls">
+                                <input type="number" ng-model="endpoint.config.sql.connectionsEvictionTimeMS" />
+                                <span class="help-inline">SQL connection eviction time in milliseconds</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">SQL eviction interval</label>
+                            <div class="controls">
+                                <input type="number" ng-model="endpoint.config.sql.evictionIntervalMS" />
+                                <span class="help-inline">SQL eviction interval in milliseconds</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">SQL max pool</label>
+                            <div class="controls">
+                                <input type="number" ng-model="endpoint.config.sql.maxPooledConnections" />
+                                <span class="help-inline">SQL max pooled connections</span>
+                            </div>
+                        </div>
+                        <hr/>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-group">
+                            <label class="control-label">Add config for an endpoint</label>
+                            <div class="controls">
+
+                                <input type="text" ng-model="newEndpoint" placeholder="Endpoint ID" />
+                                <button class="btn btn--secondary" ng-disabled="!newEndpoint.length" ng-click="deploymentSettings.endpointsServerSideConfigs = deploymentSettings.endpointsServerSideConfigs || []; deploymentSettings.endpointsServerSideConfigs.push({endpointId: newEndpoint, config:{pool:{ceil: 16, floor: 1, cruise: 8, queue: 16, timeout: 10000}, sql:{connectionsEvictionTimeMS: 60000, evictionIntervalMS: 30000, maxPooledConnections: 10}}}); newEndpoint = '';"><span plus-icon />&nbsp;ADD</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+
+            <div ng-switch-when="static-health" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Override infrastructure settings</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="deploymentSettings.overrideSettings.healthSettings" />
+                            <span class="help-inline">
+                                If unchecked, settings defined at the infrastructure level are used
+                            </span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="deploymentSettings.overrideSettings.healthSettings">
+                        <label class="control-label">Max failing</label>
+                        <div class="controls">
+                            <input type="number" min="0" ng-model="deploymentSettings.healthSettings.maxFailing" />
+                            <span class="help-inline">If there are more than this number of failing API nodes, the deployment will be marked as unhealthy</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="static-rolling" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Override infrastructure settings</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="deploymentSettings.overrideSettings.rollingUpdateSettings" />
+                            <span class="help-inline">
+                                If unchecked, settings defined at the infrastructure level are used
+                            </span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="deploymentSettings.overrideSettings.rollingUpdateSettings">
+                        <label class="control-label">Wait LB timeout</label>
+                        <div class="controls">
+                            <label class="dku-toggle" style="margin-left: 0;">
+                                <input type="checkbox" ng-model="deploymentSettings.rollingUpdateSettings.waitLoadBalancerTimeout" />
+                                <span/>
+                            </label>
+                            <span class="help-inline">When rolling update, should wait for load balancer timeout or not?</span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="deploymentSettings.overrideSettings.rollingUpdateSettings">
+                        <label class="control-label">LB timeout</label>
+                        <div class="controls">
+                            <input type="number" min="0" ng-model="deploymentSettings.rollingUpdateSettings.loadBalancerTimeoutMS" />
+                            <span class="help-inline">Load balancer timeout in milliseconds</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="k8s-setup" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <h2 class="settings-section-title mtop0">Pod settings</h2>
+                    <div class="alert alert-info">
+                        These settings control the extensions to the pods of the underlying Kubernetes deployments.
+                        <br />
+                        Pod enhancers can provide additional capabilities, notably for advanced autoscaling. Please refer to the documentation for more details.
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Override infrastructure settings</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="deploymentSettings.overrideSettings.podSetup" />
+                            <span class="help-inline">
+                                If unchecked, settings defined at the infrastructure level are used
+                            </span>
+                        </div>
+                    </div>
+                    <div ng-if="deploymentSettings.overrideSettings.podSetup">
+                        <div yaml-modifier="deploymentSettings.deploymentModifier" exposable-kind="'API_DEPLOYER'" exposition-usage-context="'API_DEPLOYER_DEPLOYMENT'" inline-container-config="getInlineContainerConfig()"/>
+                    </div>
+                </form>
+            </div>
+            
+
+            <div ng-switch-when="auditing" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Audit routing key</label>
+                        <div class="controls">
+                            <input type="text" ng-model="deploymentSettings.generationsMapping.auditRoutingKey" />
+                            <span class="help-inline">
+                                If you want to report queries from this deployment, you can specify a routing key to dispatch events from multiple deployments.
+                            </span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Override infrastructure settings</label>
+                        <div class="controls">
+                            <!-- The parameter has not the same name in Static and K8S infra :'( -->
+                            <input type="checkbox" ng-if="lightStatus.infraBasicInfo.type == 'STATIC'" ng-model="deploymentSettings.overrideSettings.loggingSettings" />
+                            <input type="checkbox" ng-if="lightStatus.infraBasicInfo.type == 'K8S'" ng-model="deploymentSettings.overrideSettings.apiNodeLogging" />
+                            <span class="help-inline">
+                                If unchecked, logging settings defined at the infrastructure level are used
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="lightStatus.infraBasicInfo.type == 'K8S' && deploymentSettings.overrideSettings.apiNodeLogging">
+                        <label class="control-label">Log queries</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="deploymentSettings.apiNodeLogging.auditLog.logQueries" />
+                                <span class="help-inline">Log each received query in the audit log</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="lightStatus.infraBasicInfo.type == 'K8S' && deploymentSettings.overrideSettings.apiNodeLogging">
+                        <label class="control-label">Log inputs</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="deploymentSettings.apiNodeLogging.auditLog.logInputs" />
+                                <span class="help-inline">Log the input (features, params) of each received query in the audit log</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="lightStatus.infraBasicInfo.type == 'K8S' && deploymentSettings.overrideSettings.apiNodeLogging">
+                        <label class="control-label">Log outputs</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="deploymentSettings.apiNodeLogging.auditLog.logOutputs" />
+                                <span class="help-inline">Log the output (prediction, result) of each received query in the audit log</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="(deploymentSettings.overrideSettings.loggingSettings || deploymentSettings.overrideSettings.apiNodeLogging) ">
+                        <label class="control-label">Configure reporting to DSS-ES</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="deploymentSettings.apiNodeLogging.automaticallyConfigureEventServerReporting" />
+                            <span class="help-inline">
+                                Automatically configure audit logging on the API nodes to send events for this deployment to a DSS Event Server.
+                            </span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="(deploymentSettings.overrideSettings.loggingSettings  || deploymentSettings.overrideSettings.apiNodeLogging) && deploymentSettings.apiNodeLogging.automaticallyConfigureEventServerReporting">
+                        <label class="control-label">Event Server URL</label>
+                        <div class="controls">
+                            <input type="text" ng-model="deploymentSettings.apiNodeLogging.eventServerURL" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="(deploymentSettings.overrideSettings.loggingSettings  || deploymentSettings.overrideSettings.apiNodeLogging) && deploymentSettings.apiNodeLogging.automaticallyConfigureEventServerReporting">
+                        <label class="control-label">Event Server Auth key</label>
+                        <div class="controls">
+                            <input type="password" autocomplete="new-password" ng-model="deploymentSettings.apiNodeLogging.eventServerAuthKey" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="(deploymentSettings.overrideSettings.loggingSettings  || deploymentSettings.overrideSettings.apiNodeLogging) && deploymentSettings.apiNodeLogging.automaticallyConfigureEventServerReporting">
+                        <label class="control-label">Trust all certificates</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="deploymentSettings.apiNodeLogging.trustAllSSLCertificates" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="(deploymentSettings.overrideSettings.loggingSettings || deploymentSettings.overrideSettings.apiNodeLogging) ">
+                        <label class="control-label">Configure reporting to Kafka</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="deploymentSettings.apiNodeLogging.automaticallyConfigureKafkaReporting" />
+                            <span class="help-inline">
+                                Automatically configure audit logging on the API nodes to send events for this deployment to Kafka
+                            </span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="(deploymentSettings.overrideSettings.loggingSettings  || deploymentSettings.overrideSettings.apiNodeLogging) && deploymentSettings.apiNodeLogging.automaticallyConfigureKafkaReporting">
+                        <label class="control-label">Kafka connection name</label>
+                        <div class="controls">
+                            <input type="text" ng-model="deploymentSettings.apiNodeLogging.kafkaConnectionName" />
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="(deploymentSettings.overrideSettings.loggingSettings  || deploymentSettings.overrideSettings.apiNodeLogging) && deploymentSettings.apiNodeLogging.automaticallyConfigureKafkaReporting">
+                        <label class="control-label">Kafka topic</label>
+                        <div class="controls">
+                            <input type="text" ng-model="deploymentSettings.apiNodeLogging.kafkaTopic" />
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="lightStatus.infraBasicInfo.type == 'K8S' && deploymentSettings.overrideSettings.apiNodeLogging">
+                        <label class="control-label">log4j.properties</label>
+                        <div class="controls">
+                            <textarea style="width: 300px; height: 150px" ng-model="deploymentSettings.apiNodeLogging.log4jConfiguration" />
+                            <span class="help-inline">Advanced usage: override default Log4J configuration</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="k8s-sizing" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <form class="dkuform-horizontal">
+                    <h2 class="settings-section-title mtop0">Replication settings</h2>
+                    <div class="alert alert-info">
+                        These settings control the scalability of the underlying Kubernetes deployments.
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Override infrastructure settings</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="deploymentSettings.overrideSettings.deploymentScaling" />
+                            <span class="help-inline">
+                                If unchecked, settings defined at the infrastructure level are used
+                            </span>
+                        </div>
+                    </div>
+                    <div ng-if="deploymentSettings.overrideSettings.deploymentScaling">
+                        <div class="control-group">
+                            <label class="control-label">Replica number</label>
+                            <div class="controls">
+                                <input type="number" min="1" ng-model="deploymentSettings.deploymentScaling.initialReplicas" />
+                                <span class="help-inline">Number of pod replicas in Kubernetes</span>
+                            </div>
+                        </div>
+                        <div deployment-hpa="deploymentSettings.deploymentScaling" exposable-kind="'API_DEPLOYER'" exposition-usage-context="'API_DEPLOYER_DEPLOYMENT'" inline-container-config="getInlineContainerConfig()" />
+
+                    </div>
+
+                    <h2 class="settings-section-title mtop0">API Node server sizing and tuning</h2>
+                    <div class="alert alert-info">
+                        These settings control internal sizing parameters of the API node server.
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Override infrastructure settings</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="deploymentSettings.overrideSettings.apiNodeServerSizing" />
+                            <span class="help-inline">
+                                If unchecked, settings defined at the infrastructure level are used
+                            </span>
+                        </div>
+                    </div>
+                    <div ng-if="deploymentSettings.overrideSettings.apiNodeServerSizing">
+                        <div class="control-group">
+                            <label class="control-label">API node Xmx</label>
+                            <div class="controls">
+                                <input type="text" ng-model="deploymentSettings.apiNodeSizing.apimainXmx" />
+                                <span class="help-inline">Max Java heap memory for API node server. Leave empty for default</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">API node GC</label>
+                            <div class="controls">
+                                <input type="text" ng-model="deploymentSettings.apiNodeSizing.apimainGC" />
+                                <span class="help-inline">GC algorithm for API node server. Leave empty for default.</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">API node opts</label>
+                            <div class="controls">
+                                <input type="text" ng-model="deploymentSettings.apiNodeSizing.apimainAdditionalOpts" />
+                                <span class="help-inline">Additional command-line options for API node server. Leave empty for default.</span>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <h2 class="settings-section-title mtop0">Container limits</h2>
+                    <div class="alert alert-info">
+                        These settings control CPU and memory limits that are set on each container.<br />
+                        It is recommended to be familiar with Kubernetes "request" and "limit" parameters to use this.
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Override infrastructure settings</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="deploymentSettings.overrideSettings.containerLimits" />
+                            <span class="help-inline">
+                                If unchecked, settings defined at the infrastructure level are used
+                            </span>
+                        </div>
+                    </div>
+                    <div ng-if="deploymentSettings.overrideSettings.containerLimits">
+                        <div class="control-group">
+                            <label class="control-label">Memory request</label>
+                            <div class="controls">
+                                <input type="number" force-integer ng-model="deploymentSettings.containerLimits.memRequestMB"  />
+                                <span class="help-inline">Memory request for containers in MB. -1 = default (inherit namespace settings)</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Memory limit</label>
+                            <div class="controls">
+                                <input type="number" force-integer ng-model="deploymentSettings.containerLimits.memLimitMB"  />
+                                <span class="help-inline">Memory limit for containers in MB. -1 = default (inherit namespace settings)</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">CPU request</label>
+                            <div class="controls">
+                                <input type="number" ng-model="deploymentSettings.containerLimits.cpuRequest" />
+                                <span class="help-inline">CPU request for containers (0.5 = 50% of a core, 2 = 2 cores).  -1 = default (inherit namespace settings)</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">CPU limit</label>
+                            <div class="controls">
+                                <input type="number" ng-model="deploymentSettings.containerLimits.cpuLimit" />
+                                <span class="help-inline">CPU limit for containers (0.5 = 50% of a core, 2 = 2 cores). -1 = default (inherit namespace settings)</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                        <label class="control-label">Custom limits</label>
+                        <div class="controls">
+                            <ng2-key-values-list 
+                                [(items)]="deploymentSettings.containerLimits.customLimits" 
+                                add-label="Add Custom Limit"
+                                key-placeholder="Limit key"
+                                value-placeholder="Limit value">
+                            </ng2-key-values-list>
+                            <span class="help-inline">Custom Kubernetes limits key-value. For example, on Google Kubernetes Engine, use <code>nvidia.com/gpu</code> = <code>1</code> to get a GPU node</span>
+                        </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Node selector</label>
+                            <div class="controls">
+                                <textarea style="width: 700px" ng-model="deploymentSettings.containerLimits.nodeSelector" placeholder="Optional nodeSelector YAML specification. Must start by 'nodeSelector:' followed by 2-space indented Kubernetes NodeSelector specification" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Affinity</label>
+                            <div class="controls">
+                                <textarea style="width: 700px" ng-model="deploymentSettings.containerLimits.affinity" placeholder="Optional pod affinity YAML specification. Must start by 'affinity:' followed by 2-space indented Kubernetes pod affinity specification" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Tolerations</label>
+                            <div class="controls">
+                                <textarea style="width: 700px" ng-model="deploymentSettings.containerLimits.tolerations" placeholder="Optional pod tolerations YAML specification. Must start by 'tolerations:' followed by 2-space indented Kubernetes pod affinity specification" />
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div ng-switch-when="k8s-exposition" class="h100 oa" style="position: relative;">
+                <div block-api-error />
+                <div class="alert alert-info">
+                    These settings control exposition of service
+                </div>
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Override infrastructure settings</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="deploymentSettings.overrideSettings.serviceExposition" />
+                            <span class="help-inline">
+                                If unchecked, settings defined at the infrastructure level are used
+                            </span>
+                        </div>
+                    </div>
+                    <div ng-if="deploymentSettings.overrideSettings.serviceExposition">
+                        <div service-exposition="deploymentSettings.serviceExposition" exposable-kind="'API_DEPLOYER'" exposition-usage-context="'API_DEPLOYER_DEPLOYMENT'" inline-container-config="getInlineContainerConfig()"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

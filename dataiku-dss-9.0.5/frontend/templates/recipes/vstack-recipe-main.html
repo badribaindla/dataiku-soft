@@ -1,0 +1,395 @@
+<div class="dss-page vertical-flex visual-recipe-with-steps main-recipe-content vstack-recipe" ng-show="topNav.tab == 'settings'">
+    <div block-api-error />
+
+    <div class="flex" style="position: relative;">
+        <div class="leftPane vertical-flex">
+            <div class="steps flex">
+                <div recipe-step class="inputs"/>
+                <div recipe-step="preFilters" step-label="Pre-filters"/>
+                <div recipe-step="selectedColumns" step-label="Selected columns"/>
+                <div recipe-step="originColumn" step-label="Origin column"/>
+                <div recipe-step="postFilter" step-label="Post-filter"/>
+                <div recipe-step="output" step-label="Output"/>
+                <div ng-if="recipeStatus.topLevelMessages.anyMessage" recipe-step="topLevelMessages" step-label="Warnings" />
+            </div>
+            <div class="run noflex" ng-if="params">
+                <div include-no-scope="/templates/recipes/visual-recipes-fragments/visual-recipe-run.html"/>
+                <div engine-selector-button
+                recipe-status="recipeStatus"
+                recipe-params="params"
+                update-status="hooks.updateRecipeStatus"
+                can-change-engine="canChangeEngine" />
+            </div>
+        </div>
+
+
+        <div class="mainPane oa" ng-if="computablesMap && params.virtualInputs.length">
+
+            <div ng-if="uiState.currentStep == 'preFilters'">
+                <table class="datasets-background-table">
+                    <colgroup>
+                        <col ng-repeat="input in params.virtualInputs">
+                    </colgroup>
+                    <tr>
+                        <td ng-repeat="input in params.virtualInputs" class="dataset-column"></td>
+                    </tr>
+                </table>
+
+                <table class="datasets-table">
+                    <tr>
+                        <td ng-repeat="input in params.virtualInputs" class="dataset-column">
+                            <div class="dataset-header">
+                                <div class="pull-right dataset-tools" code-recipe-schema-list>
+                                    <a title="Explore" href="{{datasetSmartHRef(getDatasetName($index), 'explore')}}" target="_blank">
+                                        <i class="icon-table"/>
+                                    </a>
+                                    <a ng-click="beginEditSchema(getDatasetName($index))" title="Schema">
+                                        <i class="icon-cog"/>
+                                    </a>
+                                    <a ng-click="removeDataset($index)" title="Remove dataset" class="qa_recipe_stack-remove-dataset">
+                                        <i class="icon-trash"/>
+                                    </a>
+                                </div>
+                                <h4 title="{{getDatasetName($index)}}">
+                                    <i class="dataset-bullet {{getDatasetColorClass($index)}}" ng-click="toggleDatasetSelection($index)"/>
+                                    <div class="dataset-name limited-width">
+                                        {{getDatasetName($index)}}
+                                    </div>
+                                </h4>
+                            </div>
+                        </td>
+                        <td>
+                            <a ng-click="showNewInputModal()" class="add-input-button btn btn--primary pull-right qa_recipe_stack-add-input-ds">
+                                <i plus-icon /> Add input
+                            </a>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td ng-repeat="input in params.virtualInputs">
+                            <input-filter-block
+                                dataset="getDatasetName($index)"
+                                schema="computablesMap[getDatasetName($index)].dataset.schema"
+                                filter="input.preFilter"
+                                recipe-status="recipeStatus"
+                                recipe-variables="recipeVariables"
+                                on-change="hooks.updateRecipeStatus()"
+                                hide-sql-filter="true"/> <!-- see comment in the postFilter section -->
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+
+
+            <div ng-if="uiState.currentStep == 'selectedColumns'" class="vertical-flex h100">
+                <div class="noflex virtual-inputs">
+                    <span ng-repeat="input in params.virtualInputs" class="virtual-input">
+                        <div class="pull-right dataset-tools" code-recipe-schema-list>
+                            <a ng-click="removeDataset($index)" title="Remove dataset" class="qa_recipe_stack-remove-dataset">
+                                <i class="icon-trash"/>
+                            </a>
+                        </div>
+                        <i class="dataset-bullet {{getDatasetColorClass($index)}}"/>
+                        <span class="input-name qa_recipe_stack-dataset-name">
+                            {{getDatasetName($index)}}
+                        </span>
+                    </span>
+                    <span class="virtual-input">
+                        <a ng-click="showNewInputModal()" class="add-input-button btn btn--primary pull-right qa_recipe_stack-add-input-ds">
+                            <i plus-icon /> Add input
+                        </a>
+                    </span>
+                </div>
+
+                <div class="merging-mode noflex"
+                    ng-if="flatInputRefs.length > 0">
+                    Columns selection: &nbsp;
+                    <select
+                        id="qa_recipe_stack-column-selection"
+                        dku-bs-select
+                        ng-model="params.mode"
+                        ng-change="updateColumnsSelection();hooks.updateRecipeStatus();"
+                        style="width: auto"
+                        >
+                        <option value="UNION">Union of input schemas</option>
+                        <option value="INTERSECT">Intersection of input schemas</option>
+                        <option value="FROM_DATASET">Use schema from dataset</option>
+                        <option value="FROM_INDEX">Using column order</option>
+                        <option value="REMAP">Manually remapping</option>
+                        <option value="CUSTOM">Custom defined schema</option>
+                    </select>
+                    <span ng-if="params.mode == 'FROM_DATASET'">
+                        <select
+                            dku-bs-select
+                            ng-model="params.copySchemaFromDatasetWithName"
+                            ng-options="input for input in flatInputRefs"
+                            ng-init="params.copySchemaFromDatasetWithName = params.copySchemaFromDatasetWithName || flatInputRefs[0]"
+                            ng-change="updateColumnsSelection();hooks.updateRecipeStatus()"
+                            />
+                    </span>
+                    <p><a ng-if="params.mode == 'REMAP'" dku-help-popover="'/templates/recipes/vstack-recipe-manual-remapping-help.html'" force-top-positive="true" no-arrow="true"
+                        target-blank="true" class="processor-help-popover" popover-clazz="processor-help-popover" title="" data-original-title="Help">
+                        My columns are not in the right order, what can I do?&nbsp;&nbsp;<i class="icon-question-sign"></i></a>
+                    </p>
+                </div>
+
+                <div class="vstack-remap grid-container flex h100" ng-if="params.mode == 'REMAP' || params.mode == 'FROM_INDEX'">
+                    <div class="grid">
+                        <div class="grid-col grid-col--fixed-left">
+                            <div class="grid-item grid-item--header-left">
+                                <div class="vstack-header-container-left">
+                                    <input
+                                        type="checkbox"
+                                        ng-model="selectedFromIndex.all"
+                                        dku-indeterminate="selectedFromIndex.any && !selectedFromIndex.all"
+                                        ng-change="updateSelectAllColumnsFromIndex();syncSelectedColumns();updateGlobalSelectionStatus()"
+                                        title="select/deselect all"
+                                        toggle="tooltip"
+                                        ng-class="{invisible: params.mode != 'FROM_INDEX'}"
+                                        >
+                                    <span ng-if="params.mode == 'FROM_INDEX'" style="padding-left:3px">
+                                        Output columns {{params.selectedColumns.length}} / {{getSelectableColumns.length}}
+                                    </span>
+                                    <span ng-if="params.mode == 'REMAP'" style="padding-left:3px" >
+                                        Output columns ({{params.selectedColumns.length}})
+                                    </span>
+                                    <span ng-if="params.mode == 'REMAP'" class="pull-right dataset-tools coach-here" >
+                                        <a ng-click="addColumn()"  title="Add column" >
+                                            <i class="icon-plus" />
+                                        </a>
+                                        <a ng-click="removeAllColumns()"  title="Remove all columns" toggle="tooltip">
+                                            <i class="icon-trash" />
+                                        </a>
+                                    </span>
+                                </div>
+                            </div>
+                            <div ng-repeat="column in getSelectableColumns track by $index" ng-if="params.mode == 'FROM_INDEX'">
+                                <div class="grid-item">
+                                    <div style="padding-top:7px;padding-left:5px;" >
+                                        <table>
+                                            <tr>
+                                                <th>
+                                                    <input
+                                                        type="checkbox"
+                                                        ng-model="selectedColumns[$index].selected"
+                                                        ng-change="syncSelectedColumns($index);updateGlobalSelectionStatus()" 
+                                                        >
+                                                </th>
+                                                <th style="width:14px;font-weight:normal;">
+                                                    <span ng-style="{'opacity':(selectedColumns[$index].selected) ? '1' : '0.3'}">
+                                                        {{$index + 1}}
+                                                    </span>
+                                                </th>
+                                                <th>
+                                                    <span style="padding-left:5px;">
+                                                        <select
+                                                            dku-bs-select="{width:195}"
+                                                            ng-model="selectedColumns[$index].name"
+                                                            ng-change="syncSelectedColumns();"
+                                                            ng-disabled="!selectedColumns[$index].selected"
+                                                            data-live-search="true"
+                                                            >
+                                                            <option ng-repeat="possibility in column track by $index" value="{{possibility}}" >
+                                                                {{possibility}}
+                                                            </option>
+                                                        </select>
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div ng-if="params.mode == 'REMAP'" class="m8">
+                                <ng2-values-list 
+                                    data-qa-columns-remap-list
+                                    [(items)]="params.selectedColumns"
+                                    sortable="true"
+                                    full-width-list="true" 
+                                    disable-add="true" 
+                                    (on-delete)="removeColumn($event)" 
+                                    (on-reorder)="reorderColumns($event)" 
+                                    value-placeholder="E.g. Col-1">
+                                </ng2-values-list>
+                            </div>
+                        </div>
+                    
+                        <div ng-repeat="input in params.virtualInputs">
+                            <div class="grid-col h100">
+                                <div class="grid-item grid-item--header" >
+                                    <div class="vstack-header-container" 
+                                        title="{{getDatasetName($index)}}"
+                                        style="padding: 24px 12px 0 15px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;">
+                                        <span>
+                                            <i class="dataset-bullet {{getDatasetColorClass($index)}}"/>
+                                            {{getDatasetName($index)}} 
+                                        </span>
+                                        <span class="pull-right dataset-tools" ng-if="params.mode == 'FROM_INDEX'">
+                                            <a ng-click="useAsReference(input.originLabel)" 
+                                                ng-style="{color: isColumnsMatch(getColumnList($index), params.selectedColumns) ? '#508ff5' : ''}"
+                                                toggle="tooltip"
+                                                title="Use as reference">
+                                                <i class="icon-bullseye" />
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div ng-repeat="column in getColumnList($index)" ng-if="params.mode == 'FROM_INDEX'">
+                                    <div class="grid-item" >
+                                        <div style="padding-top:11px;padding-left:5px;"
+                                            title="{{column.name}}"
+                                            ng-style="{'opacity':(selectedColumns[$index].selected) ? '1' : '0.3'}" >
+                                            <p style="margin-bottom: 0px;padding-left:10px;padding-right:10px;
+                                                overflow: hidden;
+                                                white-space: nowrap;
+                                                text-overflow: ellipsis;">
+                                                {{column.name}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div ng-repeat="column in params.selectedColumns track by $index" ng-if="params.mode == 'REMAP'">
+                                    <div class="grid-item" ng-class="{'none-opt-vstack' : (params.virtualInputs[input.index].columnsMatch[$index] == '' || params.virtualInputs[input.index].columnsMatch[$index] == null)}">
+                                        <div style="padding-top:7px;width:141px;max-width: 141px;padding-left:11px">
+                                            <select
+                                            dku-bs-select="{width:141}"
+                                            ng-model="params.virtualInputs[input.index].columnsMatch[$index]"
+                                            data-live-search="true"
+                                            >
+                                                <option value="" style="width: 141px;height:26px;">None</option>
+                                                <option style="width: 141px;height:26px;" ng-repeat="possibility in getColumnList(input.index)" value="{{possibility.name}}">{{possibility.name}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="oa" style="text-align: center;" ng-if="params.mode != 'REMAP' && params.mode != 'FROM_INDEX'">
+                    <div class="column-selection-editor"
+                        ng-if="flatInputRefs.length > 0"
+                        >
+                        <input
+                            type="checkbox"
+                            ng-model="selected.all"
+                            dku-indeterminate="selected.any && !selected.all"
+                            ng-change="updateSelectAllColumns()"
+                            title="select/deselect all"
+                            toggle="tooltip"
+                            style="margin-left:30px;"
+                            ng-class="{invisible: params.mode != 'CUSTOM'}"
+                            />
+                        <span class="column-name" ng-class="{strong:true}" ng-if="params.mode==='CUSTOM'">
+                            Output columns {{params.selectedColumns.length}} / {{unionSchema.length}}
+                        </span>
+                        <div class="collection-selection__scroll-box">
+                        <div ng-repeat="column in unionSchema" class="column horizontal-flex">
+                            <label class="column-label flex" ng-class="{'no-checkbox': params.mode != 'CUSTOM'}">
+                                <input
+                                    type="checkbox"
+                                    ng-model="column.selected"
+                                    ng-change="updateGlobalSelectionStatus()"
+                                    ng-class="{invisible: params.mode != 'CUSTOM'}"
+                                    ng-disabled="params.mode != 'CUSTOM'"
+                                    style="margin-right:10px;"
+                                    class="qa_recipe_stack-column-checkbox"
+                                    >
+                                <span class="column-name qa_recipe_stack-column-name" ng-class="{strong: column.selected || params.mode == 'CUSTOM'}">
+                                    {{column.name}}
+                                </span>
+                            </label>
+
+                            <div class="column-existence-indicators noflex">
+                                <span ng-repeat="input in params.virtualInputs"
+                                    class="column-existence-indicator"
+                                    visible-if="datasetHasColumn(getDatasetName($index), column.name)"
+                                    title="&#10003; '{{getDatasetName($index)}}' has column '{{column.name}}'"
+                                    toggle="tooltip-bottom">
+                                    <i class="dataset-bullet {{getDatasetColorClass($index)}}" ng-style = "{opacity : (column.selected) ? 1 : 0.3}"/>
+                                </span>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-if="uiState.currentStep == 'originColumn'" class="padded-step-settings">
+                <div class="recipe-settings-section1">
+                    <div class="recipe-settings-section2">
+                        <h1 class="recipe-settings-section1-title">
+                            Origin column
+                            <label class="dku-toggle pull-right qa_recipe_stack-toggle-origin-column">
+                                <input type="checkbox" ng-model="params.addOriginColumn"
+                                       ng-change="hooks.updateRecipeStatus()"/>
+                                <span />
+                            </label>
+                        </h1>
+                        <div class="explanation dku-text text-weak mtop8">
+                            Add a column indicating the original dataset.
+                        </div>
+                        <div ng-if="params.addOriginColumn" class="body mtop8">
+                            <table class="dataset-label-mapping">
+                                <tr>
+                                    <th style="width:300px;max-width:300px">
+                                        Column name
+                                    </th>
+                                    <th></th>
+                                    <th>
+                                        <input
+                                            type="text"
+                                            class="qa_recipe_stack-origin-column-name"
+                                            ng-model="params.originColumnName"
+                                            ng-blur="updateRecipeStatusLater()"
+                                            ng-pattern="/^[a-zA-Z_][a-zA-Z0-9_]*$/"
+                                            required
+                                            />
+                                    </th>
+                                </tr>
+                                <tr ng-repeat="input in params.virtualInputs">
+                                    <td style="overflow-x:auto;">{{getDatasetName($index)}}</td>
+                                    <td><span>&rarr;</span></td>
+                                    <td style="width:300px;max-width:300px">
+                                        <input
+                                            type="text"
+                                            class="qa_recipe_stack-origin-label"
+                                            ng-model="input.originLabel"
+                                            style="width: 200px; margin: 2px 0;"
+                                            />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div ng-if="uiState.currentStep == 'postFilter'"
+                class="padded-step-settings"
+                ng-scope="{{filterDesc=params.postFilter; dataset=outputDatasetName; schema=computablesMap[outputDatasetName].dataset.schema}}">
+                <div ng-include="'/templates/recipes/visual-recipes-fragments/inline-filter.html'" dku-hack-run-stuff-in-scope="{{hideSqlFilter=true;}}"/> <!-- the builtin runner for vstack doesn't use H2 at all, so we can't give the possibility to have a sql filter -->
+                <div ng-if="params.postFilter.enabled && params.postFilter.uiData.mode == 'CUSTOM'" grel-reference-and-examples></div>
+            </div>
+
+
+            <div ng-if="uiState.currentStep == 'output'" class="fh">
+                <div data-extend-template="/templates/recipes/visual-recipes-fragments/run-summary.html" class="h100" />
+            </div>
+
+            <div data-extend-template="/templates/recipes/visual-recipes-fragments/visual-sql-top-level-messages.html" />
+        </div>
+
+        <div class="mainPane oa" ng-if="computablesMap && !params.virtualInputs.length">
+            <div class="placeholder-block" style="margin-top:40px">
+                No input datasets
+                <br/><button class="btn btn--secondary" ng-click="showNewInputModal()" style="padding: 0 40px"> Add dataset </button>
+            </div>
+        </div>
+    </div>
+</div>

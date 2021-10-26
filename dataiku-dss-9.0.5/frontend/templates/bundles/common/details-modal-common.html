@@ -1,0 +1,45 @@
+<div class="h100">
+    <div class="vertical-flex h100">
+
+        <dku-modal-header modal-class="has-border" >
+            <dku-modal-title>
+                Bundle details: "{{bundleId}}"
+            </dku-modal-title>
+            <dku-modal-tabs>
+                <li class="tab" tab-active="content">
+                    <a tab-set="content">Content</a>
+                </li>
+                <li class="tab" tab-active="log">
+                    <a tab-set="log">Log</a>
+                </li>
+                <li class="tab" tab-active="diff">
+                    <a tab-set="diff">Diff</a>
+                </li>
+            </dku-modal-tabs>
+        </dku-modal-header>
+
+
+        <div class="modal-body flex" ng-switch="uiState.activeTab">
+            <div class="fh">
+                <div block-api-error />
+
+                <div ng-switch-when="content" class="row-fluid h100">
+                    <div bundle-non-editable-content content-summary="bundleDetails.contentSummary" style="padding: 20px;" />
+                </div>
+
+                <div ng-switch-when="log" class="row-fluid h100">
+                    <div class="container-fluid h100 oa" style="padding: 20px;">
+                        <div bundle-git-log changelog="bundleDetails.changelog" class="h100" no-commit-diff="!!noCommitDiff" />
+                    </div>
+                </div>
+
+                <div ng-switch-when="diff" class="row-fluid h100">
+                    <div class="container-fluid h100 oa" style="padding: 20px;">
+                        <div bundle-git-diff changelog="bundleDetails.changelog" class="h100" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div data-block="modal-footer-block" />
+    </div>
+</div>

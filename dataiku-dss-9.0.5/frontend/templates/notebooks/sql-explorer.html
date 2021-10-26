@@ -1,0 +1,144 @@
+<div class="sql-explorer">
+    <div class="toolbar">
+        <div class="horizontal-flex top-toolbar">
+            <div class="flex">
+                <input id="onlyUsedInProject" class="project-selector-checkbox" type="checkbox" ng-model="notebook.tableListingMode" ng-true-value="'PROJECT'" ng-false-value="'ALL'"/>
+                <label class="project-selector-label" for="onlyUsedInProject">Only used in project</label>
+            </div>
+            <div class="noflex">
+                <a ng-show="uiState.confirmListTablesFromDB" ng-click="refreshTableList()" title="Refresh tables list" class="cc-link link-std" stop-propagation>
+                    <i class="icon-refresh"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="search-toolbar">
+            <div class="sort-box list-control-widget pull-right" ng-if="notebook.tableListingMode == 'PROJECT'">
+                <select class="sort-box-menu"
+                        dku-bs-select="{width: '103px', background: 'white', style: 'dku-select-button'}"
+                        ng-model="notebook.tableOrdering"
+                        ng-options="obj.value as obj.label for obj in sortBy"
+                        required
+                >
+                </select>
+            </div>
+
+            <div class="std-list-search-box">
+                <span class="add-on"><i class="icon-dku-search"></i></span>
+                <input type="search" ng-model="filterSort.tableFilter" placeholder="Search table…" style="width: {{notebook.tableListingMode == 'PROJECT' ? '130px' : '246px'}}"/>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="notebook.tableListingMode == 'ALL' && !uiState.confirmListTablesFromDB">
+        <div class="left-list-empty">
+            <h4 style="font-weight: 400; margin-bottom: 10px">
+                <i class="icon-database" />&nbsp;Database explorer
+            </h4>
+            Listing tables can take some time if the database is heavily loaded.
+            <button ng-click="uiState.confirmListTablesFromDB = true" class="btn btn--primary" style="margin:20px;">
+                <i class="icon-list" /> &nbsp;List tables
+            </button>
+        </div>
+    </div>
+
+    <div class="left-list-empty" ng-if="(notebook.tableListingMode == 'PROJECT' || uiState.confirmListTablesFromDB) && !uiState.fetchingTables && fatList && !fatList.length">
+        <h4>No tables to display</h4>
+    </div>
+
+    <div remaining-height>
+        <div
+            fat-repeat="fatList"
+            as="item"
+            digest-child-only="true"
+            row-height="26"
+            class="table-list"
+            style="height: {{remainingHeight}}px;">
+
+            <!-- Catalog - Schema - Table - Field hierarchy -->
+            <div ng-if="notebook.tableListingMode == 'ALL' || notebook.tableOrdering == 'TABLE'">
+                <div class="item catalog-item" ng-if="item.type == 'c'" ng-click="toggleCatalog(item.catalog)">
+                    <span class="catalog-item-bullet item-bullet">
+                        <i ng-class="{'icon-caret-right': !item.catalog.state.shown, 'icon-caret-down': item.catalog.state.shown}" />
+                    </span>
+                    <span class="item-name" title="{{item.catalog.name}}">
+                        <i class="icon-database item-icon"></i>{{item.catalog.name}}
+                    </span>
+                    <span class="catalog-schema-count">{{item.catalog.schemas.length}} schema{{item.catalog.schemas.length>1?'s':''}}</span>
+                </div>
+
+                <div class="item {{item.class}}" ng-if="item.type == 's'" ng-click="toggleSchema(item.schema)">
+                    <span class="schema-item-bullet item-bullet">
+                        <i ng-class="{'icon-caret-right': !item.schema.state.shown, 'icon-caret-down': item.schema.state.shown}" />
+                    </span>
+                    <span class="item-name" title="{{item.schema.name}}">
+                        <i class="icon-sitemap item-icon"></i>{{item.schema.name}}
+                    </span>
+                    <span class="schema-table-count">{{item.schema.tables.length}} table{{item.schema.tables.length>1?'s':''}}</span>
+                </div>
+
+                <div class="item {{item.class}}" ng-if="item.type == 't'" ng-click="toggleTable(item.table)">
+                    <a ng-click="onTableClicked({table:item.table})" class="push-right cc-link link-std" title="Paste '{{item.table.table}}' into the editor" stop-propagation>
+                        <i class="icon-plus"></i>
+                    </a>
+                    <span class="table-item-bullet item-bullet">
+                        <i ng-class="{'icon-caret-right': !item.table.fields, 'icon-caret-down': item.table.fields}" />
+                    </span>
+                    <span class="item-name" title="{{item.table.table}}">
+                        <i class="icon-table item-icon"></i>{{item.table.table}}
+                    </span>
+                </div>
+
+                <div class="item {{item.class}}" ng-if="item.type == 'f'" title="Paste '{{item.field.name}}' into the editor" full-click>
+                    <a ng-click="onFieldClicked({field:item.field})" class="item-name" main-click>
+                        {{item.field.name}}
+                    </a>
+
+                    <span class="item-category" title="{{item.field.type}}">
+                        {{item.field.type}}
+                    </span>
+                </div>
+
+                <div class="item {{item.class}}" ng-if="item.type == 'nf'">
+                    <div class="nofield">
+                        This table has no fields
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dataset - Field hierarchy -->
+            <div ng-if="notebook.tableListingMode == 'PROJECT' && notebook.tableOrdering == 'DATASET'">
+                <div class="item flat-table-item {{item.class}}" ng-if="item.type == 't'" ng-click="toggleTable(item.table)">
+                    <a ng-click="onTableClicked({table: item.table})" class="push-right cc-link link-std" title="Paste '{{item.table.table}}' into the editor" stop-propagation>
+                        <i class="icon-plus"></i>
+                    </a>
+                    <span class="table-item-bullet item-bullet">
+                        <i ng-class="{'icon-caret-right': !item.table.fields, 'icon-caret-down': item.table.fields}" />
+                    </span>
+                    <span class="item-name" title="{{item.table.table}} {{item.table.schema ? '('+ (item.table.catalog ? (item.table.catalog + '.' + item.table.schema) : item.table.schema)+')' : ''}}">
+                        <i class="icon-table item-icon"></i>{{item.table.table}}
+                        <span class="table-schema" ng-if="item.table.schema">
+                            ({{item.table.catalog ? (item.table.catalog + '.' + item.table.schema) : item.table.schema}})
+                        </span>
+                    </span>
+                </div>
+
+                <div class="item flat-field-item {{item.class}}" ng-if="item.type == 'f'" title="Paste '{{item.field.name}}' into the editor" full-click>
+                    <a ng-click="onFieldClicked({field:item.field})" class="item-name" main-click>
+                        {{item.field.name}}
+                    </a>
+
+                    <span class="item-category" title="{{item.field.type}}">
+                        {{item.field.type}}
+                    </span>
+                </div>
+
+                <div class="item flat-field-item flat-nofield-item {{item.class}}" ng-if="item.type == 'nf'">
+                    <div class="nofield">
+                        This table has no fields
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

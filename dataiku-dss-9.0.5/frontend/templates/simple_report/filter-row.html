@@ -1,0 +1,59 @@
+<div ng-init="facetUiState = facetUiState || {}"> <!-- make sure facets don't share the same uiState -->
+    <div class="filter-header chartdef-dropped-filter" title="{{filter.column}}">
+        <span class="pull-right">
+            <i ng-click="remove($index)" class="icon-trash" ng-hide="readOnly"></i>
+        </span>
+
+        <a ng-click="frontData.folded = !frontData.folded">
+            <i class="icon-caret-right" ng-show="frontData.folded" ng-if="filter.filterType!='EXPLICIT'"/>
+            <i class="icon-caret-down" ng-show="!frontData.folded" ng-if="filter.filterType!='EXPLICIT'"/>
+            {{ filter.column }}
+        </a>
+    </div>
+
+    <div class="filter-content" ng-show="!frontData.folded" ng-if="filter.filterType != 'EXPLICIT'">
+        <form class="dkuform-std-vertical">
+            <div ng-show="filter.columnType == 'DATE'" ng-show="!frontData.folded" style="margin-bottom: 10px">
+                <select ng-model="filter.dateFilterType" ng-options="dft[0] as dft[1] for dft in dateFilterTypes" ng-change="$emit('filterChange')"/>
+            </div>
+
+            <div ng-show="filter.filterType == 'ALPHANUM_FACET' || filter.columnType == 'ALPHANUM' || isFilterDiscreteDate(filter)" class="chart-alphanum-facet">
+                <chart-alphanum-facet on-change="$emit('filterChange')" values="filterTmpData[$index].values" folded="frontData.folded"></chart-alphanum-facet>
+                <a ng-show="filter.columnType == 'NUMERICAL'" ng-click="filter.filterType = 'NUMERICAL_FACET'; $emit('filterChange')">As numerical</a>
+            </div>
+
+            <div ng-show="filter.filterType != 'ALPHANUM_FACET' && (filter.columnType == 'NUMERICAL' || isFilterDateRange(filter))">
+                <div ng-show="facetUiState.sliderLowerBound !== undefined">
+                    <div ng-controller="ChartSliderController" style="margin-top: 10px;">
+                        <div ng-show="filter.columnType == 'DATE'">
+                            <div range-slider
+                                min="facetUiState.sliderLowerBound"
+                                max="facetUiState.sliderUpperBound"
+                                model-min="facetUiState.sliderModelMin"
+                                model-max="facetUiState.sliderModelMax"
+                                filter="date"
+                                filter-options="{{facetUiState.sliderDateFilterOption}}"
+                                show-values="true"
+                                on-handle-up="slideEnd()"
+                                />
+                        </div>
+                        <div ng-if="facetUiState" ng-show="filter.columnType == 'NUMERICAL'">
+                            <div editable-slider range-slider
+                                min="facetUiState.sliderLowerBound"
+                                max="facetUiState.sliderUpperBound"
+                                model-min="facetUiState.sliderModelMin"
+                                model-max="facetUiState.sliderModelMax"
+                                on-handle-up="slideEnd()"
+                                step="{{sliderStep}}"
+                                decimal-places="{{sliderDecimals}}"
+                                show-values="true"
+                                disabled="facetUiState.sliderLowerBound == facetUiState.sliderUpperBound"
+                                disable-editable-as-string="facetUiState.sliderLowerBound == facetUiState.sliderUpperBound"  />
+                            <a id="qa_charts_filter-as-text" ng-click="filter.filterType = 'ALPHANUM_FACET'; $emit('filterChange')">As text</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

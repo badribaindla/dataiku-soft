@@ -1,0 +1,579 @@
+<div class="top-level-tabs" global-keydown="{'ctrl-s meta-s':'saveApp()'}">
+    <div class="horizontal-flex row-fluid object-nav">
+        <div class="flex oh object-breadcrumb">
+            <a class="item bundle"> <i class="icon icon-archive"></i>
+                <span class="title ellipsis">Application designer</span>
+            </a>
+        </div>
+
+        <div class="noflex" ng-init="topNav.tab = 'content'" ng-if="projectSummary.projectAppType == 'APP_TEMPLATE'">
+            <a class="tab"  ng-class="{'enabled': topNav.tab === 'content'}" ng-click="topNav.tab = 'content'">Content</a>
+            <a class="tab"  ng-class="{'enabled': topNav.tab === 'advanced'}" ng-click="topNav.tab = 'advanced'" >Advanced</a>
+        </div>
+        
+        <div class="otherLinks" ng-if="projectSummary.projectAppType == 'APP_TEMPLATE'">
+            <span>
+                <button ng-show="appIsDirty()" class="btn btn--outline btn--primary" ng-click="saveApp()">
+                    <i class="icon-save"/> Save
+                </button>
+                <button disabled ng-show="!appIsDirty()" class="btn btn--outline btn--primary">
+                    <i class="icon-save"/> Saved
+                </button>
+            </span>
+
+            <span class="btn-group" ng-if="!uiState.useAsRecipe">
+                <button class="btn btn--secondary" ng-click="createOrUpdateTestInstance($event)">
+                    Test
+                </button>
+                <button class="btn btn--secondary btn--icon" data-toggle="dropdown">
+                    <i class="icon-caret-down"></i>
+                </button>
+
+                <ul class="dropdown-menu pull-right text-left">
+                    <li>
+                        <a ng-click="createOrUpdateTestInstance($event)">Create or update test instance (manifest only)</a>
+                    </li>
+                    <li>
+                        <a ng-click="createOrRecreateTestInstance($event)">Create or update test instance (full)</a>
+                    </li>
+                    <li>
+                        <a ng-click="goToTestInstance($event)">Go to test instance without updating</a>
+                    </li>
+                </ul>
+            </span>
+
+            <div class="dropdown">
+                <button class="btn btn--secondary dropdown-toggle" data-toggle="dropdown">
+                    Actions <span class="caret"></span>
+                </button>
+
+                <ul class="dropdown-menu pull-right text-left">
+                    <li>
+                        <a ng-click="convertToRegular()">Convert back to regular project</a>
+                    </li>
+                    <li>
+                        <a ng-click="createOrUpdatePlugin()">Create or update plugin application</a>
+                    </li>
+                    <li>
+                        <a ui-sref="apps.app({appId: 'PROJECT_' + projectSummary.projectKey})">Go to application page</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<div class="dss-page" ng-if="projectSummary.projectAppType == 'REGULAR'">
+    <div class="fh" style="margin: 40px auto">
+        <div block-api-error />
+        <div class="empty-list-cta">
+            <h1>Convert this project to a reusable application.</h1>
+            <div class="app-designer__create-buttons">
+                <div ng-click="convertToApp(false)" class="app-designer__create-button">
+                    <div class="app-designer__create-button-icon">
+                        <i class="icon-project-app"></i>
+                    </div>
+                    <div class="app-designer__create-button-text">
+                        Convert into a visual application
+                    </div>
+                    <div class="app-designer__create-button-help">
+                        <strong>(Recommended)</strong> Use this project as a template project that users can run using a dedicated user interface.
+                    </div>
+                    <div class="app-designer__create-button-doclink">
+                        <doclink page="applications/index" title="Read the documentation" /> for more information.
+                    </div>
+                </div>
+                <div ng-click="convertToApp(true)" class="app-designer__create-button">
+                    <div class="app-designer__create-button-icon">
+                        <i class="icon-dku-application-as-recipe"></i>
+                    </div>
+                    <div class="app-designer__create-button-text">
+                        Convert into an application-as-recipe
+                    </div>
+                    <div class="app-designer__create-button-help">
+                        Package a portion of the flow of this project as a single recipe.
+                    </div>
+                    <div class="app-designer__create-button-doclink">
+                        <doclink page="applications/application-as-recipe" title="Read the documentation" /> for more information.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dss-page" ng-if="projectSummary.projectAppType == 'APP_TEMPLATE' && topNav.tab == 'content'">
+    <div class="fh">
+        <div class="horizontal-flex">
+            <div class="noflex app-designer__side-bar">
+                <div class="h100 app-designer__tiles-toc">
+                    <div app-tiles-toc="uiState.toc" scroll-selector="#mainScroll" class="h100 oa"></div>
+                </div>        
+            </div>
+            <div class="flex">
+                <div class="fh oa" id="mainScroll">
+                    <div class="h100 vertical-flex">
+                        <div block-api-error></div>
+                        <div class="flex">
+                            <div class="fh">
+                                
+                                <div class="app-designer__header" id="app_header">
+                                
+                                    <div ng-if="uiState.appSummary && !uiState.useAsRecipe" class="app-designer__image">
+                                        <totem project-name="uiState.appSummary.label"
+                                               project-key=""
+                                               object-type="'APP'"
+                                               object-id="uiState.appSummary.appId"
+                                               object-img-hash = "uiState.appSummary.objectImgHash"
+                                               sizeX="140" sizeY="120"
+                                               editable="true"
+                                               img-color="uiState.appSummary.imgColor"
+                                               img-pattern="uiState.appSummary.imgPattern"
+                                               show-initials="uiState.appSummary.showInitials"
+                                               is-project-img="uiState.appSummary.isAppImg"
+                                               default-img-color="uiState.appSummary.defaultImgColor"/>
+                                        <div class="overlay" ng-if="uiState.appSummary.objectImgHash">Change Image</div>
+                                    </div>
+                                    
+                                    <div class="app-designer__header-contents" ng-class="{'app-designer__header-contents--with-image': !uiState.useAsRecipe}">
+            
+                                        <div>
+                                            <h2 class="app-tiles__app-label app-tiles__app-editable" ng-show="!uiState.$editingLabel">
+                                                <span>{{uiState.appManifest.label || 'Label...'}}</span>
+                                                <span class="app-tiles__app-edit"><i class="icon-pencil" ng-click="startEditLabel(uiState.appManifest)"></i></span>
+                                            </h2>
+                                            <div class="app-tiles__app-label--editing" ng-show="uiState.$editingLabel">
+                                                <input type="text" ng-model="uiState.edited"/>
+                                                <button type="button" class="btn btn--secondary" ng-click="cancelEditLabel(uiState.appManifest)">Cancel</button>
+                                                <button type="submit" class="btn btn--success" ng-click="stopEditLabel(uiState.appManifest)">OK</button>
+                                            </div>
+                                        </div>
+                                                
+                                        <div>
+                                            <div class="app-tiles__app-shortDesc app-tiles__app-editable"  ng-show="!uiState.$editingShortDesc">
+                                                <div from-markdown="uiState.appManifest.shortDesc || 'Short description...'"/>
+                                                <span class=app-tiles__app-edit><i class="icon-pencil" ng-click="startEditShortDesc(uiState.appManifest)"></i></span>
+                                            </div>
+                                            <div class="app-tiles__app-shortDesc--editing" ng-show="uiState.$editingShortDesc">
+                                                <textarea type="text" ng-model="uiState.edited"/>
+                                                <div>
+                                                    <button type="button" class="btn btn--secondary" ng-click="cancelEditShortDesc(uiState.appManifest)">Cancel</button>
+                                                    <button type="submit" class="btn btn--success" ng-click="stopEditShortDesc(uiState.appManifest)">OK</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <span>Instantiation allowed to</span>&nbsp;
+                                            <select dku-bs-select ng-model="uiState.appManifest.instantiationPermission" ng-options="x[0] as x[1] for x in [['EVERYBODY', 'Everyone'], ['USE_APP_MASTER_PERMISSIONS', 'Users with execute permission']]" options-descriptions="['Any user can create an instance of the app', 'Only users having \'execute app\' permission on this project can instantiate the app']" layout="list" />
+                                        </div>
+                                        
+                                        <div ng-if="!uiState.useAsRecipe">
+                                            <h5 class="app-tiles__section-subtitle">Application tags</h5>
+                                            <tag-edit-popover get-all-tags="getAllProjectTags('', 'allprojects')"
+                                                object-type="'PROJECT'"
+                                                ng-model="uiState.appManifest.tags"
+                                                editable="isProjectAnalystRW()"
+                                                class="project-tags tags-field">
+                                            </tag-edit-popover>
+                                        </div>
+                                        
+                                    </div>
+                                
+                                </div>    
+                                    
+                                <!-- 
+                                <div class="app-designer__full-image" id="app_image">
+                                    <h4 class="app-tiles__section-title">Full size image</h4>
+                                    <div ng-if="uiState.appSummary" class="app-designer__full-image-field">
+                                        <totem project-name="uiState.appSummary.label"
+                                               project-key=""
+                                               object-type="'APPFULL'"
+                                               object-id="uiState.appSummary.appId"
+                                               object-img-hash = "uiState.appSummary.objectFullImgHash"
+                                               sizeX="300" sizeY="200"
+                                               is-project-img="true"
+                                               editable="true"/>
+                                        <div class="overlay" ng-if="uiState.appSummary.objectFullImgHash">Change Image</div>
+                                    </div>
+                                </div>
+                                 -->
+                                
+                                <div class="app-designer__instance-features" id="app_features" ng-if="!uiState.useAsRecipe">
+                                    <form class="dkuform-horizontal">
+                                        <h4 class="app-tiles__section-title">Application instance features</h4>
+                                        
+                                        <div class="control-group">
+                                            <label class="control-label">Show flow section</label>
+                                            <label class="dku-toggle">
+                                                <input type="checkbox" ng-model="uiState.appManifest.instanceFeatures.showFlowNavLink">
+                                                    <span/>
+                                                </input>
+                                            </label>
+                                        </div>
+                                        <div class="control-group">
+                                            <label class="control-label">Show Lab section</label>
+                                            <label class="dku-toggle">
+                                                <input type="checkbox" ng-model="uiState.appManifest.instanceFeatures.showLabNavLink">
+                                                    <span/>
+                                                </input>
+                                            </label>
+                                        </div>
+                                        <div class="control-group">
+                                            <label class="control-label">Show code section</label>
+                                            <label class="dku-toggle">
+                                                <input type="checkbox" ng-model="uiState.appManifest.instanceFeatures.showCodeNavLink">
+                                                    <span/>
+                                                </input>
+                                            </label>
+                                        </div>
+                                        <div class="control-group">
+                                            <label class="control-label">Show version control</label>
+                                            <label class="dku-toggle">
+                                                <input type="checkbox" ng-model="uiState.appManifest.instanceFeatures.showVersionControlFeatures">
+                                                    <span/>
+                                                </input>
+                                            </label>
+                                        </div>
+                                        
+                                    </form>
+                                </div>
+                                    
+                                <div class="app-designer__data" id="app_data">
+                                    <form style="margin: 0;">
+                                        <h4 class="app-tiles__section-title">Included content</h4>
+                                        <p>The whole project configuration is always included in applications instances. Additionally, it can contain selected data from the project: datasets (non partitioned), managed folders and saved models.</p>
+                                        <div class="row-fluid">
+            
+                                            <div class="span4">
+                                                <h5 class="app-tiles__section-subtitle">Datasets data</h5>
+                                                <label class="checkbox">
+                                                    <input type="checkbox" ng-model="exportOptions.exportUploads">Export all 'uploaded' datasets</input>
+                                                </label>
+                                                <label class="checkbox">
+                                                    <input type="checkbox" ng-model="exportOptions.exportAllInputDatasets">Export all 'input' datasets</input>
+                                                </label>
+                                                <label class="checkbox">
+                                                    <input type="checkbox" ng-model="exportOptions.exportManagedFS">Export all managed FS datasets</input>
+                                                </label>
+                                                <label class="checkbox">
+                                                    <input type="checkbox" ng-model="exportOptions.exportInsightsData">Export static insights data</input>
+                                                </label>
+                                                
+                                                <label class="checkbox">
+                                                    <input type="checkbox" ng-model="exportOptions.exportAllDatasets">Export all datasets</input>
+                                                </label>
+                                                <div class="smallgrey">
+                                                    NB: partitioned datasets are not exported.
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="span4">
+                                                <h5 class="app-tiles__section-subtitle">Managed folders data</h5>
+                                                <label class="checkbox">
+                                                    <input type="checkbox" ng-model="exportOptions.exportAllInputManagedFolders">Export all 'input' managed folders data</input>
+                                                </label>
+                                                <label class="checkbox">
+                                                    <input type="checkbox" ng-model="exportOptions.exportManagedFolders">Export all managed folders data</input>
+                                                </label>
+                                            </div>
+                                                
+                                            <div class="span4">
+                                                <h5 class="app-tiles__section-subtitle">Machine learning data</h5>
+                                                <label class="checkbox">
+                                                    <input type="checkbox" ng-model="exportOptions.exportAnalysisModels">Export all analysis models data</input>
+                                                </label>
+                                                <label class="checkbox">
+                                                    <input type="checkbox" ng-model="exportOptions.exportSavedModels">Export all saved models data</input>
+                                                </label>
+                                                <label class="checkbox" ng-if="featureFlagEnabled('model_evaluation_stores')">
+                                                    <input type="checkbox" ng-model="exportOptions.exportModelEvaluationStores">Export all model evaluation stores data</input>
+                                                </label>
+                                            </div>
+                                        </div>               
+                                        <div bundle-content-editor exporter-settings="exporterSettings" class="new-bundle-page"/>
+                                    </form>
+                                </div>
+                                
+                                
+                                <div class="app-designer__as-recipe" id="app_as_recipe" ng-if="uiState.useAsRecipe">
+                                    <h4 class="app-tiles__section-title">Recipe definition</h4>
+                                    <p><span doclink-wrapper page="applications/application-as-recipe">Read the documentation</span> to learn more.</p>
+                                    <form class="dkuform-horizontal">
+                                        <div class="control-group">
+                                            <label class="control-label">Icon</label>
+                                            <div class="controls">
+                                                <input type="text" ng-model="uiState.appManifest.useAsRecipeSettings.icon" />
+                                                <span class="help-inline">Must be one of the <a target="_blank" rel="noopener noreferrer" href="https://fontawesome.com/v3.2.1/icons/">FontAwesome 3.2.1 icons</a></span>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <label class="control-label">Category</label>
+                                            <div class="controls">
+                                                <input type="text" ng-model="uiState.appManifest.useAsRecipeSettings.category" />
+                                                <span class="help-inline">(Optional) Section in which to show the recipe in the new recipe menu</span>
+                                            </div>
+                                        </div>
+                                        <div class="app-tiles__section-subtitle">Inputs/Outputs</div>
+                                        <small>
+                                            Select the datasets that define the inputs of the (sub)flow which is run as a recipe, and the datasets that define the outputs of the recipe
+                                        </small>
+                                        <div class="control-group">
+                                            <label class="control-label">Inputs</label>
+                                            
+                                            <div class="controls">
+                                                <editable-list ng-model="uiState.appManifest.useAsRecipeSettings.inputRoles" add-label="Add new input" template="buildNewInputRole" transcope="{allDatasets:allDatasets, allManagedFolders:allManagedFolders, allSavedModels:allSavedModels}">
+                                                    <editable-list-input type="text" ng-model="it.roleLabel" required="true"/>
+                                                    :
+                                                    <div>
+                                                        <select dku-bs-select ng-model="it.type">
+                                                            <option value="DATASET">Dataset</option>
+                                                            <option value="MANAGED_FOLDER">Folder</option>
+                                                            <option value="SAVED_MODEL">Model</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <select dku-bs-select="{liveSearch:true}" ng-model="it.objectId" ng-options="d.name as d.name for d in allDatasets" ng-if="it.type == 'DATASET'"/>
+                                                        <select dku-bs-select="{liveSearch:true}" ng-model="it.objectId" ng-options="d.id as d.name for d in allManagedFolders" ng-if="it.type == 'MANAGED_FOLDER'"/>
+                                                        <select dku-bs-select="{liveSearch:true}" ng-model="it.objectId" ng-options="d.id as d.name for d in allSavedModels" ng-if="it.type == 'SAVED_MODEL'"/>
+                                                    </div>
+                                                </editable-list>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <label class="control-label">Outputs</label>
+                                            <div class="controls">
+                                                <editable-list ng-model="uiState.appManifest.useAsRecipeSettings.outputRoles" add-label="Add new output" template="buildNewOutputRole" transcope="{allDatasets:allDatasets, allManagedFolders:allManagedFolders}">
+                                                    <editable-list-input type="text" ng-model="it.roleLabel" required="true"/>
+                                                    :
+                                                    <div>
+                                                        <select dku-bs-select ng-model="it.type">
+                                                            <option value="DATASET">Dataset</option>
+                                                            <option value="MANAGED_FOLDER">Folder</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <select dku-bs-select="{liveSearch:true}" ng-model="it.objectId" ng-options="d.name as d.name for d in allDatasets" ng-if="it.type == 'DATASET'"/>
+                                                        <select dku-bs-select="{liveSearch:true}" ng-model="it.objectId" ng-options="d.id as d.name for d in allManagedFolders" ng-if="it.type == 'MANAGED_FOLDER'"/>
+                                                    </div>
+                                                </editable-list>
+                                            </div>
+                                        </div>
+                                        <div class="alert alert__warning" ng-if="recipeRoleNamesChanged()">
+                                            Changing the inputs or outputs will break existing usages of this app-as-recipe. The recipes will have to be re-created.
+                                        </div>
+                                    </form>
+                                    <div class="app-tiles__wrapper-dev">
+                                        <div class="app-tiles__section-subtitle">Scenario</div>
+                                        <small>(Mandatory) Scenario to execute when the recipe is run</small>
+                                        <div run-scenario-app-tile-edit tile="uiState.appManifest.useAsRecipeSettings.runScenarioTile" ng-if="uiState.appManifest.useAsRecipeSettings.runScenarioTile"/>
+                                        <div class="app-tiles__section-subtitle">Settings</div>
+                                        <small>The recipe scenario and code will be able to access these settings as project variables</small>
+                                        <div edit-project-variables-app-tile-edit tile="uiState.appManifest.useAsRecipeSettings.variablesEditionTile" no-behavior="true" ng-if="uiState.appManifest.useAsRecipeSettings.variablesEditionTile"/>
+                                    </div>
+ 
+                                </div>
+                                
+                                
+                                
+                                <div class="app-designer__tiles" ng-if="!uiState.useAsRecipe">
+                                    <h4 class="app-tiles__section-title">Application instance home</h4>
+                                    <p>Customize the UI of the application with visual tiles. <span doclink-wrapper page="applications/tiles">Read the documentation</span> to learn more.</p>
+                                    <form class="app-tiles__wrapper-dev">
+                                        <div class="app-tiles__section-dev" ng-repeat="section in uiState.appManifest.homepageSections">
+                                            <div class="app-tiles__section-header-dev" id="section_{{section.$id}}">
+                                                <div class="control-group app-tiles__section-title--editing">
+                                                    <label class="control-label">Title</label>
+                                                    <div class="controls">
+                                                        <input type="text" ng-model="section.sectionTitle" placeholder="Section title..."></input>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="app-tiles__section-trash-dev">
+                                                    <a class="delete" aria-hidden="true" ng-click="removeHomepageSection(section)"><i class="icon-trash"></i></a>
+                                                </div>
+            
+                                                <div class="control-group app-tiles__section-text--editing">
+                                                    <label class="control-label">Description</label>
+                                                    <div class="controls">
+                                                        <textarea ng-model="section.sectionText" placeholder="Section description..."></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        
+                                            <div ui-sortable="{axis:'y', cursor: 'move', cancel:'', handle: '.app-tiles__tile-dev-sort-handle', update: refreshTocAfterDrag}" ng-model="section.tiles">
+                                                <div ng-repeat="tile in section.tiles">
+                                                    <div class="app-tiles__tile-separator" ng-if="$index > 0"></div>
+                                                    <div class="app-tiles__tile-dev" id="tile_{{tile.$id}}">
+                                                        <div class="app-tiles__section-type-dev">
+                                                            <span>{{tile.type | niceTileType}}</span>
+                                                        </div>
+                                                        
+                                                        <div class="app-tiles__tile-trash-dev">
+                                                            <span class="pull-right"><a class="delete" aria-hidden="true" ng-click="removeTile(section, tile)"><i class="icon-trash"></i></a></span>
+                                                        </div>
+                                                        
+                                                        <div class="control-group">
+                                                            <label class="control-label">Title</label>
+                                                            <div class="controls">
+                                                                <input type="text" ng-model="tile.prompt" placeholder="Prompt..."></input>
+                                                                <div class="app-tiles__tile-help-dev-toggle" ng-if="!hasHelpEditor(tile)">
+                                                                    <a ng-click="addHelp(tile)">Add help</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="control-group" ng-if="hasHelpEditor(tile)">
+                                                            <label class="control-label">Help</label>
+                                                            <div class="controls">
+                                                                <textarea ng-model="tile.help" placeholder="Help..."></textarea>
+                                                                <div class="app-tiles__tile-help-dev-toggle">
+                                                                    <a ng-click="removeHelp(tile)">Remove help</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <!--Keep in sync with app.js => displayableTileTypes-->
+                                                        <div  ng-switch="tile.type">
+                                                            <div ng-switch-when="UPLOAD_DATASET_SET_FILE" upload-dataset-set-file-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="MANAGED_FOLDER_ADD_FILE" folder-set-file-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="INLINE_DATASET_EDIT" edit-inline-dataset-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="DATASET_EDIT_SETTINGS" edit-any-dataset-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="STREAMING_ENDPOINT_EDIT_SETTINGS" edit-any-streaming-endpoint-app-tile-edit tile="tile" ng-if="appConfig.streamingEnabled"/>
+                                                            <div ng-switch-when="FILES_BASED_DATASET_BROWSE_AND_PREVIEW" edit-fs-dataset-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="CONNECTION_EXPLORER_TO_REPLACE_THE_SETTINGS_OF_A_DATASET_WITH_A_NEW_TABLE_REFERENCE" edit-sql-dataset-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="DASHBOARD_LINK" dashboard-link-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="MANAGED_FOLDER_LINK" folder-link-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="SCENARIO_RUN" run-scenario-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="PROJECT_VARIABLES_EDIT" edit-project-variables-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="PERFORM_SCHEMA_PROPAGATION" propagate-schema-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="DOWNLOAD_DATASET" download-dataset-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="DOWNLOAD_DASHBOARD_EXPORT" download-dashboard-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="DOWNLOAD_MANAGED_FOLDER_FILE" download-folder-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="DOWNLOAD_RMARKDOWN" download-report-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="VARIABLE_DISPLAY" variable-display-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="GUESS_TRAIN_DEPLOY" guess-train-deploy-app-tile-edit tile="tile" />
+                                                            <div ng-switch-when="MANAGED_FOLDER_BROWSE" edit-folder-app-tile-edit tile="tile" />
+                                                           
+                                                            <div ng-switch-default>
+                                                                <pre class="debug">{{ tile | json }}</pre>
+                                                            </div>
+                                                        </div>
+                                                        <div class="app-tiles__tile-dev-sort-handle">
+                                                            <span><i class="icon-dku-handle"></i></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="app-tiles__tile-separator"></div>
+                                            <div class="app-tiles__tile-dev">
+                                                <div class="app-tiles__tile-add" custom-element-popup cep-position="smart" close-on-click="true">
+                                                    <button type="button" class="mainzone btn btn--primary dropdown-toggle app-tiles__tile-add-button" ng-click="togglePopover()">
+                                                        <span>Add tile</span>
+                                                        <i class="icon-caret-up" style="position:absolute; right: 10px; top: 15%; font-size: 17px" />
+                                                    </button>
+                                                    <!--Keep in sync with app.js => displayableTileTypes-->
+                                                    <ul class="popover custom-element-popup-popover dropdown-menu oa" style="max-height: 53vh;">
+                                                        <li ng-repeat="tileType in tileTypes" full-click ng-class="{divider:tileType.divider}">
+                                                            <a ng-click="addTile(section, tileType.type)" ng-if="!tileType.divider" main-click>{{tileType.type | niceTileType}}</a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+            
+                                        </div>
+                                        
+                                        <div class="app-tiles__section-dev--add">
+                                            <button type="button" class="btn btn--primary app-tiles__section-dev-add-button" ng-click="addHomepageSection()">Add Section</button>
+                                        </div>
+                                    
+                                    </form>
+                                </div>
+            
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="dss-page" ng-if="projectSummary.projectAppType == 'APP_TEMPLATE' && topNav.tab == 'advanced'">
+    <div class="fh oa" id="mainScroll">
+        <div class="h100 vertical-flex">
+            <div block-api-error></div>
+            <div class="flex">
+                <div class="fh oa">
+                    
+                    <div class="app-designer__as-recipe" id="app_recipe">
+                        <div class="alert alert-info">
+                            Transform this application into a recipe
+                        </div>
+                        <form class="dkuform-horizontal">
+                            <div class="control-group">
+                                <label class="control-label">Use as recipe</label>
+                                <label class="dku-toggle">
+                                    <input type="checkbox" ng-model="uiState.useAsRecipe">
+                                        <span/>
+                                    </input>
+                                </label>
+                            </div>
+                        </form>
+                    </div>
+    
+                    <div class="app-designer__remappings" ng-if="showRemapping">
+                        <div class="alert alert-info" style="margin-bottom: 0;">
+                            Configure connection and code envs remappings applied when the application is instantiated
+                        </div>
+                        <form name="remappingsEditor" class="page-top-padding small-lr-padding dkuform-horizontal">
+    
+                            <h4>Connections</h4>
+                            <editable-list ng-model="uiState.appRemapping.connections" add-label="Add new connection" prepare="prepareConnectionRemapping" transcope="{usedConnections: usedConnections, availableConnections: availableConnections}">
+                                <input ng-model="it.source" type="text" bs-typeahead="usedConnections"/>
+                                <i class="icon-long-arrow-right" />
+                                <select ng-model="it.target"
+                                        dku-bs-select="{liveSearch:true,size:'auto'}"
+                                        ng-options="item.name as item.name group by item.type for item in availableConnections | orderBy:'type + name'" />
+                            </editable-list>
+
+    
+                            <h4>Code envs</h4>
+                            <editable-list ng-model="uiState.appRemapping.codeEnvs" add-label="Add new code env" prepare="prepareCodeEnvRemapping" transcope="{usedCodeEnvs: usedCodeEnvs, availableCodeEnvs: availableCodeEnvs}">
+                                <input ng-model="it.source" type="text" bs-typeahead="usedCodeEnvs"/>
+                                <i class="icon-long-arrow-right" />
+                                <select ng-model="it.target"
+                                        dku-bs-select="{liveSearch:true,size:'auto'}"
+                                        ng-options="item.envName as item.envName group by item.envLang for item in availableCodeEnvs | orderBy:'envLang + envName'" />
+                            </editable-list>
+
+                        </form>
+                    </div>
+    
+                    <div class="app-designer__json-manifest">
+                        <div class="alert alert-info">
+                            This is the JSON manifest of the application, for advanced usage.
+                        </div>
+                        <form name="manifestEditor" >
+                            <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+                                <textarea
+                                    json-object-pretty-view
+                                    deep-update="true"
+                                    name="text"
+                                    ui-codemirror="codeMirrorSettingService.get('application/json')"
+                                    ng-model="uiState.appManifest">
+                                </textarea>
+                            </div>
+                            <div class="alert alert-error" ng-show="manifestEditor.text.dkuJSONError">JSON syntax error! <br/> {{manifestEditor.text.dkuJSONError}}</div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+

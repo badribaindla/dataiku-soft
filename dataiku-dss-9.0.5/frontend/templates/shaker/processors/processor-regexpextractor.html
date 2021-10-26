@@ -1,0 +1,38 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" ng-controller="RegexpExtractorController"
+	publish-in-grand-parent="processorForm">
+	<fieldset>
+		<span class="fieldLabel">Input column</span>
+		<input type='text' bs-typeahead='step.$stepState.change.columnsBeforeStep' autocomplete='off' ng-trim="false"
+			ng-required="true" required="required" data-min-length='0' ng-model='step.params.column'
+			ng-change="updateValidColumn()" class="submit-on-blur" next-on-enter />
+	</fieldset>
+	<fieldset>
+		<span class="fieldLabel">Prefix for output column(s)</span>
+		<input type="text" class="submit-on-blur" ng-trim="false" ng-model="step.params.prefix" ng-required="false"
+			next-on-enter />
+	</fieldset>
+	<fieldset>
+		<span class="fieldLabel">
+            Regular expression
+            <span class="modes">
+                <a ng-click="validColumn && openSmartRegexBuilder()" class="smart-extractor-btn" ng-show="validColumn()">
+                    Find with Smart Pattern
+                </a>
+            </span>
+		</span>
+		<input type="text" class="submit-on-blur" ng-trim="false" ng-model="step.params.pattern" ng-required="required"
+			placeholder="E.g. ^(.*?)" next-on-enter />
+	</fieldset>
+	<fieldset>
+		<label>
+			<input ng-model="step.params.found_col" type="checkbox" ng-change="checkAndRefresh()" />
+			Create a special 'found' column
+		</label>
+	</fieldset>
+	<fieldset>
+		<label>
+			<input ng-model="step.params.extractAllOccurrences" type="checkbox" ng-change="checkAndRefresh()" />
+			Extract all occurrences
+		</label>
+	</fieldset>
+</form>

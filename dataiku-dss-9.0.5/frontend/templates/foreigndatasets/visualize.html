@@ -1,0 +1,33 @@
+<div class="charts-container shaker-visualize fixedPanes showLeftPane"
+     shaker-charts-common
+     dataset-charts-base
+     foreign-dataset-charts
+     ng-class="{showLeftPane: explore && usableColumns && uiDisplayState.showUI, showRightPane: showRightPane}"
+     fixed-panes
+     show-left-pane="explore && usableColumns && uiDisplayState.showUI"
+     chart-multi-drag-drop-zones>
+
+    <div class="leftPane">
+        <tabs>
+            <pane title="Columns" no-resize-hack="no">
+                <div include-no-scope="/templates/shaker/charts-available-measures.html" />
+            </pane>
+            <pane title="Sampling &amp; Engine" no-resize-hack="no">
+                <!-- Wait for elements to be ready -->
+                <div ng-if="dataset && shaker">
+                    <div dataset-chart-sampling-editor
+                        can-copy-selection-from-script="true"
+                        chart="charts[currentChart.index]"
+                        dataset="dataset"
+                        script="shaker" />
+                </div>
+            </pane>
+        </tabs>
+    </div>
+    <div class="mainPane">
+        <div class="v-centered-fit" include-no-scope="/templates/datasets/fragments/dataset-error-cta.html" ng-if="error" />
+
+        <div class="h100" include-no-scope="/templates/simple_report/multi-charts-display-with-switcher.html" ng-if="explore && usableColumns && uiDisplayState.showUI" />
+    </div>
+    <div coachmark-serie-caller serie-id="'charts-hello'" ng-if="explore && usableColumns && uiDisplayState.showUI"/>
+</div>

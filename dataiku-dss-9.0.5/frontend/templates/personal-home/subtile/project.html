@@ -1,0 +1,57 @@
+<div class="horizontal-flex"  >
+
+    <!-- Image -->
+    <div class="noflex project-image row-cell">
+        <a href="{{$ctrl.$state.href('projects.project.home.regular', {projectKey : $ctrl.project.projectKey})}}" main-click>
+            <totem project-name="$ctrl.project.name"
+                   project-key="$ctrl.project.projectKey"
+                   project-app-type="$ctrl.project.projectAppType"
+                   is-app-as-recipe="$ctrl.project.isAppAsRecipe"
+                   object-type="'PROJECT'"
+                   object-id="$ctrl.project.projectKey"
+                   object-img-hash = "$ctrl.project.objectImgHash"
+                   sizeX="64" sizeY="160"
+                   editable="false"
+                   img-color="$ctrl.project.imgColor"
+                   img-pattern="$ctrl.project.imgPattern"
+                   show-initials="$ctrl.project.showInitials"
+                   is-project-img="$ctrl.project.isProjectImg"
+                   default-img-color="$ctrl.project.defaultImgColor"/>
+        </a>
+    </div>
+
+    <!-- Body -->
+    <div class="flex project-body row-cell">
+        <div class="fh vertical-flex auto-width">
+            <div class="project-title">
+                <h3 ng-show="$ctrl.project.effectivePermission == 'READER'">
+                    <a href="{{ $ctrl.$state.href('projects.project.pinboard',  {projectKey : $ctrl.project.projectKey}) }}" main-click 
+                        show-tooltip-on-text-overflow text-tooltip="$ctrl.project.name">
+                    </a>
+                </h3>
+                <h3 ng-show="$ctrl.project.effectivePermission != 'READER'">
+                    <a href="{{$ctrl.$state.href('projects.project.home.regular', {projectKey : $ctrl.project.projectKey})}}" main-click
+                        show-tooltip-on-text-overflow text-tooltip="$ctrl.project.name">
+                    </a>
+                </h3>
+            </div>
+            <div class="noflex project-description">
+                <div from-markdown = "$ctrl.project.shortDesc || $ctrl.project.description" project-key="{{$ctrl.project.projectKey}}" class="description description-on-home" />
+            </div>
+            <div class="noflex project-people">
+                <a class="contributor" title="{{$ctrl.project.ownerDisplayName}}" href="/profile/{{$ctrl.project.ownerLogin}}/">
+                    <span user-picture="$ctrl.project.ownerLogin" size="23" />
+                </a>
+                <a class="contributor hidden-contributors" ng-if="$ctrl.project.contributors.length > 1">
+                    <div><span class="plus">+</span>{{$ctrl.project.contributors.length-1}}</div>
+                </a>
+            </div>
+            <div class="noflex project-status" ng-if="$ctrl.project.projectStatus">
+                <span class="status-color" style="background-color:{{$ctrl.projectService.getProjectStatusColor($ctrl.project.projectStatus)}};"></span>
+                <span class="status-title">{{$ctrl.project.projectStatus}}</span>
+            </div>
+
+        </div>
+    </div>
+
+</div>

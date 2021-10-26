@@ -1,0 +1,1 @@
+df <- dkuReadDataset("iris", samplingMethod="ratio", ratio=0.3)

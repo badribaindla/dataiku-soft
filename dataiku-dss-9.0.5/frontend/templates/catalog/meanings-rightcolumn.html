@@ -1,0 +1,107 @@
+<div class="content meaning-definition object-summary-tab-content" ng-controller="MeaningRightColumnController" style="padding-top: 15px">
+    <!-- Description -->
+    <div class="block description" ng-if="selected.item._source.description">
+        <p class="highlight-markdown markdown-description"
+           ng-bind-html="highlightedDescription()">
+        </p>
+    </div>
+
+
+    <!-- Value map -->
+    <div class="accordion values" ng-if="selected.item._source.udm_type == 'VALUES_MAPPING' && selected.item._source.mappings.length">
+        <h4 class="accordion-title" ng-click="showValues=!showValues"><i ng-class="{'icon-chevron-up':showValues, 'icon-chevron-down':!showValues}"></i>
+            Value{{ selected.item._source.mappings.length > 1 ? 's' : '' }}
+            <span ng-if="selected.item._source.mappings.length > 1">({{selected.item._source.mappings.length}})</span>
+        </h4>
+
+        <label class="search" style="cursor: default;" ng-show="showValues && selected.item._source.mappings.length > 5">
+            <i class="icon icon-search"></i>
+            <input type="text" ng-model="value_search" ng-init="value_search=''" />
+        </label>
+
+        <ul ng-show="showValues">
+            <li ng-repeat="mapping in selected.item._source.mappings | filter:value_search" class="mx-textellipsis horizontal-flex">
+                <div ng-scope="{{selected.item._source.$hasColors = selected.item._source.$hasColors || !!mapping.to.color}}" ng-show="selected.item._source.$hasColors" class="color-preview noflex"
+                     style="background-color: {{mapping.to.color || 'grey'}}"></div>
+
+                <span class="mx-textellipsis" style="width: 45%;">{{ mapping.from }}</span>
+                <span style="width: 10%; text-align: center;">&rarr;</span>
+                <span class="mx-textellipsis" style="width: 45%; text-align: right;">{{mapping.to.value }}</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Value list -->
+    <div class="accordion values" ng-if="selected.item._source.udm_type == 'VALUES_LIST' && selected.item._source.entries.length">
+        <h4 class="accordion-title" ng-click="showValues=!showValues"><i ng-class="{'icon-chevron-up':showValues, 'icon-chevron-down':!showValues}"></i>
+            Value{{ selected.item._source.entries.length > 1 ? 's' : '' }}
+            <span ng-if="selected.item._source.entries.length > 1">({{selected.item._source.entries.length}})</span>
+        </h4>
+
+        <label class="search" style="cursor: default;" ng-show="showValues && selected.item._source.entries.length > 5">
+            <i class="icon icon-search"></i>
+            <input type="text" ng-model="value_search" ng-init="value_search=''" />
+        </label>
+
+        <ul ng-show="showValues">
+            <li ng-repeat="entry in selected.item._source.entries | filter: value_search" class="mx-textellipsis horizontal-flex">
+                <div ng-scope="{{selected.item._source.$hasColors = selected.item._source.$hasColors || !!entry.color}}" ng-show="selected.item._source.$hasColors" class="color-preview"
+                    style="background-color: {{entry.color || 'grey'}}"></div>
+                <span class="mx-textellipsis" style="width: 45%;">{{ entry.value }}</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Pattern -->
+    <div class="block pattern" ng-if="selected.item._source.udm_type == 'PATTERN' && selected.item._source.pattern">
+        <h4>Pattern</h4>
+        <p class="highlight"
+           ng-bind-html="selected.item.highlight.pattern[0] || selected.item._source.pattern">
+        </p>
+    </div>
+
+
+    <!-- Columns -->
+    <div class="accordion columns">
+        <h4 class="accordion-title" ng-click="showColumns=!showColumns">
+            <i ng-if="selected.item.inner_hits.column.hits.hits.length" ng-class="{'icon-chevron-up':showColumns, 'icon-chevron-down':!showColumns}"></i>
+            Used on {{selected.item.inner_hits.column.hits.hits.length || 0 }} column{{ selected.item.inner_hits.column.hits.hits.length > 1 ? 's' : '' }}
+            <span ng-if="selected.item.inner_hits.column.hits.hits.length > 1"></span>
+        </h4>
+
+        <label class="search" style="cursor: default;" ng-show="showColumns && selected.item.inner_hits.column.hits.hits.length > 5">
+            <i class="icon icon-search"></i>
+            <input type="text" ng-model="column_search" ng-init="column_search=''" />
+        </label>
+
+        <ul ng-show="showColumns">
+            <li ng-repeat="column in selected.item.inner_hits.column.hits.hits | filter : { '_source': {name: column_search, projectKey: column_search, dataset: column_search}}" class="mx-textellipsis horizontal-flex">
+                <span class="noflex">
+                    <a ui-sref="projects.project.datasets.dataset.explore({projectKey: column._source.projectKey, datasetName: column._source.dataset})"
+                       title="{{column._source.projectKey}}.{{column._source.dataset}}">
+                        {{ column._source.name }}
+                    </a>
+                </span>
+                <span class="info flex mx-textellipsis" style="text-align: left;">
+                        <small style="font-size: 10px;">{{column._source.projectKey}}.{{column._source.dataset}}</small>
+                </span>
+            </li>
+        </ul>
+    </div>
+
+    <hr class="type" />
+
+
+    <!-- Type -->
+    <div class="line type">
+        <h4>Type</h4>
+        <p>{{udmTypes[selected.item._source.udm_type]}}</p>
+    </div>
+
+    <!-- ID -->
+    <div class="line id">
+        <h4>ID</h4>
+        <p>{{selected.item._source.id}}</p>
+    </div>
+
+</div>

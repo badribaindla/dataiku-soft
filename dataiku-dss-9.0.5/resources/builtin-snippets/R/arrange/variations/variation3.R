@@ -1,0 +1,1 @@
+df_sorted <- arrange(df, desc(col_1))

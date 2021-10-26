@@ -1,0 +1,130 @@
+<div class="vertical-flex h100" style="overflow: hidden;" ng-init="addEventOnTransition()">
+    <div class="design-tab-title">
+        Deep Learning Model Architecture
+        <button class="btn btn--text btn--primary mleft8" ng-click="copyAlgorithmSettings(true)"
+            data-container="body" data-toggle="tooltip" data-placement="bottom" 
+            title="Copy the architecture of this modeling task to another modeling task.">
+            Copy to...
+        </button>
+        <button class="btn btn--text btn--primary" ng-click="copyAlgorithmSettings(false)" ng-disabled="!canWriteProject()"
+            data-container="body" data-toggle="tooltip" data-placement="bottom"
+            title="Copy the architecture of another modeling task to this modeling task.">
+            Copy from...
+        </button>
+    </div>
+    <div class="h100 vertical-flex keras-build-model__wrapper">
+        <div class="control-group keras-build-model">
+            <div class="keras-inputs__wrapper h100" ng-class="{'show-inputs': uiState.displayInput, 'can-transition': uiState.canTransition}">
+                <div class="keras-inputs__content">
+                    <h4 class="keras-inputs__title">
+                        <a class="close-inputs" ng-click="showHideInputs()" title="Close">×</a>
+                        Model Inputs
+                    </h4>
+                    <div class="keras-inputs__input-list">
+                        <div ng-repeat="input in mlTaskDesign.modeling.keras.kerasInputs"
+                             class="keras-inputs__input">
+                            <div class="keras-inputs__input-name" ng-if="!isBeingEdited(input)">
+                                <div class="pull-right">
+                                    <div class="dib" ng-attr-title="{{getInsertTitle(input)}}" ng-class="{'input-not-insertable': !isInsertable(input)}"><a class="insert" ng-click="insertInput(input)">insert</a></div>
+                                    <div custom-element-popup cep-position="align-right-bottom" close-on-click="true" class="dib" ng-class="{'input-not-editable': !isEditable(input)}" ng-attr-title="{{getEditTitle(input)}}">
+                                        <i class="dku-ellipsis-vertical mainzone keras-inputs__settings" ng-click="togglePopover()" ng-disabled="!isEditable(input)"></i>
+                                        <ul class="popover custom-element-popup-popover dropdown-menu">
+                                            <li>
+                                                <a ng-click="startEditInput(input)"><i class="icon-pencil" />Rename</a>
+                                            </li>
+                                            <li>
+                                                <a ng-click="deleteInput(input)"><i class="icon-trash" />Delete</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div ng-click="showHideInput(input)">
+                                    <h5>
+                                        <i class="icon-fixed-width"
+                                           ng-if="!isSpecialInput(input)"
+                                           ng-class="{'icon-caret-right': !isShown(input), 'icon-caret-down': isShown(input)}"></i>
+                                        <i class="icon-fixed-width"
+                                           ng-if="isSpecialInput(input)"
+                                           ng-class="getSpecialInputIcon(input)"></i>
+                                        <span>{{input}}{{!isSpecialInput(input) ? " (" + getNumFeatures(input) + ")" : ""}}</span>
+                                    </h5>
+                                </div>
+                            </div>
+                            <div ng-if="isBeingEdited(input)" class="keras-inputs-edit">
+                                <input type="text"
+                                       dku-local-keypress="{'enter': 'editInputIfValid()', 'esc' : 'cancelEditInput()'}"
+                                       ng-model="uiState.newEditInputName"
+                                       auto-focus="true"
+                                       ng-blur="!savingNewInput && cancelEditInput()"
+                                       placeholder="New input name"></input>
+                                <span ng-mousedown="savingNewInput=true" ng-mouseup="editInputIfValid(); savingNewInput=false" ng-mouseleave="savingNewInput=false">
+                                <button ng-disabled ="!isValidEditInput()" class="btn btn--success">OK</button>
+                            </span>
+                                <button ng-click="cancelEditInput()" class="btn btn--secondary">Cancel</button>
+                            </div>
+                            <div ng-if="!isSpecialInput(input) && isShown(input)">
+                                <div
+                                        ng-repeat="feat in mlTaskDesign.preprocessing.per_feature | toArrayWithKey | filter:filterFeatures(input)"
+                                        class="keras-inputs__feature">
+                                    {{feat["_key"]}}
+                                </div>
+                                <div ng-if="getNumFeatures(input) == 0"
+                                     class="keras-inputs__feature nofeature">
+                                    This input doesn't have feature.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button ng-click="startCreatingInput()" class="btn keras-inputs_create" ng-if="!isCreatingInput()">
+                        Create Input
+                    </button>
+                    <div ng-if="isCreatingInput()" class="keras-inputs-edit">
+                        <input  type="text"
+                                ng-model="uiState.newInputName"
+                                placeholder="New input name"
+                                auto-focus="true"
+                                ng-blur="!savingNewInput && cancelCreateInput()"
+                                dku-local-keypress="{'enter': 'createInputIfValid()', 'esc' : 'cancelCreateInput()'}"
+                        ></input>
+                        <span>
+                        <span ng-mousedown="savingNewInput=true" ng-mouseup="createInputIfValid(); uiState.isEnteringInputName=false" ng-mouseleave="savingNewInput=false">
+                            <button ng-disabled ="!isValidNewInput()" class="btn btn--success">OK</button>
+                        </span>
+                        <button ng-click="cancelCreateInput()" class="btn btn--secondary">Cancel</button>
+                    </span>
+                    </div>
+                </div>
+            </div>
+            <div class="vertical-flex h100 keras-algorithm__editor" ng-class="{'show-inputs': uiState.displayInput, 'can-transition': uiState.canTransition}">
+                <div code-snippet-editor
+                     code="mlTaskDesign.modeling.keras.buildCode"
+                     sample-type="'python'"
+                     categories="['py-keras-architecture']"
+                     save-category="'py-keras-architecture'"
+                     editor-options="editorOptions">
+                    <div class="snippet-selector-switch btn btn--secondary" ng-click="showHideInputs()" ng-if="!uiState.displayInput">
+                        Display Inputs ({{mlTaskDesign.modeling.keras.kerasInputs.length}})
+                    </div>
+                </div>
+                <div include-no-scope="/templates/recipes/fragments/recipe-editor-statusbar.html" class="noflex"/>
+
+                <div ng-if="valCtx.showPreRunValidationError" class="alert alert-error pre-run-validation-error">
+                    <div class="pull-right" style="padding: 5px">
+                        <button class="btn btn--danger" ng-click="kerasTrain()" ng-controller="PMLTaskPreTrainBaseKeras" ng-disabled="mlTaskStatus.training">Run anyway</button>
+                        <a ng-click="valCtx.showPreRunValidationError = false">
+                            <i class="icon-dku-error" />
+                        </a>
+                    </div>
+                    <h4>Cannot perform training</h4>
+                    <p>Errors have been detected, please fix them before running this training</p>
+                </div>
+
+                <div class="bottom-bar noflex">
+                    <div class="horizontal-flex">
+                        <span class="noflex" include-no-scope="/templates/recipes/fragments/code-recipe-validate-button-keras.html" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

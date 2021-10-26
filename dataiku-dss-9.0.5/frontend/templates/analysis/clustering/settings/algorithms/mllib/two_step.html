@@ -1,0 +1,48 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Interactive Clustering (Two-step clustering)
+    </div>
+    <div data-block="algorithm-description">
+        Interactive clustering is based on a two-step clustering algorithm. This two-staged algorithm first agglomerates data points into small clusters using K-Means clustering. Then, it applies agglomerative hierarchical clustering in order to further cluster the data, while also building a hierarchy between the smaller clusters, which can then be interpreted. It therefore allows to extract hierarchical information from datasets larger than a few hundred lines, which cannot be achieved through standard methods.
+        <br/>
+        <b>The clustering can then be manually adjusted in DSS's interface.</b>
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group required">
+            <label class="control-label">Number of Pre-clusters</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.two_step.kmeans_k">
+                <div class="help-inline">
+                    The number of clusters for KMeans preclustering. It is recommended that this number be lower than a couple hundred for readability.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Number of clusters</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.two_step.n_clusters">
+                <div class="help-inline">
+                    The number of clusters in the hierarchy. The full hierarchy will be built and displayed, but these clusters will be used for scoring.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Max Iterations</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.two_step.max_iterations" />
+                <div class="help-inline">
+                    The maximum number of iterations for preclustering. KMeans is an iterative algorithm. A higher value of this parameter will lead to a longer running time, but a more precise pre-clustering. A value between 10 and 100 is recommended.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Seed</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.two_step.seed" />
+                <div class="help-inline">
+                    Used to generate reproducible results. 0 or no value means that no known seed is used (results will not be fully reproducible)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

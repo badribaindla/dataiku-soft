@@ -1,0 +1,64 @@
+<div class="modal modal3 wide-modal runnable-modal" ng-controller="RunnableController" auto-size="false">
+    <div dku-modal-header-with-totem modal-title="{{ runnable.desc.meta.label || runnable.id }}"
+         modal-totem="{{ icon }}" modal-class="has-border" />
+        <div class="modal-body">
+            <div class="w800" ng-if="desc.longDescription">
+                <div style="padding: 0;" class="larger-grey-text"><span
+                        from-markdown="desc.longDescription"/></div>
+            </div>
+
+            <div class="recipe-settings-section1 w800" style="margin-top: 20px;" ng-if="hasSettings">
+                <form class="dkuform-modal-horizontal" ng-hide="runState.running || (runOutput.resultType && !runOutput.error && !runOutput.failure)">
+                    <div plugin-settings-alert plugin-desc="pluginDesc" component-type="macro" has-settings="pluginDesc.hasSettings" app-config="appConfig" />
+
+                    <div custom-params-form
+                            ng-if="(desc.params && desc.params.length > 0) || (desc.paramsTemplate && desc.paramsTemplate.length > 0)"
+                            desc="desc"
+                            plugin-desc="pluginDesc"
+                            component-id="runnable.id"
+                            config="runnable.$config"></div>
+                    <div custom-admin-params-form
+                            ng-if="(desc.adminParams && desc.adminParams.length > 0) && $root.isDSSAdmin()"
+                            desc="desc"
+                            plugin-desc="pluginDesc"
+                            component-id="runnable.id"
+                            config="runnable.$adminConfig"></div>
+                </form>
+                <form style="margin: 20px;">
+                    <div style="text-align: center;" ng-if="runState.stateLabels" ng-bind-html="runState.stateLabels"></div>
+                    <progress-bar ng-if="runState.percentage" neutral="{{runState.percentage}}" allow-empty="true" class="progress-striped" active="true" style="margin-top: 5px;"></progress-bar>
+                </form>
+            </div>
+
+            <div class="recipe-settings-section1 w800" id="runnable-output">
+                <div ng-if="runOutput.error || runOutput.failure || runOutput.resultType">
+                    <div runnable-result
+                            ng-if="runOutput.resultType && !runOutput.error && !runOutput.failure"
+                            runnable="runnable"
+                            result-label="runOutput.resultLabel"
+                            result-type="runOutput.resultType"
+                            result-data="runOutput.resultData"></div>
+                    <div ng-show="runOutput.error" api-error-alert="runOutput.error"/>
+                    <div ng-show="runOutput.failure" api-error-alert="runOutput.failure"/>
+                    <pre smart-log-tail="runOutput.logTail"
+                            ng-show="runOutput.logTail && runOutput.logTail.lines && runOutput.logTail.totalLines && (runOutput.failure || runOutput.error)"/>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <div ng-hide="runOutput.resultType && !runOutput.error && !runOutput.failure">
+                <button type="button" class="btn btn--text btn--danger pull-left" ng-click="resetSettings()" ng-if="!runState.running">Reset to default</button>
+
+                <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()" ng-if="!runState.running">Cancel</button>
+                <button type="button" class="btn btn--text btn--danger" ng-click="abort()" ng-if="runState.running">Abort</button>
+                <button type="submit" class="btn btn--text btn--primary" ng-click="run(runnable)" ng-disabled="runState.running"><i class="icon-spinner icon-spin" ng-if="runState.running"></i>&nbsp;{{mode == "PROJECT_CREATION" ? "Create project": "Run macro"}}</button>
+            </div>
+            <div ng-show="runOutput.resultType && !runOutput.error && !runOutput.failure">
+                <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Close</button>
+      </div>
+    </div>
+</div>
+
+
+
+                    

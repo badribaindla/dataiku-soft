@@ -1,0 +1,1 @@
+pivoted = rows.pivot(index="type", columns="make", values="qty")

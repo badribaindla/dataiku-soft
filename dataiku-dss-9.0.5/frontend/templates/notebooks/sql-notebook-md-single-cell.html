@@ -1,0 +1,41 @@
+<div ng-if="cell.$localState.selected">
+
+<form class="dkuform-std-vertical" style="margin:0">
+    <div class="cell-header unfolded">
+        <span class="cell-title">
+            <input type="text" ng-model="cell.name" placeholder="Cell name" class="in-place-edit" stop-propagation/>
+        </span>
+
+        <div class="cell-tools pull-right">
+            <a ng-click="duplicateCell($index)" class="cell-tool link-std">
+                <i class="icon-copy" />
+            </a>
+
+            <a ng-click="removeCell($index)" class="cell-tool link-std">
+                <i class="icon-trash" />
+            </a>
+        </div>
+    </div>
+
+    <div class="cell-body">
+        <div ng-if="cell.$tmpState.mdCellEditModeOn" ui-keydown="{'ctrl-enter meta-enter':'ok()', 'esc': 'cell.$tmpState.mdCellEditModeOn = false'}">
+            <textarea ng-model="cell.$localState.tmpCode" style="margin-left: 20px"></textarea>
+            <div class="actions">
+                <a class="btn btn--success" ng-click="ok()"> Done </a>
+                <a class="btn btn--secondary" ng-click="cell.$tmpState.mdCellEditModeOn = false"> Cancel </a>
+            </div>
+        </div>
+
+        <div class="rendered"
+            style="margin-left: 14px"
+            from-markdown="cell.code"
+            ng-click="cell.$tmpState.mdCellEditModeOn = true"
+            ng-if="!cell.$tmpState.mdCellEditModeOn && cell.code.trim()"
+            title="click to edit">
+        </div>
+        <div class="rendered"   style="margin-left: 14px" full-click ng-if="!cell.$tmpState.mdCellEditModeOn && !cell.code.trim()">
+            <a ng-click="cell.$tmpState.mdCellEditModeOn = true" main-click>Click to create a comment (plain text or Markdown)</a>
+        </div>
+    </div>
+</form>
+</div>

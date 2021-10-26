@@ -1,0 +1,38 @@
+<div class="recipe-settings-section2">
+	<h2 class="recipe-settings-section2-title">Inputs partitioning</h2>
+
+	<form class="dkuform-horizontal">
+		<div class="control-group">
+			<label class="control-label">Mode</label>
+			<div class="controls">
+				<select dku-bs-select ng-model="readParams.mode" ng-options="x[0] as x[1] for x in [['AUTO', 'Let DSS optimize'],['MANUAL', 'Specify repartitioning manually']]" />
+			</div>
+		</div>
+		<div class="control-group" ng-if="readParams.mode == 'AUTO'">
+			<label class="control-label">Default repartitioning</label>
+			<div class="controls">
+				<input type="number" ng-model="readParams.autoModeRepartitionInto" />
+				<span class="help-inline">
+					Number of partitions to create for datasets that were read using slow path.
+				</span>
+			</div>
+		</div>
+	</form>
+
+	<ul ng-if="readParams.mode == 'MANUAL'">
+		<li ng-repeat="(input, params) in readParams.map">
+			<h3 class="recipe-settings-section3-title">{{input}}</h3>
+			<form action="" class="dkuform-horizontal">
+				<div class="control-group">
+					<label class="control-label">Repartition in</label>
+					<div class="controls">
+						<input type="number" ng-model="params.repartition" />
+						<div class="help-inline">
+							It is recommended to leave this to 1 for HDFS datasets
+						</div>
+					</div>
+				</div>
+			</form>
+		</li>
+	</ul>
+</div>

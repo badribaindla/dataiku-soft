@@ -1,0 +1,82 @@
+<div class="list-page-4 flex dss-home-page list-page--flat-design">
+    <div data-extend-template="/templates/layouts/list-items-2.html" class="vertical-flex h100 main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            Recipes
+        </span>
+
+        <!-- NEW -->
+    	<div style="display: inline-block" class="dropdown" data-block="newItem">
+            <div style="display: inline-block" class="new-button" new-recipe-menu title="New recipe"></div>
+            <div style="display: inline-block" class="new-button" new-streaming-recipe-menu title="New streaming recipe" ng-if="appConfig.streamingEnabled"></div>
+        </div>
+
+        <div data-block="empty">
+            <h1>
+                No recipe in this project
+            </h1>
+            <p>
+                Recipes are the "actions" building blocks of the Flow.<br />
+                They process your data and create new datasets or models.
+            </p>
+            <p class="small">
+                Create recipes using the Actions menu in <a ui-sref="projects.project.flow">the Flow</a>
+                <br/>
+                <span learn-link page="portals/concepts-overview">Read more about our concepts</span> to learn mor
+            </p>
+        </div>
+
+        <div data-block="item" class="h100">
+    		<label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+    		</label>
+    		<div class="hit h100">
+    			<div class="illustration">
+    				<i class="{{item.type | recipeTypeToIcon }} {{item.type | recipeTypeToColor}} universe-color" />
+    			</div>
+    			<div class="hitContent horizontal-flex h100">
+					<div class="hit-content-main">
+						<h4 class="hit-content-main__title">
+                            <a main-click href="{{$state.href('projects.project.recipes.recipe', {recipeName : item.name})}}" 
+                                show-tooltip-on-text-overflow allow-html="true" text-tooltip="item.name | boldify:selection.filterParams.userQueryResult">
+                            </a>
+                            <span class="hit-content-main__interests">
+                                <star-interest status="item.interest.starred"
+                                               on-toggle="starObject(nextStatus, item)"
+                                ></star-interest>
+                                <watch-interest status="item.interest.watching"
+                                                on-toggle="watchObject(nextStatus, item)"
+                                ></watch-interest>
+                            </span>
+						</h4>
+						<div class="hit-content-main__subtitle">
+							{{ item.type | recipeTypeToName }}
+							<span ng-show="item.lastModifiedOn"> 
+                                | Modified {{ item.lastModifiedOn|friendlyTimeDeltaShort }}
+							</span>
+						</div>
+					</div>
+
+                    <div class="hit-content__tags flex">
+                        <responsive-tags-list items="item.tags" tags-map="projectTagsMap" object-type="'RECIPE'"></responsive-tags-list>
+                    </div>
+
+					<div class="actions noflex" style="margin-top: 5px;">
+						<a toggle="tooltip" title="Display in flow" href="{{ $state.href('projects.project.flow', {id: 'recipe_'+item.name }) }}" class="action-button">
+							<i class="icon-zoom-in" />
+						</a>
+					</div>
+    			</div>
+    		</div>
+        </div>
+
+    	<!-- <div data-block="preview" right-column-tab="details">
+    		<div recipe-right-column-summary />
+    	</div> -->
+    </div>
+
+    <standardized-side-panel page="objects_list" object-type="{{ (selection.selectedObjects.length <= 1) ? ((selection.selectedObject.type) ? 'RECIPE' : '') : 'MULTI' }}" single-type="RECIPE">
+    </standardized-side-panel>
+
+</div>

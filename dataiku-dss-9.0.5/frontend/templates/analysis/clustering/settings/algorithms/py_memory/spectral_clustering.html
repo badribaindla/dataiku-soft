@@ -1,0 +1,74 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        Spectral clustering
+    </div>
+    <div data-block="algorithm-description">
+        Spectral clustering algorithm uses the graph distance in the nearest neighbor graph. It does a low-dimension embedding of the affinity matrix between samples, followed by a k-means in the low dimensional space.
+    </div>
+    <div data-block="algorithm-params">
+        <div class="control-group required">
+            <label class="control-label">Numbers of clusters</label>
+            <div class="controls">
+                <div type="text" gs-field ng-model="mlTaskDesign.modeling.spectral_clustering.k"></div>
+                <span class="multi-valued-field-marker icon-list-ol" toggle="tooltip" title="You can specify several values (increases training time)" />
+                <div class="help-inline">
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Affinity measure</label>
+            <div class="controls">
+                <div>
+                    <label class="checkbox">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.spectral_clustering.affinity_nearest_neighbors" /> Try with nearest neighbors
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.spectral_clustering.affinity_rbf" /> Try with RBF kernel
+                    </label>
+                    <!-- <label class="checkbox">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.spectral_clustering.affinity_sigmoid" />
+                        Try with sigmoid kernel
+                    </label> -->
+                    <label class="checkbox">
+                        <input type="checkbox" ng-model="mlTaskDesign.modeling.spectral_clustering.affinity_polynomial" /> Try with polynomial kernel
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="control-group" ng-show="mlTaskDesign.modeling.spectral_clustering.affinity_rbf ||
+                    mlTaskDesign.modeling.spectral_clustering.affinity_sigmoid ||
+                    mlTaskDesign.modeling.spectral_clustering.affinity_polynomial">
+            <label for="" class="control-label">Gamma</label>
+            <div class="controls">
+                <div type="text" gs-field decimal="true" ng-model="mlTaskDesign.modeling.spectral_clustering.gamma"></div>
+                <span class="multi-valued-field-marker icon-list-ol" toggle="tooltip" title="You can specify several values (increases training time)" />
+                <div class="help-inline">
+                    Kernel coefficient for RBF and polynomial kernels.
+                    <br/> Gamma defines the 'influence' of each training example in the features space.
+                    <br/> A low value of gamma means that each example has 'far-reaching influence', while a high value means that each example only has close-range influence.
+                    <br/> If no value is specified (or 0.0), then
+                    <code>1/nb_features</code> is used.
+                </div>
+            </div>
+        </div>
+        <div class="control-group" ng-show="mlTaskDesign.modeling.spectral_clustering.affinity_sigmoid ||
+            mlTaskDesign.modeling.spectral_clustering.affinity_polynomial">
+            <label for="" class="control-label">Coef0</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.spectral_clustering.coef0" step="0.01" />
+                <div class="help-inline">
+                    Independent term for 'polynomial' or 'sigmoid' kernel function.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Seed</label>
+            <div class="controls">
+                <input type="number" force-integer ng-model="mlTaskDesign.modeling.spectral_clustering.seed" />
+                <div class="help-inline">
+                    Used to generate reproducible results. 0 or no value means that no known seed is used (results will not be fully reproducible)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

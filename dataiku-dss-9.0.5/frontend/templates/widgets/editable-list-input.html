@@ -1,0 +1,36 @@
+<div class="editable-list__noflex editable-list-input__input-group" ng-switch="type" ng-form="editableListInputForm" ng-required="false" novalidate>
+
+    <textarea ng-switch-when="textarea"
+              class="editable-list__input {{classes}}"
+              ng-class="{'editable-list__input-error': (editableListInputForm.$invalid && ($parent.$parent.it[touchedId] || editableListInputForm.$error.unique))}"
+              ng-model="ngModel"
+              ng-change="onChange()"
+              ng-keyup="onKeyUp($event)"
+              ng-blur="onBlur()"
+              placeholder="{{placeholder}}"
+              ng-required="{{required}}"/>
+
+    <input ng-switch-default
+           type="{{type}}"
+           ng-model="ngModel"
+           ng-change="onChange()"
+           ng-class="{'editable-list__input-error': (editableListInputForm.$invalid && ($parent.$parent.it[touchedId] || editableListInputForm.$error.unique))}"
+           ng-keyup="onKeyUp($event)"
+           ng-blur="onBlur()"
+           ng-trim="{{trimParam}}"
+           data-qa-dku-list-input
+           class="editable-list__input {{classes}}"
+           placeholder="{{placeholder}}"
+           bs-typeahead="bsTypeahead"
+           ng-required="{{required}}"/>
+
+    <div ng-if="editableListInputForm.$invalid && (editableListInputForm.inputDiv.$touched || $parent.it[touchedId])">
+        <div class="editable-list__input-error-message" ng-hide="!editableListInputForm.$error.required">Please fill this field.</div>
+    </div>
+    <div ng-if="editableListInputForm.$invalid && editableListInputForm.$error.unique">
+        <div class="editable-list__input-error-message" ng-hide="editableListInputForm.$error.required">Duplicate entry.</div>
+    </div>
+    <div ng-if="!editableListInputForm.$invalid && checkWarning && checkWarning(ngModel)">
+        <div class="editable-list__input-warning-message">{{checkWarning(ngModel)}}</div>
+    </div>
+</div>

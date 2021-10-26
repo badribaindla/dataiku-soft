@@ -1,0 +1,711 @@
+<div class="horizontal-flex row-fluid object-nav">
+    <div class="flex oh object-breadcrumb">
+        <a class="item">
+            <i class="icon icon-cogs" style="background-color: #427b98; color: white" />
+            <span class="title ellipsis">Project settings</span>
+        </a>
+    </div>
+</div>
+
+<div class="dss-page" ng-scope="{{errorScope = this}}">
+    <div class="project-settings-page h100 oa row-fluid">
+        <div class="h100" global-keydown="{'ctrl-s meta-s':'saveSettings()'}" ng-controller="ProjectSettingsSettingsController">
+            <form name="projectSettingsForms" class="fh" style="overflow:auto">
+                <div block-api-error />
+                <div class="span2 offset0 nav-list-sidebar sidebar-admin modal-footer-std-buttons" tab-model="uiState.settingsPane">
+                    <ul>
+                        <li sidebar-tab-l1-link tab-name="tags" ng-class="{'invalid': invalidTabs.has('tags')}" label="Tags"/>
+                        <li sidebar-tab-l1-link tab-name="wiki" ng-class="{'invalid': invalidTabs.has('wiki')}" label="Wiki"/>
+                        <li sidebar-tab-l1-link tab-name="flow" ng-class="{'invalid': invalidTabs.has('flow')}" label="Flow display" />
+                        <li sidebar-tab-l1-link tab-name="integrations" ng-class="{'invalid': invalidTabs.has('integrations')}" label="Integrations"/>
+                        <li sidebar-tab-l1-link tab-name="change" ng-class="{'invalid': invalidTabs.has('change')}" label="Change management"/>
+                        <li sidebar-tab-l1-link tab-name="automation" ng-class="{'invalid': invalidTabs.has('automation')}" label="Automation"/>
+                        <li sidebar-tab-l1-link tab-name="code-envs" ng-class="{'invalid': invalidTabs.has('code-envs')}" label="Code env selection"/>
+                        <li sidebar-tab-l1-link tab-name="cluster" ng-class="{'invalid': invalidTabs.has('cluster')}" label="Cluster selection"/>
+                        <li sidebar-tab-l1-link tab-name="container" ng-class="{'invalid': invalidTabs.has('container')}" label="Containerized execution" />
+                        <li sidebar-tab-l1-link tab-name="pipelines" ng-class="{'invalid': invalidTabs.has('pipelines')}" label="Pipelines" />
+                        <li sidebar-tab-l1-link tab-name="engines-connections" ng-class="{'invalid': invalidTabs.has('engines-connections')}" label="Engines &amp; connections"/>
+                        <li sidebar-tab-l1-link tab-name="limits" ng-class="{'invalid': invalidTabs.has('limits')}" label="Resources control"/>
+                        <li sidebar-tab-l1-link tab-name="acl-resync" ng-class="{'invalid': invalidTabs.has('acl-resync')}" label="ACLs resync"/>
+                        <li sidebar-tab-l1-link tab-name="presets" ng-class="{'invalid': invalidTabs.has('presets')}" label="Plugins presets"/>
+                    </ul>
+                    <button type="button" class="pull-right btn btn--outline btn--primary m16" ng-disabled="isProjectSettingsFormInvalid() || !validIntegration() || !dirtySettings()" ng-click="saveSettings()">
+                        <i class="icon-save">&nbsp;</i> Save<span ng-show="!dirtySettings()">d</span>
+                    </button>
+                </div>
+
+                <div class="span10 h100 offset0 boxed-next-to-sidebar no-padding" ng-switch on="uiState.settingsPane">
+                    <div ng-switch-when="flow" class="h100 oa paned-settings-page-pane paned-settings-page-pane">
+                        <h1>Flow Display settings</h1>
+                        <form class="dkuform-horizontal do-not-ask-why-this-is-here"></form>
+                        <!-- Sigh, I had said do not ask ... For some reason, there is something that "eats" the 
+                        first form on this page. I don't want to search what. So I just added another -->
+                        <div class="section">
+                            <form class="dkuform-horizontal" ng-if="projectSettings.settings">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Anchor Flow graph</label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="projectSettings.settings.flowAnchorSourcesAndSinks" />
+                                            <span class="help-inline">
+                                                Force sources (and sinks) of the Flow on the left (resp. right) of the Flow graph.
+                                                Can provide a nicer layout but increases flow computation time. Disable if Flow computation is too slow.
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="section">
+                            <h2>Flow zones</h2>
+                            <form class="dkuform-horizontal" ng-if="projectSettings.settings">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Zones graph rendering</label>
+                                    <div class="controls">
+                                        <select dku-bs-select ng-model="projectSettings.settings.flowDisplaySettings.zonesGraphRenderingAlgorithm" ng-options="x[0] as x[1] for x in [['DOT_OLDRANK', 'Standard'], ['DOT_NEWRANK_FREERANK', '\'New rank\'']]" />
+                                        <span class="help-inline">
+                                            The "standard" algorithm usually produces layouts that are more compact and less "messy", but it can occasionally fail on the most complex flows with lots of zones. Use "New rank" in case of issues displaying the Flow.
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Connect the zones</label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="projectSettings.settings.flowDisplaySettings.zonesGraphConnectZones" />
+                                            <span class="help-inline">
+                                                By default, zones are connected by arrows showing inter-zone dependencies. Disable if inter-zone dependencies become too complex and make the graph less readable
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div ng-switch-when="wiki" class="h100 oa paned-settings-page-pane">
+                        <h1>Project wiki</h1>
+                        <form class="dkuform-horizontal" ng-if="projectSettings.settings">
+                            <div class="section">
+                            <div class="control-group">
+                                <label for="" class="control-label">Promote wiki</label>
+                                <div class="controls">
+                                    <input type="checkbox" ng-model="projectSettings.settings.wikiSettings.promoted" />
+                                    <div class="help-inline">
+                                        Display the wiki of this project in the global (instance-wide) wikis list
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div ng-switch-when="limits" class="h100 oa paned-settings-page-pane">
+                        <h1>Resources control</h1>
+
+                        <form class="dkuform-horizontal" ng-if="projectSettings.settings">
+
+                            <div class="section">
+                                <h2 id="explore-prepare-sample-limit">Explore / Prepare sample limit</h2>
+
+                                <div class="alert alert-info">These settings control the maximum size in memory of data samples taken for explore and prepare screens. <br />
+                                Note that this is also constrained by global settings.</div>
+
+
+
+                                <div class="control-group" optional-max-size-mb="projectSettings.settings.limitsSettings.memSampleBytes.soft">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Default limit</label>
+                                        <div class="controls">
+                                            <label>
+                                            <input type="checkbox" ng-model="$optionalState.hasMaxSize"/>
+                                            <span class="help-inline">
+                                                Should a limit be applied by default on newly-created sample configurations?
+                                                The user will be able to override this default limit.
+                                                Equivalent to a "soft" limit.
+                                            </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" ng-if="$optionalState.hasMaxSize">
+                                        <label for="" class="control-label">Max memory usage (MB)</label>
+                                        <div class="controls">
+                                            <input force-integer ng-model="$optionalState.maxSize" type="number" required />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="control-group" optional-max-size-mb="projectSettings.settings.limitsSettings.memSampleBytes.hard">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Enforce max sample size</label>
+                                        <div class="controls">
+                                            <label>
+                                            <input type="checkbox" ng-model="$optionalState.hasMaxSize"/>
+                                            <span class="help-inline">
+                                                Maximum size of in-memory samples of datasets and analysis. This is a strict limit that cannot be overridden by user.
+                                                Equivalent to a "hard" limit
+                                            </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" ng-if="$optionalState.hasMaxSize">
+                                        <label for="" class="control-label">Max memory usage (MB)</label>
+                                        <div class="controls">
+                                            <input force-integer ng-model="$optionalState.maxSize" type="number" required />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="section">
+                                <h2 id="analysis-prepare-processed-limit">Analysis / Prepare processed limit</h2>
+
+                                <div class="alert alert-info">These settings control the maximum size in memory of data during and after processing by a prepare script (either in analysis or a preparation recipe.<br />
+                                Note that this is further constrained by global (admin-level) settings.</div>
+
+                                <div class="control-group" optional-max-size-mb="projectSettings.settings.limitsSettings.shakerMemTableBytes.hard">
+                                    <div class="control-group">
+                                        <label for="" class="control-label">Enforce max prepared size</label>
+                                        <div class="controls">
+                                            <label>
+                                            <input type="checkbox" ng-model="$optionalState.hasMaxSize"/>
+                                            <span class="help-inline">
+                                                Maximum size in memory of data during and after preparation.
+                                                This is a strict limit that cannot be overridden by user.
+                                                Equivalent to a "hard" limit
+                                            </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" ng-if="$optionalState.hasMaxSize">
+                                        <label for="" class="control-label">Max memory usage (MB)</label>
+                                        <div class="controls">
+                                            <input force-integer ng-model="$optionalState.maxSize" type="number" required />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div ng-switch-when="pipelines" class="h100 oa paned-settings-page-pane">
+                        <h1>Pipelines</h1>
+                        <div class="section">
+                            <div class="alert alert-info">
+                                Pipelines allow you to execute long data pipelines with multiple steps without always having to write the intermediate data and re-read it at the next steps.
+                                <br />
+                                You can read more in the:
+                                <ul class='alert__list'>
+                                    <li><doclink page='spark/pipelines' title='Spark pipeline documentation' show-icon='true'></doclink></li>
+                                    <li><doclink page='sql/pipelines/index' title='SQL pipeline documentation'show-icon='true'></doclink></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <h2>Spark</h2>
+                            <form class="dkuform-horizontal">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Enable Spark pipelines</label>
+                                    <div class="controls">
+                                        <label>
+                                        <input type="checkbox" ng-model="projectSettings.settings.flowBuildSettings.mergeSparkPipelines" />
+                                        <div class="help-inline">
+                                            Merge several Spark recipes into a single Spark job.
+                                        </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Prune before merge</label>
+                                    <div class="controls">
+                                        <label>
+                                        <input type="checkbox" ng-model="projectSettings.settings.flowBuildSettings.pruneBeforeSparkPipelines" />
+                                        <div class="help-inline">
+                                            Apply job pruning before merging.
+                                        </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="section">
+                            <h2>SQL</h2>
+                            <form class="dkuform-horizontal">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Enable SQL pipelines</label>
+                                    <div class="controls">
+                                        <label>
+                                        <input type="checkbox" ng-model="projectSettings.settings.flowBuildSettings.mergeSqlPipelines" />
+                                        <div class="help-inline">
+                                            Merge several SQL recipes into a single SQL activity. Experimental.
+                                        </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Prune before merge</label>
+                                    <div class="controls">
+                                        <label>
+                                        <input type="checkbox" ng-model="projectSettings.settings.flowBuildSettings.pruneBeforeSqlPipelines" />
+                                        <div class="help-inline">
+                                            Apply job pruning before merging. Experimental.
+                                        </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div ng-switch-when="container" class="h100 oa paned-settings-page-pane">
+                        <h1>Containerized execution</h1>
+                        <div class="section">
+                        <form class="dkuform-horizontal">
+                            <div class="control-group">
+                                <label class="control-label">Default exec config</label>
+                                <div class="controls">
+                                    <label>
+                                        <input type="radio" ng-model="projectSettings.settings.container.containerMode" value="NONE"/>
+                                        None
+                                    </label>
+                                    <label>
+                                        <input type="radio" ng-model="projectSettings.settings.container.containerMode" value="INHERIT"/>
+                                        Inherit instance default
+                                    </label>
+                                    <label>
+                                        <input type="radio" ng-model="projectSettings.settings.container.containerMode" value="EXPLICIT_CONTAINER"/>
+                                        Choose a containerized execution configuration
+                                    </label>
+                                </div>
+                                <div class="controls" ng-if="projectSettings.settings.container.containerMode == 'EXPLICIT_CONTAINER'">
+                                    <select dku-bs-select ng-model="projectSettings.settings.container.containerConf" ng-options="c for c in containerNames"></select>
+                                </div>
+                            </div>
+                        </form>
+                        </div>
+                    </div>
+
+                    <div ng-switch-when="change" class="h100 oa paned-settings-page-pane">
+                        <h1>Change management</h1>
+                        <div class="section">
+                        <form class="dkuform-horizontal">
+                            <div class="control-group">
+                                <label for="" class="control-label">Commit mode</label>
+                                <div class="controls">
+                                    <div class="radio-button-box">
+                                        <label class="radio">
+                                            <input type="radio"
+                                                name="project_commit_mode"
+                                                ng-model="projectSettings.settings.gitCommitMode"
+                                                ng-value="'AUTO'"/>Auto
+                                        </label>
+                                        <label  class="radio">
+                                            <input type="radio"
+                                                name="project_commit_mode"
+                                                ng-model="projectSettings.settings.gitCommitMode"
+                                                ng-value="'RECIPES_EXPLICIT'"/>Explicit for recipe changes (auto for everything else)
+                                        </label>
+                                        <label  class="radio">
+                                            <input type="radio"
+                                                name="project_commit_mode"
+                                                ng-model="projectSettings.settings.gitCommitMode"
+                                                ng-value="'ALL_EXPLICIT'"/>Explicit
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        </div>
+                    </div>
+
+                    <div ng-switch-when="automation" class="h100 oa paned-settings-page-pane">
+                        <h1>Automation</h1>
+
+                        <form class="dkuform-horizontal">
+                            <div class="section">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Disable automatic triggers</label>
+                                    <div class="controls">
+                                        <input type="checkbox" ng-model="projectSettings.settings.disableAutomaticTriggers" />
+                                        <div class="help-inline">
+                                            Scenarios can only be started manually.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div ng-switch-when="tags" class="h100 oa paned-settings-page-pane">
+                        <h1>Project tags</h1>
+                        <div class="section">
+                            <div tags-list-editor="projectTagsMapDirty" />
+                        </div>
+                        <div class="global-tags-help-text" ng-show="hasGlobalTags">
+                            <i class="icon-info-sign mright4"></i>
+                            <a ng-show="isDSSAdmin()" class="global-tags-help-text--link" ui-sref="admin.general.globaltags">Modify global tag categories in Administration.</a>
+                            <span ng-show="!isDSSAdmin()">Modify global tag categories in Administration.</span>
+                        </div>
+                    </div>
+
+                    <div ng-switch-when="integrations" class="h100 oa scenario-editor-page paned-settings-page-pane">
+                        <h1>Integrations</h1>
+
+                        <div class="section">
+
+                        <ul class="item-list" style="margin: 0">
+                            <li class="repeatable-config-block" ng-repeat="integration in projectSettings.settings.integrations.integrations track by $index">
+                                <div project-integration-editor />
+                            </li>
+                        </ul>
+                        <div class="add-trigger" style="margin-top: 20px" custom-element-popup cep-position="smart" close-on-click="true">
+                            <button ng-click="togglePopover()" class="mainzone btn btn--primary dropdown-toggle">
+                                <i plus-icon /> Add integration <span class="caret" />
+                            </button>
+                            <ul class="popover custom-element-popup-popover dropdown-menu">
+                                <li full-click ng-repeat="it in availableIntegrationTypes">
+                                    <a ng-click="addIntegration(it.id)">{{it.label}}</a>
+                                </li>
+                            </ul>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div ng-switch-when="code-envs" class="h100 oa paned-settings-page-pane">
+                        <h1>Code envs</h1>
+
+                        <div class="section">
+                            <h2>Default Python code env</h2>
+                            <div code-env-override-form="projectSettings.settings.codeEnvs.python" env-lang="'PYTHON'"></div>
+                        </div>
+
+                        <div class="section">
+                            <h2>Default R code env</h2>
+                            <div code-env-override-form="projectSettings.settings.codeEnvs.r" env-lang="'R'"></div>
+                        </div>
+                    </div>
+
+                    <div ng-switch-when="cluster" class="h100 oa paned-settings-page-pane">
+                        <h1>Hadoop cluster selection</h1>
+                        <form class="dkuform-horizontal">
+                            <div class="section">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Use DSS global cluster settings</label>
+                                    <div class="controls">
+                                        <input type="checkbox" ng-model="projectSettings.settings.cluster.clusterMode" ng-true-value="'INHERIT'" ng-false-value="'EXPLICIT_CLUSTER'"/>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-if="projectSettings.settings.cluster.clusterMode == 'EXPLICIT_CLUSTER'">
+                                    <label for="" class="control-label">Cluster</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="projectSettings.settings.cluster.clusterId" bs-typeahead="clusterIds" />
+                                        <span class="help-inline">Use a cluster id, not name. Variables are allowed with a ${} syntax.</span>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-if="projectSettings.settings.cluster.clusterMode == 'EXPLICIT_CLUSTER'">
+                                    <label for="" class="control-label">Default cluster</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="projectSettings.settings.cluster.defaultClusterId" bs-typeahead="clusterIds" />
+                                        <span class="help-inline">If the field above is blank or an undefined variable, use this cluster instead of the DSS global cluster.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        <h1>Kubernetes cluster selection</h1>
+                        <form class="dkuform-horizontal">
+                            <div class="section">
+                                <div class="control-group">
+                                    <label for="" class="control-label">Use DSS global cluster settings</label>
+                                    <div class="controls">
+                                        <input type="checkbox" ng-model="projectSettings.settings.k8sCluster.clusterMode" ng-true-value="'INHERIT'" ng-false-value="'EXPLICIT_CLUSTER'"/>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-if="projectSettings.settings.k8sCluster.clusterMode == 'EXPLICIT_CLUSTER'">
+                                    <label for="" class="control-label">Cluster</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="projectSettings.settings.k8sCluster.clusterId" bs-typeahead="k8sClusterIds" />
+                                        <span class="help-inline">Use a cluster id, not name. Variables are allowed with a ${} syntax.</span>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-if="projectSettings.settings.k8sCluster.clusterMode == 'EXPLICIT_CLUSTER'">
+                                    <label for="" class="control-label">Default cluster</label>
+                                    <div class="controls">
+                                        <input type="text" ng-model="projectSettings.settings.k8sCluster.defaultClusterId" bs-typeahead="k8sClusterIds" />
+                                        <span class="help-inline">If the field above is blank or an undefined variable, use this cluster instead of the DSS global cluster.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div ng-switch-when="acl-resync" class="h100 oa paned-settings-page-pane">
+                        <h1>ACLs resync</h1>
+                        <div class="section">
+
+                            <div ng-show="!appConfig.impersonationEnabled" class="alert alert-info">
+                                These settings are only meaningful when multi-user-security is enabled
+                            </div>
+                            <div ng-show="appConfig.impersonationEnabled">
+                                <button ng-click="resyncHDFSDatasetPermissions()" class="btn btn--secondary">
+                                    Resync HDFS ACLs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ng-switch-when="engines-connections" class="h100 oa paned-settings-page-pane">
+                        <h1>Engines &amp; connections</h1>
+                        <form class="dkuform-horizontal">
+
+                            <div class="section">
+                                <h2>Datasets creation settings</h2>
+
+                                <div class="control-group">
+                                    <label for="" class="control-label">Use global settings</label>
+                                    <div class="controls" >
+                                        <label>
+                                            <input type="checkbox" ng-model="projectSettings.settings.datasetsCreationSettings.useGlobal" />
+                                            <span class="help-inline">
+                                                Uncheck to override globally-defined settings
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="control-group" ng-show="!projectSettings.settings.datasetsCreationSettings.useGlobal">
+                                    <label for="" class="control-label">Preferred fallback connection</label>
+                                    <div class="controls" >
+                                        <input type="text" ng-model="projectSettings.settings.datasetsCreationSettings.preferedConnection" />
+                                        <span class="help-inline">
+                                            Use this connection by default for new managed output datasets when no proper contextual connection
+                                            can be selected (for example, recipe from an "Uploaded" dataset).
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="!projectSettings.settings.datasetsCreationSettings.useGlobal">
+                                    <label for="" class="control-label">Preferred connection (forced)</label>
+                                    <div class="controls" >
+                                        <input type="text" ng-model="projectSettings.settings.datasetsCreationSettings.forcedPreferedConnection" />
+                                        <span class="help-inline">
+                                            Use this connection by default for new managed output datasets, even if a better contextual connection could
+                                            be selected (for example, same as input)
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="!projectSettings.settings.datasetsCreationSettings.useGlobal">
+                                    <label for="" class="control-label">Preferred storage formats</label>
+                                    <div class="controls" >
+                                        <input type="text" ng-model="projectSettings.settings.datasetsCreationSettings.preferedStorageFormats" />
+                                        <span class="help-inline">
+                                            Comma-separated list of ordered (most preferred to least preferred) storage formats.
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="control-group" ng-show="!projectSettings.settings.datasetsCreationSettings.useGlobal">
+                                    <label for="" class="control-label">Default virtualizable</label>
+                                    <div class="controls" >
+                                        <label>
+                                            <input type="checkbox" ng-model="projectSettings.settings.datasetsCreationSettings.virtualizable" />
+                                            <span class="help-inline">
+                                                Should datasets be created as virtualizable (for Spark pipelines)
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="section">
+                                <h2 id="forbid-prefered-recipe-engine">Forbidden/preferred recipe engines</h2>
+
+                                <p>These settings supersede in this project the settings defined at the administration level</p>
+
+                                <div recipe-engines-preference-config model="projectSettings.settings.recipeEnginesPreferences" />
+                            </div>
+
+                            <div class="section">
+                                <h2 id="recipe-creation">Recipe creation settings</h2>
+
+
+                                <div class="control-group">
+                                    <label for="" class="control-label">Inherit global for Hive engine</label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="projectSettings.settings.hiveEngineCreationSettings.useGlobal">
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="!projectSettings.settings.hiveEngineCreationSettings.useGlobal">
+                                    <label for="" class="control-label">Default Hive execution engine</label>
+                                    <div class="controls">
+                                        <select dku-bs-select ng-model="projectSettings.settings.hiveEngineCreationSettings.executionEngine">
+                                            <option value="HIVECLI_LOCAL">(Deprecated) Hive CLI (Isolated metastore)</option>
+                                            <option value="HIVECLI_GLOBAL">(Deprecated) Hive CLI (Global metastore)</option>
+                                            <option value="HIVESERVER2">HiveServer2</option>
+                                        </select>
+                                        <span class="help-inline">Default value for new Hive-based recipes</span>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Inherit global for Impala engine</label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="projectSettings.settings.impalaEngineCreationSettings.useGlobal">
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="!projectSettings.settings.impalaEngineCreationSettings.useGlobal">
+                                    <label class="control-label">Default Impala stream mode</label>
+                                    <div class="controls">
+                                        <label>
+                                        <input type="checkbox" ng-model="projectSettings.settings.impalaEngineCreationSettings.streamMode" />
+                                        <span class="help-inline">Applied to new Impala-based recipes. In stream mode, Impala does not write the output directly</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label for="" class="control-label">Inherit global for Spark engine</label>
+                                    <div class="controls">
+                                        <label>
+                                            <input type="checkbox" ng-model="projectSettings.settings.sparkEngineCreationSettings.useGlobal">
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="!projectSettings.settings.sparkEngineCreationSettings.useGlobal">
+                                    <label class="control-label">Default Spark execution config</label>
+                                    <div class="controls">
+                                        <select dku-bs-select ng-model="projectSettings.settings.sparkEngineCreationSettings.executionConfig" ng-options="x for x in appConfig.sparkExecutionConfigs" />
+                                        <span class="help-inline">Will use "default" if empty</span>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="!projectSettings.settings.sparkEngineCreationSettings.useGlobal">
+                                    <label class="control-label">Default Spark execution engine</label>
+                                    <div class="controls">
+                                        <select dku-bs-select ng-model="projectSettings.settings.sparkEngineCreationSettings.executionEngine">
+                                            <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+                                            <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+                                            <option value="DATABRICKS">Databricks</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="control-group" ng-show="!projectSettings.settings.sparkEngineCreationSettings.useGlobal">
+                                    <label class="control-label">Default Spark global metastore</label>
+                                    <div class="controls">
+                                        <input type="checkbox" ng-model="projectSettings.settings.sparkEngineCreationSettings.useGlobalMetastore" />
+                                    </div>
+                                </div>
+
+                                <div class="control-group">
+                                    <label for="" class="control-label">SQL-like recipes init mode</label>
+                                    <div class="controls">
+                                        <label>
+                                            <select dku-bs-select type="checkbox" ng-model="projectSettings.settings.relocationSettings.sqlLikeRecipesInitializationMode" ng-options="x[0] as x[1] for x in sqlLikeRecipesInitializationModes" options-descriptions="sqlLikeRecipesInitializationModesDesc" layout="list" />
+                                            <span class="help-inline">
+                                                How to create default code for new Hive, SQL, SparkSQL and Impala recipes.
+                                                (with "variable" references to datasets like
+                                                <code>${tbl:datasetName}</code> versus explicit table name)
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </form>
+                    </div>
+
+                    <div ng-switch-when="presets" class="h100 oa paned-settings-page-pane plugin-presets-settings-page-pane">
+                        <h1 ng-if="!uiState.selectedPlugin">Plugins presets</h1>
+                        <div class="pull-right m16" ng-if="uiState.selectedPlugin">
+                            <a class="btn btn--secondary mright8" ng-if="uiState.selectedPlugin.installedDesc.origin === 'DEV'" ng-click="goToDevPluginDetails(uiState.selectedPlugin.installedDesc.desc.id)">Go to plugin page</a>
+                            <a class="btn btn--secondary mright8" ng-if="uiState.selectedPlugin.installedDesc.origin !== 'DEV'" ng-click="goToPluginDetails(uiState.selectedPlugin.installedDesc.desc.id)">Go to plugin page</a>
+                        </div>
+                        <h1 ng-if="uiState.selectedPlugin"><a ng-click="uiState.selectedPlugin=null" class="dku-back-link mright8"><i class="icon-arrow-left"></i></a>{{ installed.desc.meta.label || installed.desc.id }}</h1>
+                        <div block-api-error></div>
+                        <div class="section h100" ng-if="!uiState.selectedPlugin && projectPluginsList && projectPluginsList.plugins.length > 0">
+                            <div class="alert alert-info">
+                                You can configure here the default plugins presets for this project. This will override the instance-level ones.
+                            </div>
+                            <div class="std-list-search-box plugin-search-field plugin-search-field--fixed-width">
+                                <span class="add-on"> <i class="icon-dku-search"></i></span>
+                                <input type="search" ng-model="pluginsUIState.searchQuery" placeholder="Search plugin&hellip;">
+                            </div>
+
+                            <div class="installed-plugins-list">
+                                <table ng-show="pluginsUIState.filteredInstalledPlugins.length > 0" sort-table class="table installed-plugin-table">
+                                    <col width="2%" />
+                                    <col width="25%" />
+                                    <col width="15%" />
+                                    <col width="10%" />
+                                    <col width="48%" />
+                                    <thead class="installed-plugins-list__header">
+                                        <tr>
+                                            <th></th>
+                                            <th class="sortable" sort-col="installedDesc.desc.id">Name</th>
+                                            <th class="sortable" sort-col="installedDesc.desc.meta.author">By</th>
+                                            <th>Origin</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="installed-plugins-list__body">
+                                        <tr class="installed-plugins-list__item"
+                                            ng-repeat="plugin in pluginsUIState.filteredInstalledPlugins = (projectPluginsList.plugins | filter:pluginsUIState.searchQuery | filter:{ installed:true } | orderBy:sortColumn:sortDescending)">
+                                            <td class="installed-plugin__icon-container">
+                                                <i class="installed-plugin__icon {{plugin.installedDesc.desc.meta.icon}}"></i>
+                                            </td>
+                                            <td>
+                                                <div class="id-column">
+                                                    <a ng-click="selectPlugin(plugin.id)">{{plugin.installedDesc.desc.meta.label  || plugin.id}}</a>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="author-column">{{plugin.installedDesc.desc.meta.author}}</div>
+                                            </td>
+                                            <td>
+                                                {{computePluginOrigin(plugin).toLocaleLowerCase() | capitalize}}
+                                            </td>
+                                            <td>
+                                                <div class="description-column" ng-if="plugin.installedDesc.desc.meta.description" from-markdown="plugin.installedDesc.desc.meta.description" words-limit="30"></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="plugins-no-result" ng-show="pluginsUIState.filteredInstalledPlugins.length === 0 && pluginsUIState.searchQuery.length > 0">
+                                    <h4 class="plugins-no-result__title">No plugin matches your filter.</h4>
+                                    <a class="btn btn--secondary" ng-click="resetInstalledQuery()">Clear filters</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section h100" ng-if="!uiState.selectedPlugin && projectPluginsList && projectPluginsList.plugins.length === 0">
+                            <div class="alert alert-info">There is no installed plugin with project-level presets on this Dataiku DSS instance.</div>
+                        </div>
+
+                        <div ng-if="uiState.selectedPlugin">
+                            <div ng-repeat="preset in pluginSettings.presets">
+                                <div class="section"
+                                    plugin-preset
+                                    preset="preset"
+                                    parameter-set-desc="getParameterSetDesc(preset.type)"
+                                    plugin-desc="installed.desc"
+                                    remove="deletePreset"
+                                    error-scope="errorScope">
+                                </div>
+                            </div>
+                            <div class="section" ng-if="pluginSettings.presets.length === 0 && pluginSettings.accessibleParameterSetDescs && pluginSettings.accessibleParameterSetDescs.length > 0">
+                                <span>This plugin has no presets yet.</span>
+                            </div>
+                            <div class="section" ng-if="!pluginSettings.accessibleParameterSetDescs || (pluginSettings.accessibleParameterSetDescs && pluginSettings.accessibleParameterSetDescs.length === 0)">
+                                <span>This plugin does not have parameter sets with presets definable in projects.</span>
+                            </div>
+                            <div class="m16" ng-if="pluginSettings.accessibleParameterSetDescs && pluginSettings.accessibleParameterSetDescs.length > 0">
+                                <button ng-click="createPreset()" class="btn btn--primary">New preset</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,73 @@
+<!-- The "LIST" summary view for a single MLTask -->
+<div class="fh models-page vertical-flex" global-keydown="{'ctrl-s meta-s':'saveSettings()'}">
+
+    <div class="row-fluid list-page-header noflex">
+        <div class="absolute-left" include-no-scope="/templates/analysis/mltask-selector.html" />
+        <div class="models-panes">
+            <span
+                class="models-pane__link-std--disabled"
+                ng-show="mlTaskStatus && !mlTaskStatus.guessing && mlTaskStatus.guessStatus.state != 'BROKEN' && mlTasksContext.activeMLTask.backendType === 'VERTICA'"
+                data-toggle="tooltip"
+                title="The Vertica ML backend is no longer supported">Design</span>
+            <a
+                class="link-std"
+                ng-show="mlTaskStatus && !mlTaskStatus.guessing && mlTaskStatus.guessStatus.state != 'BROKEN' && mlTasksContext.activeMLTask.backendType !== 'VERTICA'"
+                ui-sref="{{sRefPrefix + '.list.design'}}"
+                ui-sref-active="active">Design</a>
+
+            <a class="link-std" ui-sref-active="active" ng-show="mlTaskStatus && !mlTaskStatus.guessing && mlTaskStatus.guessStatus.state != 'BROKEN'" ui-sref="{{sRefPrefix + '.list.results'}}">
+                Result
+            </a>
+        </div>
+        <div class="absolute-right">
+            <button type="button" class="btn btn--outline btn--primary mright4" ng-click="saveSettings()" ng-if="dirtySettings() && appConfig.userProfile.mayVisualML" ng-disabled="mlTasksContext.activeMLTask.backendType === 'VERTICA'">
+                <i class="icon-save">&nbsp;</i> Save
+            </button>
+            <button type="button" class="btn btn--outline btn--primary mright4" ng-if="!dirtySettings() && appConfig.userProfile.mayVisualML && mlTasksContext.activeMLTask.backendType !== 'VERTICA'" disabled>
+                <i class="icon-save">&nbsp;</i> Saved
+            </button>
+            <button type="button" class="btn btn--primary btn--wide" ng-click="newTrainSession()" ng-disabled="!appConfig.userProfile.mayVisualML || mlTasksContext.activeMLTask.backendType === 'VERTICA'" ng-show="mlTaskStatus && !mlTaskStatus.training && !mlTaskStatus.guessing">
+                <i class="icon-play">&nbsp;</i> Train
+            </button>
+            <button type="button" class="btn btn--danger btn--wide" ng-click="abortTraining()" ng-disabled="!appConfig.userProfile.mayVisualML || mlTasksContext.activeMLTask.backendType === 'VERTICA'" ng-show="appConfig.userProfile.mayVisualML && mlTaskStatus.training">
+                <i class="icon-remove-sign">&nbsp;</i> Abort
+            </button>
+        </div>
+    </div>
+
+    <div ng-if="mlTaskStatus.guessing" class="flex list-page-busy">
+        <span><i class="icon-spin icon-spinner" />&nbsp; Please wait, analyzing your dataset...</span>
+        <span><a ng-click="refreshStatus()"><i class="icon-refresh" /></a></span>
+    </div>
+
+    <div ng-if="mlTaskStatus && !mlTaskStatus.guessing && mlTaskStatus.guessStatus.state == 'CAN_CHANGE_SETTINGS'"
+            class="noflex alert alert-warning" style="margin: 16px 16px 0px 16px;">
+        <strong>Initial analysis completed with a severe warning:</strong>
+        <span ng-bind="mlTaskStatus.guessStatus.error.message" />
+        <br />
+        You may have to modify the settings.
+    </div>
+    <div ng-if="mlTaskStatus && !mlTaskStatus.guessing && mlTaskStatus.guessStatus.state == 'BROKEN'"
+            class="noflex alert alert-error">
+        <strong>Initial analysis failed with error:</strong>
+        <span ng-bind="mlTaskStatus.guessStatus.error.message" />
+        <br />
+        Unfortunately, this is a fatal error.
+    </div>
+    <div ng-if="mlTaskStatus && !mlTaskStatus.guessing && mlTasksContext.activeMLTask.backendType === 'VERTICA'"
+            class="noflex alert alert-warning">
+        <strong>Vertica ML backend is no longer supported:</strong>
+        <br />
+        Cannot train or edit ML task settings.
+    </div>
+    <div block-api-error></div>
+
+    <div ng-if="mlTaskStatus && !mlTaskStatus.guessing"
+        class="flex"
+        filtered-multi-select-rows
+        double-select-unselects="true"
+        ng-model="modelSnippets"
+        ng-init="selection.customFilterWatch='selection.filterCategory'">
+        <div ui-view></div>
+    </div>
+</div>

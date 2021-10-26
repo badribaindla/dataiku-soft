@@ -1,0 +1,16 @@
+<div>
+    <div ng-repeat="sourceContainer in ['fwpSources','fwgpSources','fwopSources','noneSources']">
+
+        <div ng-repeat="source in selectedActivity[sourceContainer]">
+            <span ng-if="source.type == 'DATASET'">
+                <a href="{{ $state.href('projects.project.datasets.dataset.explore', {datasetName: source.id.split('.')[1]}) }}">{{ source.id.split(".")[1] }}</a>
+                <span ng-hide="source.partition == 'NP'">{{ source.partition}}</span>
+                <small ng-show="source.bytes">{{ source.bytes | filesize}}</small>
+                <small ng-show="source.records">{{ source.records | number }} records</small>
+            </span>
+            <span ng-if="source.type == 'SAVED_MODEL'">
+                <a ui-sref="projects.project.savedmodels.savedmodel.versions({smId:source.smId})">Model: {{ source.id.split(".")[1] }}</a>
+            </span>
+        </div>
+    </div>
+</div>

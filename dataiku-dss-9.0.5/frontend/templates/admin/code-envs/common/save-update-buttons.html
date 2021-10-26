@@ -1,0 +1,49 @@
+<div>
+    <div class="horizontal-flex" style="height: auto;"> <!-- no h100 as horizontal-flex does -->
+        <div ng-if="specIsDirty()" class="btn-group code-env__buttons flex" style="flex-basis: 50px;">
+            <button class="btn btn--outline btn--primary" style="width: 100%" ng-click="saveAndMaybePerformChanges(false)">
+                <i class="icon-save"></i>
+                &nbsp;Save
+            </button>
+        </div>
+        <div ng-if="!specIsDirty()" class="btn-group code-env__buttons flex" style="flex-basis: 50px;">
+            <button class="btn btn--outline btn--success" ng-disabled="true" style="width: 100%" >
+                <i class="icon-save"></i>
+                &nbsp;Saved!
+            </button>
+        </div>
+        <div class="flex" style="flex-basis: 10px;"></div> <!-- separation -->
+        <div ng-if="canBeUpdated() && specIsDirty()" class="btn-group code-env__buttons flex" style="flex-basis: 150px;">
+            <button class="btn btn--outline btn--success" ng-click="saveAndMaybePerformChanges(true)" style="width: 100%;">
+                <i class="icon-save"></i>
+                &nbsp;Save and update
+            </button>
+        </div>
+        <div ng-if="canBeUpdated() && !specIsDirty()" class="btn-group code-env__buttons flex" style="flex-basis: 150px;">
+            <button class="btn btn--outline btn--success" ng-click="updateEnv(uiState.upgradeAllPackages, uiState.forceRebuildEnv)" style="width: 100%;">
+                Update
+            </button>
+        </div>
+        <div ng-if="!canBeUpdated()" class="flex" style="flex-basis: 150px;"></div>
+    </div>
+    <div ng-if="canBeUpdated()">
+        <label class="checkbox" style="margin: 5px 0;">
+            <input id="allCheckbox" type="checkbox" ng-model="uiState.upgradeAllPackages"></input>
+            Update all packages
+        </label>
+        <div>
+            <span class="help-inline" style="color: #999">
+                Updates packages in the virtual environment so that the installed packages match the list and versions of the packages specified by the user.
+            </span>
+        </div>
+        <label class="checkbox" style="margin: 5px 0;">
+            <input id="allCheckbox" type="checkbox" ng-model="uiState.forceRebuildEnv"></input>
+            Rebuild env
+        </label>
+        <div>
+            <span class="help-inline" style="color: #999">
+                Clears the code environment and rebuilds it from scratch
+            </span>
+        </div>
+    </div>
+</div>

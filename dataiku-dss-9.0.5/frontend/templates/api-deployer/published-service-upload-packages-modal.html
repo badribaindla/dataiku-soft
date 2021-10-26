@@ -1,0 +1,44 @@
+<div class="modal modal3 dku-modal publish-packages-modal" ng-controller="APIDeployerServiceUploadPackagesController">
+    <div dku-modal-header-with-totem modal-title="Upload Versions" modal-totem="icon-upload" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+
+            <div block-api-error />
+
+            <droparea drop="drop(files)" class="droparea-style-v2" multiple>
+                <ul class="files" style="min-height: 150px; margin-bottom: 50px;">
+                    <li ng-repeat="file in uiState.fileProperties track by $index">
+                        <div class="file">
+                            <i class="icon-file"></i>
+                            <span class="path" title="{{ file.path }}">{{ file.path }}</span>
+                            <a href class="close" ng-click="deleteFile($index, $event)"><i class="icon-trash"></i></a>
+                            <span class="size">{{ file.length|filesize }}</span>
+                        </div>
+                    </li>
+                </ul>
+                <div class="h100" ng-if="!uiState.fileProperties.length">
+                    <div class="preview-cta" >
+                        No file yet
+                    </div>
+                </div>
+                <div class="upload-hook">
+                    Drag and drop your files here or
+                    <button class="btn btn--contained upload-button">Add a file</button>
+                </div>
+            </droparea>
+
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit"
+                class="btn btn--text btn--primary"
+                ng-disabled="serviceStatus.serviceBasicInfo.id && !uiState.fileProperties.length"
+                ng-click="serviceStatus.serviceBasicInfo.id && uploadFilesAfterDigest(uiState.files)"
+                >
+                Upload
+            </button>
+        </div>
+    </form>
+</div>

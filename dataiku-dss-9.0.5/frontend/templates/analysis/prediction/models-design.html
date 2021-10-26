@@ -1,0 +1,57 @@
+<div class="row-fluid fh model-design">
+	<div class="span2 oa h100 nav-list-sidebar sidebar-analysis modal-footer-std-buttons" tab-model="uiState.settingsPane" disable-transition="true">
+		<ul style="padding-left: 10px;">
+			<li class="sidebar-header" click-next>Basic</li>
+			<li sidebar-tab-l1-link tab-name="learning" label="Target" />
+			<li sidebar-tab-l1-link tab-name="evaluation-validation" label="Train / Test Set" />
+			<li sidebar-tab-l1-link tab-name="evaluation-metric" label="Metrics" />
+			<li ng-if="mlTaskDesign.backendType == 'PY_MEMORY'" sidebar-tab-l1-link tab-name="debugging" label="Debugging" />
+
+			<li class="sidebar-header" click-next>Features</li>
+			<li sidebar-tab-l1-link tab-name="features-handling" label="Features handling" />
+			<li sidebar-tab-l1-link tab-name="features-gen" label="Feature generation" ng-if="!isMLBackendType('KERAS')" />
+			<li sidebar-tab-l1-link tab-name="features-select" label="Feature reduction" ng-if="!isMLBackendType('KERAS')"/>
+
+			<li class="sidebar-header" ng-if="!isMLBackendType('KERAS')" click-next>Modeling</li>
+			<li class="sidebar-header" ng-if="isMLBackendType('KERAS')" click-next>Deep Modeling</li>
+			<li sidebar-tab-l1-link tab-name="keras-build" label="Architecture" ng-if="isMLBackendType('KERAS')"/>
+			<li sidebar-tab-l1-link tab-name="keras-train" label="Training" ng-if="isMLBackendType('KERAS')"/>
+			<li sidebar-tab-l1-link tab-name="algorithms" label="Algorithms" ng-if="!isMLBackendType('KERAS')"/>
+			<li sidebar-tab-l1-link tab-name="hyperparameters" label="Hyperparameters" ng-if="!isMLBackendType('KERAS')"/>
+
+			<li class="sidebar-header" click-next>Advanced</li>
+			<li sidebar-tab-l1-link tab-name="spark" label="Spark config" ng-if="mlTaskDesign.backendType == 'MLLIB' || mlTaskDesign.backendType == 'H2O' " />
+			<li sidebar-tab-l1-link tab-name="runtime" label="Runtime environment" ng-if="isMLBackendType('PY_MEMORY') || isMLBackendType('KERAS')" />
+			<li sidebar-tab-l1-link tab-name="sample-weights" label="Weighting strategy" ng-if="mlTaskDesign.backendType == 'PY_MEMORY' " />
+			<li sidebar-tab-l1-link tab-name="calibration" label="Probability calibration" ng-if="isMLBackendType('PY_MEMORY') && mlTaskDesign.predictionType != 'REGRESSION'" />
+
+
+
+		</ul>
+	</div>
+
+	<div class="span10 offset0 h100 boxed-next-to-sidebar no-padding" ng-if="mlTaskDesign">
+		<div ng-switch on="uiState.settingsPane">
+			<div class="h100 oa" ng-switch-when="learning" include-no-scope="/templates/analysis/prediction/settings/learningtask.html" />
+
+			<div class="h100" ng-switch-when="features-handling" include-no-scope="/templates/analysis/mlcommon/settings/features.html" />
+			<div class="h100 oa" ng-switch-when="features-gen" div include-no-scope="/templates/analysis/mlcommon/settings/features-generation.html" />
+
+			<div class="h100 oa" ng-switch-when="keras-build" include-no-scope="/templates/analysis/prediction/settings/keras-build.html" />
+			<div class="h100 oa" ng-switch-when="keras-train" include-no-scope="/templates/analysis/prediction/settings/keras-train.html" />
+			<div class="h100 oa" ng-switch-when="algorithms" include-no-scope="/templates/analysis/mlcommon/settings/algorithms.html" />
+			<div class="h100 oa" ng-switch-when="hyperparameters" include-no-scope="/templates/analysis/prediction/settings/hyperparameters.html" />
+
+			<div class="h100 oa" ng-switch-when="evaluation-metric" include-no-scope="/templates/analysis/prediction/settings/evaluation-metric.html" />
+			<div class="h100 oa" ng-switch-when="evaluation-validation" include-no-scope="/templates/analysis/prediction/settings/evaluation-validation.html" />
+			<div class="h100 oa" ng-switch-when="debugging" include-no-scope="/templates/analysis/mlcommon/settings/debugging.html" />
+
+			<div class="h100 oa" ng-switch-when="features-select" div include-no-scope="/templates/analysis/prediction/settings/features-selection.html" />
+            <div class="h100 oa" ng-switch-when="spark" include-no-scope="/templates/analysis/mlcommon/settings/spark.html" />
+			<div class="h100 oa" ng-switch-when="runtime" include-no-scope="/templates/analysis/mlcommon/settings/python.html" />
+			<div class="h100 oa" ng-switch-when="sample-weights" include-no-scope="/templates/analysis/mlcommon/settings/sample-weights.html" />
+			<div class="h100 oa" ng-switch-when="time-ordering" include-no-scope="/templates/analysis/mlcommon/settings/time-ordering.html" />
+			<div class="h100 oa" ng-switch-when="calibration" include-no-scope="/templates/analysis/mlcommon/settings/calibration.html" />
+		</div>
+	</div>
+</div>

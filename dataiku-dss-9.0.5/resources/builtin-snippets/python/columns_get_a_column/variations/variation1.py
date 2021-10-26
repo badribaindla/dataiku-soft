@@ -1,0 +1,1 @@
+my_col = my_df['col']

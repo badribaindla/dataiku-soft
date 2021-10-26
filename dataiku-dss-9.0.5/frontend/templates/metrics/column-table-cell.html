@@ -1,0 +1,17 @@
+<div ng-class="{'compute-button-cell' : cell.isActions, 'odd-row' : rowIndex%2 == 1, 'even-row' : rowIndex%2 == 0, 'body-cell' : true, 'footer-cell' : false}">
+    <span ng-if="cell.isColumn" title="{{cell.column}}">{{cell.column}}</span>
+    <span ng-if="cell.isActions" custom-element-popup>
+        <a class="mainzone dropdown-toggle btn btn--secondary has-caret" ng-click="togglePopover()">
+            Actions
+            <b class="caret" />
+        </a>
+        <ul class="popover custom-element-popup-popover dropdown-menu simple connection-info-popup">
+            <li>
+                <a ng-click="computeAllForColumn(cell.column)">Compute</a>
+            </li>
+        </ul>
+    </span>
+    <span ng-if="!cell.isColumn && !cell.isActions" title="{{MetricsUtils.getRawValueForColumn(cell.displayedMetric, cell.column, displayedMetricByColumnData)}}">
+        {{MetricsUtils.getFormattedValueForColumn(cell.displayedMetric, cell.column, displayedMetricByColumnData)}}
+    </span>
+</div>

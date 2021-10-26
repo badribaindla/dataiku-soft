@@ -1,0 +1,153 @@
+<div class="external-table__items">
+    <div class="object-or-project-summary-column-base" ng-repeat="project in summary.dssItems.projects">
+        <div class="row-fluid">
+            <div class="span12 offset0 {{$index == 0 ? '' : 'mtop20'}}">
+                <h4>{{project.name}}</h4>
+            </div>
+        </div>
+        <div class="row-fluid" ng-repeat="dataset in project.datasets">
+            <div class="span12 oa description-field {{$index == 0 ? '' : 'mtop20'}}" style="padding: 0; min-height: 0; display: flex;">
+
+                <div class="span4 offset0 dku-border-right" style="background-color: white;">
+
+                    <div class="h100">
+
+
+                    <div class="column-header item-header ">
+                        <div class="noflex object-icon universe-background dataset" ng-style="{'background-color': dataset.foreign ? 'black' : ''}">
+                            <div class="middle"><i class="icon {{dataset.type | datasetTypeToIcon}}"></i></div>
+                        </div>
+                        <h2 class="flex" style="background-color: #F8F8F8;" title="Dataset 3">
+                            <a ng-show="!dataset.foreign" ui-sref="projects.project.datasets.dataset.explore({projectKey : project.key, datasetName: dataset.name })">
+                                <span class="ng-binding ng-scope">{{dataset.name}}</span>
+                            </a>
+                            <a ng-show="dataset.foreign" ui-sref="projects.project.foreigndatasets.dataset.explore({projectKey : project.key,datasetFullName : dataset.exposedFromProjectKey +'.'+dataset.exposedFromDataset })">
+                                <span class="ng-binding ng-scope">{{dataset.name}}</span>
+                            </a>
+                        </h2>
+                    </div>
+                    <div class="object-details">
+                        <div class="line" ng-if="dataset.exposedFromProjectKey">
+                            <h4>Exposed from</h4>
+                            <p>
+                                <a href="{{$state.href('projects.project', {projectKey: dataset.exposedFromProjectKey})}}/">{{dataset.exposedFromProjectKey}}</a>
+                                /
+                                <a href="{{$state.href('projects.project.datasets.dataset.explore', {projectKey: dataset.exposedFromProjectKey, datasetName: dataset.exposedFromDataset})}}">
+                                    {{dataset.exposedFromDataset}}
+                                </a></p>
+
+
+                        </div>
+                        <div class="line">
+                            <h4>Creation</h4>
+                            <p>{{dataset.creationDate | friendlyTimeDeltaShort}}</p>
+                        </div>
+                        <!--<div class="line">-->
+                        <!--<h4>Last build</h4>-->
+                        <!--<p>{{dataset.lastBuildDate | friendlyTimeDeltaShort}}</p>-->
+                        <!--</div>-->
+                        <div class="line" ng-if="!dataset.foreign">
+                            <h4>Users</h4>
+                            <div>
+                            <span ng-repeat="user in dataset.contributors">
+                                <a title="{{user.displayName}}" href="/profile/{{user.login}}/">
+                                    <span user-picture="user.login" size="20" class="avatar20"/>
+                                </a>
+                            </span>
+                            </div>
+                        </div>
+                        <div class="line" ng-if="dataset.description && !dataset.foreign">
+                            <h4>Description</h4>
+                        </div>
+                        <div class="line" ng-if="dataset.description && !dataset.foreign">
+                            <p style="text-align: left;white-space: normal;overflow-y: scroll;max-height: 65px;height: auto;">
+                                {{dataset.description}}
+                            </p>
+                        </div>
+                    </div>
+                    </div>
+
+
+
+                </div>
+                <div class="span8 offset0" style="position: relative;">
+
+
+                    <div class="not-used" ng-if="!dataset.recipes.length && !dataset.exposedInProjects.length">{{dataset.foreign ? 'Not used by any recipe' : 'Neither used by any recipe nor exposed to another projects'}}</div>
+                    <div ng-if="dataset.recipes && dataset.recipes.length">
+                        <div class="span12 offset0"
+                             style="background-color: white; height: 100%;">
+                            <div class="noflex dku-colored-list spaced fattable-default-header dku-border-bottom"
+                                 style="border-bottom: 0; padding-bottom: 0">
+                                <div style="width: 100px;">
+                                    <strong>Used by {{dataset.recipes.length}} recipes</strong>
+                                </div>
+                                <div style="width: 50px;">
+                                    <strong>Users</strong>
+                                </div>
+                            </div>
+
+                            <div class="h100 fattable-default-style dku-border-top" fat-repeat="dataset.recipes "
+                                 as="recipe"
+                                 ng-style="{height: (dataset.recipes.length < 4 ? dataset.recipes.length*26 : 4*26) + 5 +'px'}"
+                                 digest-child-only="true"
+                                 row-height="25">
+                                <div>
+                                    <div style="width: 100px">
+                                        <a main-click
+                                           href="{{$state.href('projects.project.recipes.recipe', {projectKey: project.key ,recipeName : recipe.name})}}">
+                                            <i class="{{recipe.type | recipeTypeToIcon }} {{recipe.type | recipeTypeToColor}} universe-color"/>
+                                            <span style="text-align: left">{{recipe.name}}</span>
+                                        </a>
+                                    </div>
+                                    <div style="width: 50px">
+                                        <span ng-repeat="user in recipe.contributors">
+                                            <a title="{{user.displayName}}" href="/profile/{{user.login}}/">
+                                                <span user-picture="user.login" size="20" class="avatar20"/>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="dataset.exposedInProjects && dataset.exposedInProjects.length">
+                        <div class="span12 offset0"
+                             ng-class="{'dku-border-top' : dataset.recipes.length}"
+                             style="background-color: white; height: 100%;">
+                            <div class="noflex dku-colored-list spaced fattable-default-header"
+                                 style="border-bottom: 0; padding-bottom: 0">
+                                <div style="width: 100px;">
+                                    <strong>Exposed in {{dataset.exposedInProjects.length}} {{'project' | plurify : dataset.exposedInProjects.length}}</strong>
+                                </div>
+                            </div>
+
+                            <div class="fattable-default-style dku-border-top" fat-repeat="dataset.exposedInProjects  "
+                                 as="project"
+                                 ng-style="{height: (dataset.exposedInProjects.length < 4 ? dataset.exposedInProjects.length*26 : 4*26) + 5 +'px'}"
+
+                                 row-height="25">
+                                <div>
+                                    <div style="width: 100px">
+                                        <a main-click
+                                           href="{{$state.href('projects.project', {projectKey: project.key})}}">
+                                            <i class="{{recipe.type | recipeTypeToIcon }} {{recipe.type | recipeTypeToColor}} universe-color"/>
+                                            <span style="text-align: left">{{project.name}}</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    <div class="empty-list-cta" ng-if="!summary.dssItems.projects.length">
+        <p>Table is not used in any project yet</p>
+    </div>
+</div>

@@ -1,0 +1,41 @@
+<div class="vertical-flex">
+    <div class="top-level-tabs">
+        <div class="horizontal-flex row-fluid object-nav">
+            <div class="flex oh object-breadcrumb">
+                <a class="item">
+                    <i class="icon icon-puzzle-piece universe-background plugin"></i>
+                    <span class="title ellipsis">Plugins
+                    <span ng-if="$state.includes('plugins.store') && pluginsUIState.storePluginsCount" ng-bind="'(' + pluginsUIState.storePluginsCount + ' in store)'"></span>
+                    <span ng-if="$state.includes('plugins.installed') && pluginsUIState.installedPluginsCount" ng-bind="'(' + pluginsUIState.installedPluginsCount + ' installed)'"></span>
+                    <span ng-if="$state.includes('plugins.development') && pluginsUIState.developedPluginsCount" ng-bind="'(' + pluginsUIState.developedPluginsCount + ' in development)'"></span>
+                </a>
+            </div>
+            <div class="noflex">
+                <a class="tab"
+                    ng-class="{'enabled': $state.includes('plugins.store')}"
+                    ui-sref="plugins.store"
+                    fw500-width>
+                    Store
+                </a>
+                <a class="tab"
+                    ng-class="{'enabled': $state.includes('plugins.installed')}"
+                    ui-sref="plugins.installed"
+                    w500-width>
+                    Installed
+                </a>
+                <a class="tab"
+                    ng-if="appConfig.globalPermissions.mayDevelopPlugins"
+                    ng-class="{'enabled': $state.includes('plugins.development')}"
+                    ui-sref="plugins.development"
+                    fw500-width>
+                    Development
+                </a>
+                <div class="dropdown otherLinks" data-block ng-if="appConfig.globalPermissions.mayDevelopPlugins">
+                    <a class="btn btn--outline btn--primary dropdown-toggle" id="qa_plugin_new-button" data-toggle="dropdown">Add plugin&nbsp;<i class="caret blue"></i></a>
+                    <ul class="dropdown-menu detailed-dropdown-menu new-plugin-dropdown-menu" data-extend-template="/templates/plugins/new-plugin-dropdown.html"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div ui-view></div>
+</div>

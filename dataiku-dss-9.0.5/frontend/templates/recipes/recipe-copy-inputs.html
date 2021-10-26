@@ -1,0 +1,76 @@
+<div class="control-group">
+    <div ng-repeat="(roleName, role) in recipe.inputs">
+        <div class="role-header" ng-if="inputRolesIndex[roleName].label">
+           {{inputRolesIndex[roleName].label}}
+            <span ng-if="inputRolesIndex[roleName].description"
+                dku-md-popover="{{inputRolesIndex[roleName].description}}"
+                dku-md-title="{{inputRolesIndex[roleName].label}}"
+                popover-clazz="processor-help-popover">
+                <i class="icon-question-sign" />
+            </span>
+        </div>
+
+        <div ng-if="role.items.length == 0" class="placeholder-block">
+            No input
+        </div>
+
+        <div ng-if="inputRolesIndex[roleName].editableInModal">
+            <div ng-repeat="input in role.items" style="padding: 15px 20px">
+                <div ng-scope="{{computable = computablesMap[input.ref]}}">
+                    <div ng-if="computable.type == 'DATASET'">
+                        Replacement for <strong>{{input.ref}}</strong>:
+                        <div class="controls">
+                            <div dataset-selector="newInputs[roleName].items[$index].ref"
+                                available-datasets="availableInputDatasets[roleName]" >
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="computable.type == 'MANAGED_FOLDER'">
+                        Replacement for folder <strong>{{computable.label}}</strong>:
+                        <div class="controls">
+                            <div folder-selector="newInputs[roleName].items[$index].ref"
+                                available-folders="availableInputFolders[roleName]" >
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="computable.type == 'SAVED_MODEL'">
+                        Replacement for model <strong>{{computable.label}}</strong>:
+                        <div class="controls">
+                            <div saved-model-selector="newInputs[roleName].items[$index].ref"
+                                available-saved-models="availableInputModels[roleName]" >
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="computable.type == 'STREAMING_ENDPOINT'">
+                        Replacement for streaming endpoint <strong>{{computable.label}}</strong>:
+                        <div class="controls">
+                            <div streaming-endpoint-selector="newInputs[roleName].items[$index].ref"
+                                available-streaming-endpoints="availableInputEndpoints[roleName]" >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div ng-if="!inputRolesIndex[roleName].editableInModal">
+            <div ng-repeat="input in role.items">
+                <div ng-scope="{{computable = computablesMap[input.ref]}}" style="margin: 10px 20px;">
+                    <div ng-if="computable.type == 'DATASET'">
+                        <i class="illustration {{computable.dataset.type | typeToIcon}}" />
+                         <strong>{{input.ref}}</strong>
+                    </div>
+                    <div ng-if="computable.type == 'SAVED_MODEL'">
+                        <i class="illustration icon-machine_learning_regression" />
+                        <strong>{{computable.label}}</strong>
+                    </div>
+                    <div ng-if="computable.type == 'MANAGED_FOLDER'">
+                        <i class="illustration icon-box" />
+                        <strong>{{computable.label}}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

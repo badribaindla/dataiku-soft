@@ -1,0 +1,66 @@
+<div class="modal modal3 modal-wide webapp-creation-modal code-webapp-creation-modal" ng-controller="NewWebAppModalController">
+    <div dku-modal-header modal-title="New Code Webapp" />
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="appForm">
+        <div class="modal-body modal-no-sizing webapp-creation-modal__body" ng-class="{ 'webapp-creation-modal__body--with-faded-bottom': availableTemplates && availableTemplates.length > 6 }">
+            <div block-api-error />
+
+            <div class="webapp-creation-modal-step" ng-show="!app.type">
+                <ul class="webapp-type-boxes">
+                    <li ng-repeat="desc in codeWebApps"
+                        class="webapp-type-boxes__box"
+                        ng-click="chooseType(desc.id)" >
+                        <i class="universe-color notebook {{desc.meta.icon}} webapp-type-boxes__box-icon"></i>
+                        <span class="webapp-type-boxes__box-title">{{desc.meta.label}}</span>
+                        <div ng-bind-html="desc.meta.description" class="webapp-type-boxes__box-description"></div>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal__step-header webapp-creation-modal__step-header" ng-show="app.type">
+                <a ng-click="app.type=null" class="dku-back-link"><i class="icon-arrow-left"></i></a>
+                <span class="modal__step-header-title">{{app.type}} webapp</span>
+            </div>
+            <div class="webapp-creation-modal-step webapp-creation-modal-step--with-header" ng-show="app.type">
+                <ul class="selectable-items-list">
+                    <li ng-repeat="template in availableTemplates"
+                        class="selectable-item selectable"
+                        ng-click="app.template = template"
+                        ng-class="{ selected: app.template.id == template.id }">
+                        <span class="selection-indicator">
+                            <i class="icon-ok" title="active" ng-if="app.template.id == template.id" />
+                        </span>
+                        <span class="selectable-item__title">{{template.label}}</span>
+                    </li>
+                </ul>
+
+                <div class="webapp-type-description" ng-if="desc">
+                    <span class="universe-color flow {{desc.meta.icon}}"></span>
+                    <span class="name">{{desc.meta.label}}</span>
+                    <div ng-bind-html="desc.meta.description"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <div class="pull-right">
+                <button class="btn btn--text btn--primary" ng-show="app.type" ng-disabled="appForm.$invalid || isCreating" ng-click="create()">
+                    Create
+                </button>
+            </div>
+            <div class="pull-left webapp-creation-modal__footer-info" ng-show="!app.type">
+                You can learn more about webapps in
+                <span academy-link page="visualization-course">
+                    our tutorial
+                </span>.
+            </div>
+            <div class="webapp-creation-modal__name pull-right" ng-show="app.type">
+                <div class="control-group">
+                    <label class="control-label" for="webapp-name">Webapp name</label>
+                    <div class="controls">
+                        <input type="text" id="webapp-name" ng-model="app.name" required/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

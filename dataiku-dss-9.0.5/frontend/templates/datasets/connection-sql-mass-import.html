@@ -1,0 +1,152 @@
+<div>
+    <div class="top-level-tabs objecttype-dataset">
+        <div class="row-fluid object-nav">
+            <div class="object-breadcrumb" >
+                <a class="item dataset" >
+                    <i class="icon icon-code_sql_recipe"></i>
+                    <span class="title ellipsis" ng-show="!uiState.fromExternal">Mass import SQL tables</span>
+                    <span class="title ellipsis" ng-show="uiState.fromExternal == 'alation'">Import SQL table from Alation</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="dss-page">
+        <div class="h100 container-fluid page-top-padding">
+            <div class="h100 sql-mass-import" filtered-multi-select-rows ng-model="massImportData.tables" select-click-behaviour="select-add">
+                <div block-api-error></div>
+                <div future-waiting response="listFuture" dku-if="listFuture && !listFuture.hasResult"></div>
+
+                <div ng-if="!massImportData && !uiState.fromExternal" class="fh center-children">
+                    <div style="text-align: center">
+                        <button type="button" class="btn btn--success btn--large" ng-click="refreshList()" ng-disabled="listFuture">List tables</button>
+                        <div ng-if="uiState.schemas" style="margin-top: 10px; text-align: initial;">
+                            <h2 class="settings-section-title">Advanced settings</h2>
+                            <span>Restrict to schema: </span>
+                            <select dku-bs-select ng-model="uiState.sourceSchema" ng-options="s.schema as s.label for s in uiState.schemas" ng-disabled="listFuture"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-if="massImportData && uiState.fromExternal == 'alation'" class="vertical-flex h100">
+
+                    <div ng-repeat="table in massImportData.tables" style="margin: 0 auto">
+                        <table class="table table-hover table-striped">
+                            <tr><td>Table</td><th>{{table.table}}</th></tr>
+                            <tr><td>Schema</td><th>{{table.schema}}</th></tr>
+                            <tr><td>Dataset name</td><td>
+                                    <input type="text"
+                                        class="input-xlarge"
+                                        ng-model="table.datasetName"
+                                        custom-validation="isDatasetNameUnique" ng-pattern="/^[\w-_]+$/"
+                                        ng-required="table.$selected"/>
+                                </td></tr>
+                        </table>
+                    </div>
+                    <div style="margin: 0 auto">
+                            <button type="submit" class="btn btn--primary" ng-click="acceptMassImport(massImportData.tables,this)">
+                                Import
+                            </button>
+                    </div>
+                </div>
+
+                <div ng-if="massImportData && !uiState.fromExternal" class="vertical-flex h100">
+                    <div class="noflex" style="max-width: 400px; margin-bottom: 10px;">
+                        <div class="horizontal-flex" style="width: 100%;">
+                            <span class="std-list-search-box flex">
+                                <span class="add-on"> <i class="icon-dku-search"/></span>
+                                <input type="search"
+                                    ng-model="selection.filterQuery.userQuery"
+                                    class="input-xlarge"
+                                    placeholder="Search tables"
+                                    style="width: calc(100% - 45px);"
+                                    />
+                            </span>
+                            <div class="noflex" style="margin: auto;">
+                                <b>{{selection.selectedObjects.length}} / {{selection.allObjects.length}}</b>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fattable-default-header dku-border-bottom noflex">
+                        <div style="cursor: pointer" ng-click="sortBy('table')">
+                            <input type="checkbox"
+                                class="select-cb"
+                                style="margin-top: auto; margin-bottom: auto;"
+                                ng-model="selection.all"
+                                dku-indeterminate="selection.some"
+                                ng-change="updateMassSelectionCheckbox();">
+                            <strong>Table</strong>
+                            <i class="icon-caret-down" ng-if="isSortedBy('table', true)"/>
+                            <i class="icon-caret-up" ng-if="isSortedBy('table', false)"/>
+                        </div>
+                        <div class="small" style="cursor: pointer" ng-click="sortBy('schema')">
+                            <strong toggle="tooltip"
+                                title="You can search the schema by typing 'schema:someSchema' in the searchbar"
+                                data-container="body">Schema</strong>
+                            <i class="icon-caret-down" ng-if="isSortedBy('schema', true)"/>
+                            <i class="icon-caret-up" ng-if="isSortedBy('schema', false)"/>
+                        </div>
+                        <div style="width: 120px; cursor: pointer" ng-click="sortBy('existingDatasetName')">
+                            <strong>Dataset Exists</strong>
+                            <i class="icon-caret-down" ng-if="isSortedBy('existingDatasetName', true)"/>
+                            <i class="icon-caret-up" ng-if="isSortedBy('existingDatasetName', false)"/>
+                        </div>
+                        <div style="cursor: pointer" ng-click="sortBy('datasetName')">
+                            <strong>Dataset name</strong>
+                            <i class="icon-caret-down" ng-if="isSortedBy('datasetName', true)"/>
+                            <i class="icon-caret-up" ng-if="isSortedBy('datasetName', false)"/>
+                        </div>
+                    </div>
+
+                    <div class="empty-list" ng-show="selection.filteredObjects.length==0">
+                        <div>No available tables</div>
+                        <span ng-show="selection.allObjects.length>0">Try <a ng-click="clearFilters()">clearing filters</a> to show more</span>
+                    </div>
+
+
+
+                    <div class="flex fattable-default-style common-styles-only"
+                        fat-repeat="selection.filteredObjects"
+                        style="background: white;outline: none"
+                        tabindex="0"
+                        ng-keydown="multiSelectKeydown($event, true)"
+                        as="table"
+                        row-height="36" >
+                        <div class="h100" ng-class="{focused: selection.selectedObject === table,selected: table.$selected}">
+                            <div class="unselectable mx-textellipsis" full-click>
+                                <span style="display:none;" main-click ng-click="objectClicked(table, $event)"></span> <!-- because checkbox click is prioritary -->
+                                <div class="mass unselectable">
+                                    <input type="checkbox" ng-model="table.$selected" ng-click="checkBoxChanged(table, $event)" />
+                                </div>
+                                <span ng-bind-html="table.table | boldify:selection.filterParams.userQueryResult"></span>
+                            </div>
+                            <div class="small unselectable">
+                                {{table.schema}}
+                            </div>
+                            <div class="unselectable" style="width: 120px">
+                                <span ng-if="!table.existingDatasetName">N</span>
+                                <a ng-if="table.existingDatasetName" ui-sref="projects.project.datasets.dataset.explore({projectKey:$stateParams.projectKey,datasetName:table.existingDatasetName})">Y</a>
+                            </div>
+                            <div>
+                                <fieldset ng-disabled="!table.$selected">
+                                    <input type="text"
+                                        class="input-xlarge"
+                                        ng-disabled="!table.$selected"
+                                        ng-model="table.datasetName"
+                                        custom-validation="isDatasetNameUnique" ng-pattern="/^[\w-_]+$/"
+                                        ng-required="table.$selected"/>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="noflex" style="padding: 10px 0 20px 0;">
+                        <button type="submit" class="btn btn--primary" ng-disabled="selection.none" ng-click="acceptMassImport(selection.selectedObjects,this)">
+                            Create <span ng-show="selection.multiple">{{selection.selectedObjects.length}}</span> 
+                            dataset<span ng-show="selection.multiple">s</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

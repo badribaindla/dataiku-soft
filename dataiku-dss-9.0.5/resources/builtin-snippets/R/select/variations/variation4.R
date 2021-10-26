@@ -1,0 +1,1 @@
+select(df, contains("my_string"))

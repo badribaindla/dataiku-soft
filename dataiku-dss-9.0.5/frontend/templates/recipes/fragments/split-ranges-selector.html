@@ -1,0 +1,106 @@
+<form class="dkuform-horizontal form3 recipe-settings-section2" name="rangesplits">
+
+    <!-- SELECTOR TITLE FOR NUMERICAL COLUMNS -->
+    <div class="control-group title" ng-if="getRangeColGenericType() == 'date'">
+        <h2 class="control-label recipe-settings-section2-title">
+            Date Range
+        </h2>
+        <h2 class="controls ranges recipe-settings-section2-title">
+            Output
+        </h2>
+    </div>
+
+    <!-- SELECTOR TITLE FOR DATE COLUMNS -->
+    <div class="control-group title" ng-if="getRangeColGenericType() != 'date'">
+        <h2 class="control-label recipe-settings-section2-title" style="width: 190px">
+            From
+        </h2>
+        <h2 class="control-label recipe-settings-section2-title">
+            To
+        </h2>
+        <h2 class="controls ranges recipe-settings-section2-title mtop0 mbot0">
+            Output
+        </h2>
+    </div>
+
+    <!-- LIST OF SPLITS -->
+    <div ng-repeat="rs in getSelectedSplits()" class="control-group mtop8">
+        <div class="control-label ranges">
+            <i class="icon-long-arrow-right arrow pull-right mleft16"></i>
+            <range-bracket 
+                type="'min'"
+                range-index="$index"
+                ranges="getSelectedSplits()"
+                is-valid-col="isInColumns(params.column)">
+            </range-bracket>
+            <range-inputs 
+                range-index="$index" 
+                ranges="getSelectedSplits()"
+                column="params.column"
+                ng-class="rangeInputsClass()"
+                set-time="params.rangeSetTime"
+                col-type="getRangeColType()"
+                is-valid-col="isInColumns(params.column)">
+           </range-inputs>
+            <range-bracket 
+                type="'max'"
+                range-index="$index" 
+                ranges="getSelectedSplits()"
+                is-valid-col="isInColumns(params.column)">
+            </range-bracket>
+            <div class="gauge-container pull-right">
+                <div split-gauge
+                     data="getSelectedSplits()"
+                     get-values-fn="getRangeFromIndex"
+                     can-move-gauge="false"
+                     index="$index">
+                </div>
+            </div>  
+        </div>
+        <div class="controls ranges">
+            <select dku-bs-select
+                    ng-model="rs.outputIndex"
+                    ng-options="x.value as x.label for x in outputsList"
+                    ng-change="onOutputDatasetChange($index)">
+            </select>
+            <button type="button" 
+                ng-click="removeRangeSplit($index);" 
+                class="btn btn--icon btn--text btn--danger editable-list__delete qa_recipe_trash-ratio" 
+                ng-show="currentGenericType != 'boolean' || $index > 1">
+                <i class="icon-trash"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- REMAINING -->
+    <div class="control-group mtop8">
+        <div class="control-label ranges">
+            <i class="icon-long-arrow-right arrow pull-right mleft16"></i>
+            <span class="remaining"> Remaining values</span>
+            <div class="gauge-container pull-right">
+                <div split-gauge
+                     data="getSelectedSplits()"
+                     get-values-fn="getRangeFromIndex"
+                     index="-1">
+                </div>
+            </div> 
+        </div>
+        <div class="controls ranges">
+            <select dku-bs-select
+                    ng-model="params.defaultOutputIndex"
+                    ng-options="x.value as x.label for x in outputsList"
+                    ng-change="onOutputDatasetChange(-1)">
+            </select>
+        </div>
+    </div>
+
+    <!-- ADDING NEW RANGE -->
+    <div class="control-group mtop16">
+        <div class="control-label shares" style="width: inherit;">
+            <button type="button" class="btn btn--text btn--primary qa_recipe_split-add-ratio" ng-click="addRangeSplit(getSelectedSplits().length);">
+                <span class="icon-plus"></span> Add range
+            </button>
+        </div>
+    </div>
+
+</form>

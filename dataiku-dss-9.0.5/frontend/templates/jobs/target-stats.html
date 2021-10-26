@@ -1,0 +1,13 @@
+<div>
+    <div ng-repeat="target in selectedActivity.targets">
+        <span ng-if="target.type === 'DATASET'">
+            <a href="{{ $state.href('projects.project.datasets.dataset.explore', {datasetName: target.id.split('.')[1]}) }}">{{ target.id.split(".")[1] }}</a>
+            <span ng-hide="target.partition === 'NP'"> {{target.partition.id}}</span>
+            <small ng-show="target.bytes >= 0">{{target.bytes | filesize}}</small>
+            <small ng-show="target.records >= 0">{{target.records | number }} records</small>
+        </span>
+        <span ng-if="target.type === 'SAVED_MODEL'">
+            <a ui-sref="projects.project.savedmodels.savedmodel.versions({ smId: target.smId })">{{ target.id.split(".")[1] }}</a>
+        </span>
+    </div>
+</div>

@@ -1,0 +1,41 @@
+<div class="computed-columns-step" style="padding: 0 80px;">
+    <div class="formbased-recipe-infozone tac">
+        <h1 class="recipe-settings-section1-title">Computed columns</h1>
+        <div class="recipe-settings-section2">
+            <div class="dku-text text-weak">You can create new columns using SQL or DSS formulas.</div>
+        </div>
+    </div>
+
+    <div class="recipe-settings-section1" ng-repeat="computedColumn in computedColumnListDesc">
+        <div class="recipe-settings-section2">
+            <button type="button" 
+                class="pull-right btn btn--icon btn--text btn--danger" 
+                ng-click="computedColumnListDesc.splice($index, 1)" 
+                title="Delete this variable">
+                <i class="icon-trash"></i>
+            </button>
+            <div computed-column-step-editor
+                computed-column-desc="computedColumn"
+                dataset="dataset"
+                schema="schema"
+                must-run-in-database="recipeStatus && recipeStatus.selectedEngine && recipeStatus.selectedEngine.type != 'DSS'"
+                computed-column-update-callback="onComputedColumnUpdate"
+                recipe-status-messages="getComputedColumnsStatus(recipeStatus.computedColumns, $index+1)">
+            </div>
+        </div>
+    </div>
+    <div class="tac m16"">
+        <button type="button" 
+            class="btn btn--secondary qa_recipe_add-computed-col btn--icon" 
+            ng-click="addNewComputedColumn()">
+            <i class="icon-plus"></i> Add a computed column
+        </button>
+    </div>
+
+    <div class="recipe-settings-section1" ng-show="computedColumnListDesc.length > 0 && computedColumnListDesc[computedColumnListDesc.length-1].mode == 'GREL'">
+        <div class="recipe-settings-section2">
+            <h1 class="recipe-settings-section1-title">DSS formula doc</h1>
+            <div grel-reference-and-examples></div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,97 @@
+<div class="standard-container package-status">
+    <div block-api-error />
+
+    <div class="vertical-flex" ng-if="serviceStatus && serviceStatus.packages.length">
+        <div class="standard-container__wrap" ng-repeat="package in serviceStatus.packages | orderBy:'publishedOn':true track by $index">
+            <div class="horizontal-flex package-status__header standard-container__header package-status__header--version" full-click>
+                <div class="horizontal-flex standard-container__titles">
+                    <h5 class="horizontal-flex aic standard-container__title"ng-click="package.$expanded = !package.$expanded" main-click>
+                        <i class="mright8" ng-class="{'icon-chevron-up': package.$expanded, 'icon-chevron-down': !package.$expanded}" />
+                        <i class="mright8 icon-dku-api-version"/>
+                        <span show-tooltip-on-text-overflow text-tooltip="package.id" ></span>
+                    </h5>
+                    <div class="vertical-flex package-status__subtitles">
+                        <div class="package-status__subtitle">
+                            {{package.endpoints.length |pluralize: 'endpoint' : 'endpoints'}}
+                        </div>
+                        <div class="package-status__subtitle">
+                            Added {{package.publishedOn | friendlyTimeDeltaShort}}
+                        </div>
+                    </div>
+                </div>
+                <div class="package-status__stages horizontal-flex">
+                    <div ng-repeat="stage in currentStages track by $index">
+                        <div class="vertical-flex package-status__stage aic w100" ng-if="stage.id === '__OTHERS__' && deploymentsPerVersionAndStage[package.id].others" dku-html-tooltip position="bottom" trigger-class="w100">
+                            <tooltip-content>
+                                <ul class="raw-unstyled-ul">
+                                    <li ng-repeat="(otherStage, otherCount) in deploymentsPerVersionAndStage[package.id].others.stageCounts" ng-if="otherStage !== '__OTHERS__'">
+                                        {{ otherStage }}: {{ otherCount }}
+                                    </li>
+                                    <li ng-if="deploymentsPerVersionAndStage[package.id].others.stageCounts['__OTHERS__']">
+                                        Unknown stages: {{ deploymentsPerVersionAndStage[package.id].others.stageCounts['__OTHERS__'] }}
+                                    </li>
+                                </ul>
+                            </tooltip-content>
+                            <tooltip-trigger>
+                                <div class="package-status__stage-count" ng-style="{ color: DeployerUtils.getStageCountColor(deploymentsPerVersionAndStage[package.id].others.deployments, heavyStatusByDeploymentId, true) };">
+                                    {{ deploymentsPerVersionAndStage[package.id].others.deployments.length || '&hellip;' }}
+                                </div>
+                                <div class="package-status__stage-title mleft4 mright4 minw0">Others</div>
+                            </tooltip-trigger>
+                        </div>
+                        <div class="vertical-flex package-status__stage aic" ng-if="showEmptyOthersStage(stage.id, package) || stage.id !== '__OTHERS__'">
+                            <div class="package-status__stage-count" ng-style="{ color: DeployerUtils.getStageCountColor(deploymentsPerVersionAndStage[package.id].perStage[stage.id].deployments, heavyStatusByDeploymentId, true) };">
+                                {{ deploymentsPerVersionAndStage[package.id].perStage[stage.id].deployments.length || '&hellip;' }}
+                            </div>
+                            <div class="package-status__stage-title mleft4 mright4 minw0" show-tooltip-on-text-overflow text-tooltip="stage.id === '__OTHERS__' ? 'Others' : stage.id"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="standard-container__actions package-status__actions">
+                    <button class="btn btn--text btn--primary" 
+                        disabled-if-message="DeployerUtils.getCannotDeployReason([serviceStatus], infraStatusList, publishedItemType)"
+                        ng-click="deployVersion(package.id)">
+                        Deploy
+                    </button>
+                    <button class="btn btn--text btn--danger btn--icon"
+                        ng-click="deleteVersion(serviceStatus.serviceBasicInfo.id, package.id)"
+                        disabled-if="!!deploymentsPerVersionAndStage[package.id].count"
+                        disabled-message="Cannot remove a version with deployments"
+                        >
+                        <i class="icon-trash" />
+                    </button>
+                </div>
+            </div>
+            <div class="horizontal-flex simple-columns package-status__body" ng-show="package.$expanded">
+                <div class="package-status__columns minw0">
+                    <h5>Endpoints</h5>
+                    <div class="package-status__stat" ng-repeat="endpoint in package.endpoints track by $index">
+                        <div class="noflex"><i class="{{endpoint.type |endpointTypeToIcon}}" /></div>
+                        <div class="flex  mx-textellipsis mleft8 mrightauto" show-tooltip-on-text-overflow text-tooltip="endpoint.id"></div>
+                        <div class="noflex text-weak package-status__stat-subtitle mleft8">{{ endpoint.type | endpointTypeToName }}</div>
+                    </div>
+                </div>
+                <div class="package-status__columns">
+                    <h5>Deployments</h5>
+                    <div ng-repeat="(stage, stageDetails) in deploymentsPerVersionAndStage[package.id].perStage track by stageDetails.idx" ng-if="stageDetails.deployments.length">
+                        <div class="break-all mtop16 mbot8">Stage: {{stage == '__OTHERS__' ? 'Unknown' : stage}}</div>
+                        <div api-deployments-list-widget="stageDetails.deployments" health-map="healthMap" status-page="'service'"></div>
+                    </div>
+                    <div ng-if="!deploymentsPerVersionAndStage[package.id].count" class="empty-list-cta tal mtop0">
+                        <p>No deployments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div ng-if="serviceStatus && !serviceStatus.packages.length" class="empty-list-cta">
+        <h1>No API service version yet</h1>
+        <div ng-if="serviceStatus.canWrite">
+            <p>You can push versions from the API Designer of a DSS Design or Automation node</p>
+            <p>You can also directly upload version packages</p>
+            <a class="btn btn--primary btn--large" ng-click="startUploadPackages()()">
+                <i class="icon-upload"/>&nbsp;Upload versions
+            </a>
+        </div>
+    </div>
+</div>

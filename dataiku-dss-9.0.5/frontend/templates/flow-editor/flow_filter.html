@@ -1,0 +1,186 @@
+<div class="container-fluid" style="padding: 0">
+    <div class=" h100" style="background-color: white; display: flex;">
+
+        <div class="dku-border-right h100" style="width: 171px;    display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: center; padding: 8px" class="dku-border-bottom">
+                <div class="std-list-search-box list-control-widget" style="margin: 0">
+                    <span class="add-on" style="font-size: 14px"><i class="icon-dku-search"/></span>
+                    <input type="search" style="width: 120px;" ng-model="filtering.filterSearch" placeholder="Search filter" autoFocus>
+                </div>
+            </div>
+            <div style="padding: 8px 15px; overflow-y: auto; flex: 1;">
+                <div ng-repeat="filter in filtering.filtersByCategories['global'] |filter:{name: filtering.filterSearch} | orderBy:[filterTypeOrderFunction,'name']"
+                     ng-click="onFilterChange(filter)"
+                     class="flow-filter__option"
+                     ng-class="{'active-filter': filter.id === filtering.activeFilter.id}">{{filter.name || 'Unsaved filter'}}
+                </div>
+                <div ng-show="filtering.filtersByCategories['shared'].length" style="border-top: 1px solid #d9dadb; margin-top: 5px; padding-top: 5px;">
+                    <div ng-repeat="filter in filtering.filtersByCategories['shared'] |filter:{name: filtering.filterSearch} | orderBy:[filterTypeOrderFunction,'name']"
+                         ng-click="onFilterChange(filter)"
+                         style="cursor: pointer"
+                         class="flow-filter__option"
+                         ng-class="{'active-filter': filter.id === filtering.activeFilter.id}">{{filter.name || 'Unsaved filter'}}
+                        <span ng-show="filter.isDirty" style="    width: 10px; display: inline-block; text-align: center;">&bull;</span>
+                    </div>
+
+                </div>
+                <div ng-show="filtering.filtersByCategories['private'].length" style="border-top: 1px solid #d9dadb; margin-top: 5px; padding-top: 5px;">
+                    <div ng-repeat="filter in filtering.filtersByCategories['private'] |filter:{name: filtering.filterSearch} | orderBy:[filterTypeOrderFunction,'name']"
+                         ng-click="onFilterChange(filter)"
+                         class="flow-filter__option"
+                         ng-class="{'active-filter': filter.id === filtering.activeFilter.id}">{{filter.name || 'Unsaved filter'}}
+                        <span ng-show="filter.isDirty" style="    width: 10px; display: inline-block; text-align: center;">&bull;</span>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="btn-group" style="margin: 0">
+                <button class="btn btn--secondary" style="width: 100%;     border-left: none; border-right: none; border-bottom: none;" ng-click="resetFilterWithWarning(filtering.activeFilter.isAdvanced);">
+                    <span class="title">New filter</span>
+                </button>
+            </ul>
+
+        </div>
+        <div style="width: 700px; margin: 0; padding: 0 23px 8px 23px; box-sizing: border-box" class="vertical-flex">
+            <form class="dkuform-modal-wrapper dkuform-modal-horizontal" style="position: relative; height: 100%; display: flex; flex-direction: column">
+                <div block-api-error />
+
+                <div class="horizontal-flex" style="height: 43px; line-height: 43px;">
+                    <div style="display: flex;">
+                        <span><h4 ng-style="{color:filtering.activeFilter.isDirty ? '#0096f2':''}" class="flow-filter__filter-name">{{filtering.activeFilter.name || 'Unsaved filter'}}<span ng-show="filtering.activeFilter.isDirty" style="    width: 20px; display: inline-block; text-align: center;">&bull;</span></h4></span>
+                        <span class="flow-filter__controls" style="margin-left: 20px;    display: flex; align-items: center;">
+                            <i class="icon icon-pencil" ng-show="filtering.activeFilter.scope !== 'BUILT_IN' && !filtering.activeFilter.isDirty && filtering.activeFilter.id" ng-click="showEditNameModal(false);" dku-better-tooltip dbt-placement="bottom" dbt-title="Edit filter"></i>
+                            <i class="icon icon-trash" ng-show="filtering.activeFilter.scope !== 'BUILT_IN' && filtering.activeFilter.id && !filtering.activeFilter.isDirty" ng-click="filtering.activeFilter.id && delete(filtering.activeFilter.id);" ng-disabled="!filtering.activeFilter || !filtering.activeFilter.id " dku-better-tooltip dbt-placement="bottom" dbt-title="Delete filter"></i>
+                            <!--todo: @flowfilter replace with real icon-->
+                            <i class="icon icon-undo" ng-show="filtering.activeFilter.scope !== 'BUILT_IN' && filtering.activeFilter.isDirty && filtering.activeFilter.derivedFromFilterId" ng-click="revertDirtyFilter(filtering.activeFilter.id);" dku-better-tooltip dbt-placement="bottom" dbt-title="Revert"></i>
+                            <i class="icon icon-save" ng-show="filtering.activeFilter.scope !== 'BUILT_IN' && filtering.activeFilter.id" ng-click="showModalIfNeededAndSave(false);" dku-better-tooltip dbt-placement="bottom" dbt-title="Save"></i>
+                            <i class="icon icon-dku-save-as" ng-show="filtering.activeFilter.scope !== 'BUILT_IN' && filtering.activeFilter.id" ng-click="showModalIfNeededAndSave(true);" dku-better-tooltip dbt-placement="bottom" dbt-title="Save as" style="font-size: 17px;padding-bottom: 1px; margin-bottom: -1px;"></i>
+                        </span>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="pull-right">
+
+                            <a ng-click="changeMode()" class="no-select" style="padding-right: 20px">{{filtering.activeFilter.isAdvanced ? 'Standard' : 'Advanced'}} mode</a>
+                            <i class="icon icon-remove " style="line-height: 43px; vertical-align: middle; cursor: pointer;" ng-click="hidePopover()"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-filter" ng-show="!filtering.activeFilter.isAdvanced">
+                    <div class="filter-line" style="justify-content: space-between; ">
+
+                        <div class="vertical-flex" style="width: 210px;">
+                            <h5 class="flow-filter__facet-title">Types</h5>
+                            <div facet-filterable-list="filtering.activeFilter.structuredFlowObjectFilter.types" show-all-items="true" class="dku-border" style="box-sizing: border-box; padding: 10px 10px 0 10px" items="filtering.flowFilteringFacetData.elementIdsTypeStatistics" order-by="-value">
+                                <span class="text flex">{{$parent.item.key | niceTaggableType | capitalize}}</span>
+                                <span class="count">{{ $parent.item.value }}</span>
+
+                            </div>
+                        </div>
+
+
+                        <div class="vertical-flex" style="width: 210px;">
+                            <h5 class="flow-filter__facet-title">Tags</h5>
+                            <div facet-filterable-list="filtering.activeFilter.structuredFlowObjectFilter.tags" show-all-items="true" class="dku-border" style="box-sizing: border-box; padding: 10px 10px 0 10px" items="filtering.flowFilteringFacetData.tagsStatistics" order-by="-value">
+                                <span class="bullet noflex" style="background-color: {{tagColor($parent.item.key)}}; margin: 0 4px 0 2px; flex-shrink: 0;"/>
+                                <span class="text flex" ui-global-tag="$parent.item.key" object-type="'TAGGABLE_OBJECT'"/>
+                                <span class="count">{{ $parent.item.value }}</span>
+                            </div>
+                        </div>
+
+                        <div class="vertical-flex" style="width: 210px;">
+                            <h5 class="flow-filter__facet-title">Users</h5>
+                            <div facet-filterable-list="filtering.activeFilter.structuredFlowObjectFilter.creator" show-all-items="true" class="dku-border" style=" box-sizing: border-box; padding: 7px 7px 0 7px" items="filtering.flowFilteringFacetData.usersStatistics" order-by="-value">
+                                <div user-picture='$parent.item.key' size="20"/>
+                                <span class="text flex" style="margin: 0 4px 0 2px;">{{$parent.item.label}}</span>
+                                <span class="number noflex count">{{$parent.item.value}}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-line">
+
+                        <div class="vertical-flex" style="width: 210px;">
+                            <h5 class="flow-filter__facet-title">Dataset types</h5>
+                            <div facet-filterable-list="filtering.activeFilter.structuredFlowObjectFilter.datasetTypes" show-all-items="true" class="dku-border" style="box-sizing: border-box; padding: 10px 10px 0 10px;" items="filtering.flowFilteringFacetData.datasetTypeStatistics" order-by="-value">
+                                <i  class="{{$parent.item.key | datasetTypeToIcon}}" style="margin:0 4px 0 2px; height: fit-content; "></i>
+                                <span class="text flex">{{$parent.item.key}}</span>
+                                <span class="count">{{ $parent.item.value }}</span>
+                            </div>
+                        </div>
+
+                        <div class="vertical-flex" style="width: 210px; margin-left: 12px">
+                            <h5 class="flow-filter__facet-title">Recipe types</h5>
+                            <div facet-filterable-list="filtering.activeFilter.structuredFlowObjectFilter.recipeTypes" show-all-items="true" class="dku-border" style="box-sizing: border-box; padding: 10px 10px 0 10px" items="filtering.flowFilteringFacetData.recipeTypeStatistics" order-by="-value">
+                                <i class="object-icon universe-color {{$parent.item.key | recipeTypeToIcon}} {{$parent.item.key | recipeTypeToColor}}" style="margin: 0 4px 0 2px;"></i>
+                                <span class="text flex">{{$parent.item.label | capitalize}}</span>
+                                <span class="count">{{ $parent.item.value }}</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="filter-line" style="margin-top: 5px; align-items: center">
+                        <h5 style="width: 222px">Creation</h5>
+
+                        <select
+                                dku-bs-select="{noneSelectedText:'All time'}"
+                                class="flow-filter__mode-selector"
+                                ng-model="filtering.activeFilter.structuredFlowObjectFilter.creationDateRange"
+                                ng-options="o.v as o.n for o in [{n:'All time', v:null}, {n:'Past hour', v:'PAST_HOUR'},{n:'Past 24h', v:'PAST_DAY'},{n:'Past week', v:'PAST_WEEK'},{n:'Past month', v:'PAST_MONTH'},{n:'Past year', v:'PAST_YEAR'},{n:'Custom range...', v:'CUSTOM'}]">
+                        </select>
+                    </div>
+                    <div class="filter-line" style="align-items: center" ng-show="filtering.activeFilter.structuredFlowObjectFilter.creationDateRange === 'CUSTOM'">
+                        <h5 style="width: 222px">Range</h5>
+
+                        <div style="position: relative;" >
+                            <div daterangepicker opens-direction="up" opens='left' start-date="filtering.pickerStartCreationDate" end-date="filtering.pickerEndCreationDate" format={{filtering.pickerFormat}} time-picker-increment="5" presets-to-end-of-day="true" class="flow-filter__daterangepicker"></div>
+                            <i class="icon-calendar" style="position: absolute; top: 50%; right: 6px; transform: translate(0,-50%); z-index: 100;"></i>
+                        </div>
+                    </div>
+
+                    <div class="filter-line" style="margin-top: 5px; align-items: center">
+                        <h5 style="width: 222px">Last Modification</h5>
+
+                        <select
+                                dku-bs-select="{noneSelectedText:'All time'}"
+                                class="flow-filter__mode-selector"
+                                ng-model="filtering.activeFilter.structuredFlowObjectFilter.modificationDateRange"
+                                ng-options="o.v as o.n for o in [{n:'All time', v:null}, {n:'Past hour', v:'PAST_HOUR'},{n:'Past 24h', v:'PAST_DAY'},{n:'Past week', v:'PAST_WEEK'},{n:'Past month', v:'PAST_MONTH'},{n:'Past year', v:'PAST_YEAR'},{n:'Custom range...', v:'CUSTOM'}]">
+                        </select>
+                    </div>
+                    <div class="filter-line" style="align-items: center" ng-show="filtering.activeFilter.structuredFlowObjectFilter.modificationDateRange === 'CUSTOM'">
+                        <h5 style="width: 222px">Range</h5>
+
+                        <div style="position: relative;" >
+                            <div daterangepicker opens-direction="up" opens='left' start-date="filtering.pickerStartModificationDate" end-date="filtering.pickerEndModificationDate" format={{filtering.pickerFormat}} time-picker-increment="5" presets-to-end-of-day="true" class="flow-filter__daterangepicker"></div>
+                            <i class="icon-calendar" style="position: absolute; top: 50%; right: 6px; transform: translate(0,-50%); z-index: 100;"></i>
+                        </div>
+                    </div>
+
+                </div>
+                <div ng-show="filtering.activeFilter.isAdvanced">
+                    <div class="modal-body" style="padding:15px 0 0 0">
+                        <div class="control-group">
+                            <advanced-filter-input typeahead-class="flow-filter__typeahead"></advanced-filter-input>
+                        </div>
+                    </div>
+                    <div style="color: red;" ng-show="filtering.filteringResults.filteringError">{{formatErrorMessage(filtering.filteringResults.filteringError)}}</div>
+                </div>
+                    <div class="control-group" style="flex: 1; display: flex; flex-direction: column-reverse;">
+                        <div class="controls" style="    margin: 0; bottom: 0; width: 100%;">
+                            <label style="display: inline-block">
+                                <input type="checkbox" ng-model="filtering.activeFilter.removeFadedElements" style="width: auto"/>
+                                <span class="help-inline">Hide unrelated elements</span>
+                            </label>
+                            <div class="pull-right modal-footer-std-buttons">
+                                <button class="btn btn--text btn--primary" ng-click="applyFilter();">
+                                    Apply
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,155 @@
+<div class="vertical-flex">
+    <div class="top-level-tabs">
+        <div class="row-fluid object-nav">
+            <div class="object-breadcrumb">
+                <a class="item" ui-sref=".items">
+                    <i class="icon icon-comments universe-background inbox"></i>
+                    <span class="title ellipsis">
+                        Discussions inbox<span ng-if="discussionsUnreadStatus"> ({{(discussionsUnreadStatus.unreadFullIds || []).length || 0}} unread)</span>
+                    </span>
+                </a>
+            </div>
+
+            <div class="pull-right">
+            </div>
+        </div>
+    </div>
+
+
+    <div class="list-page-4 flex dss-page catalog-page" selected-index="goToItem(item)" ng-model="formatted_items">
+        <div class="catalog-tooltips">
+        </div>
+
+        <div class="h100 vertical-flex">
+            <div class="summary-row noflex">
+                <div class="pull-right">
+                    <div class="sort-box list-control-widget" style="display: inline-block">
+                        <sort-order-button
+                            class="order"
+                            value="sortOptions.reverse"
+                            remember-choice="sortCookieKey+'_asc'"
+                            sob-opt="{'buttonClass': 'btn', 'disabledValue': true}">
+                        </sort-order-button>
+                        <select dku-bs-select="{style: 'dku-select-button'}"
+                            remember-choice="sortCookieKey+'k'"
+                            ng-model="sortOptions.column"
+                            ng-options="obj.value as obj.label for obj in sortBy"
+                            required
+                            ></select>
+                    </div>
+                </div>
+
+                <div class="std-list-search-box" ng-class="{error: error}" style="display: inline-block" data-block="search-box">
+                    <i class="icon icon-remove" ng-show="hasSearch()" ng-click="resetSearch()"></i>
+                    <span class="add-on" ng-click="selectInput()">
+                        <i class="icon-dku-search" />
+                    </span>
+                    <input type="search"
+                        ng-model="query.queryString"
+                        placeholder="Search&hellip;"
+                        class="catalog-search-input"
+                        auto-focus="true"
+                        />
+                </div>
+            </div>
+
+            <div class="flex">
+                <div class="fh">
+                    <div class="row-fluid horizontal-flex">
+                        <div class="span9 h100 flex">
+                            <div block-api-error></div>
+                            <div class="main-list-zone h100">
+                                <div class="h100" style="position: relative">
+                                    <div class="left-sidebar span3 scroll-zone offset0 fh">
+                                        <div ng-repeat="(field, agg) in results.aggregations"
+                                            ng-if="field !== 'objectType' && field !== '_type' && agg.agg.buckets.length > 0"
+                                            class="facet"
+                                            ng-class="{collapsed: facetsCollapse[field]}"
+                                            >
+                                            <h4 ng-click="facetsCollapse[field] = !facetsCollapse[field]">
+                                                <i ng-class="{'icon-chevron-up': !facetsCollapse[field], 'icon-chevron-down': facetsCollapse[field]}"></i>
+                                                {{ formatFacetField(field) }}
+                                            </h4>
+
+                                            <div facet-filterable-list="query.facets[field]"
+                                                 items="agg.agg.buckets"
+                                                 show-all-items="facetsShowAll[field]"
+                                                 filter-function="facetValueMatching(field)"
+                                            >
+                                                <span class="text">{{ formatFacetValue($parent.item.key, field) }}</span>
+                                                <span class="count">{{ $parent.item.doc_count }}</span>
+                                            </div>
+                                            <a ng-show="unindexedConnections && unindexedConnections.length && field == 'connection.raw'" ng-click="goToConnectionsExplorer()">
+                                                +{{unindexedConnections.length}} unindexed connection{{unindexedConnections.length>1 ? 's' : ''}}
+                                            </a>
+                                        </div>
+
+                                        <div class="facet type-selection">
+                                            <div class="value-list">
+                                                <label class="all" ng-class="{selected: !query.facets.objectType[0]}" ng-click="query.facets.objectType = []">
+                                                    <span class="count">{{results.aggregations.objectType.doc_count}}</span>
+                                                    <span>On object of type</span>
+                                                </label>
+                                                <label ng-repeat="item in results.aggregations.objectType.agg.buckets"
+                                                    ng-class="{empty: item.doc_count == 0, selected: query.facets.objectType[0] == item.key}"
+                                                    ng-if="!query.facets.objectType[0] || facetsShowAll['objectType'] || query.facets.objectType[0] == item.key"
+                                                    ng-click="query.facets.objectType = query.facets.objectType[0] == item.key ? [] : [item.key]"
+                                                    >
+                                                    <span class="count hidable">{{::item.doc_count}}</span>
+                                                    <span class="facet-value">
+                                                        <i class="type-icon {{::item.key | typeToIcon }} {{::item.key}}"></i>
+                                                        {{ formatFacetValue(item.key, 'objectType') }}
+                                                    </span>
+                                                </label>
+                                                <a class="more"
+                                                    ng-if="!facetsShowAll['objectType'] && query.facets.objectType[0] != 'all' && types.length > 2"
+                                                    ng-click="facetsShowAll['objectType'] = true">
+                                                    + more…
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div include-no-scope="/templates/catalog/search-results-items.html"
+                                        class="scroll-zone span9 offset0 fh"
+                                        style="margin-left: 24.999999999999996%">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="span3 right-sidebar object-right-column-summary h100" style="margin-left: 0">
+                            <div class="catalog-right-column h100" ng-controller="CatalogRefreshController">
+                                <div class="col-md-3 h100">
+                                    <div ng-hide="selected.item">
+                                        <h4 class="empty-right-column small-lr-padding">Click an item to view details</h4>
+                                    </div>
+                                    <div class="h100 vertical-flex" ng-show="selected.item">
+                                        <div item-header
+                                            ng-if="selected.item"
+                                            class="column-header noflex"
+                                            href="getLink(selected.item)"
+                                            title="{{selected.item._source.name}}"
+                                            color="{{itemToColor(selected.item)}}"
+                                            icon="{{itemToIcon(selected.item)}}"
+                                            flow-link="hasFlowLink(selected.item) && getFlowLink(selected.item)"
+                                            navigator-fn="navigatorFn"
+                                            editable="!!meaningsPage"
+                                            edit="goToItem(selected.item)"
+                                            deletable="!!meaningsPage"
+                                            delete="deleteUDM(selected.item)"
+                                            >
+                                            <span ng-bind-html="formatItemName(selected.item)"></span>
+                                        </div>
+                                        <ng-include class="h100 flex" src="'/templates/catalog/items-rightcolumn.html'" style="overflow: hidden;">
+                                        </ng-include>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

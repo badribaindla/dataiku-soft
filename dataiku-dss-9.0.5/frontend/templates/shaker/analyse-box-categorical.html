@@ -1,0 +1,112 @@
+    <div class="row-fluid h100">
+        <div class="span3">
+            <div ng-include="'/templates/shaker/analyse-summary.html'"></div>
+            <div class="summary" style="margin-top: 1em">
+                <strong>
+                    {{analysis.alphanumFacet.unique}} Uniques
+                    <i class="icon-info" toggle="tooltip" title="Values appearing only once in the sample" />
+                    <span class="lining-nums"> {{analysis.alphanumFacet.uniqueRatio * 100 | number:1}} %</span>
+                </strong>
+                <ul style="margin-left: 1em">
+                    <li ng-repeat="u in analysis.alphanumFacet.uniqueExamples | limitTo: 4" title="{{u}}">{{ u }}</li>
+                </ul>
+            </div>
+            <div class="summary" style="margin-top: 1em">
+                <strong>{{analysis.alphanumFacet.nok * analysis.alphanumFacet.totalRows | number:0}} Invalids
+                    <span class="lining-nums"> {{analysis.alphanumFacet.nok * 100 | number:1}} %</span>
+                </strong>
+                <ul style="margin-left: 1em">
+                    <li ng-repeat="u in analysis.alphanumFacet.nokExamples | limitTo: 4" title={{u}}>{{ u }}</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="span9 h100 oa">
+            <form name="mergeTransformForm" class="common-styles-only form-inline" ng-show="merge">
+                <strong>Merging {{merge.count}} values</strong><br />
+                <div class="pull-right">
+                    <button class="btn btn--primary" ng-disabled="mergeTransformForm.$invalid" ng-click="execMerge()">Merge</button>
+                    <button class="btn btn--secondary" ng-click="cancelTransform()">Cancel</button>
+                </div>
+                <label><span class="fieldLabel">Replace with</span></label>
+                <input type="text" required ng-model="merge.value" placeHolder="Replacement value" /><br>
+                <label class="checkbox"><input type="checkbox" ng-model="merge.empty" />
+                    <span class="fieldLabel">including empty cells</span></label>
+            </form>
+
+            <table class="table table-striped facet-table table-small table-condensed">
+                <tr class="tr-discreet">
+                    <th dku-if="shakerWritable"><input type="checkbox" ng-model="_selAllVals" ng-change="selectAllValues(_selAllVals)" /></th>
+                    <th class="actions" style="text-align: left"
+                            dku-if="shakerWritable" custom-element-popup cep-position="align-left-bottom" close-on-click="true">
+                        <button ng-disabled="!nbSelected()" ng-click="togglePopover()" class="mainzone btn btn--secondary dropdown-toggle">
+                            Mass actions <span class="caret"></span>
+                        </button>
+                        <ul class="popover custom-element-popup-popover dropdown-menu">
+                            <li><a ng-click="filterViewOnSelection()">Filter view</a></li>
+                            <li><a ng-click="removeRowsOnSelection()">Remove rows</a></li>
+                            <li><a ng-click="clearCellsOnSelection()">Clear cells</a></li>
+                            <li ng-hide="nbSelected() < 2"><a ng-click="mergeSelected(false)">Merge selected</a></li>
+                            <li ng-hide="nbSelected() < 1"><a ng-click="mergeSelected(true)">Merge all others</a></li>
+                        </ul>
+                    </th>
+                    <th dku-if="!shakerWritable" style="text-align:left">Top {{analysis.alphanumFacet.values.length}} out of
+                        {{analysis.alphanumFacet.totalNbValues}} values in sample</th>
+                    <th>Count</th>
+                    <th>%</th>
+                    <th>Cum. %</th>
+                    <th dku-if="shakerWritable"></th>
+                </tr>
+                <tr ng-repeat="value in analysis.alphanumFacet.values track by $index">
+                    <td dku-if="shakerWritable"><input type="checkbox" ng-model="analysis.alphanumFacet.selected[$index]" /></td>
+                    <td dku-if="shakerWritable" class="value"
+                            ng-click="startEditValue($index, this)" ng-class="{editing: $index === editRow}">
+                        <span ng-class='{empty: !value}'>{{ value || "No value" }}</span>
+                        <i class="icon-pencil filigran"></i>
+                        <form class="form-inline">
+                            <input type="text" class="edit" placeholder="Replacement value" id="analyseCatEdit{{$index}}"
+                                ng-model="newValue" ng-keyup="handleKey($event)" ng-blur="doneEditing(newValue)" required>
+                        </form>
+                        <span class="bar bar-{{ !value ? 'warning' : (analysis.alphanumFacet.ok[$index] ? 'success' : 'danger') }}"
+                              style="width: {{ 80 * analysis.alphanumFacet.percentages[$index] / analysis.alphanumFacet.maxRatio }}%"></span>
+                    </td>
+                    <td dku-if="!shakerWritable" class="value">
+                        <span ng-bind-html="value ? sanitize(value) : '<em>No value</em>'"></span>
+                        <span class="bar bar-{{ !value ? 'warning' : (analysis.alphanumFacet.ok[$index] ? 'success' : 'danger') }}"
+                              style="width: {{ 80 * analysis.alphanumFacet.percentages[$index] / analysis.alphanumFacet.maxRatio }}%"></span>
+                    </td>
+                    <td>{{analysis.alphanumFacet.counts[$index]}}</td>
+                    <td>{{100 * analysis.alphanumFacet.percentages[$index] | number:1}}</td>
+                    <td>{{100 * analysis.alphanumFacet.cumPercentages[$index] | number:1}}</td>
+                    <td dku-if="shakerWritable">
+                        <div class="actions" style="position: relative" custom-element-popup cep-position="align-right-top" close-on-click="true">
+                            <i ng-click="togglePopover()" class="mainzone icon-gear dropdown-toggle" style="padding: 0 .5em; cursor: pointer" />
+                            <ul class="popover custom-element-popup-popover dropdown-menu shaker-column-row-popup">
+                                <li><a ng-click="removeValue($index)">Remove rows with this value</a></li>
+                                <li ng-show="value"><a ng-click="keepValue($index)">Keep only rows with this value</a></li>
+                                <li ng-show="value"><a ng-click="clearValue($index)">Clear cells with this value</a></li>
+                                <li><a ng-click="mergeTail($index)">Merge values below this line</a></li>
+                                <li ng-if="value && !analysis.alphanumFacet.ok[$index]">
+                                    <a ng-click="handleInvalids('REMOVE_ROW')">Remove invalid rows for meaning {{column.selectedType.name}}</a></li>
+                                <li ng-if="value && !analysis.alphanumFacet.ok[$index]">
+                                    <a ng-click="handleInvalids('CLEAR_CELL')">Clear invalid cells for meaning {{column.selectedType.name}}</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                <tr ng-if="analysis.alphanumFacet.totalNbValues > analysis.alphanumFacet.values.length" style="border-bottom: 1px solid #dddddd">
+                    <td dku-if="shakerWritable"></td>
+                    <td dku-if="shakerWritable" class="value">
+                        ...
+                    </td>
+                    <td dku-if="!shakerWritable" class="value">
+                        ...
+                    </td>
+                    <td>...</td>
+                    <td>...</td>
+                    <td>...</td>
+                    <td dku-if="shakerWritable"></td>
+                </tr>
+            </table>
+        </div>
+    </div>

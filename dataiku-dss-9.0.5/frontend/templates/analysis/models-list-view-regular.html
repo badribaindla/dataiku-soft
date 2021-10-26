@@ -1,0 +1,132 @@
+<div class="offset0 h100 oa session-detail">
+    <div class="vertical-flex h100">
+        <!-- graph view  -->
+        <div class="session-detail-header noflex">
+            <span class="session-name">Session {{sessionTask.sessionId | onlyNumbers}}</span>
+            <span class="session-date" ng-if="getSessionStartDate(sessionTask.sessionId) != null">
+                Started {{getSessionStartDate(sessionTask.sessionId) | friendlyDateTime}}
+                <span ng-if="!isSessionRunning(sessionTask.sessionId) && getSessionEndDate(sessionTask.sessionId) != null">, ended {{getSessionEndDate(sessionTask.sessionId) | friendlyDateTime}}</span>
+            </span>
+
+            <span class="session-models">
+                {{getSessionModels(selection.allObjects, sessionTask.sessionId).length}} {{'model' | plurify: getSessionModels(selection.allObjects, sessionTask.sessionId).length}}
+                <span ng-if="isSessionRunning(sessionTask.sessionId)">training</span>
+            </span>
+            <span class="session-features" custom-element-popup cep-position="smart" cep-offset-left="-26" close-on-click="false" full-click>
+                <a class="mainzone dropdown-toggle" main-click ng-click="togglePopover()">
+                    {{mlTaskFeatures(sessionTask.preprocessing.per_feature, ['INPUT','TARGET']).length}} /
+                    {{mlTaskFeatures(sessionTask.preprocessing.per_feature, ['INPUT','TARGET','PROFILING','REJECT']).length}} Features
+                    <span class="caret"/>
+                </a>
+                <ul class="session-features-popup popover custom-element-popup-popover dropdown-menu column-header-menu">
+                    <ul class="nav dropdown" dku-filtered="sessionTask.preprocessing.per_feature">
+                        <div class="std-list-search-box with-icon">
+                            <span class="search-icon">
+                                <i class="icon-dku-search" ng-show="!objects.filterQuery.userQuery || objects.filterQuery.userQuery.length == 0"></i>
+                                <i class="icon-remove cursor-pointer" ng-show="objects.filterQuery.userQuery.length > 0" ng-click="objects.filterQuery.userQuery = ''"></i>
+                            </span>
+                            <input type="text" ng-model="objects.filterQuery.userQuery" auto-focus="true">
+                        </div>
+
+                        <div fat-repeat="objects.filtered" as="feature" row-height="20" style="height: {{objects.filtered.length * 20 + 1}}px ; max-height: 400px">
+                            <li ng-if="feature.role==='REJECT'" class="reject">
+                                <a href="" class="mx-textellipsis">
+                                    <i class="icon-remove" />
+                                    <span>{{feature._name}}</span>
+                                </a>
+                            </li>
+                            <li ng-if="feature.role==='TARGET'">
+                                <a href="" class="mx-textellipsis">
+                                    <i class="icon-bullseye" />
+                                    <span>{{feature._name}}</span>
+                                </a>
+                            </li>
+                            <li ng-if="feature.role!='REJECT'&&feature.role!='TARGET'" class="dropdown-submenu" feature-description feature="feature">
+                            </li>
+                        </div>
+                    </ul>
+                </ul>
+            </span>
+        </div>
+        <div class="models-session noflex" ng-controller="PMLTaskModelsRankingController">
+            <div class="session-detail-body" style="padding: 10px; height: 165px" ng-if="sessionTask.sessionId" class="noflex" ng-show="anySessionModelNeedsHyperparameterSearch()">
+                <div class="offset0 span8" svg-tooltip>
+                    <svg ng-if="anySessionModelHasOptimizationResults()" style="width: 100%; height: 165px"
+                        gridsearch-curve
+                        lower-is-better="libMetric"
+                        custom-evaluation-metric-gib="sessionTask.modeling.metrics.customEvaluationMetricGIB"
+                        class="gridsearch-curve"
+                        all-models="selection.allObjects"
+                        selected-model="selection.selectedObject"
+                        session-id="sessionTask.sessionId"
+                        current-metric="uiState.currentMetric"
+                    ></svg>
+                    <div ng-if="!anySessionModelHasOptimizationResults()" style="width: 100%; height: 165px; text-align: center; line-height: 180px; vertical-align: middle; color: #DFDFDF">
+                        Optimization results will appear as soon as they are available.
+                    </div>
+                </div>
+                <div class="offset0 span4 models-ranking h100 oa">
+                    <ul style="width: 100%; list-style: none; margin: 0;">
+                        <li ng-repeat="model in orderedModels" ng-mouseenter="selection.selectedObject = model" class="horizontal-flex">
+                            <div class="flex mx-textellipsis">
+                                <span class="model-color-bullet selectable" ng-class="{'selected' : selection.selectedObject == model}" style="border-color: {{model.color}}"></span>
+                                <span ng-show="model.trainInfo.state == 'DONE'">
+                                    <a href="{{$state.href(sRefPrefix + (snippetSource === 'SAVED' ? '' : '.model') + '.report', {'fullModelId':model.fullModelId})}}">
+                                        {{model.userMeta.name}}
+                                        <small ng-if="model.partitionedModelEnabled">({{ model.partitionName }})</small>
+                                    </a>
+                                    <span ng-show="model.gridLength === 1 && !model.pluginAlgoCustomGridSearch" title="This model is not configured to optimize hyperparameters and will not appear in the optimization chart" toggle="tooltip" container="body">
+                                        (no xval.)
+                                    </span>
+                                </span>
+                                <span ng-show="model.trainInfo.state != 'DONE'">
+                                    {{model.userMeta.name}}
+                                    <small ng-if="model.partitionedModelEnabled">({{ model.partitionName }})</small>
+                                    <span ng-show="model.gridLength === 1 && !model.pluginAlgoCustomGridSearch" title="This model is not configured to optimize hyperparameters and will not appear in the optimization chart" toggle="tooltip" container="body">
+                                        (no xval.)
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="noflex" style="text-align: right; padding-left: 5px;">
+                                <span ng-show="model.trainInfo.state == 'DONE'">
+                                    <i class="icon-trophy" ng-if="isBestModelScore(model, true)"></i>
+                                    <i class="icon-dku-weight" ng-if="model.sampleWeightsEnabled"></i>
+                                    {{model.mainMetric | mlMetricFormat
+                                    :uiState.currentMetric
+                                    :(uiState.currentMetric.substr(0, 3) === 'NB_' ? 0 : 3)
+                                    :snippetData.mainMetricStd}}
+                                </span>
+                                <small ng-show="model.trainInfo.state == 'RUNNING'">
+                                    {{model.trainInfo.progress.stack[0].name}}...
+                                    <span ng-show="isModelOptimizing(model)">({{model.gridsearchData.gridPoints.length}}/{{model.gridsearchData.gridSize !== 0 ? model.gridsearchData.gridSize : "?"}})</span>
+                                </small>
+                                <small ng-show="model.trainInfo.state == 'FAILED'" class="text-error">
+                                    Failed
+                                </small>
+                                <small ng-show="model.trainInfo.state == 'ABORTED'" class="text-error">
+                                    Aborted
+                                </small>
+                                <small ng-show="model.trainInfo.state == 'PENDING'">
+                                    Pending...
+                                </small>
+
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+        <div class="models-detailed-list flex oa">
+            <!-- Detailed models list -->
+            <div class="row-fluid models-detailed-item" ng-class="{failed: isModelFailed(model), aborted: isModelAborted(model), focused: selection.selectedObject === model, selected: model.$selected}"
+                ng-repeat="model in selection.sessionModels | orderBy:'algorithmOrder'"
+                ng-mouseenter="selection.selectedObject = model" ng-style="{'border-left-color': model.color}">
+                <!-- full-click -->
+                <div class="model-snippet" id="{{model.fullModelId}}" model-snippet current-metric="uiState.currentMetric" task-type="mlTasksContext.activeMLTask.taskType" snippet-source="ANALYSIS" snippet-data="model" hide-selectors="true" />
+            </div>
+        </div>
+
+
+    </div>
+</div>

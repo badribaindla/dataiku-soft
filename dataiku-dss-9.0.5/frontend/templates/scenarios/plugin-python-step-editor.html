@@ -1,0 +1,29 @@
+<div ng-controller="PluginPythonStepController">
+    <div ng-include="'/templates/scenarios/fragments/step-header.html'"></div>
+    <div class="alert alert-info">
+        This step runs a custom step provided by a plugin
+    </div>
+    <div ng-if="!step.unavailable">
+        <form name="setupForm" class="dkuform-horizontal">
+            <div class="control-group">
+                <label class="control-label" style="font-weight: bold;">{{desc.meta.label || desc.id}}</label>
+                <div class="controls">
+                    <div from-markdown="desc.meta.description" />
+        
+                    <a href="{{pluginDesc.url}}">Learn more</a>
+                </div>
+            </div>
+            <div class="control-group">
+                <div plugin-settings-alert plugin-desc="pluginDesc" component-type="step" has-settings="pluginDesc.hasSettings" app-config="appConfig" />
+                <div custom-params-form
+                    desc="desc"
+                    plugin-desc="pluginDesc"
+                    component-id="loadedDesc.id"
+                    config="step.params.config" />
+            </div>
+
+        </form>
+        <hr />
+        <div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+    </div>
+</div>

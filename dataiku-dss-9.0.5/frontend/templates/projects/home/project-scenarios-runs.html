@@ -1,0 +1,58 @@
+<div class="fh scenario-outcomes vertical-flex" ng-class="{'no-scenario': hasNoScenario}">
+    <div class="graph-header noflex">
+        <div class="horizontal-flex">
+            <div class="scenario-names noflex">
+                <b>Scenario</b> <a class="nb-activated" ui-sref="projects.project.scenarios.list({projectKey: projectKey})">{{activeScenarios}}/{{totalScenarios}} Activated</a>
+            </div>
+            <div class="past-runs">
+                Last run
+            </div>
+            <div class="graph flex">
+                <div class="cell-pane horizontal-flex">
+                    <div class="tick-label flex" ng-repeat="column in scenariosDays.columns">
+                        <div ng-if="column.dow == 0 && column.date != hovered.date" class="date-label" >{{column.dateFormatted}}</div>
+                        <div ng-if="column.date == hovered.date" class="hovered-date-label">
+                            {{column.dateDay}}<br/>{{column.dateFormatted}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="graph-body flex horizontal-flex">
+        <div class="scenario-names noflex" style="position: relative;">
+            <ul class="vertical-flex h100">
+                <li ng-repeat="row in scenariosDays.rows" class="flex" ng-mouseover="uiState.hoveredRowId=row.uniqueId" ng-mouseleave="uiState.hoveredRowId=null" ng-class="{'hovered-row': uiState.hoveredRowId==row.uniqueId}">
+                    <div class="scenario-name">
+                        <a ui-sref="projects.project.scenarios.scenario.runs.list({projectKey: row.target.projectKey, scenarioId: row.target.scenarioId})" title="{{row.info.name || row.target.scenarioId}}">{{row.info.name || row.target.scenarioId}}</a>
+                        <div ng-show="row == hovered.row" class="fh hover-active"></div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="past-runs">
+            <ul class="vertical-flex h100">
+                <li ng-repeat="row in scenariosDays.rows" class="flex" ng-mouseover="uiState.hoveredRowId=row.uniqueId" ng-mouseleave="uiState.hoveredRowId=null" ng-class="{'hovered-row': uiState.hoveredRowId==row.uniqueId}">
+                    <div class="run-count">
+                        <a ui-sref="projects.project.scenarios.scenario.runs.list({projectKey: row.target.projectKey, scenarioId: row.target.scenarioId})">
+                            <i ng-class="[row.lastRun.outcome, {
+                                'icon-ok-sign' : row.lastRun.outcome == 'success',
+                                'icon-remove-sign' : row.lastRun.outcome == 'failed',
+                                'icon-exclamation-sign' : row.lastRun.outcome == 'warning',
+                                'icon-ban-circle' : row.lastRun.outcome == 'aborted'
+                            }]"></i>
+                            {{row.lastRun.date}}
+                        </a>
+                        <div ng-show="row == hovered.row" class="fh hover-active"></div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="graph flex">
+            <ul class="cell-pane vertical-flex h100" outcome-cells ng-model="scenariosDays.rows"></ul>
+        </div>
+        <p class="no-scenario-placeholder" ng-if="hasNoScenario">
+            No Scenarios<br/> Running
+        </p>
+    </div>
+</div>

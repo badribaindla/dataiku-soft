@@ -1,0 +1,77 @@
+<div class="metrics h100 vertical-flex" ng-if="views.selected === 'Last value' || views.selected === 'History'">
+	<div block-api-error class="noflex" />
+	<div class="noflex w80">
+		<div style="margin: 10px  4px;">
+			<div>
+				<div class="pull-left controls">
+					<span>Display</span>
+
+					<div class="list-customfilter-box view-selector" style="display: inline-block">
+						<span class="add-on"><i class="icon-eye-open"></i></span>
+						<select dku-bs-select="{style:'dku-select-button'}"
+								ng-model="views.selected"
+								ng-options="p.id as p.name for p in views.values"></select>
+					</div>
+
+					<span>of</span>
+
+					<div displayed-metrics-selector
+						 choices="allComputedMetrics" selected="displayedMetrics"
+						 refresh-choices="refreshAllComputedMetrics" on-close="saveMetricsNow" type="metrics"></div>
+
+					<span ng-if="metricsCallbacks.isPartitioned()">on</span>
+
+					<div ng-if="metricsCallbacks.isPartitioned()" class="list-customfilter-box" style="display: inline-block">
+						<select dku-bs-select="{liveSearch:true,size:'auto', 'style':'dku-select-button'}"
+								ng-model="metrics.displayedState.partition"
+								ng-options="p as (p === 'ALL' ? 'Whole dataset': p) for p in metricsPartitionsIds"></select>
+						<a ng-click="refreshMetricsPartitions()"><span class="right-add-on">
+							<i ng-class="{'icon-refresh': true, 'icon-spin': refreshing}"></i>
+						</span></a>
+					</div>
+
+					<div ng-if="canCompute" class="list-control-widget">
+						<button class="btn btn--secondary" ng-click="computeNow()">Compute</button>
+					</div>
+
+                    <div ng-include src="'/templates/metrics/last-metrics-run-display.html'" style="display: inline-block;"></div>
+				</div>
+
+                <div ng-include src="'/templates/metrics/add-metrics-dataset-button.html'"></div>
+                
+				<div style="clear: both;"></div>
+			</div>
+
+			<div ng-if="views.selected === 'History' && displayedMetrics.metrics.length && displayedMetricsRange.to - displayedMetricsRange.from" style="margin: 10px 0 20px 0;">
+				<div time-range-brush range="displayedMetricsRange" selected-range="selectedRange" on-change="brushChanged()"></div>
+			</div>
+
+			<span ng-if="computing"><i class="icon-refresh icon-spin"></i></span>
+		</div>
+	</div>
+
+	<div class="flex oa metrics-plots">
+		<div class="fh metrics-wrapper">
+			<div class="w80 h100">
+				<div class="fh h100">
+					<div class="centered-info" ng-if="!displayedMetrics.metrics.length && allComputedMetrics.metrics.length">
+						<p>No metrics displayed</p>
+						<p class="small"><a ng-click="openDisplayedMetricsModal()">add some</a></p>
+					</div>
+
+					<div class="centered-info" ng-if="!displayedMetrics.metrics.length && !allComputedMetrics.metrics.length">
+						<p>No <span ng-show="metricsScope=='PROJECT'">project-level</span> metrics available</p>
+						<p class="small" ng-if="!hasNoMetricsSettings">Enable metrics in <a ui-sref="^.settings">the Edit tab</a></p>
+						<p class="small" ng-if="metricsScope == 'PROJECT'">Project-level metrics are created by Python code.</p>
+					</div>
+
+					<div ng-repeat="displayedMetric in displayedMetrics.metrics" style="display: {{views.selected === 'History' ? 'block':'inline-block'}}">
+						<div metric-banner displayed-data="getDisplayedData(displayedMetric)" displayed-metric="displayedMetric" displayed-range="selectedRange" compute-metric-for-selected="computeMetricForSelected" compute-metric-for-object="computeMetricForObject" create-and-pin-insight="createAndPinInsight" ng-if="views.selected === 'History'"></div>
+						<div metric-tile displayed-data="getDisplayedData(displayedMetric)" displayed-metric="displayedMetric" compute-metric-for-selected="computeMetricForSelected" compute-metric-for-object="computeMetricForObject" create-and-pin-insight="createAndPinInsight" ng-if="views.selected === 'Last value'" class="tile" ng-click="openMetricChartModal(displayedMetric)"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>

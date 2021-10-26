@@ -1,0 +1,32 @@
+<div ng-controller="TeamsChannelController">
+	<form name="descriptionForm" class="dkuform-horizontal">
+        <div class="control-group">
+            <label for="" class="control-label">Id</label>
+            <div class="controls" ng-if="channel.$creation">
+                <input type="text" ng-model="channel.id" />
+                <span class="help-inline">Must be unique.</span>
+            </div>
+            <div class="controls" ng-if="!channel.$creation">
+                {{channel.id}}
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Webhook URL</label>
+            <div class="controls">
+                <input name="webhookUrl" type="url" ng-model="channel.configuration.webhookUrl" class="webhook-url" required></input>
+                <div ng-if="descriptionForm.$invalid && descriptionForm.webhookUrl.$touched">
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!descriptionForm.$error.required">Please fill this field.</div>
+                    <div class="editable-list__input-error-message webhook-url-error" ng-hide="!descriptionForm.$error.url">Please enter a valid URL.</div>
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Use Proxy</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="channel.configuration.useProxy"></input>
+                <span class="help-inline">Use DSS's proxy settings to connect</span>
+            </div>
+        </div>
+
+	</form>
+</div>

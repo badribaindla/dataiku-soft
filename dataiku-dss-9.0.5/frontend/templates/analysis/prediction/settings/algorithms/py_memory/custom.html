@@ -1,0 +1,36 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html" class="h100">
+    <div data-block="algorithm-title">
+        <label class="dibvam chameleon-text-input" style="width: calc(100% - 65px)">
+            <input class="no-border inherit-text-properties" blur-on-enter type="text" placeholder="Model name" ng-model="getCustomAlgorithm(uiState.algorithm).name" style="width: calc(100% - 30px)" />
+
+            <span style="padding-left: 10px;" class="link-std" title="remove model">
+                <i class="icon-pencil" />
+            </span>
+        </label>
+        <a style="padding-left: 10px;" class="link-std" ng-click="removeCustomAlgorithm(uiState.algorithm)" title="remove model">
+            <i class="icon-trash" />
+        </a>
+    </div>
+
+    <div data-block="algorithm-description">
+        <p>
+            For a <strong>Custom Model</strong>, you write Python code. Your Python code must create a 'clf' variable.<br/>
+            This clf must be a scikit-learn compatible model, ie, have at least fit(X,y) and predict(X) methods,
+            and follow the documentation on handling attributes.
+        </p>
+        <p>
+            More information available in the <a href="https://doc.dataiku.com/dss/latest/machine-learning/algorithms/in-memory-python.html#custom-models" title="custom models documentation">documentation</a>.
+        </p>
+    </div>
+    <div ng-if="isSampleWeightEnabled()" data-block="algorithm-warning" style="color: #CC9922; margin-left:10px; margin-bottom:10px;">
+        Warning: you have selected the variable <strong>{{mlTaskDesign.weight.sampleWeightVariable}}</strong> as a weight variable.
+        <br>Please make sure that the 'fit' method of the class of your custom 'clf' accepts 'sample_weight' as an argument.
+    </div>
+    <div data-block="algorithm-params">
+        <div class="code-snippet-editor-parent">
+            <div class="control-group fh" style="height: initial;">
+                <div code-snippet-editor code="getCustomAlgorithm(uiState.algorithm).code" sample-type="'python'" categories="customCodeSnippetCategories" save-category="isRegression() ? 'py-regressor' : 'py-classifier'" displayed="getCustomAlgorithm(uiState.algorithm).enabled" />
+            </div>
+        </div>
+    </div>
+</div>

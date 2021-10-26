@@ -1,0 +1,110 @@
+<div class="modal modal3 dku-modal" global-keydown="{esc: 'dismiss()'}">
+
+    <dku-modal-header-with-totem modal-totem="icon-dataset" >
+        <dku-modal-title>
+            <span ng-if="selectedObjects.length > 1">
+                Change
+                {{selectedObjects.length}}
+                {{commonTaggableType | niceTaggableType}}
+                connections
+            </span>
+            <span ng-if="selectedObjects.length == 1">
+                Change connection for &quot;{{selectedObjects[0].displayName || selectedObjects[0].id}}&quot;
+            </span>
+        </dku-modal-title>
+    </dku-modal-header-with-totem>
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper disablable" name="theform">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <!-- <div ng-show="messages && !messages.anyMessage" class="alert alert-success">
+                <i class="icon-ok-sign" style="font-size: 1.1em" /> No issues detected. The following caveats still apply.
+            </div> -->
+
+            <div ng-show="!messages || !messages.anyMessage" class="alert alert-warning">
+                <i class="icon-warning-class" /> <strong>Warning</strong>
+                <ul>
+                    <li>Data will not be moved and will have to be rebuilt.</li>
+                    <li>Changing datasets connections can break the computations or lead to different results.</li>
+                </ul>
+            </div>
+
+            <div ng-show="messages.anyMessage" style="padding: 10px">
+                <div info-messages-raw-list-with-alert="messages" />
+            </div>
+
+            <div class="control-group">
+                <label for="" class="control-label">New connection</label>
+                <div class="controls">
+                    <select dku-bs-select="{size:'auto'}" data-live-search="{{connections.length > 5}}"
+                        ng-model="options.connection"
+                        ng-options="conn.name as conn.name group by conn.type for conn in connections |orderBy:'type + name'"
+                        ng-change="preselectFormatIfOnlyOne(); messages = null"
+                        required
+                        >
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="connectionsMap[options.connection].formats.length">
+                <label for="" class="control-label">File format</label>
+                <div class="controls">
+                    <select dku-bs-select
+                        ng-model="options.specificSettings.formatOptionId"
+                        ng-options="format.id as format.label for format in connectionsMap[options.connection].formats"
+                        required
+                        >
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="connectionsMap[options.connection].canOverrideSQLCatalog">
+                <label class="control-label" ng-switch="connectionsMap[options.connection].connectionType">
+                    <span ng-switch-when="BigQuery">BigQuery project</span>
+                    <span ng-switch-when="Snowflake">Database</span>
+                    <span ng-switch-default>Catalog</span>
+                </label>
+
+                <div class="controls">
+                    <input type="text"
+                           ng-model="options.specificSettings.overrideSQLCatalog"
+                           placeholder="{{connectionsMap[options.connection].unoverridenSQLCatalog}}"
+                    />
+                </div>
+            </div>
+            <div class="control-group" ng-if="connectionsMap[options.connection].canOverrideSQLSchema">
+                <label class="control-label" ng-switch="connectionsMap[options.connection].connectionType">
+                    <span ng-switch-when="BigQuery">BigQuery dataset</span>
+                    <span ng-switch-default>Schema</span>
+                </label>
+
+                <div class="controls">
+                    <input type="text"
+                        ng-model="options.specificSettings.overrideSQLSchema"
+                        placeholder="{{connectionsMap[options.connection].unoverridenSQLSchema}}"
+                        />
+               </div>
+            </div>
+
+            <div class="control-group">
+                <label for="drop" class="control-label">Drop data</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="options.dropData" name="drop">
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="drop" class="control-label">Reuse connection settings if possible</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="options.useExistingParams">
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons" ng-if="!fatalError">
+            <button type="button" class="btn btn--text btn--primary" ng-disabled="theform.$invalid" ng-show="!messages" ng-click="ok(false)">Save</button>
+            <button type="button" class="btn btn--text btn--danger" ng-disabled="theform.$invalid" ng-show="messages" ng-click="ok(true)">Save anyway</button>
+        </div>
+    </form>
+
+</div>

@@ -1,0 +1,52 @@
+<div class="fh oa plugin-settings row-fluid" global-keydown="{'ctrl-s meta-s':'savePluginSettings()'}">
+    <div class="span2 offset0 nav-list-sidebar sidebar-admin modal-footer-std-buttons" tab-model="pluginsUIState.settingsPane">
+        <ul ng-if="presetsByParameterSet">
+            <li sidebar-tab-l1-link tab-name="parameters" label="Parameters"/>
+            <li ng-if="installed" ng-repeat="parameterSet in pluginSettings.parameterSets" class="l1" tab-active="preset-{{$index}}" full-click><a main-click tab-set="preset-{{$index}}" ng-click="pluginsUIState.currentParameterSet = parameterSet; pluginsUIState.currentAppTemplate = null;">{{getParameterSetDesc(parameterSet.type).desc.meta.pluralLabel || getParameterSetDesc(parameterSet.type).desc.meta.label}}</a></li>
+            <li ng-if="installed" ng-repeat="appTemplate in pluginSettings.appTemplates" class="l1" tab-active="app-{{$index}}" full-click><a main-click tab-set="app-{{$index}}" ng-click="pluginsUIState.currentAppTemplate = appTemplate; pluginsUIState.currentParameterSet = null;">{{getAppTemplateDesc(appTemplate.type).desc.meta.label}}</a></li>
+        </ul>
+        <button type="button" class="pull-right btn btn--outline btn--primary m16" ng-disabled="!dirtyPluginSettings()" ng-click="savePluginSettings()">
+            <i class="icon-save">&nbsp;</i> Save<span ng-show="!dirtyPluginSettings()">d</span>
+        </button>
+    </div>
+
+    <div class="span10 h100 offset0 boxed-next-to-sidebar no-padding">
+        <div ng-if="pluginsUIState.settingsPane == 'parameters'" class="h100 oa paned-settings-page-pane paned-settings-page-pane--fixed-width" ng-scope="{{errorScope = this}}">
+            <h1>Parameters</h1>
+            <div block-api-error></div>
+            <div class="section">
+                <form name="settingsForm" class="dkuform-horizontal">
+                    <div ng-if="!pluginData.installedDesc.desc.params || pluginData.installedDesc.desc.params.length == 0">
+                        <span>This plugin does not have parameters.</span>
+                    </div>
+                    <autoconfig-form params="pluginData.installedDesc.desc.params"
+                                     model="pluginSettings.config"
+                                     error-scope="errorScope">
+                    </autoconfig-form>
+                </form>
+            </div>
+        </div>
+        <div ng-if="pluginsUIState.settingsPane != 'parameters' && pluginsUIState.currentParameterSet" class="h100 oa paned-settings-page-pane paned-settings-page-pane--fixed-width" ng-scope="{{errorScope = this}}">
+            <h1>{{getParameterSetDesc(pluginsUIState.currentParameterSet.type).desc.meta.pluralLabel  || getParameterSetDesc(pluginsUIState.currentParameterSet.type).desc.meta.label}}</h1>
+            <div block-api-error></div>
+            <div plugin-parameter-set
+                 parameter-set="pluginsUIState.currentParameterSet"
+                 parameter-set-desc="getParameterSetDesc(pluginsUIState.currentParameterSet.type)"
+                 plugin-desc="installed.desc"
+                 presets="presetsByParameterSet[pluginsUIState.currentParameterSet.name]"
+                 all-presets="pluginSettings.presets" >
+            </div>
+        </div>
+        <div ng-if="pluginsUIState.settingsPane != 'parameters' && pluginsUIState.currentAppTemplate"  class="h100 oa paned-settings-page-pane paned-settings-page-pane--fixed-width" ng-scope="{{errorScope = this}}">
+            <h1>{{getAppTemplateDesc(pluginsUIState.currentAppTemplate.type).desc.meta.label}}</h1>
+            <div block-api-error></div>
+            <div plugin-app-template
+                 ng-if="installed"
+                 app-template="pluginsUIState.currentAppTemplate"
+                 app-template-desc="getAppTemplateDesc(pluginsUIState.currentAppTemplate.type)"
+                 plugin-desc="installed.desc"
+            >
+            </div>
+        </div>
+    </div>
+</div>

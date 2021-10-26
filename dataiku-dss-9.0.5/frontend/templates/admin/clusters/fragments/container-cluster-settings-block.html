@@ -1,0 +1,501 @@
+<form class="dkuform-horizontal">
+    <div class="section" ng-if="mask">
+        <div class="control-group" ng-if="mask">
+            <label class="control-label">Override global settings</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.enabled">
+                    <span class="help-inline">If disabled, this cluster will use globally-defined settings for everything related to Spark</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" ng-if="(!mask || mask.enabled)">
+        <h2 id="configs">Containerized execution configs</h2>
+
+        <div class="control-group" ng-if="mask">
+            <label class="control-label">Override execution configs</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.properties">
+                    <span class="help-inline">Override this to define additional properties and/or execution configurations</span>
+                </label>
+            </div>
+        </div>
+
+        <div ng-if="!mask || mask.properties">
+            <div ng-if="mask.properties" style="margin-bottom: 20px">
+                <h3>Overrides to all configurations</h3>
+                <div class="control-group">
+	                <label class="control-label">Base image</label>
+	                <div class="controls">
+	                    <input type="text" ng-model="settings.executionConfigsGenericOverrides.baseImage"/>
+	                    <span class="help-inline">
+	                        Leave empty to use the default image (see doc. for more information about base images)
+	                    </span>
+	                </div>
+	            </div>
+	            <div ng-show="isBaseImageNameSuspicious(settings.executionConfigsGenericOverrides.baseImage)" class="alert alert-warning">
+	                <strong><i class="icon-warning-sign"></i> It looks like this base image contains a repository URL in it.</strong> <br />
+	                    Make sure to input only the base image full name in here, and the URL in the next field.
+	            </div>
+	            <div class="control-group">
+	                <label class="control-label">Image registry URL</label>
+	                <div class="controls">
+	                    <input type="text" ng-model="settings.executionConfigsGenericOverrides.repositoryURL"/>
+	                    <span class="help-inline">
+	                        Base URL of the image registry, in the form host/root. See doc. for more information.
+	                    </span>
+	                </div>
+	            </div>
+
+                <div class="control-group">
+                    <label class="control-label">Image pre-push hook</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="settings.executionConfigsGenericOverrides.prePushMode" 
+                        ng-options="x[0] as x[1] for x in [['NONE', 'None'], ['ECR', 'Enable push to ECR'], ['ACR', 'Enable push to ACR'], ['CUSTOM', 'Custom script']]" />
+                        <span class="help-inline">
+                            Action to run before pushing an image.
+                            This is usually only required for running on Amazon EKS or Azure AKS
+                        </span>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="settings.executionConfigsGenericOverrides.prePushMode == 'CUSTOM'">
+                    <label class="control-label">Script</label>
+                    <div class="controls">
+                        <input type="text" ng-model="settings.executionConfigsGenericOverrides.prePushScript"/>
+                        <span class="help-inline">
+                            Absolute path to a shell script. Receives the repository url, image name &amp; tag as arguments.
+                            This script should support being called on an already-existing image/tag.
+                        </span>
+                    </div>
+                </div>
+
+	            <div class="control-group">
+	                <label class="control-label">Kubernetes Namespace</label>
+	                <div class="controls">
+	                    <input type="text" ng-model="settings.executionConfigsGenericOverrides.kubernetesNamespace"/>
+	                    <span class="help-inline">Kubernetes namespace to use. Variable expansion is supported. Empty = use cluster default</span>
+	                </div>
+	            </div>
+                <div class="control-group" ng-if="settings.executionConfigsGenericOverrides.kubernetesNamespace.indexOf('${') >= 0"> <!-- only useful when there are variables in the namespace name -->
+                    <label for="" class="control-label">Make K8S-compliant</label>
+                    <div class="controls">
+                        <label>
+                        <input type="checkbox" ng-model="settings.executionConfigsGenericOverrides.ensureNamespaceCompliance" />
+                        <span class="help-inline">
+                            Automatically adjust namespace name to ensure it is compatible with the RFC1123 sub-domain syntax enforced by Kubernetes
+                        </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Auto-create namespace</label>
+                    <div class="controls">
+                        <label>
+                        <input type="checkbox" ng-model="settings.executionConfigsGenericOverrides.createNamespace" />
+                        <span class="help-inline">
+                            Automatically create the namespace if it doesn't already exist.
+                        </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Kubectl Context</label>
+                    <div class="controls">
+                        <input type="text" ng-model="settings.executionConfigsGenericOverrides.kubeCtlContext"/>
+                        <span class="help-inline">kubectl context to use (empty = use default)</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Kube config path</label>
+                    <div class="controls">
+                        <input type="text" ng-model="settings.executionConfigsGenericOverrides.kubeConfigPath"/>
+                        <span class="help-inline">Path to the config file for Kubectl, if not default</span>
+                    </div>
+                </div>
+
+                 <div class="control-group">
+                    <label class="control-label">Custom properties</label>
+                    <div class="controls">
+						<ng2-key-values-list 
+							[(items)]="settings.executionConfigsGenericOverrides.properties"
+							key-placeholder="Property key"
+							value-placeholder="Property value"
+							add-label="Add Custom Property">
+						</ng2-key-values-list>
+						<span class="help-inline">Additional properties about this container config, for use by DSS. For specific use cases.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-if="mask.properties">
+                <h3>Per-configuration overrides</h3>
+            </div>
+
+	        <div add-remove ng-model="settings.executionConfigs">
+	            <div ng-repeat="execConfig in settings.executionConfigs" class="repeatable-config-block">      
+                    <div class="pull-right btn-group">
+                        <button class="btn btn--success" ng-click="testConf(execConfig, clusterId)" >
+                            Test
+                        </button>
+                        <button class="btn btn--success btn--icon" data-toggle="dropdown" ng-if="getExtraClusters().length > 0 && execConfig.type == 'KUBERNETES'">
+                            <i class="icon-caret-down" />
+                        </button>
+                        <ul class="dropdown-menu pull-right" ng-if="getExtraClusters().length > 0 && execConfig.type == 'KUBERNETES'">
+                            <li ng-repeat="k8sCluster in getExtraClusters()">
+                                <a ng-click="testConf(execConfig, k8sCluster.id)">
+                                    Test on {{k8sCluster.name}}
+                                </a>
+                            </li>
+                        </ul>
+                        <button type="button" class="btn btn--danger" ng-click="remove($index)" style="margin-left: 16px">
+                            Remove
+                        </button>
+                    </div>
+
+                    <div ng-if="getTestError(execConfig)" api-error-alert="getTestError(execConfig)" />
+
+	                <div class="control-group">
+	                    <label class="control-label">Configuration name</label>
+	                    <div class="controls">
+	                        <input type="text" ng-model="execConfig.name"/>
+	                        <span class="help-inline">
+	                            NB: renaming or removing configurations could cause trouble.
+	                        </span>
+	                    </div>
+	                </div>
+
+	                <div class="control-group">
+	                    <label class="control-label">Container engine</label>
+	                    <div class="controls">
+	                        <select dku-bs-select ng-model="execConfig.type" ng-options="x[0] as x[1] for x in [['KUBERNETES', 'Kubernetes'], ['DOCKER', 'Docker']]" />
+	                    </div>
+	                </div>
+
+                    <h3>Settings</h3>
+	                <div class="control-group">
+	                    <label class="control-label">Image registry URL</label>
+	                    <div class="controls">
+	                        <input type="text" ng-model="execConfig.repositoryURL"/>
+	                        <span class="help-inline">
+	                            Base URL of the image registry, in the form host/root. See doc. for more information.
+	                            <span ng-if="execConfig.type == 'DOCKER'">Generally not required when using Docker</span>
+	                        </span>
+	                    </div>
+	                </div>
+
+                    <div class="control-group" ng-if="execConfig.repositoryURL">
+                        <label class="control-label">Image pre-push hook</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="execConfig.prePushMode" 
+                            ng-options="x[0] as x[1] for x in [['NONE', 'None'], ['ECR', 'Enable push to ECR'], ['ACR', 'Enable push to ACR'], ['CUSTOM', 'Custom script']]" />
+                            <span class="help-inline">
+                                Action to run before pushing an image.
+                                This is usually only required for running on Amazon EKS or Azure AKS
+                            </span>
+                        </div>
+                    </div>
+                    <div class="control-group" ng-if="execConfig.prePushMode == 'CUSTOM'">
+                        <label class="control-label">Script</label>
+                        <div class="controls">
+                            <input type="text" ng-model="execConfig.prePushScript"/>
+                            <span class="help-inline">
+                                Absolute path to a shell script. Receives the repository url, image name &amp; tag as arguments.
+                                This script should support being called on an already-existing image/tag.
+                            </span>
+                        </div>
+                    </div>
+
+	                <div ng-if="execConfig.type == 'DOCKER'">
+	                    <div class="control-group">
+	                        <label class="control-label">Docker host</label>
+	                        <div class="controls">
+	                            <input type="text" ng-model="execConfig.dockerHost"/>
+	                            <span class="help-inline">
+	                                Leave empty to use the default docker host specified by your environment (generally the local Docker env)
+	                            </span>
+	                        </div>
+	                    </div>
+                        <div class="control-group">
+                            <label class="control-label">Docker network</label>
+                            <div class="controls">
+                                <input type="text" ng-model="execConfig.dockerNetwork"/>
+                                <span class="help-inline">E.g. 'host', 'bridge' (or empty), or user-defined network</span>
+                            </div>
+                        </div>
+	                    <div class="control-group">
+	                        <label class="control-label">Docker runtime</label>
+	                        <div class="controls">
+	                            <input type="text" ng-model="execConfig.dockerRuntime"/>
+	                            <span class="help-inline">Leave empty to use the default runtime. Use 'nvidia' for GPU-enabled containers</span>
+	                        </div>
+	                    </div>
+	                    <h3>Authentication</h3>
+
+	                    <div class="control-group">
+	                        <label class="control-label">Enable TLS</label>
+	                        <div class="controls">
+	                            <input type="checkbox" ng-model="execConfig.dockerTLSVerify"/>
+	                            <span class="help-inline">Secure Docker communications using TLS certificates</span>
+	                        </div>
+	                    </div>
+	                    <div class="control-group" ng-if="execConfig.dockerTLSVerify">
+	                        <label class="control-label">Certificates path</label>
+	                        <div class="controls">
+	                            <input type="text" ng-model="execConfig.dockerCertPath"/>
+	                            <span class="help-inline">Leave empty to use the default path.</span>
+	                        </div>
+	                    </div>
+	                </div>
+	                <div ng-if="execConfig.type == 'KUBERNETES'">
+	                    <div class="control-group">
+                            <label class="control-label">Kubernetes Namespace</label>
+                            <div class="controls">
+                                <input type="text" ng-model="execConfig.kubernetesNamespace"/>
+                                <span class="help-inline">Kubernetes namespace to use. Variable expansion is supported. Empty = use cluster default</span>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="execConfig.kubernetesNamespace.indexOf('${') >= 0"> <!-- only useful when there are variables in the namespace name -->
+                            <label for="" class="control-label">Make K8S-compliant</label>
+                            <div class="controls">
+                                <label>
+                                <input type="checkbox" ng-model="execConfig.ensureNamespaceCompliance" />
+                                <span class="help-inline">
+                                    Automatically adjust namespace name to ensure it is compatible with the RFC1123 sub-domain syntax enforced by Kubernetes
+                                </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="" class="control-label">Auto-create namespace</label>
+                            <div class="controls">
+                                <label>
+                                <input type="checkbox" ng-model="execConfig.createNamespace" />
+                                <span class="help-inline">
+                                    Automatically create the namespace if it doesn't already exist.
+                                </span>
+                                </label>
+                            </div>
+                        </div>
+	                </div>
+	                <h3>Permissions</h3>
+	                <div class="control-group">
+	                    <label class="control-label">Usable by</label>
+	                    <div class="controls">
+	                        <label>
+	                            <input type="radio" ng-model="execConfig.usableBy" value="ALL"/>
+	                            Everyone
+	                        </label>
+	                        <label>
+	                            <input type="radio" ng-model="execConfig.usableBy" value="ALLOWED"/>
+	                            Selected groups
+	                        </label>
+	                    </div>
+	                </div>
+	                <div class="control-group" ng-if="execConfig.usableBy=='ALLOWED'">
+	                    <label class="control-label">&#8627; usable by groups</label>
+	                    <div class="controls">
+	                        <select dku-bs-select multiple="multiple" ng-model="execConfig.allowedGroups" ng-options="g for g in allGroups" class="exclude-from-smart-change"></select>
+	                    </div>
+	                </div>
+	                <div ng-if="execConfig.type == 'DOCKER' && !mask">
+	                    <h3>Resources for Docker containers</h3>
+	                    <span class="help-inline" style="padding: 0">
+	                        These settings control CPU and memory limits that are set on each container.
+	                        It is recommended to be familiar with
+	                        <a href="https://docs.docker.com/config/containers/resource_constraints/"
+	                           target="_blank" rel="noopener noreferrer">Docker resource constraints</a>
+	                        and cgroups to use this.
+	                    </span>
+	                    <div class="control-group">
+	                        <label class="control-label">Limits</label>
+	                        <div class="controls">
+								<ng2-key-values-list 
+									[(items)]="execConfig.dockerResources" 
+									key-placeholder="Limit key"
+									value-placeholder="Limit value"
+									add-label="Add Limit">
+								</ng2-key-values-list>
+	                            <span class="help-inline">Custom Docker resource limits key-value. E.g. <code>memory</code> = <code>2000m</code> or <code>cpus</code> = <code>1.5</code>.</span>
+	                        </div>
+	                    </div>
+	                </div>
+	                <div ng-if="execConfig.type == 'KUBERNETES' && !mask">
+	                    <h3>Resources for Kubernetes containers</h3>
+	                    <p>
+	                        These settings control CPU and memory limits that are set on each container.<br />
+	                        It is recommended to be familiar with
+	                        <a href="https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/"
+	                           target="_blank" rel="noopener noreferrer">Kubernetes "request" and "limit" parameters</a> to use this.
+	                    </p>
+	                    <div class="control-group">
+	                        <label class="control-label">Memory request</label>
+	                        <div class="controls">
+	                            <input type="number" force-integer ng-model="execConfig.kubernetesResources.memRequestMB"  />
+	                            <span class="help-inline">Memory request for containers in MB. -1 = default (inherit namespace settings)</span>
+	                        </div>
+	                    </div>
+	                    <div class="control-group">
+	                        <label class="control-label">Memory limit</label>
+	                        <div class="controls">
+	                            <input type="number" force-integer ng-model="execConfig.kubernetesResources.memLimitMB"  />
+	                            <span class="help-inline">Memory limit for containers in MB. -1 = default (inherit namespace settings)</span>
+	                        </div>
+	                    </div>
+	                    <div class="control-group">
+	                        <label class="control-label">CPU request</label>
+	                        <div class="controls">
+	                            <input type="number" ng-model="execConfig.kubernetesResources.cpuRequest" />
+	                            <span class="help-inline">CPU request for containers (0.5 = 50% of a core, 2 = 2 cores).  -1 = default (inherit namespace settings)</span>
+	                        </div>
+	                    </div>
+	                    <div class="control-group">
+	                        <label class="control-label">CPU limit</label>
+	                        <div class="controls">
+	                            <input type="number" ng-model="execConfig.kubernetesResources.cpuLimit" />
+	                            <span class="help-inline">CPU limit for containers (0.5 = 50% of a core, 2 = 2 cores). -1 = default (inherit namespace settings)</span>
+	                        </div>
+	                    </div>
+	                    <div class="control-group">
+	                        <label class="control-label">Custom requests</label>
+	                        <div class="controls">
+								<ng2-key-values-list 
+									[(items)]="execConfig.kubernetesResources.customRequests" 
+									key-placeholder="Request key"
+									value-placeholder="Request value"
+									add-label="Add Custom Request">
+								</ng2-key-values-list>
+	                            <span class="help-inline">Custom Kubernetes requests key-value.</span>
+	                        </div>
+	                    </div>
+	                    <div class="control-group">
+	                        <label class="control-label">Custom limits</label>
+	                        <div class="controls">
+								<ng2-key-values-list 
+									[(items)]="execConfig.kubernetesResources.customLimits" 
+									key-placeholder="Limit key"
+									value-placeholder="Limit value"
+									add-label="Add Custom Limit">
+								</ng2-key-values-list>
+	                            <span class="help-inline">Custom Kubernetes limits key-value. For example, on Google Kubernetes Engine, use <code>nvidia.com/gpu</code> = <code>1</code> to get a GPU node</span>
+	                        </div>
+	                    </div>
+                        <div class="control-group">
+                            <label class="control-label">Node selector</label>
+                            <div class="controls">
+                                <!-- <div class="codemirror" style="height: 30px"> -->
+                                    <textarea style="width: 700px" ng-model="execConfig.nodeSelector" zui-codemirror="codeMirrorSettingService.get('text/yaml')" placeholder="Optional nodeSelector YAML specification. Must start by 'nodeSelector:' followed by 2-space indented Kubernetes NodeSelector specification" />
+                                <!-- </div> -->
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Affinity</label>
+                            <div class="controls">
+                                <!-- <div class="codemirror" style="height: 30px"> -->
+                                    <textarea style="width: 700px" ng-model="execConfig.affinity" zui-codemirror="codeMirrorSettingService.get('text/yaml')" placeholder="Optional pod affinity YAML specification. Must start by 'affinity:' followed by 2-space indented Kubernetes pod affinity specification" />
+                                <!-- </div> -->
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Tolerations</label>
+                            <div class="controls">
+                                <!-- <div class="codemirror" style="height: 30px"> -->
+                                    <textarea style="width: 700px" ng-model="execConfig.tolerations" zui-codemirror="codeMirrorSettingService.get('text/yaml')" placeholder="Optional pod tolerations YAML specification. Must start by 'tolerations:' followed by 2-space indented Kubernetes pod affinity specification" />
+                                <!-- </div> -->
+                            </div>
+                        </div>
+	                    <div class="control-group">
+	                        <label class="control-label">HostPath volumes</label>
+	                        <div class="controls">
+
+								<ng2-key-values-list 
+									[(items)]="execConfig.hostPathVolumes" 
+									key-placeholder="Host path"
+									value-placeholder="Container path"
+									add-label="Add HostPath volumes">
+								</ng2-key-values-list>
+	                            <span class="help-inline">Additional "hostPath" type volumes to mount in containers. This is usually only required for GPU support on Azure Kubernetes Service
+	                        </div>
+	                    </div>
+
+					</div>
+					
+                    <h3>Advanced settings</h3>
+
+                    <div class="control-group">
+                        <label class="control-label">Base image</label>
+                        <div class="controls">
+                            <input type="text" ng-model="execConfig.baseImage"/>
+                            <span class="help-inline">
+                                Leave empty to use the default image (see doc. for more information about base images)
+                            </span>
+                        </div>
+                    </div>
+                    <div ng-show="isBaseImageNameSuspicious(execConfig.baseImage)" class="alert alert-warning">
+                        <strong><i class="icon-warning-sign"></i> It looks like this base image contains a repository URL in it.</strong> <br />
+                            Make sure to input only the base image full name in here, and the URL in the next field.
+                    </div>
+                    <div ng-if="execConfig.type == 'KUBERNETES'">
+                        <div class="control-group">
+                            <label class="control-label">Kubectl Context</label>
+                            <div class="controls">
+                                <input type="text" ng-model="execConfig.kubeCtlContext"/>
+                                <span class="help-inline">kubectl context to use (empty = use default). This will not be taken into account if using dynamic K8S clusters</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Kube config path</label>
+                            <div class="controls">
+                                <input type="text" ng-model="execConfig.kubeConfigPath"/>
+                                <span class="help-inline">Path to the config file for Kubectl (empty = use default). This will not be taken into account if using dynamic K8S clusters</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Custom properties</label>
+                        <div class="controls">
+							<ng2-key-values-list 
+								[(items)]="execConfig.properties"
+								key-placeholder="Property key"
+								value-placeholder="Property value"
+								add-label="Add Custom Property">
+							</ng2-key-values-list>
+                            <span class="help-inline">Additional properties about this container config, for use by DSS. For specific use cases.</span>
+                        </div>
+                    </div>
+                 </div>
+
+	            <button type="button" class="btn btn--primary btn--text" ng-click="add(getNewContainerConfig())" style="margin-top: 10px;">
+					<i plus-icon />  Add another config
+	            </button>
+	        </div>
+
+        </div>
+    </div>
+    <div class="section" ng-if="(!mask || mask.enabled)">
+        <h2 id="configs">Default exposition for Kubernetes webapps</h2>
+
+        <div ng-class="{'alert': true, 'alert-info': settings.defaultWebappsK8SExposition.type == 'port_forward', 'alert-warning': settings.defaultWebappsK8SExposition.type != 'port_forward'}">
+             Port-forwarding exposition provides the best setup and reliability for webapps. It allows secure webapps which are usually not possible with other modes.<br />
+             Dataiku does not recommend moving away from Port-forwarding
+        </div>
+
+        <div class="control-group" ng-if="mask">
+            <label class="control-label">Override expositions</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.defaultWebappsK8SExposition">
+                    <span class="help-inline">Override this to override the default exposition for webapps running on Kubernetes</span>
+                </label>
+            </div>
+        </div>
+
+        <div ng-if="!mask || mask.defaultWebappsK8SExposition">
+            <div service-exposition="settings.defaultWebappsK8SExposition" exposition-usage-context="'WEBAPP'" container-type="'KUBERNETES'" exposable-kind="'WEBAPP'"></div>
+        </div>
+    </div>
+</form>

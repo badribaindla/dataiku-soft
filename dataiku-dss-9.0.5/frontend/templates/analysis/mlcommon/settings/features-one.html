@@ -1,0 +1,731 @@
+<div ng-show="selection.selectedObject != null"
+    on-any-change="selection.selectedObject.state.userModified = true" 
+    class="feature-details" 
+    ng-controller="MLTaskFeatureController">
+    <form class="dkuform-horizontal-w220">
+        <fieldset>
+            <div class="main-zone-element">
+                <legend>Handling of "{{selection.selectedObject._name}}"</legend>
+                <div class="row-fluid alert alert-info" ng-if="selection.selectedObject.state.autoModifiedByDSS">
+                    {{wl.productShortName}} has detected a change in this feature and automatically modified its settings.
+                    <button class="btn btn--secondary" ng-click="selection.selectedObject.state.autoModifiedByDSS = null; selection.selectedObject.state.previousSettings = null">
+                        OK
+                    </button>
+                </div>
+                <div class="row-fluid alert alert-warning" ng-if="selection.selectedObject.state.dssWantsToSet">
+                    {{wl.productShortName}} has detected a change in this feature and wants to change its settings.
+                    <button class="btn btn--success" ng-click="acceptDSSChange(selection.selectedObject)">
+                        Accept
+                    </button>
+                    <button class="btn btn--success" ng-click="selection.selectedObject.state.dssWantsToSet = null">
+                        Keep my settings
+                    </button>
+                </div>
+                <div class="row-fluid alert alert-info" ng-if="selection.selectedObject.autoReason && selection.selectedObject.role === 'REJECT'">
+                    {{ featureAutoHandlingReason[selection.selectedObject.autoReason] }}
+                </div>
+            </div>
+
+            <div class="row-fluid">
+                <div class="span6">
+                    <div class="control-group required">
+                        <label class="control-label">Role</label>
+                        <div class="controls">
+                            <label class="radio"
+                                ng-hide="selection.selectedObject.role=='TARGET' || selection.selectedObject.role=='WEIGHT'">
+                                <input
+                                    ng-model="selection.selectedObject.role"
+                                    ng-change="onVariableRoleChange()"
+                                    name="roleRadio"
+                                    type="radio"
+                                    value="REJECT" />
+                                Reject
+                            </label>
+                            <label class="radio"
+                                ng-hide="selection.selectedObject.role=='TARGET' || selection.selectedObject.role=='WEIGHT'">
+                                <input
+                                    ng-model="selection.selectedObject.role"
+                                    ng-change="onVariableRoleChange()"
+                                    name="roleRadio"
+                                    type="radio"
+                                    value="INPUT" />
+                                Input
+                            </label>
+                            <label class="radio"
+                                ng-show="selection.selectedObject.role=='TARGET' && mlTaskDesign.taskType=='PREDICTION'">
+                                <input
+                                    ng-model="selection.selectedObject.role"
+                                    ng-change="onVariableRoleChange()"
+                                    name="roleRadio"
+                                    type="radio"
+                                    value="TARGET" />
+                                Target
+                            </label>
+                            <label class="radio"
+                                ng-show="selection.selectedObject.role=='WEIGHT' && mlTaskDesign.taskType=='PREDICTION'">
+                                <input
+                                    ng-model="selection.selectedObject.role"
+                                    name="roleRadio"
+                                    type="radio"
+                                    value="WEIGHT" />
+                                Sample weight
+                            </label>
+                            <label class="radio" ng-show="mlTaskDesign.taskType=='CLUSTERING'">
+                                <input
+                                    ng-model="selection.selectedObject.role"
+                                    ng-change="onVariableRoleChange()"
+                                    name="roleRadio"
+                                    type="radio"
+                                    value="PROFILING" />
+                                Use for display only
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="span6">
+                    <div class="control-group" ng-show="selection.selectedObject.role=='INPUT' || selection.selectedObject.role=='PROFILING' || selection.selectedObject.role=='WEIGHT'">
+                        <label class="control-label">Variable type</label>
+                        <div class="controls">
+                            <label class="radio" ng-show="selection.selectedObject.role!='WEIGHT'">
+                                <input type="radio"
+                                    ng-model="selection.selectedObject.type"
+                                    ng-change="onVariableTypeChange()"
+                                    name="typeRadio"
+                                    value="CATEGORY" />
+                                <i class="icon-font"></i>
+                                Categorical
+                            </label>
+                            <label class="radio">
+                                <input type="radio"
+                                    ng-model="selection.selectedObject.type"
+                                    ng-change="onVariableTypeChange()"
+                                    name="typeRadio"
+                                    value="NUMERIC" />
+                                <span>#</span>
+                                Numerical
+                            </label>
+                            <label class="radio" ng-show="selection.selectedObject.role!='WEIGHT'">
+                                <input type="radio"
+                                    ng-model="selection.selectedObject.type"
+                                    ng-change="onVariableTypeChange()"
+                                    name="typeRadio"
+                                    value="TEXT" />
+                                <i class="icon-italic"></i>
+                                Text
+                            </label>
+                            <label class="radio" ng-show="selection.selectedObject.role!='WEIGHT' && (isMLBackendType('PY_MEMORY') || isMLBackendType('MLLIB') || isMLBackendType('H2O') || isMLBackendType('KERAS'))">
+                                <input type="radio"
+                                    ng-model="selection.selectedObject.type"
+                                    ng-change="onVariableTypeChange()"
+                                    name="typeRadio"
+                                    value="VECTOR" />
+                                <span style="font-size: 14px">[ ]</span>
+                                Vector
+                            </label>
+                            <label class="radio" ng-show="isMLBackendType('KERAS')">
+                                <input type="radio"
+                                    ng-model="selection.selectedObject.type"
+                                    ng-change="onVariableTypeChange()"
+                                    name="typeRadio"
+                                    value="IMAGE" />
+                                <i class="icon-picture"></i>
+                                Image
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-if="selection.selectedObject.type == 'CATEGORY'">
+                <div class="row-fluid" ng-if="canPreprocess">
+                    <div class="span6">
+                        <div class="control-group required" ng-show="selection.selectedObject.type == 'CATEGORY'">
+                            <label class="control-label">Category handling</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="selection.selectedObject.category_handling"
+                                    ng-options="mode[0] as mode[1] for mode in categoryHandlingModes"
+                                        ng-if="!isMLBackendType('H2O')"/>
+                                <select dku-bs-select ng-model="selection.selectedObject.category_handling"
+                                        ng-options="mode[0] as mode[1] for mode in h2oCategoryHandlingModes"
+                                        ng-if="isMLBackendType('H2O')" />
+                            </div>
+                        </div>
+                        <div ng-show="selection.selectedObject.category_handling=='HASHING'">
+                            <div class="control-group required">
+                                <label class="control-label">Number of bins</label>
+                                <div class="controls">
+                                    <input type='number' ng-model="selection.selectedObject.nb_bins_hashing" />
+                                </div>
+                            </div>
+                            <div ng-show="nbDistinctValues" class="control-group" ng-class="
+                            {'alert alert-warning': selection.selectedObject.nb_bins_hashing > nbDistinctValues}"
+                            style="margin-left:6px">
+                                You are <strong>multiplying</strong> the number or features by
+                                <strong>{{selection.selectedObject.nb_bins_hashing / nbDistinctValues  | number :2}}</strong>
+                            </div>
+                        </div>
+                        <div ng-show="selection.selectedObject.category_handling=='DUMMIFY'">
+                            <div class="control-group required">
+                                <label class="control-label">Drop dummy</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="selection.selectedObject.dummy_drop"
+                                            ng-options="mode[0] as mode[1] for mode in dummyDrops" />
+                                </div>
+                            </div>
+                            <div class="control-group required">
+                                <label class="control-label">Clipping</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="selection.selectedObject.dummy_clip"
+                                            ng-options="mode[0] as mode[1] for mode in dummyClippingModes" />
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="selection.selectedObject.dummy_clip=='MAX_NB_CATEGORIES'">
+                                <label class="control-label">Max. Nb. Categories</label>
+                                <div class="controls">
+                                    <input type='number' ng-model="selection.selectedObject.max_nb_categories" />
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="selection.selectedObject.dummy_clip=='MIN_SAMPLES'">
+                                <label class="control-label">Min. Samples</label>
+                                <div class="controls">
+                                    <input type='number' ng-model="selection.selectedObject.min_samples" />
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="selection.selectedObject.dummy_clip=='CUMULATIVE_PROPORTION'">
+                                <label class="control-label">Cum. Proportion</label>
+                                <div class="controls">
+                                    <input type='number' min='0' max='1' step='0.01' ng-model="selection.selectedObject.cumulative_proportion" />
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="selection.selectedObject.dummy_clip != 'MAX_NB_CATEGORIES'">
+                                <label class="control-label">Max. categories</label>
+                                <div class="controls">
+                                    <input type='number' ng-model="selection.selectedObject.max_cat_safety" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="span6">
+                        <div class="control-group required" ng-if="selection.selectedObject.category_handling != 'FLAG_PRESENCE'">
+
+                            <label class="control-label">Missing values</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="selection.selectedObject.missing_handling" ng-options="mode[0] as mode[1] for mode in
+                               categoryMissingHandlingModes" />
+                            </div>
+                        </div>
+
+                        <div ng-if="selection.selectedObject.category_handling != 'FLAG_PRESENCE' && selection.selectedObject.missing_handling == 'IMPUTE'" class="control-group">
+                            <label for="" class="control-label">Impute with</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="selection.selectedObject.missing_impute_with"
+                                    ng-options="mode[0] as mode[1] for mode in categoryMissingHandlingImputeWithModes" />
+                            </div>
+                        </div>
+                        <div ng-if="selection.selectedObject.category_handling != 'FLAG_PRESENCE' && selection.selectedObject.missing_handling== 'IMPUTE'&& selection.selectedObject.missing_impute_with == 'CONSTANT'" class="control-group">
+                            <label for="" class="control-label">Value</label>
+                            <div class="controls">
+                                <input type="text" ng-model="selection.selectedObject.impute_constant_value" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-if="canPreprocess && selection.selectedObject.category_handling=='CUSTOM'" class="main-zone-element">
+                    <div class="code-snippet-editor-parent" style="height: 350px">
+                        <div code-snippet-editor
+                             code="selection.selectedObject.customHandlingCode"
+                             sample-type="'python'"
+                             categories="['py-ml-preprocessing-cat']"
+                             save-category="'py-ml-preprocessing-cat'"
+                             displayed="true"
+                        />
+                    </div>
+                    <div class="help-inline">
+                        <small>
+                            The code should create an object called <code>processor</code> as described in {{wl.productShortName}} documentation.
+                        </small>
+                    </div>
+                </div>
+                <div ng-if="canPreprocess && selection.selectedObject.category_handling=='CUSTOM'" class="main-zone-element">
+                    <div class="control-group">
+                        <label class="control-label">Proc. wants matrix</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="selection.selectedObject.customProcessorWantsMatrix" />
+                                <span class="help-inline">
+                                    Custom processors normally receive a single Series. If this option is enabled, they
+                                    will receive a single-column dataframe instead.
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-section-with-title" ng-if="isMLBackendType('KERAS') && selection.selectedObject.role === 'INPUT'">
+                    <div class="row-fluid">
+                        <h5 class="feature-section-title main-zone-element">
+                            Send preprocessed feature to
+                        </h5>
+                        <div class="control-group required">
+                            <label class="control-label">Deep Learning input</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="selection.selectedObject.sendToInput"
+                                    ng-options="i for i in mlTaskDesign.modeling.keras.kerasInputs | filter:isNotSpecialInputOrIsSpecialSelection"
+                                    ng-disabled="isSpecialFeature()" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div column-analysis column="selection.selectedObject._name" distinct-values="nbDistinctValues" cache="columnAnalysisCache" ids="columnAnalysisIds"
+                         is-numeric="false" />
+            </div>
+
+            <div ng-if="selection.selectedObject.type == 'VECTOR' && selection.selectedObject.role != 'REJECT'">
+                <div class="row-fluid" ng-if="selection.selectedObject.role != 'TARGET'">
+                    <div class="span6">
+                        <div class="control-group required">
+                            <label class="control-label">Vector handling</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="selection.selectedObject.vector_handling"
+                                    ng-options="mode[0] as mode[1] for mode in vectorHandlingModes"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="span6">
+                        <div class="control-group required">
+
+                            <label class="control-label">Missing values</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="selection.selectedObject.missing_handling" ng-options="mode[0] as mode[1] for mode in
+                               vectorMissingHandlingModes" />
+                            </div>
+                        </div>
+
+                        <div ng-if="selection.selectedObject.missing_handling == 'IMPUTE'" class="control-group">
+                            <label for="" class="control-label">Impute with</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="selection.selectedObject.missing_impute_with"
+                                    ng-options="mode[0] as mode[1] for mode in vectorMissingHandlingImputeWithModes" />
+                            </div>
+                        </div>
+                        <div ng-if="selection.selectedObject.missing_handling== 'IMPUTE'&& selection.selectedObject.missing_impute_with == 'CONSTANT'" class="control-group">
+                            <label for="" class="control-label">Value</label>
+                            <div class="controls">
+                                <input type="text" ng-model="selection.selectedObject.impute_constant_value" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-section-with-title" ng-if="isMLBackendType('KERAS') && selection.selectedObject.role === 'INPUT'">
+                    <div class="row-fluid">
+                        <h5 class="feature-section-title main-zone-element">
+                            Send preprocessed feature to
+                        </h5>
+                        <div class="control-group required">
+                            <label class="control-label">Deep Learning input</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="selection.selectedObject.sendToInput"
+                                    ng-options="i for i in mlTaskDesign.modeling.keras.kerasInputs | filter:isNotSpecialInputOrIsSpecialSelection"
+                                    ng-disabled="isSpecialFeature()" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div ng-if="selection.selectedObject.type == 'IMAGE' && selection.selectedObject.role != 'REJECT'">
+                <div class="row-fluid" ng-if="selection.selectedObject.role != 'TARGET'">
+                    <div class="span6">
+                        <div class="control-group required">
+                            <label class="control-label">Image handling</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="selection.selectedObject.image_handling"
+                                    ng-options="mode[0] as mode[1] for mode in imageHandlingModes"/>
+                            </div>
+                        </div>
+
+                        <div class="control-group required">
+                            <label class="control-label">Image location</label>
+                            <div class="controls">
+                                <label>
+                                    <div object-picker="selection.selectedObject.managed_folder_id" type="MANAGED_FOLDER"></div>
+                                    <span class="help-inline">Managed folder containing the images</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="span6">
+                        <div class="control-group required">
+
+                            <label class="control-label">Missing values</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="selection.selectedObject.missing_handling" ng-options="mode[0] as mode[1] for mode in
+                               imageMissingHandlingModes" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="main-zone-element" ng-if="selection.selectedObject.image_handling=='CUSTOM'">
+                    <div class="code-snippet-editor-parent" style="height: 380px">
+                        <div code-snippet-editor
+                             code="selection.selectedObject.customHandlingCode"
+                             sample-type="'python'"
+                             categories="['py-ml-preprocessing-image']"
+                             save-category="'py-ml-preprocessing-image'"
+                             displayed="true"
+                        />
+                    </div>
+                </div>
+
+                <div class="feature-section-with-title" ng-if="isMLBackendType('KERAS') && selection.selectedObject.role === 'INPUT'">
+                    <div class="row-fluid">
+                        <h5 class="feature-section-title main-zone-element">
+                            Send preprocessed feature to
+                        </h5>
+                        <div class="control-group required">
+                            <label class="control-label">Deep Learning input</label>
+                            <div class="controls">
+                                <label>
+                                    <select dku-bs-select ng-model="selection.selectedObject.sendToInput"
+                                        ng-options="i for i in mlTaskDesign.modeling.keras.kerasInputs | filter:isNotSpecialInputOrIsSpecialSelection"
+                                        ng-disabled="isSpecialFeature()" />
+                                    <span class="help-inline" ng-if="isSpecialFeature()">
+                                        Custom image preprocessing is a special feature and requires its own Deep Learning Input.
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div ng-if="selection.selectedObject.type == 'NUMERIC'">
+                <div ng-if="canPreprocess">
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <div class="control-group required" ng-if="isMLBackendType('PY_MEMORY') || isMLBackendType('KERAS')">
+                                <label class="control-label">Numerical handling</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="selection.selectedObject.numerical_handling"
+                                        ng-options="mode[0] as mode[1] for mode in numericalHandlingModes" />
+                                    <span style="line-height: 2" ng-if="isSparkBased()">Regular</span>
+                                </div>
+                            </div>
+
+                            <div class="control-group" ng-if="selection.selectedObject.numerical_handling == 'REGULAR'">
+                                <label class="control-label">Rescaling</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="selection.selectedObject.rescaling"
+                                      ng-options="mode[0] as mode[1] for mode in rescalingModes" />
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="selection.selectedObject.numerical_handling == 'REGULAR'">
+                                <label class="control-label">Make derived feats.</label>
+                                <div class="controls">
+                                    <input type="checkbox" ng-model="selection.selectedObject.generate_derivative" />
+                                    <span class="help-inline">
+                                        Generate sqrt(x), x^2, ... features
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="control-group" ng-if="selection.selectedObject.numerical_handling == 'BINARIZE'">
+                                <label class="control-label">Binarize threshold</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="selection.selectedObject.binarize_threshold_mode"
+                                      ng-options="mode[0] as mode[1] for mode in binarizeThresholdModes" />
+                                </div>
+                            </div>
+
+                            <div class="control-group" ng-if="selection.selectedObject.numerical_handling == 'BINARIZE' && selection.selectedObject.binarize_threshold_mode == 'CONSTANT'">
+                                <label for="" class="control-label">Threshold to use</label>
+                                <div class="controls">
+                                    <input type="number" ng-model="selection.selectedObject.binarize_constant_threshold" required />
+                                </div>
+                            </div>
+
+                            <div class="control-group" ng-if="selection.selectedObject.numerical_handling == 'QUANTILE_BIN'">
+                                <label class="control-label">Number of quantiles</label>
+                                <div class="controls">
+                                    <input type="number" ng-model="selection.selectedObject.quantile_bin_nb_bins" min="1" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="span6">
+                            <div class="control-group required">
+                                <label class="control-label">Missing values</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="selection.selectedObject.missing_handling" ng-options="mode[0] as mode[1] for mode in
+                                   numericalMissingHandlingModes" />
+                                </div>
+                            </div>
+
+                            <div ng-if="selection.selectedObject.missing_handling == 'IMPUTE'" class="control-group">
+                                <label for="" class="control-label">Impute with</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="selection.selectedObject.missing_impute_with" ng-options="mode[0] as mode[1] for mode in
+                                   numericalMissingHandlingImputeWithModes" />
+                                </div>
+                            </div>
+
+                            <div ng-if="selection.selectedObject.missing_handling== 'IMPUTE'&& selection.selectedObject.missing_impute_with == 'CONSTANT'" class="control-group">
+                                <label for="" class="control-label">Value</label>
+                                <div class="controls">
+                                    <!-- it is better to use input type="text" because of #5471 -->
+                                    <input type="text" ng-model="selection.selectedObject.impute_constant_value" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="main-zone-element" ng-if="selection.selectedObject.numerical_handling=='CUSTOM'">
+                        <div class="code-snippet-editor-parent" style="height: 380px">
+                            <div code-snippet-editor
+                                 code="selection.selectedObject.customHandlingCode"
+                                 sample-type="'python'"
+                                 categories="['py-ml-preprocessing-num']"
+                                 save-category="'py-ml-preprocessing-num'"
+                                 displayed="true"
+                            />
+                        </div>
+                        <div class="help-inline">
+                            <small>
+                                The code should create an object called <code>processor</code> as described in {{wl.productShortName}} documentation.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="main-zone-element" ng-if="selection.selectedObject.numerical_handling=='CUSTOM'">
+                        <div class="control-group">
+                            <label class="control-label">Proc. wants matrix</label>
+                            <div class="controls">
+                                <label>
+                                    <input type="checkbox" ng-model="selection.selectedObject.customProcessorWantsMatrix" />
+                                    <span class="help-inline">
+                                        Custom processors normally receive a single Series. If this option is enabled, they
+                                        will receive a single-column dataframe instead.
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-section-with-title" ng-if="isMLBackendType('KERAS') && selection.selectedObject.role === 'INPUT'">
+                        <div class="row-fluid">
+                            <h5 class="feature-section-title main-zone-element">
+                                Send preprocessed feature to
+                            </h5>
+                            <div class="control-group required">
+                                <label class="control-label">Deep Learning input</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="selection.selectedObject.sendToInput"
+                                        ng-options="i for i in mlTaskDesign.modeling.keras.kerasInputs | filter:isNotSpecialInputOrIsSpecialSelection"
+                                        ng-disabled="isSpecialFeature()" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div column-analysis column="selection.selectedObject._name" cache="columnAnalysisCache" ids="columnAnalysisIds"
+                    is-numeric="true" is-date="selection.selectedObject.state.recordedMeaning === 'Date'" />
+            </div>
+
+            <div ng-if="selection.selectedObject.type == 'TEXT'">
+                <div class="row-fluid" ng-if="canPreprocess">
+                    <div ng-if="selection.selectedObject.role != 'REJECT'">
+                    <div class="control-group required">
+                        <label class="control-label">Text handling</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="selection.selectedObject.text_handling"
+                                ng-options="mode[0] as mode[1] for mode in textHandlingModes" ng-show="isMLBackendType('PY_MEMORY') || isMLBackendType('KERAS')" />
+                            <span ng-if="!(isMLBackendType('PY_MEMORY') || isMLBackendType('KERAS'))" style="line-height: 2">Tokenize, hash &amp; count</span>
+                        </div>
+                    </div>
+
+                    <div ng-show="isMLBackendType('PY_MEMORY') || isMLBackendType('KERAS')">
+                        <div class="control-group" ng-if="selection.selectedObject.text_handling == 'TOKENIZE_HASHING_SVD' || selection.selectedObject.text_handling == 'TOKENIZE_HASHING'">
+                            <label class="control-label">Hash columns</label>
+                            <div class="controls">
+                                <input type="number" ng-model="selection.selectedObject.hashSize" min="1" />
+                                <div class="help-inline">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="selection.selectedObject.text_handling == 'TOKENIZE_HASHING_SVD'">
+                            <label class="control-label">SVD limit</label>
+                            <div class="controls">
+                                <input type="number" ng-model="selection.selectedObject.hashSVDSVDLimit" min="1" />
+                                <div class="help-inline">
+                                    SVD will only be performed on this number of rows
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="selection.selectedObject.text_handling == 'TOKENIZE_HASHING_SVD'">
+                            <label class="control-label">SVD components</label>
+                            <div class="controls">
+                                <input type="number" ng-model="selection.selectedObject.hashSVDSVDComponents" min="1" />
+                                <div class="help-inline">
+                                    Number of components to keep
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="control-group" ng-if="selection.selectedObject.text_handling == 'TOKENIZE_COUNTS' || selection.selectedObject.text_handling == 'TOKENIZE_TFIDF'">
+                        <label class="control-label">Min. rows fraction %</label>
+                        <div class="controls">
+                            <input type="number" ng-model="selection.selectedObject.minRowsRatio" convert-percentage min="0" max="100" step="0.1" >
+                            <div class="help-inline">
+                                Words that don't appear in this fraction of rows will not be considered
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="selection.selectedObject.text_handling == 'TOKENIZE_COUNTS' || selection.selectedObject.text_handling == 'TOKENIZE_TFIDF'">
+                        <label class="control-label">Max. rows fraction %</label>
+                        <div class="controls">
+                            <input type="number" ng-model="selection.selectedObject.maxRowsRatio" convert-percentage min="0" max="100" step="0.1" >
+                            <div class="help-inline">
+                                Words that appear in more than in this fraction of rows will not be considered (too common words don't bring in valuable information).
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="selection.selectedObject.text_handling == 'TOKENIZE_COUNTS' || selection.selectedObject.text_handling == 'TOKENIZE_TFIDF'">
+                        <label class="control-label">Max. total words</label>
+                        <div class="controls">
+                            <input type="number" ng-model="selection.selectedObject.maxWords" />
+                            <div class="help-inline">
+                                If not 0, only this many words (the most frequent ones) will be considered.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="selection.selectedObject.text_handling == 'TOKENIZE_COUNTS' || selection.selectedObject.text_handling == 'TOKENIZE_TFIDF'">
+                        <label class="control-label">Ngrams</label>
+                        <div class="controls">
+                            <input type="number" ng-model="selection.selectedObject.ngramMinSize" /> words
+                            to  <input type="number" ng-model="selection.selectedObject.ngramMaxSize" /> words
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="selection.selectedObject.text_handling == 'TOKENIZE_COUNTS' || selection.selectedObject.text_handling == 'TOKENIZE_TFIDF'">
+                        <label class="control-label">Stop words</label>
+                        <div class="controls">
+                            <select dku-bs-select ng-model="selection.selectedObject.stopWordsMode" ng-include src="'/templates/analysis/mlcommon/nlp-language-choices.html'">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="selection.selectedObject.stopWordsMode == 'CUSTOM'">
+                        <label class="control-label">Custom stop words</label>
+                        <div class="controls">
+                            <textarea ng-model="selection.selectedObject.customStopWords" />
+                            <div class="help-inline">
+                                Space-separated
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="selection.selectedObject.text_handling == 'TOKENIZE_COUNTS' || selection.selectedObject.text_handling == 'TOKENIZE_TFIDF'">
+                        <label class="control-label">Customize code</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="selection.selectedObject.useCustomVectorizer" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-if="selection.selectedObject.useCustomVectorizer" >
+                        <label for="" class="control-label">Custom code</label>
+                        <div class="controls code-snippet-editor-parent">
+                            <div code-snippet-editor
+                                code="selection.selectedObject.customVectorizerCode"
+                                sample-type="'python'"
+                                categories="['py-vectorizer']"
+                                save-category="'py-vectorizer'" />
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-if="selection.selectedObject.text_handling=='CUSTOM'" class="main-zone-element">
+                    <div class="code-snippet-editor-parent" style="height: 350px;">
+                        <div code-snippet-editor
+                             code="selection.selectedObject.customHandlingCode"
+                             sample-type="'python'"
+                             categories="['py-ml-preprocessing-text']"
+                             save-category="'py-ml-preprocessing-text'"
+                             displayed="true"
+                        />
+                    </div>
+                    <div class="help-inline">
+                        <small>
+                            The code should create an object called <code>processor</code> as described in {{wl.productShortName}} documentation.
+                        </small>
+                    </div>
+                </div>
+
+                <div ng-if="selection.selectedObject.text_handling=='CUSTOM'" class="main-zone-element">
+                    <div class="control-group">
+                        <label class="control-label">Proc. wants matrix</label>
+                        <div class="controls">
+                            <label>
+                                <input type="checkbox" ng-model="selection.selectedObject.customProcessorWantsMatrix" />
+                                <span class="help-inline">
+                                    Custom processors normally receive a single Series. If this option is enabled, they
+                                    will receive a single-column dataframe instead.
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-section-with-title" ng-if="isMLBackendType('KERAS') && selection.selectedObject.role === 'INPUT'">
+                    <div class="row-fluid">
+                        <h5 class="feature-section-title main-zone-element">
+                            Send preprocessed feature to
+                        </h5>
+                        <div class="control-group required">
+                            <label class="control-label">Deep Learning input</label>
+                            <div class="controls">
+                                <label>
+                                    <select dku-bs-select ng-model="selection.selectedObject.sendToInput"
+                                        ng-options="i for i in mlTaskDesign.modeling.keras.kerasInputs | filter:isNotSpecialInputOrIsSpecialSelection"
+                                        ng-disabled="isSpecialFeature()" />
+                                    <span class="help-inline" ng-if="isSpecialFeature()">
+                                        Custom text preprocessing is a special feature and requires its own Deep Learning Input.
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <div column-analysis
+                    column="selection.selectedObject._name"
+                    cache="columnAnalysisCache"
+                    ids="columnAnalysisIds"
+                    as-list="true"
+                    is-numeric="false" />
+
+                <div class="row-fluid" ng-if="selection.selectedObject.category_handling == 'IMPACT'">
+                    <pre class="debug">
+                        {{lastPreprocessingStatus.ppReport.impact[selection.selectedObject._name]|json}}
+                    </pre>
+                </div>
+            </div>
+
+        </fieldset>
+    </form>
+</div>

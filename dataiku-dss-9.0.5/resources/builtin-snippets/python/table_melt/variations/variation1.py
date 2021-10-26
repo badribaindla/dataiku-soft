@@ -1,0 +1,1 @@
+rows = pd.melt(pivoted, id_vars=["type"])

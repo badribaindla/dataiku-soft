@@ -1,0 +1,22 @@
+<div ng-if="tile.behavior == 'GO_TO_FOLDER'">
+    <a main-click ui-sref="projects.project.managedfolders.managedfolder.settings({odbId:tile.folderId})" wt1-click-event="app-tile-folder-settings-edit"><i class="icon-box"></i>&nbsp;{{folder.name || tile.folderId}}</a>
+    <span ng-include="'/templates/apps/fragments/tile-help.html'"></span>
+</div>
+<div ng-if="tile.behavior.startsWith('MODAL_')">
+    <button class="btn btn--secondary" ng-click="openModal()">Edit</button>
+    <span style="margin-left: 10px;">
+        <a main-click ui-sref="projects.project.managedfolders.managedfolder.settings({odbId:tile.folderId})" wt1-click-event="app-tile-folder-settings-edit"><i class="icon-arrow-right"></i>&nbsp;View settings of folder {{folder.name}}</a>
+    </span>
+</div>
+<div ng-if="tile.behavior.startsWith('INLINE_')">
+    <div block-api-error />
+    <div class="app-tiles__tile-files-browse-zone">
+       <dataset-path-input browse-fn="browse" path="folder.params.path"  validate-fn="doTest" connection="folder.params.connection" change-needs-confirm="false">
+       </dataset-path-input>
+    </div>
+
+    <span ng-include="'/templates/apps/fragments/tile-help.html'" class="app-tiles__tile-help--multiline-neighbour"></span>
+    <div>
+        <a main-click ui-sref="projects.project.managedfolders.managedfolder.settings({odbId:tile.folderId})" wt1-click-event="app-tile-folder-settings-edit"><i class="icon-arrow-right"></i>&nbsp;View settings of folder {{folder.name}}</a>
+    </div>
+</div>

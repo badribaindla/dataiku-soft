@@ -1,0 +1,67 @@
+<div>
+    <div class="control-group" ng-if="noBehavior == null || !noBehavior">
+        <label class="control-label">Behavior</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="tile.behavior" ng-options="b.name as b.label for b in behaviors"/>
+            <span class="help-inline">Learn more about the available interactions for the variables edition in the app in the <doclink page="/applications/tiles#edit-project-variables" title="documentation"/>.</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="tile.behavior == 'MODAL'">
+        <label class="control-label">Button label</label>
+        <div class="controls">
+            <input id="buttonText" type="text" ng-model="tile.buttonText" placeholder="Edit project variables"></input>
+        </div>
+    </div>
+    <!--ng-if: just to fix the codeMirrorSettingService.get('...') that is not evaluated without-->
+    <div class="control-group" ng-if="tile">
+        <label class="control-label">Auto-generated controls</label>
+        <div class="controls">
+            <form name="paramsEditor">
+                <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+                    <textarea json-object-pretty-view keep-old-if-invalid name="params" ui-codemirror="codeMirrorSettingService.get('application/json')" ng-model="tile.params"></textarea>
+                </div>
+                <div class="alert alert-error" ng-show="paramsEditor.params.dkuJSONError">JSON syntax error! <br/> {{paramsEditor.params.dkuJSONError}}</div>
+            </form>
+        </div>
+    </div>
+    <div class="control-group" ng-if="!hasCustomUI(tile)">
+        <div class="controls">
+            <a ng-click="useCustomUI(tile)">Use custom UI</a>
+        </div>
+    </div>
+    <div class="control-group" ng-if="hasCustomUI(tile)">
+        <div class="controls">
+            <a ng-click="dontUseCustomUI(tile)">Don't use custom UI (clears the python/js/html code)</a>
+        </div>
+    </div>
+    <div class="control-group" ng-if="hasCustomUI(tile)">
+        <label class="control-label">Python helper code</label>
+        <div class="controls">
+            <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+                <textarea name="python" ui-codemirror="codeMirrorSettingService.get('text/x-python')" ng-model="tile.python"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="control-group" ng-if="hasCustomUI(tile)">
+        <label class="control-label">Custom UI HTML</label>
+        <div class="controls">
+            <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+                <textarea name="html" ui-codemirror="codeMirrorSettingService.get('text/html')" ng-model="tile.html"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="control-group" ng-if="hasCustomUI(tile)">
+        <label class="control-label">Custom UI JS</label>
+        <div class="controls">
+            <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+                <textarea name="js" ui-codemirror="codeMirrorSettingService.get('text/javascript')" ng-model="tile.js"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="control-group" ng-if="hasCustomUI(tile)">
+        <label class="control-label">Angular module</label>
+        <div class="controls">
+            <input id="module" type="text" ng-model="tile.module"></input>
+        </div>
+    </div>
+</div>

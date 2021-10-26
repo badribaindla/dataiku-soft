@@ -1,0 +1,90 @@
+<div class="row-fluid">
+    <div class="span8" ng-init="showActualGain = true">
+        <label class="threshold-form" for="threshold-setter" ng-if="modelData.hasProbas && modelData.backendType!=='VERTICA' && !isOnPartitionedBaseModel()"
+                ng-init="original = modelData.perf.optimalThreshold || modelData.userMeta.activeClassifierThreshold">
+            <span>Threshold (cut-off)</span>
+            <span class="threshold-range" ng-if="!evaluation"> <input id="threshold-settter" class="threshold-setter"
+                type="range" min="0" max="1" step="0.025" ng-model="modelData.userMeta.activeClassifierThreshold" /></span>
+            <code class="threshold-value" ng-bind="modelData.userMeta.activeClassifierThreshold | number : 3" />
+            <button ng-if="!evaluation" ng-click="modelData.userMeta.activeClassifierThreshold = original"
+                ng-disabled="modelData.userMeta.activeClassifierThreshold == original"
+                class="btn btn--secondary threshold-optimal">
+                Back to {{evaluation.evaluation.activeClassifierThreshold?'saved value':'optimal'}}*
+            </button>
+        </label>
+        <select ng-model="uiState.displayMode" dku-bs-select="{titlePrefix:'Display'}">
+            <option value="records"  >{{printWeightedIfWeighted()}} Record count</option>
+            <option value="actual"   >{{printWeightedIfWeighted()}} % of actual classes</option>
+            <option value="predicted">{{printWeightedIfWeighted()}} % of predicted classes</option>
+        </select>
+        <table class="table confusion-matrix" style="margin-top: 1em;">
+            <tr>
+                <th></th>
+                <th>Predicted <code ng-bind="modelData.classes[1]" /></th>
+                <th>Predicted <code ng-bind="modelData.classes[0]" /></th>
+                <th ng-if="currentCutData.actPos[uiState.displayMode] && currentCutData.actNeg[uiState.displayMode]">Total </th>
+            </tr><tr>
+                <th>Actually <code ng-bind="modelData.classes[1]" /></th>
+                <td class="success" ng-bind="getMaybeWeighted(currentCutData.tp[uiState.displayMode])"></td>
+                <td class="error"   ng-bind="getMaybeWeighted(currentCutData.fn[uiState.displayMode])"></td>
+                <td ng-if="currentCutData.actPos[uiState.displayMode]" ng-bind="getMaybeWeighted(currentCutData.actPos[uiState.displayMode])"></td>
+            </tr><tr>
+                <th>Actually <code ng-bind="modelData.classes[0]" /></th>
+                <td class="error"   ng-bind="getMaybeWeighted(currentCutData.fp[uiState.displayMode])"></td>
+                <td class="success" ng-bind="getMaybeWeighted(currentCutData.tn[uiState.displayMode])"></td>
+                <td ng-if="currentCutData.actNeg[uiState.displayMode]" ng-bind="getMaybeWeighted(currentCutData.actNeg[uiState.displayMode])"></td>
+            </tr>
+            <tr ng-if="currentCutData.predPos[uiState.displayMode] && currentCutData.predNeg[uiState.displayMode]">
+                <th>Total</th>
+                <td ng-if="currentCutData.predPos[uiState.displayMode]" ng-bind="getMaybeWeighted(currentCutData.predPos[uiState.displayMode])"></td>
+                <td ng-if="currentCutData.predNeg[uiState.displayMode]" ng-bind="getMaybeWeighted(currentCutData.predNeg[uiState.displayMode])"></td>
+                <td ng-if="currentCutData.actPos[uiState.displayMode] && currentCutData.actNeg[uiState.displayMode]"
+                    ng-bind="getMaybeWeighted(currentCutData.actPos[uiState.displayMode] + currentCutData.actNeg[uiState.displayMode])"></td>
+            </tr>
+        </table>
+        <div style="max-width: 550px; height: 200px;">
+            <svg class="chart-std-font" style="width: 100%; height: 100%;" discrete-bar-chart="{scale: [0, 1]}" data="currentGraphData"
+                 horizontal="true" colors="colors" format="%" disable-transitions="$stateParams.exportMode"></svg>
+        </div>
+        <div include-no-scope="/templates/ml/prediction-model/_cost_matrix.html" />
+    </div>
+
+    <div class="span4 doctor-explanation">
+        <p ng-if="modelData.hasProbas && modelData.modeling && !isOnPartitionedBaseModel()">
+            * &ldquo;Optimal&rdquo; cut was found by optimizing for
+            <strong ng-bind="modelData.modeling.metrics.thresholdOptimizationMetric
+                | niceConst | replace : '(^f1|custom)$':'i' : '$1 Score'" />.</p>
+
+        <div class="alert alert-warning" ng-if="modelData.trainInfo.kfold" style="margin-bottom: 0">
+            <p> This model was evaluated using {{ modelData.splitDesc.params.nFolds || 'K' }}-fold cross-test.</p>
+            <ul>
+                <li>The record counts for confusion matrix and cost matrix represent the first fold only.</li>
+                <li>The metrics in the histogram are the average across all folds.</li>
+            </ul>
+        </div>
+
+        <div puppeteer-hook-1>
+            <h1>Description</h1>
+            <p ng-if=" modelData.hasProbas">
+                A classifier produces a probability that a given object belongs to the class (e.g.
+                that <code ng-bind="modelData.coreParams.target_variable" /> is
+                <code ng-bind="modelData.classes[1]" />). The threshold (or “cut-off”) is the
+                number beyond which the prediction is considered positive. If set too low, it may
+                predict <code ng-bind="modelData.classes[1]" /> too often, if set too high, too rarely.
+            </p>
+        </div>
+        <p ng-if=" modelData.hasProbas">
+            One way to assess a classification model's performance is to use a "confusion matrix",
+            which compares actual values (from the test set) to predicted values. Be careful though,
+            the figures are highly dependent on the probability cutoff chosen to classify a record.
+            Depending on your use case, you might want to adjust the cutoff to optimize a specific metric.
+        </p>
+        <p ng-if="!modelData.hasProbas">
+            One way to assess a classification model's performance is to use a "confusion matrix",
+            which compares actual values (from the test set) to predicted values.
+        </p>
+
+
+        <div include-no-scope="/templates/ml/prediction-model/_explain_metrics.html" />
+    </div>
+</div>

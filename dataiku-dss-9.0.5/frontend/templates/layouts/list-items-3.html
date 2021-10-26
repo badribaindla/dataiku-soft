@@ -1,0 +1,236 @@
+<!-- layouts/list-items-3.html -->
+<div class="row-fluid fh vertical-flex" filtered-multi-select-rows ng-model="listItems"> <!-- same as list-items-2 but with ng-repeat and more flexible row height (you can override) -->
+
+    <div data-extend-template="/templates/layouts/list-items-repeat.html" class="vertical-flex">
+
+        <div data-block="summary-row" class="summary-row summary-row--single-line noflex horizontal-flex">
+
+            <div class="noflex dropdown mass-action-btn" data-block="mass-actions">
+                <input type="checkbox"
+                    class="select-cb"
+                    ng-model="selection.all"
+                    dku-indeterminate="selection.some"
+                    ng-change="updateMassSelectionCheckbox();">
+                <a data-toggle="dropdown"
+                    class="dropdown-toggle unselectable"
+                    ng-class="{disabled: selection.selectedObjects.length == 0,collapsed:selection.none}">
+                    <span ng-hide='selection.none'>ACTIONS</span>
+                    <b class="caret"></b>
+                </a>
+                <ul data-block="mass-action-dropdrop-menu" class="dropdown-menu">
+                    <li ng-show="!noTags&&projectSummary.canWriteProjectContent">
+                        <a ng-click="startApplyTagging()"><i class="icon-tags"></i>Tag</a>
+                    </li>
+                    <li ng-show="!noWatch">
+                        <a ng-if="!allWatching(selection.selectedObjects)"
+                           ng-click="watchObjects('YES')"
+                           ng-attr-title="{{ actionTooltips.WATCH }}"
+                           data-toggle="tooltip"
+                           data-container="body"
+                        >
+                            <i class="icon-eye"/> {{ actionLabels.WATCH }}
+                        </a>
+                        <a ng-if="allWatching(selection.selectedObjects)"
+                           ng-click="watchObjects('ENO')"
+                           ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                           data-toggle="tooltip"
+                           data-container="body"
+                        >
+                            <i class="icon-eye"/> {{ actionLabels.UNWATCH }}
+                        </a>
+                    </li>
+                    <li ng-show="!noStar">
+                        <a ng-if="!allStarred(selection.selectedObjects)"
+                           ng-click="starObjects(true)"
+                           ng-attr-title="{{ actionTooltips.STAR }}"
+                           data-toggle="tooltip"
+                           data-container="body"
+                        >
+                            <i class="icon-star"/> {{ actionLabels.STAR }}
+                        </a>
+                        <a ng-if="allStarred(selection.selectedObjects)"
+                           ng-click="starObjects(false)"
+                           ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                           data-toggle="tooltip"
+                           data-container="body"
+                        >
+                            <i class="icon-star"/> {{ actionLabels.UNSTAR }}
+                        </a>
+                    </li>
+                    <li ng-show="massIntegrations">
+                        <a ng-if="!allIntegrations(selection.selectedObjects)" ng-click="autoIntegrationsObjects(true, selection.selectedObjects)">
+                            <i class="icon-ok-sign"></i>Activate integration
+                        </a>
+                        <a ng-if="allIntegrations(selection.selectedObjects)" ng-click="autoIntegrationsObjects(false, selection.selectedObjects)">
+                            <i class="icon-remove-sign"></i>Disable integration
+                        </a>
+                    </li>
+                    <li ng-show="massAutoTriggers">
+                        <a ng-if="!allAutoTriggers(selection.selectedObjects)"
+                           disabled-if-message="allAutoTriggersDisabled(selection.selectedObjects)"
+                           ng-click="autoTriggersObjects(true, selection.selectedObjects)">
+                            <i class="icon-ok-sign"/>Activate Auto-triggers
+                        </a>
+                        <a ng-if="allAutoTriggers(selection.selectedObjects)"
+                           disabled-if-message="allAutoTriggersDisabled(selection.selectedObjects)"
+                           ng-click="autoTriggersObjects(false, selection.selectedObjects)">
+                            <i class="icon-remove-sign"/>Disable Auto-triggers
+                        </a>
+                    </li>
+                    <li ng-show="massReporters">
+                        <a ng-if="!allReporters(selection.selectedObjects)" ng-click="setReporterObjects(true, selection.selectedObjects)">
+                            <i class="icon-ok-sign"></i>Activate reporter
+                        </a>
+                        <a ng-if="allReporters(selection.selectedObjects)" ng-click="setReporterObjects(false, selection.selectedObjects)">
+                            <i class="icon-remove-sign"></i>Deactivate reporter
+                        </a>
+                    </li>
+                    <li ng-show="canMassMakeListed && canModerateDashboards()">
+                        <a ng-if="!isAllListed(selection.selectedObjects)" ng-click="massMakeListed(selection.selectedObjects,true)">
+                            <i class="icon-dku-promote"></i>Make public
+                        </a>
+                        <a ng-if="isAllListed(selection.selectedObjects)" ng-click="massMakeListed(selection.selectedObjects,false)">
+                            <i class="icon-dku-promote"></i>Make private
+                        </a>
+                    </li>
+
+                    <li class="divider"
+                        ng-show="showClearData && projectSummary.canWriteProjectContent || !noDelete && projectSummary.canWriteProjectContent"
+                        style="margin: 1px 1px"/>
+
+                    <li ng-show="showClearData && projectSummary.canWriteProjectContent">
+                        <a ng-click="clearSelected()"><i class="icon-remove"/>Clear Data</a>
+                    </li>
+                    <li ng-show="!noDelete && projectSummary.canWriteProjectContent">
+                        <a ng-click="deleteSelected()"><i class="icon-trash"/>Delete</a>
+                    </li>
+                    <li ng-show="noDelete && massDelete">
+                        <a ng-click="massDeletion(selection.selectedObjects)">
+                            <i class="icon-trash"></i>Delete
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="flex std-list-search-box" style="flex-grow: 4; max-width: 300px;">
+                <span class="search-icon"><i class="icon-dku-search"></i></span>
+                <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Search&hellip;">
+                <div class="error-drawer" ng-if="selection.filterParams.userQueryErrors">
+                    <div class="error" ng-repeat="(exp, err) in selection.filterParams.userQueryErrors">
+                        <i class="icon icon-warning-sign"></i>{{err.message}}
+                    </div>
+                </div>v
+            </div>
+
+            <div ng-if="!noTags" custom-element-popup class="noflex tags-widget list-customfilter-box list-control-dropdown" data-block="filter-tags">
+                <span class="add-on"><i class="icon-tags"></i></span>
+
+                <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                    Tags
+                    <span ng-if="selection.filterQuery.tags.length > 0"> |
+                        <span class="nb-selected-elements">{{selection.filterQuery.tags.length}} selected</span>
+                    </span>
+                    <b class="caret"></b>
+                </button>
+
+                <div class="popover custom-element-popup-popover tags-list-popover">
+                    <div  ng-click="$event.stopPropagation()">
+                        <div style="max-height:300px">
+                            <div tags-list tags-list-selected="selection.filterQuery.tags" ></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div data-block="additional-filter-owner" class="noflex"></div>
+            <div data-block="additional-filter-type" class="noflex"></div>
+
+            <div class="noflex" ng-if="!noTags">
+                <button class="btn btn--secondary btn--icon" ng-class="{'btn--active': selection.filterQuery.interest.starred}" ng-click="toggleFilterStarred()">
+                    <i class="icon-star" style="color:#f9c000"></i>
+                </button>
+            </div>
+
+            <div class="noflex" data-block="additional-buttons"></div>
+
+            <div class="noflex" data-block="newItem"></div>
+
+            <div class="noflex" data-block="additional-buttons-after-new"></div>
+
+            <div class="noflex clear-filters-btn" ng-click="clearFilters()" ng-class="{'visibility-hidden': isEmptyFilter()}">
+                Clear filters
+            </div>
+            <div class="flex force-not-empty"></div>
+            <div class="noflex">
+                <div class="counters">
+                    <div style="display: inline-block;min-width: 85px">
+                        <span ng-show="selection.selectedObjects.length" >
+                            Selected <strong>{{ selection.selectedObjects.length }}</strong> of
+                        </span>
+                        <span ng-show="selection.filtered&&!selection.selectedObjects.length" >
+                            Showing <strong>{{ selection.filteredObjects.length }}</strong> of
+                        </span>
+                    </div>
+                    <strong>{{selection.allObjects.length}}</strong>
+                    <span data-block="counter-name"></span>
+                </div>
+
+                <div class="sort-box list-control-widget" style="display: inline-block">
+                    <sort-order-button class="order" value="selection.orderReversed" remember-choice="sortCookieKey+'_asc'" sob-opt="{'buttonClass':'btn'}"></sort-order-button>
+                    <select dku-bs-select="{style: 'dku-select-button'}"
+                        remember-choice="sortCookieKey+'k'"
+                        ng-model="selection.orderQuery"
+                        ng-options="obj.value as obj.label for obj in sortBy"
+                        required
+                    />
+                </div>
+            </div>
+        </div>
+
+        <div data-block="item" class="h100">
+            <label disable-main-click> <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit h100" dataset="item">
+                <div class="illustration">
+                    <i class="{{item.type | typeToIcon}}"></i>
+                </div>
+                <div class="hitContent horizontal-flex h100">
+                    <h4 >
+                        <a href="{{ $state.href('projects.project.datasets.dataset.explore', {projectKey : $stateParams.projectKey, datasetName :item.name}) }}" title="{{ item.displayName }}">
+                            <i ng-if="item.interest.starred" class="icon-star"></i>
+                            {{ item.name }}
+                        </a>
+                    </h4>
+                    <div>
+                    <span>
+                        <small>{{ item.type|niceType }}</small>
+                    </span>
+                    <span ng-show="item.status.totalSize >= 0 && sortOptions.column == 'status.totalSize'" class="size" title="Size">
+                |
+                    <small>{{ item.status.totalSize | fileSizeOrNA }}</small>
+                </span>
+                        <span ng-show="item.status.records >= 0 && sortOptions.column == 'status.records'" class="nb_records" title="Number of records">
+                |
+                    <small >{{ item.status.records | number }} records</small>
+                </span>
+                        <span ng-show="item.lastModifiedOn">
+                    |
+                    <small>Modified {{ item.lastModifiedOn|friendlyTimeDeltaShort }}</small>
+                </span>
+                    </div>
+
+                    <ul class="tags inline flex" ng-if="!noTags">
+                        <li ng-repeat="tag in item.tags">
+                            <span class="tag" color-contrast="{{ projectTagsMap[tag].color.substring(1) || '#FDB423'}}" ng-click="selectTag(selection.filterQuery,tag)">
+                                <span ui-global-tag="tag" object-type="objectType"></span>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

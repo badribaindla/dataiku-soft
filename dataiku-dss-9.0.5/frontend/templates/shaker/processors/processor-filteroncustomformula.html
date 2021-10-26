@@ -1,0 +1,28 @@
+<form ng-controller="FilterOnCustomFormulaController" class="grel-step" name="processorForm" publish-in-grand-grand-parent="processorForm">
+	<ng-include src="'/templates/shaker/processors/processor-filter-and-flag.html'"></ng-include>
+	<fieldset ng-if="step.params.action == 'CLEAR_CELL' || step.params.action=='DONTCLEAR_CELL'">
+        <label for="" class="control-label">Column to clear</label>
+        <input
+            type='text'
+            bs-typeahead='step.$stepState.change.columnsBeforeStep'
+            autocomplete='off'
+            ng-trim="false"
+            ng-required="true"
+            data-min-length='1'
+            ng-model='step.params.clearColumn'
+            class="submit-on-blur"
+            next-on-enter
+            />
+    </fieldset>
+
+	<fieldset on-any-blur="checkAndRefresh()">
+		<label for="" class="control-label">Expression</label>
+		<div class="row-fluid">
+            <div class="formula-mini-editor">
+                <textarea id="qa_formula_filter_expression" class="expression submit-on-blur" ng-model="step.params.expression" />
+                <button id="qa_open_formula_editor" type="button" ng-click="edit()" ng-disabled="modalShown" class="btn btn--full btn--primary btn--outline" style="max-width: 210px;">Open editor panel</button>
+            </div>
+        </div>
+	</fieldset>
+
+</form>

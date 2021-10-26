@@ -1,0 +1,254 @@
+<form class="dkuform-horizontal">
+
+	<div class="section" ng-if="mask">
+	    <div class="control-group" ng-if="mask">
+	        <label class="control-label">Override global settings</label>
+	        <div class="controls">
+	            <label>
+	                <input type="checkbox" ng-model="mask.enabled">
+	                <span class="help-inline">If disabled, this cluster will use globally-defined settings for everything related to Impala</span>
+	            </label>
+	        </div>
+	    </div>
+    </div>
+
+    <div class="section"  ng-if="!mask || mask.enabled">
+	    <div class="control-group">
+	        <label class="control-label">Enable Impala</label>
+	        <div class="controls">
+	            <label>
+	                <input type="checkbox" ng-model="settings.enabled" ng-disabled="!appConfig.hadoopEnabled"/>
+	                <span ng-show="!appConfig.hadoopEnabled" class="text-error">
+	                    Hadoop support is not enabled
+	                </span>
+	                <span class="help-inline">
+	                    Enable support of Impala {{mask ? 'for this cluster' : '' }}
+	                </span>
+	            </label>
+	        </div>
+	    </div>
+	</div>
+
+    <div ng-if="(!mask || mask.enabled) && settings.enabled">
+    	<div class="section">
+            <h2 id="connection">Impala connection</h2>
+
+        <div ng-if="mask" class="control-group">
+            <label class="control-label">Override connection settings</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.jdbc">
+                    <span class="help-inline">If disabled, this cluster will use globally-defined Impalad connection settings</span>
+                </label>
+            </div>
+        </div>
+
+        <div ng-if="!mask || mask.jdbc">
+
+            <div class="control-group">
+                <label for="impalaUseURLcheckbox" class="control-label">Use advanced URL syntax</label>
+                <div class="controls">
+                    <input id="impalaUseURLcheckbox" type="checkbox" ng-model="settings.useURL"/>
+                </div>
+            </div>
+            <div ng-show="settings.useURL != true" ng-class="{'disabled-params' : mask && (!mask.enabled || !settings.enabled || !mask.jdbc)}">
+                <div class="control-group">
+                    <label class="control-label">Use Cloudera (Simba) driver</label>
+                    <div class="controls">
+                        <input type="checkbox" ng-model="settings.useSimbaDriver"/>
+                        <span class="help-inline">Required for impersonation</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Authentication</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="settings.authBehavior">
+                            <option value="KERBEROS_FALLBACK_NOAUTH">Kerberos if available</option>
+                            <option value="KERBEROS">Kerberos</option>
+                            <option value="LDAP">User/password (LDAP)</option>
+                            <option value="NOAUTH">None</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group" ng-hide="settings.authBehavior != 'LDAP'">
+                    <label class="control-label">Credentials mode</label>
+                    <div class="controls">
+                        <select ng-model="settings.credentialsMode">
+                            <option value="GLOBAL">Global</option>
+                            <option value="PER_USER">Per user</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group" ng-hide="settings.authBehavior != 'LDAP' || settings.credentialsMode != 'GLOBAL'">
+                    <label class="control-label">User</label>
+                    <div class="controls">
+                        <input type="text" ng-model="settings.user"/>
+                    </div>
+                </div>
+                <div class="control-group" ng-hide="settings.authBehavior != 'LDAP' || settings.credentialsMode != 'GLOBAL'">
+                    <label class="control-label">Password</label>
+                    <div class="controls">
+                        <input type="password" ng-model="settings.password"/>
+                    </div>
+                </div>
+                <div class="control-group" ng-hide="settings.authBehavior != 'KERBEROS_FALLBACK_NOAUTH' && settings.authBehavior != 'KERBEROS'">
+                    <label for="impaladPrincipal" class="control-label">Principal</label>
+                    <div class="controls">
+                        <input type="text" id="impaladPrincipal" ng-model="settings.principal"/>
+                        <span class="help-inline">Kerberos principal of the impalad hosts</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="useSSLcheckbox" class="control-label">Use SSL</label>
+                    <div class="controls">
+                        <input id="useSSLcheckbox" type="checkbox" ng-model="settings.useSsl" />
+                    </div>
+                </div>
+                
+                <div ng-show="settings.useSsl == true">
+                    <div class="control-group">
+                        <label class="control-label">Truststore path</label>
+                        <div class="controls">
+                            <input type="text" ng-model="settings.trustStorePath"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Truststore password</label>
+                        <div class="controls">
+                            <input type="text" ng-model="settings.trustStorePassword"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Self-signed</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="settings.isSelfSigned"/>
+                            <span class="help-inline">The certificate can be self-signed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-show="settings.useURL == true" ng-class="{'disabled-params' : mask && (!mask.enabled || !settings.enabled || !mask.jdbc)}">
+                <div class="control-group">
+                    <label class="control-label">Driver class</label>
+                    <div class="controls">
+                        <input type="text" ng-model="settings.driver"/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Connection URL</label>
+                    <div class="controls">
+                        <input type="text" ng-model="settings.url"/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Displayed connection URL</label>
+                    <div class="controls">
+                        <input type="text" ng-model="settings.displayedUrl"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group" ng-class="{'disabled-params' : mask && (!mask.enabled || !settings.enabled || !mask.jdbc)}">
+                <label  class="control-label">Advanced properties</label>
+                <div class="controls">
+                    <ng2-credentials-list 
+                        [(items)]="settings.connectionProperties"
+                        key-placeholder="Property key"
+                        value-placeholder="Property value"
+                        add-label="Add property">
+                    </ng2-credentials-list>
+                </div>
+            </div>
+            
+            <div class="control-group" ng-class="{'disabled-params' : mask && (!mask.enabled || !settings.enabled || !mask.jdbc)}">
+                <label for="impaladPort" class="control-label">Default port</label>
+                <div class="controls">
+                    <input type="number" id="impaladPort" min="0" max="65535" step="1" ng-model="settings.port"/>
+                    <span class="help-inline">Port on which impalad daemons are listening</span>
+                </div>
+            </div>
+
+            <h3 id="hosts">Impala hosts</h3>
+
+            <div add-remove ng-model="settings.datanodes" ng-class="{'disabled-params' : mask && (!mask.enabled || !settings.enabled || !mask.jdbc)}">
+                <div>
+            	    <small>
+            	        Leave 0 as port to use the default port
+            	    </small>
+                </div>
+                <div ng-repeat="datanode in settings.datanodes" >
+                    <div class="control-group">
+                        <label for="" class="control-label"></label>
+                        <div class="controls">
+                            <input type="text" ng-model="datanode.fqn" />
+                            <input type="number" ng-model="datanode.port" />
+                            <a class="" ng-click="remove($index)">
+                                <i class="icon-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn--success" ng-click="add({fqn : '', port : 0})">Add another host</button>
+            </div>
+        </div>
+
+    	</div>
+    	<div class="section">
+            <h2 id="recipes">Impala recipes</h2>
+
+	        <div class="control-group" ng-if="mask && impersonationEnabled">
+	            <label class="control-label">Override 'Impala user'</label>
+	            <div class="controls">
+	                <label>
+	                    <input type="checkbox" ng-model="mask.additionalUserToGrantAccessToWhenImpersonating">
+	                    <span class="help-inline">Advanced usage</span>
+	                </label>
+	            </div>
+	        </div>
+	        <div class="control-group" ng-if="impersonationEnabled && (!mask || mask.additionalUserToGrantAccessToWhenImpersonating)">
+	            <label class="control-label">Impala user</label>
+	            <div class="controls">
+	                <input type="text" ng-model="settings.additionalUserToGrantAccessToWhenImpersonating"/>
+	                <span class="help-inline">In impersonation mode, DSS needs to grant access to this user</span>
+	            </div>
+	        </div>
+	    
+	        <div class="control-group" ng-if="mask && !impersonationEnabled">
+	            <label class="control-label">Override 'Pre-create managed'</label>
+	             <div class="controls">
+	                <label>
+	                    <input type="checkbox" ng-model="mask.preCreateManagedDatasetFolderBeforeMetastoreSyncForDirectWriteRecipes">
+	                    <span class="help-inline">Advanced usage</span>
+	                </label>
+	            </div>
+	        </div>
+	        <div class="control-group" ng-if="!impersonationEnabled && (!mask || mask.preCreateManagedDatasetFolderBeforeMetastoreSyncForDirectWriteRecipes)">
+	            <label class="control-label">Pre-create folder for write</label>
+	            <div class="controls">
+	                <label>
+	                <input type="checkbox" ng-model="settings.preCreateManagedDatasetFolderBeforeMetastoreSyncForDirectWriteRecipes"/>
+	                <span class="help-inline">When running a "write by Impala" recipe, should DSS create the folder before doing the synchronization? Must be disabled for "inherit permissions mode". See documentation for more info.</span>
+	                </label>
+	            </div>
+	        </div>
+	    
+	        <div class="control-group" ng-if="mask">
+	            <label class="control-label">Override creation settings</label>
+	             <div class="controls">
+	                <label>
+	                    <input type="checkbox" ng-model="mask.engineCreationSettings">
+	                    <span class="help-inline">If disabled, this cluster will use globally-defined settings for Impala recipe creation settings</span>
+	                </label>
+	            </div>
+	        </div>
+	        
+	        <div class="control-group" ng-if="!mask || mask.engineCreationSettings">
+	            <label class="control-label">Stream mode</label>
+	            <div class="controls">
+	                <input type="checkbox" ng-model="settings.engineCreationSettings.streamMode"/>
+	                <span class="help-inline">Applied to new Impala recipes. In stream mode, Impala does not write the output directly</span>
+	            </div>
+	        </div>
+    	</div>
+    </div>
+</form>

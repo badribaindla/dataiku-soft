@@ -1,0 +1,88 @@
+<div class="pivot-help-zone vertical-flex">
+    <div class="noflex example-selector">
+        <div class="example-list">
+            <ul ng-mouseleave="uiState.hovered = null;">
+                <li ng-repeat="example in examples" 
+                    ng-class="{active : example == uiState.selected, hovered : example == getDisplayed()}" 
+                    ng-mouseenter="uiState.hovered = example;"
+                    ng-click="uiState.selected = example;">
+                    {{example.title}}
+                </li>
+            </ul>
+        </div><!-- 
+     --><div class="example-summary">
+            <div class="header">Settings</div>
+            <div class="setup">
+                <div class="illustration">
+                    <div class="color-to-background" style="width: 12px; height: 3px; margin-bottom: 2px;"></div><!--
+                 --><div class="color-to-background" style="width: 12px; height: 8px;"></div>
+                </div>
+                <span class="key">Column:</span> <span class="value">{{getDisplayed().column}}</span>
+            </div>
+            <div class="setup">
+                <div class="illustration">
+                    <div class="color-to-background" style="display: inline-block; height: 12px; width: 3px; margin-right: 2px;"></div><!--
+                 --><div class="color-to-background" style="display: inline-block; height: 12px; width: 8px;"></div>
+                </div>
+                <span class="key">Row:</span> <span class="value">{{getDisplayed().row}}</span>
+            </div>
+            <div class="setup">
+                <div class="illustration">&Sigma;</div>
+                <span class="key">Content:</span> <span class="value">{{getDisplayed().content}}</span>
+            </div>
+            <div class="setup" ng-if="getDisplayed().other != null">
+                <span class="key">Other:</span> <span class="value">{{getDisplayed().other}}</span>
+            </div>
+        </div>
+    </div>
+    <div class="flex example-output">
+        <div class="fh horizontal-flex">
+            <div class="flex" style="flex-basis: 1px;">
+            </div>
+            <div class="noflex center-children">
+                <div style="position: relative;">
+                    <table class="example-table input">
+                        <tr>
+                            <th ng-repeat="c in getDisplayed().input.columns">{{c}}</th>
+                        </tr>
+                        <tr ng-repeat="r in getDisplayed().input.rows">
+                            <td ng-repeat="v in r track by $index">{{v}}</td>
+                        </tr>
+                    </table>
+                    <div style="position: absolute; bottom: -24px; transform: translateX(-50%); left: 50%; width: 100px; text-align: center;">
+                        <div class="table-title">Input</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex center-children" style="flex-basis: 1px;">
+                <div class="line"></div>
+            </div>
+            <div class="noflex center-children">
+                <i class="icon icon-visual_prep_pivot_recipe"></i>
+            </div>
+            <div class="flex center-children" style="flex-basis: 1px;">
+                <div class="line"></div>
+            </div>
+            <div class="noflex center-children">
+                <span class="output-marker">&bull;</span>
+            </div>
+            <div class="noflex center-children">
+                <div style="position: relative;">
+                    <table class="example-table output" ng-class="{'bold-first-col' : getDisplayed().hasIdentifier}">
+                        <tr>
+                            <th ng-repeat="c in getDisplayed().output.columns">{{c}}</th>
+                        </tr>
+                        <tr ng-repeat="r in getDisplayed().output.rows">
+                            <td ng-repeat="v in r track by $index">{{v}}</td>
+                        </tr>
+                    </table>
+                    <div style="position: absolute; bottom: -24px; transform: translateX(-50%); left: 50%; width: 240px; text-align: center;">
+                        <div class="table-title" ng-if="getDisplayed().output.title">{{getDisplayed().output.title}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex" style="flex-basis: 1px;">
+            </div>
+        </div>
+    </div>
+</div>

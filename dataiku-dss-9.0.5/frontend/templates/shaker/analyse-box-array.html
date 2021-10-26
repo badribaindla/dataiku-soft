@@ -1,0 +1,28 @@
+    <div class="vertical-flex h100 array-values">
+        <div class="actions noflex" ng-if="shakerWritable">
+            <button ng-click="arrayRemoveSelectedRows(false)" class="btn btn--secondary" ng-disabled="arrayNbSelected() == 0">Remove rows</button>
+            <button ng-click="arrayRemoveSelectedRows(true)"  class="btn btn--secondary" ng-disabled="arrayNbSelected() != 1">Keep only rows</button>
+        </div>
+        <div class="flex oa">
+            <table class="table table-striped facet-table table-small table-condensed">
+                <tr class="tr-discreet">
+                    <th></th>
+                    <th dku-if="shakerWritable"><input type="checkbox" ng-model="_arraySelectAll"
+                            ng-change="arraySelectAll(_arraySelectAll)" /></th>
+                    <th class="value">Value</th>
+                    <th>Count</th>
+                    <th>%</th>
+                    <th>Cum. %</th>
+                </tr>
+
+                <tr ng-repeat="value in analysis.arrayFacet.values">
+                    <td>{{ $index +1 }}</td>
+                    <td dku-if="shakerWritable"><input type="checkbox" ng-model="analysis.arrayFacet.selected[$index]" /></td>
+                    <td class="value"><span ng-class='{empty: !value}'>{{ value || "No value" }}</span></td>
+                    <td class="lining-nums">{{analysis.arrayFacet.counts[$index]}}</td>
+                    <td class="lining-nums">{{100 *analysis.arrayFacet.percentages[$index] | number:1}}</td>
+                    <td class="lining-nums">{{100 * analysis.arrayFacet.cumPercentages[$index] | number:1}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>

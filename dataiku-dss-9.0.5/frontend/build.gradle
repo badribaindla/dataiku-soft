@@ -1,0 +1,189 @@
+plugins {
+    id "com.github.node-gradle.node" version "2.2.3"
+}
+
+node {
+    version = "13.8.0"
+    npmVersion = "7.6.3"
+    npmInstallCommand = "ci"
+    distBaseUrl = "https://nodejs.org/dist"
+    download = true
+}
+
+tasks.register("packageLock", Exec) {
+    inputs.file("package-lock.json")
+    // if "package-lock.json" has been modified, delete "node_modules/gradle.done" to trigger npmInstall task
+    commandLine "rm", "-f", "node_modules/gradle.done"
+    outputs.file("node_modules/gradle.done")
+}
+
+npmInstall {
+    dependsOn packageLock
+    outputs.file("node_modules/gradle.done")
+    doLast {
+        File outFile = file("node_modules/gradle.done")
+        if (!outFile.exists()) {
+            outFile.text = ""  // Create a dummy file to make gradle think it is node
+        }
+    }
+}
+// Execute npmInstall only if "node_modules/gradle.done" does not exist
+// Ugly, but Angular modifies the node_modules directory, so it gets the job done
+npmInstall.onlyIf { !file("node_modules/gradle.done").exists() }
+
+tasks.register("bowerInstall", NpxTask) {
+    dependsOn npmInstall
+
+    command = "bower"
+    args = ["install"]
+
+    outputs.cacheIf { true }
+
+    inputs.files(
+        "bower.json",
+    ).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir("bower_components")
+    outputs.file("bower_components/gradle.done")
+    doLast {
+        File outFile = file("bower_components/gradle.done")
+        if (!outFile.exists()) {
+            outFile.text = ""  // Create a dummy file to make gradle think it is node
+        }
+    }
+}
+
+
+tasks.register("htmlAppBowerInstall", NpxTask) {
+    dependsOn npmInstall
+
+    command = "bower"
+    args = ["install", "--config.interactive=false", "--config.cwd=$projectDir/html_app"]
+
+    outputs.cacheIf { true }
+
+    inputs.files(
+        "html_app/bower.json",
+    ).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir("html_app/bower_components")
+    outputs.file("html_app/bower_components/gradle.done")
+    doLast {
+        File outFile = file("html_app/bower_components/gradle.done")
+        if (!outFile.exists()) {
+            outFile.text = ""  // Create a dummy file to make gradle think it is node
+        }
+    }
+}
+
+tasks.register("generateTSParser", NodeTask) {
+    dependsOn npmInstall
+
+    script = file("node_modules/antlr4ts-cli/antlr4ts")
+    args = ["-no-listener",
+            "-no-visitor",
+            "-o", "static/dataiku/js/flow/filter/generated",
+            "$projectDir/../resources/com/dataiku/dip/antlr-grammar/FlowFilter.g4"]
+
+    outputs.cacheIf { true }
+
+    inputs.files(
+        "$projectDir/../resources/com/dataiku/dip/antlr-grammar/FlowFilter.g4",
+    ).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.files(
+        "static/dataiku/js/flow/filter/generated/FlowFilter.tokens",
+        "static/dataiku/js/flow/filter/generated/FlowFilterLexer.tokens",
+        "static/dataiku/js/flow/filter/generated/FlowFilterLexer.ts",
+        "static/dataiku/js/flow/filter/generated/FlowFilterParser.ts"
+    )
+}
+
+tasks.register("compileTSParser", NodeTask) {
+    dependsOn npmInstall
+
+    script = file("node_modules/typescript/lib/tsc.js")
+    args = ["-p", "$projectDir/static/dataiku/js/flow/filter"]
+
+    outputs.cacheIf { true }
+
+    inputs.files(generateTSParser.outputs.files).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.files(
+        "static/dataiku/js/flow/filter/webpack.config.js"
+    )
+    outputs.dir("static/dataiku/js/flow/filter/compiled-js")
+}
+
+tasks.register("compileParser", NodeTask) {
+    dependsOn npmInstall
+
+    script = file("node_modules/webpack/bin/webpack.js")
+    args = ["--config", "static/dataiku/js/flow/filter/webpack.config.js"]
+
+    outputs.cacheIf { true }
+
+    inputs.files(compileTSParser.outputs.files).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir("static/dataiku/js/flow/filter/dist")
+}
+
+tasks.register("symlinkHTML2Canvas", Exec) {
+    dependsOn npmInstall
+
+    commandLine "ln", "-sf", "$projectDir/node_modules/html2canvas/dist/html2canvas.min.js", "static/third/html2canvas/"
+}
+
+tasks.register("html2canvas", NodeTask) {
+    dependsOn npmInstall
+    dependsOn symlinkHTML2Canvas
+
+    script = file("node_modules/webpack/bin/webpack.js")
+    args = ["--config", "static/third/html2canvas/webpack.config.js"]
+
+    outputs.cacheIf { true }
+
+    inputs.files(
+        "static/third/html2canvas/entry.js",
+    ).withPathSensitivity(PathSensitivity.RELATIVE)
+
+    outputs.file("static/third/html2canvas/html2canvas_1.0.0-alpha.10.js")
+}
+
+tasks.register("build", NpxTask) {
+    dependsOn npmInstall
+    dependsOn bowerInstall
+    dependsOn htmlAppBowerInstall
+    dependsOn compileParser
+    dependsOn html2canvas
+
+    command = "grunt"
+    args = ["dev"]
+
+    outputs.cacheIf { true }
+
+    inputs.files(
+        "Gruntfile.js",
+        "index.tmpl",
+        // The path below contains a symbolic link
+        // and it does not seem to work with continuous mode.
+        fileTree(dir: "static", include: "**/*.less"),
+    ).withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir("templates").withPathSensitivity(PathSensitivity.RELATIVE)
+
+    outputs.files("index.html", "static/dataiku/css/style.css")
+}
+
+tasks.register("dist", Copy) {
+    dependsOn build
+
+    from("$projectDir") {
+        exclude("**/.*")
+        exclude("node_modules")
+    }
+    into "$rootDir/dist/dip-static"
+}
+
+tasks.register("clean", Delete) {
+    delete "node_modules"
+    delete "bower_components"
+    delete "$projectDir/html_app/bower_components"
+    delete "static/third/html2canvas/html2canvas.min.js"
+    delete "static/dataiku/js/flow/filter/dist"
+    delete "static/dataiku/js/flow/filter/generated"
+}

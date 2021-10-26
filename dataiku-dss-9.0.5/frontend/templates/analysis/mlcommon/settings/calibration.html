@@ -1,0 +1,41 @@
+<div class="design-tab-title">Probability calibration</div>
+<div class="doctor-settings-page h100">
+    <div class="row-fluid">
+        <div class="span7">
+            <form class="dkuform-horizontal">
+                <div class="control-group">
+                    <label class="control-label">Method</label>
+                    <div class="controls" >
+                        <select dku-bs-select ng-model="mlTaskDesign.calibration.calibrationMethod"
+                                ng-options="method[0] as method[1] for method in uiState.calibrationMethods"/>
+                    </div>
+                </div>
+            </form>
+            <div ng-if="isCalibrationEnabled()">
+                <div class="alert alert-warning" style="margin-top:15px;">
+                    <p> Calibration requires additional computations at scoring time and thus can increase latency and decrease throughput of deployed models.</p>
+                    <p>Calibrating a classification model alters the log-loss metrics (usually in a positive fashion).</p>
+                    <p ng-if="mlTaskDesign.calibration.calibrationMethod=='ISOTONIC'">
+                      Isotonic regression calibration might also alter the other metrics.</p>
+                    <p> Moreover SQL scoring with calibrated probabilities is not supported.</p>
+                </div>
+            </div>
+          </div>
+          <div class="span5">
+            <div class="doctor-explanation">
+                <h1> Usage tips </h1>
+                <p puppeteer-hook>
+                    Probability calibration helps adjust the predicted probabilities to the actual class frequencies.
+                    <br/>
+                    It should only be used if the problem involves actual probabilities of events, not just the ordering of these probabilities (ranking).
+                    <br/>
+                    For instance, upon predicting some probability of the positive class occurring, non-calibrated models can underestimate or overestimate the actual frequency of the positive class occurring, which can lead to suboptimal decisions.
+                    <br/>
+                    Calibrated models can be especially useful when the predicted probabilities are used to compute expectations of another quantity.
+                    <br/>
+                    Note that isotonic regression is more prone to overfitting and metrics alteration than Platt scaling.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

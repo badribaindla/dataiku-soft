@@ -1,0 +1,50 @@
+<div scrolly-menu style="display: inline-block" class="dropdown">
+    <a name="new-recipe-menu-dropdown-toggle" data-toggle="dropdown" class="btn btn--secondary dropdown-toggle">
+        <span plus-icon/>
+        {{title}} <b class="caret"></b>
+    </a>
+    <div class="scrolly-wrapper dropdown-menu pull-right">
+        <div class="anchor-for-popups">
+            <ul class="dropdown-menu new-streaming-endpoint-menu">
+                <li ng-repeat="result in displayedItems"
+                    ng-class="{'divider': result.divider, 'disabled': result.disabled, 'dropdown-submenu' : result.isSection, 'nav-header': result.header}"
+                    ng-mouseover="posnMenu($event)">
+
+                    <a ng-if="result.isSection" href><i class="icon-fixed-width-small {{result.icon}}"/>&nbsp;{{result.label}}</a>
+                    <div class="scrolly-wrapper" ng-if="result.isSection">
+                        <ul class="dropdown-menu" ng-if="result.isSection">
+                            <li ng-repeat="item in result.items" ng-class="{'divider': item.divider}">
+                                <a ng-click="displayPluginInfo(item.pluginId, false, true)" ng-if="item.isInfo">Learn
+                                    more...</a>
+                                <a ng-click="do(item.fn)" ng-if="!item.divider && !item.isInfo && !item.disabled">
+                                    <i class="icon-fixed-width-small {{item.icon}}"/>&nbsp;{{item.label}}
+                                </a>
+                                <a toggle="tooltip" title="{{item.reason}}" class="disabled"
+                                   ng-if="!item.isInfo && item.disabled">
+                                    <i class="icon-fixed-width-small {{item.icon}}"/>{{item.label}}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div ng-if="result.header && result.label">
+                        {{ result.label }}
+                    </div>
+
+                    <a ng-click="do(result.fn)" ng-if="!result.isSection && !result.disabled && !result.header">
+                        <i class="icon-fixed-width-small {{result.icon}}"/>
+                        {{result.label}}
+                    </a>
+
+                    <a title="{{result.reason}}" class="disabled" ng-if="!result.isSection && result.disabled && !result.header">
+                        <i class="icon-fixed-width-small {{result.icon}}"/>
+                        {{result.label}}
+                    </a>
+                </li>
+                <li style="font-style: italic; padding-left: 5px;" ng-if="appConfig.customCodeRecipes.length === 0">
+                    No plugins yet. <span ng-show="appConfig.admin">Visit <a href="/plugins-explore/store/">the store</a>.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

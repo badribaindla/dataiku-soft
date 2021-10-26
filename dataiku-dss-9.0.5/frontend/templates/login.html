@@ -1,0 +1,51 @@
+<div class="login-page fh oa" ng-controller="LoginController">
+    <aside class="login-page__landscape"></aside>
+    <section class="login-page__container">
+        <section class="login-page__left-column-container">
+            <img class="login-page__logo" src="/static/dataiku/images/logodss.png"/>
+            <div class="login-page__left-column">
+                <h1>Dataiku</h1>
+                <h2>Your all-in-one, end-to-end <br/> data science platform.</h2>
+                <div class="login-page__button login-page__button--link"><a target="blank" href="https://www.dataiku.com/learn/whatsnew/">Learn more</a></div>
+            </div>
+        </section>
+        <section class="login-page__right-column-container">
+            <section class="login-page__right-column">
+                <!-- Banner for Free edition -->
+                <header class="login-page__license-banner" ng-if="communityLook && !appConfig.licensing.wasCEEntrepriseTrial">
+                    <h1>Discover the Enterprise Edition features</h1>
+                    <h2>After logging in, head to Administration > License to request a free trial of Dataiku Enterprise features.</h2>
+                </header>
+                <!-- Banner for active Enterprise trial -->
+                <header class="login-page__license-banner" ng-if="!communityLook && daysLeft.toFixed">
+                    <h1>You have {{daysLeft}} more day{{ daysLeft > 1 ? 's' : '' }} of your Enterprise features trial.</h1>
+                    <h2>Interested in purchasing DSS? <a class="login-page__link" href="mailto:dss@dataiku.com">Contact us</a>.</h2>
+                </header>
+                <!-- Banner for expired Enterprise trial -->
+                <header class="login-page__license-banner" ng-if="communityLook && appConfig.licensing.wasCEEntrepriseTrial">
+                    <h1>Your Enterprise features trial has expired.</h1>
+                    <h2>Want to continue using advanced DSS features? <a class="login-page__link" href="mailto:dss@dataiku.com">Contact us</a>.</h2>
+                </header>
+                <h1 class="login-page__title" style="margin-bottom: 40px">Log in</h1>
+                <form name="loginForm" >
+                    <input class="login-page__input" type="text" name="login" placeholder="Username" ng-model="login" id="qa_login-page_input-login" required autofocus/>
+                    <input class="login-page__input" type="password" name="password" placeholder="Password" ng-model="password" id="qa_login-page_input-password" required/>
+
+                    <a class="login-page__forgotten-password" target="_blank"
+                    ng-if="appConfig.studioForgotPasswordUrl" href="{{appConfig.studioForgotPasswordUrl}}">Forgot your password?</a>
+
+                    <a class="login-page__forgotten-password" target="_blank"
+                    ng-if="!appConfig.studioForgotPasswordUrl" href="{{$root.versionDocRoot}}/troubleshooting/problems/cannot-login.html">Forgot your password?</a>
+            
+                    <div class="alert alert-error" ng-show="loginFailed" style="text-align: center">
+                        <strong>Login failed</strong>
+                        <span ng-if="loginErrorMessage" ng-bind="loginErrorMessage"/>
+                        <span ng-if="loginError" summary-of-error="loginError" />
+                    </div>
+            
+                    <button ng-click="submit()" ng-disabled="loginForm.$invalid" class="login-page__button">Log in</button>
+                </form>
+            </section>
+        </section>
+    </section>
+</div>

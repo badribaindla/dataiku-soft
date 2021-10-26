@@ -1,0 +1,246 @@
+<div class="home-page dss-home-page" ng-class="{'automation-node' : appConfig.isAutomation}">
+
+<div class="vertical-flex h100">
+    <div class="noflex header-zone">
+        <div class="horizontal-flex project-home-nav-title-bar">
+            <div class="flex">
+                <h2 class="home-nav-title">
+                    <span class="home-nav-title-element folder-name root project-home-nav-title-bar"><a ui-sref="home" id="qa_homepage_home-button">Home</a></span>
+                    <span class="home-nav-title-element"><i class="icon-angle-right"/></span>
+                    <span ui-sref="apps.list({})" class="folder-name home-nav-title-element">Applications</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex main-zone vertical-flex">
+        <!-- TOP BAR -->
+        
+        <div class="noflex app-list__top-bar">
+        
+            <!-- Full text filtering -->
+            <div class="std-list-search-box projects-search" style="display: inline-block;">
+                <span class="add-on">
+                    <i class="icon-dku-search"></i>
+                </span>
+                <input type="search"
+                    auto-focus="true"
+                    ng-model="query.q"
+                    placeholder="Search applications..."
+                    style="display: inline-block; margin: 0 auto;"
+                    ui-keydown="{'enter': 'goToFirstFilteredApp()'}"/>
+            </div>
+        
+            <!-- Tags filtering -->
+            <div custom-element-popup class="tags-widget list-customfilter-box list-control-widget list-control-dropdown">
+                <span class="add-on"><i class="icon-tags" /></span>
+                <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                    Tags <span ng-if="query.tags.length > 0"> | <span class="nb-selected-elements">{{query.tags.length}} selected</span></span>
+                    <b class="caret" />
+                </button>
+                <div class="popover custom-element-popup-popover global-tags-list-popover tags-list-popover" id="home-global-tag-list-popover">
+                      <div ng-click="$event.stopPropagation()">
+                        <div style="max-height:300px">
+                            <div global-tags-list="tagsList" selected-tags="query.tags" on-click-func="toggleTag" ></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Clear filters btn -->
+            <div class="clear-filters-btn" ng-click="clearFilters();" ng-if="isFiltering()">Clear filters</div>
+
+
+            <span class="pull-right">
+                <!-- Sorting projects -->
+                <div custom-element-popup close-on-click="true" class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown" ng-show="displayMode.mode != 'flow'">
+                    <span class="add-on" ng-click="sortBy.isReversedSort = !sortBy.isReversedSort" style="cursor:pointer"><i ng-class="sortBy.isReversedSort ? 'icon-sort-by-attributes-alt' : 'icon-sort-by-attributes'" /></span>
+                    <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                        {{ sortByModeTitles[sortBy.mode] }}
+                        <b class="caret" />
+                    </button>
+                    <div class="popover custom-element-popup-popover contributors-list-popover" id="home-sort-project-popover">
+                        <div style="max-height:300px">
+                            <ul>
+                                <li ng-click="sortBy.mode = 'name';">{{ sortByModeTitles['name'] }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Display Mode -->
+                <div custom-element-popup close-on-click="true" class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown">
+                    <span class="add-on"><i ng-class="{'mosaic':'icon-shaker', 'list':'icon-list', 'flow':'icon-dku-nav_flow'}[displayMode.mode]" /></span>
+                    <button class="dku-select-button mainzone tags-box-button has-caret" ng-click="togglePopover()">
+                        <span style="text-transform: capitalize;">{{ displayMode.mode == 'flow' ? 'graph' : displayMode.mode }}</span>
+                        <b class="caret" />
+                    </button>
+                    <div class="popover custom-element-popup-popover display-mode-list-popover" id="home-projects-display-mode-popover">
+                        <div style="max-height:300px">
+                            <ul>
+                                <li ng-click="displayMode.mode = 'mosaic';"><i class="display-mode-icon icon-shaker" /><span class="display-mode-title">Mosaic</span></li>
+                                <li ng-click="displayMode.mode = 'list';"><i class="display-mode-icon icon-list" /><span class="display-mode-title">List</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </span>
+
+        </div>
+        
+        <!-- APPS -->
+        <div class="flex">
+            <div class="fh">
+                <div class="h100 oa">
+                    <div block-api-error></div>
+
+                    <!-- List or Mosaic mode -->
+                    <div class="apps fh" ng-if="displayMode.mode == 'mosaic' || displayMode.mode == 'list'" ng-class="{'app-tiles': displayMode.mode == 'mosaic', 'app-rows': displayMode.mode == 'list'}">
+
+                        <!-- No project app at all -->
+                        <div class="empty-list-cta" ng-if="appTemplatesList.length == 0">
+                             <h1>
+                                 You do not have any application yet.
+                             </h1>
+                             <br/>
+                             <span ng-if="!appConfig.isAutomation">
+                                Convert a project to an Application template
+                            </span>
+                         </div>
+                         
+                         <div class="empty-list-cta" ng-if="appTemplatesList.length > 0 && filteredAppTemplatesList.length == 0">
+                             <h1>
+                                 All applications have been filtered out
+                             </h1>
+                             <div>
+                                 <a class="btn btn--success btn--large" ng-click="clearFilters()">
+                                     Clear filters
+                                 </a>
+                             </div>
+                         </div>
+                        
+                        <!-- Some projects -->
+                        <div ng-if="filteredAppTemplatesList.length > 0" class="h100">
+                            <!-- Mosaic -->
+                            <div ng-if="displayMode.mode == 'mosaic'" class="h100">
+                                <!-- items rows -->
+                                <div fat-repeat="filteredAppTemplatesRows" as="row" row-height="232" style="height: 100%;">
+                                    <div class="items-row h100 subitems-row">
+                                        <!-- items mosaic -->
+                                        <div  ng-repeat="item in row" class="tile-wrapper">
+
+                                            <!-- app -->
+                                            <div class="app" full-click main-click
+                                                 data-id="{{item.appId}}"
+                                                 data-type="app"
+                                                 ng-click="clickOnApp(item, $event)">
+                                                <!-- Image -->
+                                                <div class="image row-cell">
+                                                    <totem project-name="item.label"
+                                                           project-key=""
+                                                           object-type="'APP'"
+                                                           object-id="item.appId"
+                                                           object-img-hash = "item.objectImgHash"
+                                                           sizeX="140" sizeY="120"
+                                                           editable="false",
+                                                           img-color="item.imgColor",
+                                                           img-pattern="item.imgPattern",
+                                                           show-initials="item.showInitials",
+                                                           is-project-img="item.isAppImg",
+                                                           default-img-color="item.defaultImgColor"/>
+                                                </div>
+                                                <!-- Body -->
+                                                <div class="body app-body row-cell">
+                                                    <a href="{{$state.href('apps.app', {appId : item.appId})}}" class="title">
+                                                        <h3 show-tooltip-on-text-overflow text-tooltip="item.label || item.appId"></h3>
+                                                    </a>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- List -->
+                            <div ng-if="displayMode.mode == 'list'" class="h100">
+
+                                <!-- app rows -->
+                                <div fat-repeat="filteredAppTemplatesList" as="app" row-height="192" style="height: 100%;">
+
+                                    <!-- App -->
+                                    <div class="app"
+                                        full-click
+                                        data-id="{{app.appId}}"
+                                        data-type="app">
+                                        <!-- Image -->
+                                        <div class="app-image row-cell">
+                                            <a href="{{$state.href('apps.app', {appId : app.appId})}}" main-click>
+                                                <totem project-name="app.label"
+                                                       project-key=""
+                                                       object-type="'APP'"
+                                                       object-id="app.appId"
+                                                       object-img-hash = "app.objectImgHash"
+                                                       sizeX="140"
+                                                       sizeY="120"
+                                                       editable="false",
+                                                       img-color="app.imgColor",
+                                                       img-pattern="app.imgPattern",
+                                                       show-initials="app.showInitials",
+                                                       is-project-img="app.isAppImg",
+                                                       default-img-color="app.defaultImgColor" />
+                                            </a>
+                                        </div>
+                                        <!-- Body -->
+                                        <div class="app-body row-cell">
+                                            <div class="app-title">
+                                                <h3>
+                                                    <a href="{{$state.href('apps.app', {appId : app.appId})}}" main-click>{{app.label || app.appId}}</a>
+                                                </h3>
+                                            </div>
+                                            <div class="app-description">
+                                                <div from-markdown = "app.shortDesc || app.description" class="description description-on-home" />
+                                            </div>
+                                        </div>
+
+                                        <!-- Activity -->
+                                        <div class="app-activity row-cell" ng-if="!appConfig.isAutomation">
+                                            <div class="app-description" ng-if="app.lastInstantiation > 0">
+                                                <span>Last instantiated {{app.lastInstantiation | friendlyTimeDelta}}</span>
+                                            </div>
+                                        </div>
+                                        <!-- Contributors -->
+                                        <div class="app-people row-cell" ng-if="!appConfig.isAutomation">
+                                            <a class="contributor" ng-repeat="contributor in getAppInstanceOwnerDisplayList(app.instanceOwners, 8)" title="{{contributor.displayName}}" href="/profile/{{contributor.login}}/">
+                                                <span user-picture="contributor.login" size="28" />
+                                            </a>
+                                            <a class="contributor hidden-contributors" ng-if="app.instanceOwners.length != getAppInstanceOwnerDisplayList(app.instanceOwners, 8).length">
+                                                <div><span class="plus">+</span>{{ app.instanceOwners.length - getAppInstanceOwnerDisplayList(app.instanceOwners, 8).length }}</div>
+                                            </a>
+                                        </div>
+                                        <!-- Tags -->
+                                        <div class="app-tags row-cell" ng-if="!appConfig.isAutomation">
+                                            <ul class="tags inline">
+                                                <li ng-repeat="tag in app.tags">
+                                                    <span class="tag" color-contrast="{{ getDefaultTagColor(tag) }}" ng-click="toggleTag(tag)">
+                                                        <span ui-global-tag="tag" object-type="'PROJECT'"></span>
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div ui-view></div>
+</div>
+
+</div>

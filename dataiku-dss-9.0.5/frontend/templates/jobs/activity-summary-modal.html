@@ -1,0 +1,61 @@
+<div class="modal modal3">
+    <div dku-modal-header modal-title="Activity Summary"  />
+    <div class="modal-body">
+        <section class="alert alert-info activity-logs__alert" ng-if="getInJobAllActivities(selectedActivity.activityId).requiredReason.type">
+            <span activity-required-reason activity="getInJobAllActivities(selectedActivity.activityId)" sentence="true" past="true" />
+        </section>
+        <section ng-show="['SPARK_PIPELINE', 'SQL_PIPELINE'].includes(selectedActivity.activityType)">
+            <h5>Pipeline details</h5>
+            <ul>
+                <li ng-repeat="pr in selectedActivity.pipelineRecipes">
+                    <span><i class="{{pr.recipeType|recipeTypeToIcon}}"></i> {{pr.recipeName}}</span>
+                    <span ng-show="pr.outputPartition">({{pr.outputPartition}})</span>
+                </li>
+            </ul>
+        </section>
+        <section class="padleftright16">
+            <h5 class="activity-preview-dependencies__title">Sources</h5>
+            <em ng-show="selectedActivity.sources.length == 0">This activity has no source</em>
+            <ng-include src="'/templates/jobs/source-stats.html'" />
+        </section>
+        <section class="padleftright16">
+            <h5 class="activity-preview-dependencies__title">Targets</h5>
+            <em ng-show="selectedActivity.targets.length == 0">This activity has no target</em>
+            <ng-include src="'/templates/jobs/target-stats.html'" />
+        </section>
+
+        <div ng-if="yarnLogs && yarnLogs[selectedActivity.activityId]">
+            <h4>Found {{yarnLogs[selectedActivity.activityId].length}} yarn applications in this activity</h4>
+            <ul>
+                <li ng-repeat="yarnLog in yarnLogs[selectedActivity.activityId]">
+                    Application <a target="_new" href="/dip/api/flow/jobs/cat-yarn-log?projectKey={{$stateParams.projectKey}}&jobId={{jobStatus.baseStatus.def.id}}&activityId={{selectedActivity.activityId}}&yarnAppId={{yarnLog}}">{{yarnLog}}</a>
+                </li>
+            </ul>
+        </div>
+
+        <div ng-if="k8sLogs && k8sLogs[selectedActivity.activityId]">
+            <h4>Found {{k8sLogs[selectedActivity.activityId].length}} Kubernetes pods in this activity</h4>
+            <ul>
+                <li ng-repeat="k8sLog in k8sLogs[selectedActivity.activityId]">
+                    Pod <a target="_new" href="/dip/api/flow/jobs/cat-k8s-log?projectKey={{$stateParams.projectKey}}&jobId={{jobStatus.baseStatus.def.id}}&activityId={{selectedActivity.activityId}}&podName={{k8sLog}}">{{k8sLog}}</a>
+                </li>
+            </ul>
+        </div>
+
+        <section class="padleftright16" ng-if="selectedActivity.warnings.totalCount > 0">
+            <h5 class="activity-preview-dependencies__title">Warnings</h5>
+            <div class="alert alert-warning">
+                <div ng-repeat="(type, data) in selectedActivity.warnings.warnings">
+                    <h4 class="activity-preview-dependencies__list-title">{{type}} occurred {{data.count}} times</h4>
+                    <div ng-repeat="example in data.stored" class="activity-preview-dependencies__list-item">
+                        <i class="icon-chevron-sign-right mleftright8"></i>
+                        {{example.message}}
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div class="modal-footer modal-footer-std-buttons">
+        <button class="btn btn--text btn--secondary" ng-click="dismiss()">Close</button>
+    </div>
+</div>

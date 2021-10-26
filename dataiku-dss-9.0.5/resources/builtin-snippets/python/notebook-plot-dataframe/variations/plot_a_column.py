@@ -1,0 +1,1 @@
+my_df['col_name'].plot(kind='hist', bins=100)

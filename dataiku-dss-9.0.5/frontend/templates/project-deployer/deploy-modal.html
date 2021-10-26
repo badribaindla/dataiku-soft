@@ -1,0 +1,43 @@
+<div class="modal modal3" auto-size="false" global-keydown="{'esc': 'close();' }">
+    <div dku-modal-header modal-title="{{ modalTitle }}" modal-close="close"/>
+    <div class="modal-body padtop0">
+        <div block-api-error/>
+        <video autoplay loop muted playsinline class="w100 mbot16" poster="/static/dataiku/images/deployer/rocket-still.jpg">
+            <source src="/static/dataiku/images/deployer/rocket.webm" type="video/webm">
+            <img src="/static/dataiku/images/deployer/rocket-still.jpg">
+        </video>
+
+        <progress-bar neutral="{{percentage}}" class="progress-striped" allow-empty="true" active="true" ng-if="deployment.status === DEPLOY_STATUS.IN_PROGRESS"></progress-bar>
+        <progress-bar success="100" class="progress" allow-empty="true" active="true" ng-if="deployment.status === DEPLOY_STATUS.DONE_WITH_WARNINGS"></progress-bar>
+        <progress-bar error="{{percentage}}" class="progress" allow-empty="true" active="true"  ng-if="deployment.status === DEPLOY_STATUS.FAILED"></progress-bar>
+
+        <ul class="raw-unstyled-ul padtop4">
+            <li ng-repeat="step in deployment.steps" ng-if="step.status !== STEP_STATUS.NOT_STARTED">
+                {{ step.name }}...
+            </li>
+            <li ng-if="deployment.status === DEPLOY_STATUS.DONE_WITH_WARNINGS"><strong>Project successfully updated (with warnings)</strong></li>
+        </ul>
+
+        <div ng-if="deployment.infoMessages.messages.length && deployment.status !== DEPLOY_STATUS.IN_PROGRESS" info-messages-raw-list-with-alert="deployment.infoMessages" class="mtop24" />
+
+        <div ng-show="deployment.futureResponse && deployment.futureResponse.log && deployment.futureResponse.log.lines.length > 0">
+            <pre smart-log-tail="deployment.futureResponse.log" style="max-height: 100px;"/>
+        </div>
+
+        <div class="mtop16" ng-show="deployment.preloadLog.lines.length > 0">
+            <a class="no-underline" ng-init="open = false" ng-click="open = !open">Bundle preload log<i class="mleft4 {{open ? 'icon-chevron-up' : 'icon-chevron-down'}}" /></a>
+            <div class="mtop8" ng-show="open">
+                <pre smart-log-tail="deployment.preloadLog" style="max-height: 300px;"/>
+            </div>
+        </div>
+
+        <div ng-show="error && error.lines && error.length > 0">
+            <pre smart-log-tail="error" style="max-height: 100px;"/>
+        </div>
+    </div>
+
+    <div class="modal-footer modal-footer-std-buttons">
+        <button ng-show="deployment.status !== DEPLOY_STATUS.IN_PROGRESS" type="button" ng-click="close()" class="btn btn--text btn--secondary">Close</button>
+        <button ng-show="deployment.status === DEPLOY_STATUS.FAILED" type="button" ng-click="retryDeploy()" class="btn btn--text btn--primary">Retry</button>
+    </div>
+</div>

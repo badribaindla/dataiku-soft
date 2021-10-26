@@ -1,0 +1,82 @@
+
+
+<form class="dkuform-horizontal">
+    
+    <div ng-if="!mask" class="section">
+		<h2 id="security">Hadoop security (Kerberos)</h2>
+
+    	<div class="alert alert-warning">A modification of these settings requires a DSS restart</div>
+
+        <div class="control-group" ng-if="!mask" ng-class="{'disabled-params' : mask && (!mask.kerberosAuth)}">
+            <label class="control-label">Enable</label>
+            <div class="controls">
+                <label>
+                <input type="checkbox" ng-model="settings.kerberosLoginEnabled"/>
+                <span class="help-inline">Should DSS log itself on Kerberos</span>
+            </label>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!mask" ng-class="{'disabled-params' : mask && (!mask.kerberosAuth)}">
+            <label class="control-label">Principal</label>
+            <div class="controls">
+                <input type="text" ng-model="settings.dssPrincipal"/>
+                <span class="help-inline">Principal for the DSS user</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!mask" ng-class="{'disabled-params' : mask && (!mask.kerberosAuth)}">
+            <label class="control-label">Keytab</label>
+            <div class="controls">
+                <input type="text" ng-model="settings.dssKeytabPath"/>
+                <span class="help-inline">Absolute path to the keytab to use for DSS</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 id="config-keys">Hadoop config keys</h2>
+    	<div class="control-group" ng-if="mask">
+	        <label class="control-label">Override global settings</label>
+	        <div class="controls">
+	            <label>
+	                <input type="checkbox" ng-model="mask.properties">
+	                <span class="help-inline">If disabled, this cluster will use globally-defined Hadoop configuration keys. It is generally always required to override this
+	            </label>
+	        </div>
+	    </div>
+
+	    <div class="control-group" ng-if="!mask || mask.properties">
+			<ng2-credentials-list 
+				[(items)]="settings.extraConf"
+				key-placeholder="Configuration key"
+				value-placeholder="Configuration value"
+				add-label="Add configuration">
+			</ng2-credentials-list>
+	    </div>
+    </div>
+
+     <div class="section">
+        <h2 id="validation-kernel">Pig/Hive validation kernel</h2>
+
+	    <div class="alert alert-info">Extra environment variables passed to the process dedicated to validating Pig and Hive queries</div>
+    
+	    <div class="control-group" ng-if="mask">
+	        <label class="control-label">Override</label>
+	        <div class="controls">
+	            <label>
+	                <input type="checkbox" ng-model="mask.validationKernelsExtraEnv">
+	                <span class="help-inline">Advanced usage</span>
+	            </label>
+	        </div>
+	    </div>
+
+	    <div class="control-group" ng-if="!mask || mask.validationKernelsExtraEnv">
+			<ng2-credentials-list 
+				[(items)]="settings.validationKernelsExtraEnv"
+				key-placeholder="Variable key"
+				value-placeholder="Variable value"
+				add-label="Add environment variable">
+			</ng2-credentials-list>
+	    </div>
+	</div>
+</form>
+

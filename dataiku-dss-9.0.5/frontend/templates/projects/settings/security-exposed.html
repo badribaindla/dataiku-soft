@@ -1,0 +1,163 @@
+<div style="position: relative" class="h100 exposed-objects-settings" ng-controller="ProjectSettingsExposedController" global-keydown="{'ctrl-s meta-s':'save()'}">
+    <div class="vertical-flex fh h100">
+        <div class="noflex" style="padding: 0 20px 10px 20px;">
+            <div class="pull-right">
+                <button class="btn btn--outline btn--primary" ng-if="isDirty()" ng-click="saveAndMaybePerformChanges()"><i class="icon-save" style="margin-right: 10px;"></i>Save</button>
+                <button class="btn btn--outline btn--primary" ng-if="!isDirty()" disabled ><i class="icon-save" style="margin-right: 10px;"></i>Saved</button>
+            </div>
+            <h2 class="page-subtitle dib">Exposed objects</h2>
+            <div block-api-error></div>
+            <p style="margin-top: 10px;">Select flow objects to share and use on other projects</p>
+        </div>
+        <div class="noflex dku-border-bottom" style="padding: 0 20px 20px 20px;">
+            <div>
+                <div class="std-list-search-box with-icon" style="display: inline-block">
+                    <span class="search-icon"><i class="icon-dku-search"></i></span>
+                    <input type="search" ng-model="uiState.filterQuery" placeholder="Search…" class="ng-pristine ng-valid">
+                </div>
+
+                <div custom-element-popup="" close-on-click="true" class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown ng-scope">
+                    <div ng-show="uiState.view == 'objects'">
+                        <a class="btn btn--secondary dropdown-toggle mainzone has-caret" ng-click="togglePopover()">
+                            <i plus-icon />
+                            Add object
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="popover custom-element-popup-popover dropdown-menu oa" style="max-height: 53vh;">
+                            <li ng-repeat="type in exposableTypes">
+                                <a ng-click="newSource.type = type"><i class="{{type | typeToIcon}} {{type | typeToColor}} universe-color exposed-object-icon"></i> {{type | niceConst}}</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div ng-show="uiState.view == 'projects'">
+                        <a class="btn btn--secondary" style="background: white;" ng-click="newSource.type = 'PROJECT'">
+                            <i plus-icon />
+                            Add project
+                        </a>
+                    </div>
+                </div>
+
+                <div class="pull-right">
+                    <div custom-element-popup="" close-on-click="true" class="manage-items-widget list-customfilter-box list-control-widget list-control-dropdown ng-scope">
+                        <span class="add-on"><i class="icon-eye"></i></span>
+                        <a class="btn btn--secondary dropdown-toggle mainzone has-caret" ng-click="togglePopover()" style="padding-right: 25px; background: white; width: 100px; text-transform: none; text-align: left;">
+                            {{uiState.view | niceConst}}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="popover custom-element-popup-popover dropdown-menu oa" style="max-height: 53vh; width: 100px; min-width: 0; ">
+                            <li><a ng-click="uiState.view = 'objects'; newSource.type = null;">Objects</a></li>
+                            <li><a ng-click="uiState.view = 'projects'; newSource.type = null;">Projects</a></li>
+                        </ul>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="object-list oa exposed-objects-list" ng-if="uiState.view == 'objects'" style="flex: 0 1 auto;">
+            <div ng-repeat="object in exposedObjects.objects | filter: uiState.filterQuery" class="object">
+                <div dku-foldable open="object.$open">
+                    <div class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableOpen ? 'icon-caret-down' : 'icon-caret-right'}}"></i>
+                        <i class="{{object.type | typeToIcon }} {{object.type | typeToColor}} universe-color dibvam exposed-object-icon"></i>
+                        <a class="mx-textellipsis limit-span top-object">
+                            {{object.displayName}}
+                        </a>
+                        <a ng-click="openObject(object)">
+                            <i class="icon-external-link"></i>
+                        </a>
+                        <span class="about" ng-show="getProjectsForObject(object).length>0">
+                            on
+                            <strong>{{getProjectsForObject(object).length}}</strong> {{'project' | plurify: getProjectsForObject(object).length}}
+                        </span>
+                        <span class="about warning" ng-show="getProjectsForObject(object).length==0">
+                            <i class="icon-warning-sign"></i> Object not exposed on any projects
+                        </span>
+
+                        <i times-icon class="pull-right cursor-pointer" ng-click="removeObject(object)"></i>
+                    </div>
+
+                    <ul ng-show="foldableOpen" class="rule-list" ng-init="adding = {project: object.rules.length == 0}">
+                        <li ng-repeat="project in getProjectsForObject(object)">
+                            <i times-icon class="pull-right cursor-pointer" ng-click="removeRule(project, object)"></i>
+                            <i class="icon-dkubird"></i>
+                            <a class="mx-textellipsis limit-span object-project" ui-sref="projects.project.home.regular({projectKey:project.targetProject})">{{project.targetProjectDisplayName}}</a>
+                        </li>
+                        <li ng-show="!adding.project">
+                            <a class="dku-add-new" ng-click="adding.project = true">Add project</a>
+                        </li>
+                        <li ng-if="adding.project">
+                            <div object-picker="projectKey" type="PROJECT" object="newProject" class="dibvam" unusable="getProjectKeysForObject(object)" available-objects="available.projects" />
+                            <a class="btn btn--success" ng-click="addProjectToObject(newProject, object); adding.project = false; projectKey = null;" ng-disabled="!projectKey || getProjectKeysForObject(object)[projectKey]">ADD</a>
+                            <a class="btn btn--secondary" ng-click="adding.project = false;">CANCEL</a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="object-list oa exposed-objects-list" ng-if="uiState.view == 'projects'" style="flex: 0 1 auto;">
+            <div ng-repeat="project in projects| filter: uiState.filterQuery" class="object">
+                <div dku-foldable open="project.$open">
+                    <div class="accordion-title" ng-click="foldableToggle()"><i class="{{foldableOpen ? 'icon-caret-down' : 'icon-caret-right'}}"></i>
+                        <i class="icon-dkubird universe-color dibvam exposed-object-icon"></i>
+                        <a class="top-project mx-textellipsis limit-span top-project">
+                            {{project.targetProjectDisplayName}}
+                        </a>
+                        <a ui-sref="projects.project.home.regular({projectKey:project.targetProject})">
+                            <i class="icon-external-link"></i>
+                        </a>
+
+                        <span class="about" ng-show="getObjectsForProject(project).length>0">
+                            has
+                            <strong>{{getObjectsForProject(project).length}}</strong> {{'object' | plurify: getObjectsForProject(project).length}}
+                        </span>
+                        <span class="about warning" ng-show="getObjectsForProject(project).length==0">
+                            <i class="icon-warning-sign"></i> Project has no exposed objects
+                        </span>
+
+                        <i class="icon-trash pull-right cursor-pointer" ng-click="removeProject(project)"></i>
+                    </div>
+
+                    <ul ng-show="foldableOpen" class="rule-list" ng-init="adding = {object: project.$exposedObjects.length == 0}">
+                        <li ng-repeat="object in getObjectsForProject(project)">
+                            <i class="icon-trash pull-right cursor-pointer" ng-click="removeRule(project, object)"></i>
+                            <i class="{{object.type | typeToIcon }} {{object.type | typeToColor}} universe-color dibvam" style="margin-right: 5px;"></i>
+                            <a class="mx-textellipsis limit-span project-object" ng-click="openObject(object)">
+                                {{object.displayName}}
+                            </a>
+                        </li>
+                        <li ng-show="!adding.object">
+                            <a class="dku-add-new" ng-click="adding.object = true">Add object</a>
+                        </li>
+                        <li ng-if="adding.object">
+                            <div object-type-picker object-type="newObjectType" include="exposableTypes" ng-init="newObject = {}" class="dibvam"></div>
+                            <div ng-disabled="!newObjectType" ng-switch on="newObjectType" class="disablable dibvam">
+                                <div ng-switch-default object-picker="newObject.id" type="{{newObjectType}}" object="newObject.object" hide-foreign="true" unusable="getObjectIdsForProject(project, newObjectType)" available-objects="available[newObjectType]" class="dibvam"></div>
+                            </div>
+                            <a class="btn btn--success" ng-click="addObjectToProject(newObject.object, project); adding.object = false; projectKey = null;" ng-disabled="!newObject.id || getObjectIdsForProject(project, newObjectType)[newObject.object.id]">ADD</a>
+                            <a class="btn btn--secondary" ng-click="adding.object = false;">CANCEL</a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="noflex dku-border-top" ng-if="newSource.type" style="padding: 10px;">
+            <i class="icon-remove cursor-pointer" ng-click="newSource.type = null" style="padding: 0 10px; color: #bbb;"></i>
+            <div ng-switch on="newSource.type" class="dibvam">
+                <div ng-switch-default object-picker="newSource.id" type="{{newSource.type}}" object="newSource.object"
+                     unusable="uiState.view == 'objects' ? getObjectsIndex(newSource.type) : projectsIndex"
+                     available-objects="available[newSource.type]"
+                     hide-foreign="true"
+                     class="std-size-selector dibvam"></div>
+            </div>
+
+            <button ng-if="uiState.view == 'objects'" class="btn btn--secondary" ng-click="addObject(newSource.object)" ng-disabled="!newSource.id||getObjectsIndex(newSource.type)[newSource.id]">Add</button>
+
+            <button ng-if="uiState.view == 'projects'" class="btn btn--secondary" ng-click="addProject(newSource.object)" ng-disabled="projectsIndex[newSource.id]">Add</button>
+        </div>
+    </div>
+</div>

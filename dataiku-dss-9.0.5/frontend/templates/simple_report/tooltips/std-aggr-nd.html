@@ -1,0 +1,121 @@
+<div class="svg-tooltip pivot-chart-tooltip"
+     ng-class="{persistent: tooltipState.persistent}"
+     ng-show="(chartDef.multiTooltips && tooltipState.shown) || shown"
+     style="
+        left:  {{tooltipState.left}};
+        right: {{tooltipState.right}};
+        top:   {{tooltipState.top}};
+">
+
+    <table ng-if="tooltipState.coords != undefined" class="tooltip-table">
+        <tbody class="axes">
+            <tr ng-if="chartData.axesDef.color != undefined">
+                <td></td>
+                <td>{{chartDef.type == 'pie' ? chartDef.genericDimension0[0].column : chartDef.genericDimension1[0].column}}</td>
+                <td>{{chartData.getAxisLabels('color')[tooltipState.coords.color].label | chartLabelValue}}</td>
+                <td>
+                    <i class="icon-filter" title="Filter" ng-click="filter(chartDef.type == 'pie' ? chartDef.genericDimension0 : chartDef.genericDimension1)"></i>
+                    <i class="icon-level-down" title="Drill down" ng-show="isDrillable(chartDef.type == 'pie' ? chartDef.genericDimension0 : chartDef.genericDimension1)" ng-click="drill(chartDef.type == 'pie' ? chartDef.genericDimension0 : chartDef.genericDimension1, chartData.getAxisLabels('color')[tooltipState.coords.color])"></i>
+                </td>
+            </tr>
+            <tr ng-if="chartDef.genericDimension0.length && chartDef.type != 'pie'">
+                <td></td>
+                <td id="qa_charts_histogram-tooltip-column-name">{{chartDef.genericDimension0[0].column}}</td>
+                <td id="qa_charts_histogram-tooltip-column-value">{{chartDef.type == 'stacked_bars' ? chartData.getAxisLabels('y')[tooltipState.coords.y].label : chartData.getAxisLabels('x')[tooltipState.coords.x].label | chartLabelValue}}</td>
+                <td>
+                    <i class="icon-filter" title="Filter" ng-click="filter(chartDef.genericDimension0)"></i>
+                    <i class="icon-level-down" title="Drill down" ng-show="isDrillable(chartDef.genericDimension0)" ng-click="chartDef.type == 'stacked_bars' ? drill(chartDef.genericDimension0, chartData.getAxisLabels('y')[tooltipState.coords.y]) : drill(chartDef.genericDimension0, chartData.getAxisLabels('x')[tooltipState.coords.x])"></i>
+                </td>
+            </tr>
+            <tr ng-if="chartDef.groupDimension.length">
+                <td></td>
+                <td>{{chartDef.groupDimension[0].column}}</td>
+                <td>{{chartData.getAxisLabels('group')[tooltipState.coords.group].label | chartLabelValue}}</td>
+                <td>
+                    <i class="icon-filter" title="Filter" ng-click="filter(chartDef.groupDimension)"></i>
+                    <i class="icon-level-down" title="Drill down" ng-show="isDrillable(chartDef.groupDimension)" ng-click="drill(chartDef.groupDimension, chartData.getAxisLabels('group')[tooltipState.coords.group])"></i>
+                </td>
+            </tr>
+            <tr ng-if="chartData.axesDef.facet != undefined">
+                <td></td>
+                <td>{{chartDef.facetDimension[0].column}}</td>
+                <td>{{chartData.getAxisLabels('facet')[facet].label | chartLabelValue}}</td>
+                <td>
+                    <i class="icon-filter" title="Filter" ng-click="filter(chartDef.facetDimension)"></i>
+                    <i class="icon-level-down" title="Drill down" ng-show="isDrillable(chartDef.facetDimension)" ng-click="drill(chartDef.facetDimension, chartData.getAxisLabels('facet')[facet])"></i>
+                </td>            </tr>
+            <tr ng-if="chartData.axesDef.animation != undefined">
+                <td></td>
+                <td>{{chartDef.animationDimension[0].column}}</td>
+                <td>{{chartData.getAxisLabels('animation')[tooltipState.coords.animation].label | chartLabelValue}}</td>
+                <td>
+                    <i class="icon-filter" title="Filter" ng-click="filter(chartDef.animationDimension)"></i>
+                    <i class="icon-level-down" title="Drill down" ng-show="isDrillable(chartDef.animationDimension)" ng-click="drill(chartDef.animationDimension, chartData.getAxisLabels('animation')[tooltipState.coords.animation])"></i>
+                </td>
+            </tr>
+            <tr ng-if="chartDef.xDimension.length">
+                <td></td>
+                <td>{{chartDef.xDimension[0].column}}</td>
+                <td>{{chartData.getAxisLabels('x')[tooltipState.coords.x].label | chartLabelValue}}</td>
+                <td>
+                    <i class="icon-filter" title="Filter" ng-click="filter(chartDef.xDimension)"></i>
+                    <i class="icon-level-down" title="Drill down" ng-show="isDrillable(chartDef.xDimension)" ng-click="drill(chartDef.xDimension, chartData.getAxisLabels('x')[tooltipState.coords.x])"></i>
+                </td>
+            </tr>
+            <tr ng-if="chartDef.yDimension.length">
+                <td></td>
+                <td>{{chartDef.yDimension[0].column}}</td>
+                <td>{{chartData.getAxisLabels('y')[tooltipState.coords.y].label | chartLabelValue}}</td>
+                <td>
+                    <i class="icon-filter" title="Filter" ng-click="filter(chartDef.yDimension)"></i>
+                    <i class="icon-level-down" title="Drill down" ng-show="isDrillable(chartDef.yDimension)" ng-click="drill(chartDef.yDimension, chartData.getAxisLabels('y')[tooltipState.coords.y])"></i>
+                </td>
+            </tr>
+        </tbody>
+
+        <tbody class="measures">
+            <tr ng-if="tooltipState.measure > -1">
+                <td></td>
+                <td>{{measureLabel(chartDef.genericMeasures[tooltipState.measure])}} <i class="icon-circle" style="color: {{tooltipState.color}}"></i></td>
+                <td>{{tooltipState.formatters[tooltipState.measure](chartData.aggr(tooltipState.measure).get(coords()))}}</td>
+                <td></td>
+            </tr>
+            <tr ng-if="chartDef.xMeasure.length">   <!-- for grouped_xy -->
+                <td></td>
+                <td>{{measureLabel(chartDef.xMeasure[0])}} <i class="icon-circle" style="color: {{tooltipState.color}}"></i></td>
+                <td>{{tooltipState.formatters[0](chartData.aggr(0).get(coords()))}}</td>
+                <td></td>
+            </tr>
+            <tr ng-if="chartDef.yMeasure.length">  <!-- for grouped_xy -->
+                <td></td>
+                <td>{{measureLabel(chartDef.yMeasure[0])}} <i class="icon-circle" style="color: {{tooltipState.color}}"></i></td>
+                <td>{{tooltipState.formatters[1](chartData.aggr(1).get(coords()))}}</td>
+                <td></td>
+            </tr>
+            <tr ng-if="chartDef.colorMeasure.length">
+                <td></td>
+                <td>{{measureLabel(chartDef.colorMeasure[0])}} <i class="icon-circle" style="color: {{tooltipState.color}}"></i></td>
+                <td>{{tooltipState.formatters[chartDef.colorMeasure.$mIdx](chartData.aggr(chartDef.colorMeasure.$mIdx).get(coords()))}}</td>
+                <td></td>
+            </tr>
+            <tr ng-if="chartDef.sizeMeasure.length">
+                <td></td>
+                <td>{{measureLabel(chartDef.sizeMeasure[0])}} <i class="icon-circle" style="color: {{tooltipState.color}}"></i></td>
+                <td>{{tooltipState.formatters[chartDef.sizeMeasure.$mIdx](chartData.aggr(chartDef.sizeMeasure.$mIdx).get(coords()))}}</td>
+                <td></td>
+            </tr>
+            <tr ng-repeat="tooltipMeasure in chartDef.tooltipMeasures">
+                <td></td>
+                <td>{{measureLabel(tooltipMeasure)}}</td>
+                <td>{{tooltipState.formatters[chartDef.genericMeasures.length + chartDef.sizeMeasure.length + chartDef.colorMeasure.length + $index](chartData.aggr(chartDef.genericMeasures.length + $index).get(coords()))}}</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="click-cta" ng-show="!tooltipState.persistent">Click to pin tooltip</div>
+    <div class="exclude" ng-show="tooltipState.persistent">
+        <span ng-click="exclude()">Exclude</span>
+    </div>
+
+</div>

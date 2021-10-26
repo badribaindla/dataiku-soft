@@ -1,0 +1,38 @@
+<div class="clustering-results-page model-report-common fh">
+    <div class="row-fluid offset0 mainzone h100">
+		<!-- If you update this list, update saved-model_report_tile_params.html accordingly to make new tabs available in the dashboards  -->
+
+        <div class="span2 offset0 h100 oa nav-list-sidebar sidebar-{{topNav.top}} modal-footer-std-buttons" tab-model="uiState.settingsPane" tab-model-notify="true" disable-transition="true">
+            <ul>
+                <li sidebar-tab-l2-link tab-name="summary" label="Summary" />
+                <li sidebar-tab-l2-link tab-name="skins" label="Views" ng-if="modelSkins && modelSkins.length > 0"/>
+
+                <li class="l1 unselectable-header" ng-if="modelData.perf.variables_importance">Variables</li>
+                <li sidebar-tab-l2-link tab-name="variables_importance" label="Variables importance"  ng-if="modelData.perf.variables_importance" />
+
+                <li class="l1 unselectable-header" >Clusters</li>
+                <li sidebar-tab-l2-link tab-name="hierarchy" label="Hierarchy" ng-if="hasHierarchy()"/>
+                <li sidebar-tab-l2-link tab-name="anomalies" label="Anomalies" ng-if="hasAnomalies()"/>
+                <li sidebar-tab-l2-link tab-name="heatmap" label="Heatmap" />
+                <li sidebar-tab-l2-link tab-name="cluster-profiling" label="Cluster profiles" ng-if="modelData.clustersProfiling"/>
+                <li sidebar-tab-l2-link tab-name="scatterplot-page" label="Scatter plot" />
+                <li sidebar-tab-l2-link tab-name="detailed_metrics" label="Detailed metrics" />
+
+                <li class="l1 unselectable-header">Model information</li>
+                <li sidebar-tab-l2-link  tab-name="preparation" label="Data preparation" />
+                <li sidebar-tab-l2-link tab-name="features" label="Features" />
+                <li sidebar-tab-l2-link tab-name="algorithm" label="Algorithm" />
+                <li sidebar-tab-l2-link tab-name="train" label="Training information" sidekick-pulsar="modelData.trainDiagnostics"/>
+            </ul>
+        </div>
+
+        <div class="span10 offset0 h100 boxed-next-to-sidebar" ng-switch="uiState.settingsPane" ng-if="uiState.settingsPane">
+            <div ng-switch-when="json"><pre>{{modelData|json}}</pre></div>
+            <div class="h100 oa" ng-switch-when="summary" include-no-scope="/templates/ml/clustering-model/facts.html"></div>
+            <div class="h100 oa" ng-switch-when="features" include-no-scope="/templates/ml/common/features.html"></div>
+            <div class="h100 oa" ng-switch-when="preparation" include-no-scope="/templates/ml/common/preparation.html"></div>
+            <div class="h100" ng-switch-when="skins" include-no-scope="/templates/savedmodels/version-skins.html"></div>
+            <div class="h100 oa" ng-switch-default include-no-scope="/templates/ml/clustering-model/{{uiState.settingsPane}}.html" />
+        </div>
+    </div>
+</div>

@@ -1,0 +1,45 @@
+<div class="modal modal3 delete-project-folder-modal" ng-class="{'move-item-modal': containedProjects.length > 0 || containedFolders.length > 0}" auto-size="false">
+    <dku-modal-header modal-class="has-border" >
+        <dku-modal-title>
+            <span>
+                Delete <span ng-if="folders.length > 1">{{folders.length}}</span> {{ 'folder' | plurify: folders.length }} <span ng-if="folders.length === 1">"{{folders[0].name}}"</span>
+            </span>
+        </dku-modal-title>
+    </dku-modal-header>
+    <div class="modal-body vertical-flex" ng-if="containedProjects.length > 0 || containedFolders.length > 0">
+        <div block-api-error class="noflex"></div>
+        <div class="alert alert-danger instructions">
+            <span ng-if="folders.length === 1">This folder contains</span>
+            <span ng-if="folders.length > 1">These folders contain</span>
+            <span ng-if="containedProjects.length > 0">{{containedProjects.length}} {{'project' | plurify: containedProjects.length}}</span>
+            <span ng-if="containedProjects.length > 0 && containedFolders.length > 0"> and </span>
+            <span ng-if="containedFolders.length > 0">{{containedFolders.length}} {{'folder' | plurify: containedFolders.length}}</span>
+            <span>. Define a new place to store {{(containedProjects.length + containedFolders.length) > 1 ? 'them' : 'it' }}.</span>
+        </div>
+        <div class="flex">
+            <div class="fh">
+                <browse-path
+                    class="h100 vertical-flex"
+                    browse-fn="browse"
+                    title="Projects"
+                    path="newFolderId"
+                    can-select-fn="canSelect"
+                    can-browse-fn="canBrowse"
+                    on-browse-done-fn="browseDoneFn"
+                    cant-write-content-verb="Cannot write contents into this folder"
+                    display-item-fn="getName"
+                    searchable="false"
+                    destination-label="to"
+                    items-are-projects="true">
+                </browse-path>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer modal-footer-std-buttons" ng-class="{'has-border': containedProjects.length > 0 || containedFolders.length > 0}">
+        <p ng-if="currentFolder.canWriteContents === false" class="text-error pull-left margin-bottom-none">Cannot write contents to this folder</p>
+        <div class="pull-right">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--danger" ng-click="confirm()" ng-disabled="currentFolder.canWriteContents === false">Delete</button>
+        </div>
+    </div>
+</div>

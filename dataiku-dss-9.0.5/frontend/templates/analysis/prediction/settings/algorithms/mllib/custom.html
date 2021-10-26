@@ -1,0 +1,34 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html" class="h100">
+    <div data-block="algorithm-title">
+        Custom Spark ML Model
+        <a style="padding-left: 10px;" class="link-std" ng-click="removeCustomAlgorithm(uiState.algorithm)" title="remove model">
+            <i class="icon-trash" />
+        </a>
+    </div>
+
+    <div data-block="algorithm-description">
+        The following should represent the instantiation code for your Estimator object. <br/>
+        The features column can be accessed through the <em>__dku_features</em> column, and the
+        target through the <em>{{mlTaskDesign.targetVariable}}</em> column.
+        <br/>
+        <span ng-if="isBinaryClassification()"> The target is provided as a double which is either 0.0 or 1.0</span>
+        <span ng-if="isMulticlass()"> The target is provided as a double  with discrete values between 0.0 and nCategories-1 .</span>
+        <br/>
+        Your predictions should be provided in a column named <em>prediction</em>, with the same format as the target column.
+    </div>
+
+    <div data-block="algorithm-params">
+        <div class="code-snippet-editor-parent">
+            <div class="control-group fh" style="height: initial;">
+                <div code-snippet-editor
+                     code="getCustomAlgorithm(uiState.algorithm).initializationCode"
+                     sample-type="'scala'"
+                     categories="[isRegression() ? 'mllib-regressor' : 'mllib-classifier']"
+                     save-category="isRegression() ? 'mllib-regressor' : 'mllib-classifier'"
+                     displayed="getCustomAlgorithm(uiState.algorithm).enabled"
+                     editor-options="editorOptionsCustom"
+                />
+            </div>
+        </div>
+    </div>
+</div>

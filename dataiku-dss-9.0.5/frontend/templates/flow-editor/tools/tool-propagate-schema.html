@@ -1,0 +1,117 @@
+<div ng-controller="PropagateSchemaFlowToolMainController" class="flow-tool-mainzone">
+	<div class="header">
+		<div class="pull-right">
+			<button type="button" class="close" ng-click="stopCurrentTool()">&times;</button>
+		</div>
+		<h5>Schema propagation</h5>
+	</div>
+	<div class="tool-state">
+		<div ng-show="(!tool.user.updateStatus.updating || tool.user.updateStatus.multiPhaseUpdating) && tool.user.state">
+			<ul class="tool-facet raw-unstyled-ul">
+				<li flow-tool-facet-elt
+					color="'green'"
+					key="'OK'"
+					number="tool.user.state.summary.OK"
+					single-focused="true"
+					/>
+				<li flow-tool-facet-elt
+					color="'red'"
+					key="'Needs update'"
+					number="tool.user.state.summary.NOK"
+					single-focused="true"
+					/>
+				<li flow-tool-facet-elt
+					color="'orange'"
+					key="'Needs manual check'"
+					number="tool.user.state.summary.UNCHECKABLE"
+					single-focused="true"
+					/>
+                <li flow-tool-facet-elt
+                    color="'grey'"
+                    key="'Not yet checked'"
+                    number="tool.user.state.summary.UNCHECKED"
+                    single-focused="true"
+                    />
+                <li flow-tool-facet-elt
+                    color="'lightgrey'"
+                    key="'Excluded from propagation'"
+                    number="tool.user.state.summary.EXCLUDED"
+                    single-focused="true"
+                    />
+				<li flow-tool-facet-elt
+					ng-show="tool.user.state.summary.DATASET_NEEDS_REBUILD != 0"
+					color="'orange'"
+					key="'Dataset needs to be rebuilt'"
+					number="tool.user.state.summary.DATASET_NEEDS_REBUILD"
+					single-focused="true"
+					/>
+				<li flow-tool-facet-elt
+					ng-show="tool.user.state.summary.FAILED_CHECK != 0"
+					color="'purple'"
+				 	key="'Check failed'"
+					number="tool.user.state.summary.FAILED_CHECK"
+					single-focused="true"
+					/>
+
+			</ul>
+		</div>
+
+    </div>
+	<div ng-if="tool.user.updateStatus.multiPhaseUpdating" class="multi-update-text">
+		<span>{{updateText}}</span>
+	</div>
+	<div ng-if="!tool.user.updateStatus.multiPhaseUpdating && updateText" class="update-text">
+		<span>{{updateText}}</span>
+	</div>
+    <div ng-if="tool.user.updateStatus.updating || tool.user.updateStatus.multiPhaseUpdating" class="tool-progress">
+		<div progress-bar neutral="{{getTotalPercent()}}" allow-empty="true" />
+        <div class="text-center">
+            <button class="btn btn--danger" ng-click="abortUpdate()">Abort</button>
+        </div>
+    </div>
+    <div class="tool-actions" >
+        <div class="text-center">
+            <button ng-show="!tool.user.updateStatus.updating && !tool.user.updateStatus.multiPhaseUpdating" class="btn btn--success btn-cta-big-mod" ng-click="update(!tool.user.firstUpdateDone)">{{tool.user.firstUpdateDone ? ( getCountOfProblemItems() ? 'Continue' : 'Repeat') : 'Start'}}</button>
+        </div>
+        <div ng-show="!tool.user.updateStatus.updating  && !tool.user.updateStatus.multiPhaseUpdating" class="text-center mtop10" ng-if="tool.user.state.summary.NOK > 0">
+            <button class="btn btn--primary" ng-click="acceptAllRecipeSuggestions()">Accept all changes</button>
+        </div>
+        <div ng-show="!tool.user.updateStatus.updating && !tool.user.updateStatus.multiPhaseUpdating" class="text-center mtop10" ng-if="tool.user.state.summary.NOK > 0">
+            <button class="btn btn--danger" ng-click="ignoreAllRecipeSuggestions()">Ignore all changes</button>
+        </div>
+        <div ng-show="!tool.user.updateStatus.updating && !tool.user.updateStatus.multiPhaseUpdating" class="text-center mtop10" ng-if="tool.user.state.summary.UNCHECKABLE > 0">
+            <button class="btn btn--secondary" ng-click="markAllUncheckableAsOK()">Mark all uncheckable as OK</button>
+        </div>
+        <form ng-if="!tool.user.updateStatus.updating || tool.user.updateStatus.multiPhaseUpdating" class="dkuform-horizontal propagate-schema-tool__options-form">
+            <div ng-class="{'control-group': true, 'disabled': tool.user.updateOptions.doBuildAll}"  style="margin-bottom:0;">
+                <label for="dbr" class="control-label">Perform all actions automatically</label>
+                <input type="checkbox" id="dbr" ng-disabled="tool.user.updateOptions.doBuildAll"  ng-model="tool.user.updateOptions.doAnyRebuildingReqd" style="margin-top: -4px;"/>
+            </div>
+            <div class="control-group" style="margin-bottom:0;">
+                <label for="dba" class="control-label">Perform all actions automatically and build all outputs datasets afterwards</label>
+                <input type="checkbox" id="dba" ng-model="tool.user.updateOptions.doBuildAll" style="margin-top: -4px;"/>
+            </div>
+            
+
+            <div>
+                <i ng-show="expanded" class="icon-caret-down" /><i ng-show="!expanded" class="icon-caret-right" />
+                <a class="link-std" ng-click="expanded=!expanded">More options</a>
+            </div>
+
+            <div ng-show="expanded">
+                <div class="control-group" style="margin-bottom:0;">
+                    <label for="ari" class="control-label">Rebuild input datasets of recipes whose output schema may depend on input data (prepare, pivot, &hellip;)</label>
+                    <input type="checkbox" id="ari"  ng-model="tool.user.updateOptions.alwaysRebuildInputOfRecipesUsuallyComputingOutputSchemaBasedOnData" style="margin-top: -4px;"/>
+                </div>
+                <div class="control-group"  style="margin-bottom:0;">
+                    <label for="aro" class="control-label">Rebuild output datasets of recipes whose output schema is computed at runtime (code, pivot, &hellip;)</label>
+                    <input type="checkbox" id="aro" ng-model="tool.user.updateOptions.alwaysRebuildOutputOfRecipesUsuallyComputingOutputSchemaAtRuntime" style="margin-top: -4px;"/>
+                </div>
+                <div class="control-group">
+                    <label for="pex" class="control-label">Always perform expensive checks</label>
+                    <input type="checkbox" id="pex" ng-model="tool.user.updateOptions.performExpensive" style="margin-top: -4px;"/>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

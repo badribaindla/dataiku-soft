@@ -1,0 +1,127 @@
+<form on-any-blur="checkAndRefresh()" class="python-udf-step" ng-controller="PythonUDFController" name="processorForm" publish-in-parent="processorForm" publish-in-grand-grand-parent="processorForm">
+    <ul class="processor-field">
+        <li class="processor-field">
+            <fieldset>
+                <div class="fieldLabel">Mode</div>
+                <select
+                    dku-bs-select
+                    class="submit-on-blur"
+                    ng-model="step.params.mode"
+                    submit-on-blur>
+                    <option value='CELL'>cell : produce a new cell for each row</option>
+                    <option value='ROW'>row : return a row for each row</option>
+                    <option value='MULTI_ROWS'>rows : produce a list of rows for each row</option>
+                </select>
+            </fieldset>
+        </li>
+
+        <li class="processor-field">
+            <fieldset ng-show="step.params.mode == 'CELL'">
+                <span class="fieldLabel">Output column</span>
+                <input
+            type="text"
+            class="submit-on-blur"
+            ng-trim="false"
+            ng-model="step.params.column"
+            ng-required="step.params.mode == 'CELL'"
+            next-on-enter />
+            </fieldset>
+        </li>
+
+        <li class="processor-field">
+            <fieldset>
+                <span class="fieldLabel">Error column</span>
+                <input
+            type="text"
+            class="submit-on-blur"
+            ng-trim="false")
+            ng-model="step.params.errorColumn"
+            ng-required="false"
+            next-on-enter />
+            </fieldset>
+        </li>
+
+        <li class="processor-field">
+            <fieldset>
+                <label class="control-label">
+                    <input type="checkbox" ng-model="step.params.stopOnError" class="submit-on-blur"/>
+                    Stop on the first error
+                </label>
+
+            </fieldset>
+        </li>
+        <li class="processor-field" ng-if="!step.params.useKernel">
+            <fieldset>
+                <label class="control-label" title="Needed if cell values use characters outside the ASCII range">
+                    <input type="checkbox" ng-model="step.params.usePythonUnicode" class="submit-on-blur"/>
+                    Pass data as unicode
+                </label>
+
+            </fieldset>
+        </li>
+        <li class="processor-field">
+            <fieldset>
+                <label class="control-label">
+                    <input type="checkbox" ng-model="step.params.useKernel" class="submit-on-blur"/>
+                    Use a real Python process (instead of Jython)
+                </label>
+            </fieldset>
+        </li>
+        <li class="processor-field" ng-if="step.params.useKernel && step.params.envSelection">
+            <div code-env-selection-form="step.params.envSelection" env-lang="'PYTHON'" is-step="true"></div>
+        </li>
+
+        <li class="processor-field" ng-if="step.params.useKernel">
+		   <fieldset>
+                <span class="fieldLabel">Used input columns</span>
+                <ng2-values-list 
+                    [(items)]="step.params.sourceColumnsList"
+                    [suggestions]="step.$stepState.change.columnsBeforeStep"
+                    add-label="Add a column" 
+                    (on-blur)="checkAndRefresh()"
+                    (on-delete)="checkAndRefresh()"
+                    value-placeholder="E.g. a column of the schema">
+                </ng2-values-list>
+
+		        <span class="help-inline">
+		            Access to these columns will be faster
+		        </span>
+		    </fieldset>
+        </li>
+        <li class="processor-field" ng-if="step.params.useKernel">
+		   <fieldset>
+		        <span class="fieldLabel">Used input columns (pattern)</span>
+		        <input type="text" class="submit-on-blur" ng-trim="false" ng-model="step.params.sourceColumnsPattern" next-on-enter />
+		        <span class="help-inline">
+		            Access to these columns will be faster
+		        </span>
+		    </fieldset>
+        </li>
+        <li class="processor-field" ng-if="step.params.useKernel">
+            <fieldset>
+                <label class="control-label">
+                    <input type="checkbox" ng-model="step.params.vectorize" class="submit-on-blur"/>
+                    Vectorized processing (faster, uses Pandas)
+                </label>
+            </fieldset>
+        </li>
+        <li class="processor-field" ng-if="step.params.useKernel && step.params.vectorize">
+            <fieldset>
+		        <span class="fieldLabel">Vector size</span>
+		        <input type="number"
+		            force-integer
+                    min="1"
+		            autocomplete="off"
+		            ng-model="step.params.vectorSize"
+		            class="submit-on-blur"
+		            next-on-enter/>
+		        <span class="help-inline">
+		            Max size for the vectors passed to the UDF
+		        </span>
+            </fieldset>
+        </li>
+    </ul>
+    <a style="margin-top:10px;width: 100%" ng-click="editPythonSource()" class="btn btn--primary">
+        Edit Python source code
+    </a>
+</form>

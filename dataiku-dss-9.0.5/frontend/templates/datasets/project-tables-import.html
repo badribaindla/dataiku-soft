@@ -1,0 +1,131 @@
+<div class="connection-sql-mass-table-to-dataset h100" style="padding: 40px">
+    <div class="object-or-project-summary-column-base h100">
+        <div class="row-fluid h100" style="display: flex; justify-content: center;">
+
+            <div style="display: flex; flex-direction: column">
+                <div style="display: flex; align-items: center; margin-bottom: 20px">
+                    <h4 style="flex: 1;" ng-show="!uiState.fromExternal">Import tables</h4>
+                    <h4 style="flex: 1;" ng-show="uiState.fromExternal == 'alation'">Import tables from Alation</h4>
+                    <button type="submit" ng-disabled="importForm.$invalid" class="btn btn--primary" ng-click="acceptMassImport($stateParams.zoneId)" ng-if="!uiState.fromExternal">
+                        Create {{tableImportCandidates.length}} {{'dataset' | plurify: tableImportCandidates.length}}
+                    </button>
+                    <!--TODO temporary create second button, next merge two functions in one-->
+                    <button type="submit" ng-disabled="importForm.$invalid" class="btn btn--primary" ng-click="acceptMassImportAlation(massImportData.tables)" ng-if="massImportData && uiState.fromExternal == 'alation'">
+                        Create {{massImportData.tables.length}} {{'dataset' | plurify: massImportData.tables.length}}
+                    </button>
+                </div>
+
+                <div style="height: 100%; box-sizing: border-box; display: flex">
+
+                    <div ng-if="!uiState.fromExternal" class="description-field" style="padding: 0;height:100%; width: 1000px; box-sizing: border-box; min-height: 0; justify-content: center; display: flex; flex-direction: column">
+                        <div block-api-error />
+                        <div class="fattable-default-header dku-border-bottom noflex" style="width: calc(100% - 36px); padding: 10px 18px; white-space: nowrap">
+                            <strong style="width: 420px; display: inline-block;">
+                                <div>Tables to import</div>
+                            </strong>
+                            <strong style="width: 20px; display: inline-block">
+                                <i class="icon-arrow-right" style="text-align:center; width: 20px; height: 26px;"></i>
+                            </strong>
+                            <strong style="width: 235px; display: inline-block">
+                                <span ng-show="candidates.hiveImportCandidates.length">Target connection</span>
+                                <span ng-show="!candidates.hiveImportCandidates.length">&nbsp;</span>
+                            </strong>
+                            <strong style="width: 260px;">Dataset name</strong>
+                        </div>
+                        <form name="importForm" class="dkuform-std-vertical oa" style="flex: 1;padding: 10px 18px">
+                            <div style="height: 100%;" fat-repeat="tableImportCandidates" as="candidate" row-height="50" in-form="importForm">
+                                <div style="width: 100%; font-size: 0;" ng-class="{'candidate-error': candidate.messages.error, 'candidate-warning': candidate.messages.warning && !candidate.messages.error}">
+                                    <div style="width: 420px; display: inline-block; white-space: nowrap">
+
+                                        <div style="display: inline-block; font-size: 13px; line-height: 28px; vertical-align: middle; margin-right: 10px" ng-if="candidate.messages.error || candidate.messages.warning">
+                                            <span custom-element-popup cep-position="smart" close-on-click="true" ng-if="candidate.messages.error || candidate.messages.warning" style="">
+                                                <span class="mainzone" ng-click="togglePopover()" title="Click to see warnings">
+                                                    <i class="icon-warning-sign" style="cursor: pointer;"></i>
+                                            </span>
+                                                <div class="popover custom-element-popup-popover dropdown-menu" style="padding: 10px;">
+                                                    <div info-messages-raw-list-with-alert="candidate.messages"/>
+                                                </div>
+                                            </span>
+                                        </div>
+
+                                        <i ng-if="!candidate.messages.error && !candidate.messages.warning" style="font-size: 16px; line-height: 28px; vertical-align: middle; margin-right: 10px" class="icon" ng-class="{'icon-code_hive_recipe' : candidate.connectionType === 'HIVE','icon-code_sql_recipe' : candidate.connectionType === 'SQL' }"></i>
+                                        
+                                        <span style="font-size: 13px; line-height: 28px; vertical-align: middle; display: inline-block; width: 375px; text-overflow: ellipsis; overflow: hidden">
+                                            {{candidate.table}}
+                                            <span ng-show="candidate.partitionColumnCount">
+                                            ({{candidate.hivePartitionCount}} partitions found)
+                                        </span>
+
+                                        </span>
+                                       
+                                    </div>
+
+                                    <strong style="font-size: 13px; width: 20px; display: inline-block; line-height: 28px; vertical-align: middle">
+                                        <i class="icon-arrow-right" style="text-align:center; width: 20px; height: 26px;"></i>
+                                    </strong>
+                                    
+                                    <div ng-show="!candidate.sourceVirtualConnection" style="font-size: 13px; display: inline-block; width: 220px">
+                                        &nbsp;
+                                    </div>
+                                    
+                                    <div ng-show="candidate.sourceVirtualConnection" style="font-size: 13px;  white-space: nowrap; display: inline-block; width: 235px; line-height: 28px; vertical-align: middle">
+                                        <span ng-if="candidate.possibleConnections.length == 0" class="text-error">
+                                            There is nowhere to import
+                                        </span>                                    
+                                        <select ng-if="candidate.possibleConnections.length > 0" ng-model="candidate.selectedConnectionId" dku-bs-select ng-options="connection.id as connection.label for connection in candidate.possibleConnections" style="margin-left: 30px"></select>
+                                    </div>
+
+                                    <div style="width: 275px; display: inline-block;">
+                                        <i style="font-size: 16px; margin-right: 10px; display: inline-block; line-height: 28px; vertical-align: middle" class="icon datasets icon-other_sql"></i>
+                                        <div class="control-group" style="margin-bottom: 0;  display: inline-block; line-height: 28px; vertical-align: top">
+                                            <div class="controls" style="width: 249px">
+                                                <input style="width: 225px;"
+                                                       type="text"
+                                                       ng-model="candidate.datasetName"
+                                                       required
+                                                       custom-validation="isDatasetNameUnique" ng-pattern="/^[\w-_]+$/"/>
+                                                <a style="margin-left: 10px; color: #666 " ng-click="removeOneCandidate(candidate)" ng-show="tableImportCandidates.length > 1">
+                                                    <i style="font-size: 15px; line-height: 28px; vertical-align: middle "class="icon-trash" />
+                                                </a>
+                                            </div>
+                                            <div class="column-btns" custom-element-popup cep-position="smart" close-on-click="true" ng-if="candidate.existingDatasetsNames.length" style="line-height: 15px">
+                                                <a style="font-size: 11px" ng-click="togglePopover()" class="mainzone">{{candidate.existingDatasetsNames.length}} existing {{ 'dataset' | plurify : candidate.existingDatasetsNames.length }}</a>
+
+                                                <ul style="font-size: 11px" class="popover custom-element-popup-popover dropdown-menu pull-right shaker-column-row-popup columns-view-actions-popup">
+                                                    <li ng-repeat="datasetName in candidate.existingDatasetsNames" style="text-align: center">
+                                                        <a ui-sref="projects.project.datasets.dataset.explore({projectKey : projectKey, datasetName: datasetName })">
+                                                            {{datasetName}}</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </form>
+
+                    </div>
+
+                    <div ng-if="massImportData && uiState.fromExternal == 'alation'" class="vertical-flex h100">
+
+                        <div ng-repeat="table in massImportData.tables" style="margin: 0 auto">
+                            <table class="table table-hover table-striped">
+                                <tr><td>Table</td><th>{{table.table}}</th></tr>
+                                <tr><td>Schema</td><th>{{table.schema}}</th></tr>
+                                <tr><td>Dataset name</td><td>
+                                    <input type="text"
+                                           class="input-xlarge"
+                                           ng-model="table.datasetName"
+                                           custom-validation="isDatasetNameUnique" ng-pattern="/^[\w-_]+$/"
+                                           ng-required="table.$selected"/>
+                                </td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

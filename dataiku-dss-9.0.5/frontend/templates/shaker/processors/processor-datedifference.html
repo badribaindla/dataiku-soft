@@ -1,0 +1,94 @@
+<form on-any-blur="checkAndRefresh()" name="processorForm" publish-in-grand-parent="processorForm">
+	<fieldset>
+	    <span class="fieldLabel">Time since column</span>
+	    <input
+	        type='text'
+	        bs-typeahead='step.$stepState.change.columnsBeforeStep'
+	        autocomplete='off'
+	        ng-trim="false"
+	        ng-required="true"
+            required="required"
+	        data-min-length='0'
+	        ng-model='step.params.input1'
+	        class="submit-on-blur"
+	        next-on-enter/>
+	</fieldset>
+
+	<fieldset>
+        <div class="fieldLabel">until</div>
+	    <select dku-bs-select
+            ng-model="step.params.compareTo"
+	        class="submit-on-blur"
+	        next-on-enter
+	        required
+	        >
+	        <option value="NOW">Now</option>
+	        <option value="COLUMN">Another date column</option>
+	        <option value="DATE">A fixed date</option>
+	    </select>
+	</fieldset>
+
+    <fieldset ng-show="step.params.compareTo == 'COLUMN'">
+        <span class="fieldLabel">Other column</span>
+        <input
+            type='text'
+            bs-typeahead='step.$stepState.change.columnsBeforeStep'
+            autocomplete='off'
+            ng-trim="false"
+            ng-required="step.params.compareTo == 'COLUMN'"
+            data-min-length='0'
+            ng-model='step.params.input2'
+            class="submit-on-blur"
+            next-on-enter/>
+    </fieldset>
+
+    <fieldset ng-show="step.params.compareTo == 'DATE'">
+        <span class="fieldLabel">Date and time (UTC)</span>
+        <input
+            type='text'
+            ng-model='step.params.refDate'
+            ng-required="step.params.compareTo == 'DATE'"
+            class="submit-on-blur"
+            next-on-enter/>
+
+			<span>ISO 8601 format, ex. <em>2016-05-22T14:28:53</em></span>
+    </fieldset>
+
+	<fieldset>
+        <div class="fieldLabel">Output time unit</div>
+	    <select dku-bs-select
+            ng-model="step.params.outputUnit"
+	        class="submit-on-blur"
+	        next-on-enter
+	        required
+	        >
+	        <option value="SECONDS">Seconds</option>
+	        <option value="MINUTES">Minutes</option>
+	        <option value="HOURS">Hours</option>
+	        <option value="DAYS">Days</option>
+	        <option value="WEEKS">Weeks</option>
+	        <option value="MONTHS">Months</option>
+	        <option value="YEARS">Years</option>
+	    </select>
+	</fieldset>
+
+    <fieldset>
+        <span class="fieldLabel">Output column</span>
+        <input
+            type="text"
+            ng-model="step.params.output"
+            ng-required="true"
+            required="required"
+            class="submit-on-blur"
+            next-on-enter/>
+    </fieldset>
+
+	<fieldset>
+		<label>
+			<input ng-model="step.params.reverse" type="checkbox" ng-change="checkAndRefresh()" class="ng-pristine ng-valid">
+			Reverse output
+		</label>
+	</fieldset>
+
+</form>
+

@@ -1,0 +1,190 @@
+<div class="modal modal3">
+    <div dku-modal-header modal-title="Duplicate project" modal-class="has-border" />
+    <form class="dkuform-modal-horizontal">
+        <div class="modal-body duplicate-project__modal" >
+            <div ng-if="phase == 'SHOW_WARNINGS'">
+                <div block-api-error />
+                <div ng-if="duplicateResponse" info-messages-raw-list="duplicateResponse" style="word-break: break-word;" />
+            </div>
+            <div ng-if="phase == 'READY_TO_DUPLICATE'">
+                <div class="control-group" >
+                    <label for="dupProjectName" class="control-label duplicate-project__name-label" >Name</label>
+                    <div class="controls">
+                        <input type="text"
+                            id="dupProjectName"
+                            placeholder="New project name"
+                            ng-model="dupProject.name"
+                            required auto-focus="true"
+                            />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="dupProjectKey" class="control-label duplicate-project__key-label" >Project Key</label>
+                    <div class="controls">
+                        <input type="text"
+                            id="dupProjectKey"
+                            ng-model="dupProject.projectKey"
+                            name="projectKey"
+                            ng-pattern="/^\w+$/"
+                            placeholder="New project key"
+                            />
+                        <div class="help-inline duplicate-project__help-inline">
+                            The project key is used to reference datasets between projects.
+                            It cannot be changed once the project is created.
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label duplicate-project__folder-label">Project Folder</label>
+                    <folder-path-input input-id="dupTargetProjectFolderId" browse-fn="browse" folder="dupFolder" path="dupOptions.targetProjectFolderId" can-select-fn="canSelect" display-item-fn="getProjectFolderName" class="controls" cant-write-content-verb="You cannot duplicate in this folder"></folder-path-input>
+                </div>
+
+                <div class="alert alert-error" ng-show="!uniq">
+                    <i class="icon-warning-sign" /> This project key is already used.
+                </div>
+
+                <div class="alert alert-error" ng-show="hasPartitionedDataset">
+                    <i class="icon-warning-sign" /> Partitioned datasets will be empty as their duplication is currently unsupported.
+                </div>
+
+                <div block-api-error />
+                <div ng-if="duplicateResponse" info-messages-raw-list="duplicateResponse" style="word-break: break-word;" />
+
+                <div class="warning-wrapper duplicate-project__warning">
+                    <div class="alert alert-info" ng-show="!uiState.showAdvancedOptions">
+                        Dataiku will only copy uploaded datasets and managed folders that are required to rebuild the entire flow. <a ng-click="uiState.showAdvancedOptions = true">Advanced options</a>
+                    </div>
+                    <div class="alert alert-info" ng-show="uiState.showAdvancedOptions">
+                        <a ng-click="uiState.showAdvancedOptions = false">Hide advanced options</a>
+                    </div>
+                </div>
+
+                <div ng-if="uiState.showAdvancedOptions">
+                    <h2 class="settings-section-title">Datasets & Managed folders</h2>
+                    <!-- Duplication mode selector -->
+                    <label for="dupMode" class="control-label">Select your duplication mode</label>
+                    <div id="dupMode" class="btn btn--secondary duplicate-project__mode-selector-button" custom-element-popup hide-popover-button="true" close-on-click="true">
+                        <div class="mainzone duplicate-project__mode-selector-mainzone" ng-click="togglePopover()">
+                            <span ng-show="dupOptions.duplicationMode == 'NONE'" class="duplicate-project__mode-selector-title">
+                                Flow only
+                            </span>
+                            <span ng-show="dupOptions.duplicationMode == 'UPLOADS_ONLY'" class="duplicate-project__mode-selector-title">
+                                Uploaded files
+                            </span>
+                            <span ng-show="dupOptions.duplicationMode == 'MINIMAL'" class="duplicate-project__mode-selector-title">
+                                Required inputs
+                            </span>
+                            <span ng-show="dupOptions.duplicationMode == 'FULL'" class="duplicate-project__mode-selector-title">
+                                Full duplication
+                            </span>
+                            <span ng-show="dupOptions.duplicationMode == 'SHARING'" class="duplicate-project__mode-selector-title">
+                                Input sharing
+                            </span>
+                            <i class="icon-caret-down duplicate-project__mode-selector-caret" />
+                        </div>
+
+                        <div class="duplicate-project__mode-selector popover custom-element-popup-popover watch-modes" style="width:206px;">
+                            <div full-click class="watch-mode" ng-class="{active: dupOptions.duplicationMode == 'NONE'}">
+                                <i class="icon-ok" />
+                                <a main-click class="title link-std duplicate-project__mode-selector-title" ng-click="setDuplicationMode('NONE')" >Flow only</a>
+                                <div class="description duplicate-project__mode-selector-description">Do not duplicate data of any dataset.</div>
+                            </div>
+                            <div full-click class="watch-mode" ng-class="{active: dupOptions.duplicationMode == 'UPLOADS_ONLY'}">
+                                <i class="icon-ok" />
+                                <a main-click class="title link-std duplicate-project__mode-selector-title" ng-click="setDuplicationMode('UPLOADS_ONLY')" >Uploaded files</a>
+                                <div class="description duplicate-project__mode-selector-description">Duplicate data of uploaded datasets and managed folders.</div>
+                            </div>
+                            <div full-click class="watch-mode" ng-class="{active: dupOptions.duplicationMode == 'MINIMAL'}">
+                                <i class="icon-ok" />
+                                <a main-click class="title link-std duplicate-project__mode-selector-title" ng-click="setDuplicationMode('MINIMAL')">Required inputs</a>
+                                <div class="description duplicate-project__mode-selector-description">Duplicate data of required (uploaded and input) datasets and managed folders.</div>
+                            </div>
+                            <div full-click class="watch-mode" ng-class="{active: dupOptions.duplicationMode == 'FULL'}">
+                                <i class="icon-ok" />
+                                <a main-click class="title link-std duplicate-project__mode-selector-title" ng-click="setDuplicationMode('FULL')">Full duplication</a>
+                                <div class="description duplicate-project__mode-selector-description">Duplicate data for all (input and downstream) datasets and managed folders.</div>
+                            </div>
+                            <div full-click class="watch-mode" ng-class="{active: dupOptions.duplicationMode == 'SHARING'}">
+                                <i class="icon-ok" />
+                                <a main-click class="title link-std duplicate-project__mode-selector-title" ng-click="setDuplicationMode('SHARING')">Input sharing</a>
+                                <div class="description duplicate-project__mode-selector-description">Share the input uploaded datasets and input managed folders with the duplicated project.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end Duplication mode selector -->
+
+                    <h2 class="settings-section-title">Machine learning</h2>
+                    <label class="checkbox duplicate-project__checkbox-label">
+                        <input type="checkbox" ng-model="dupOptions.exportAnalysisModels" class="duplicate-project__checkbox-input">Duplicate all analysis models data</label>
+                    <label class="checkbox duplicate-project__checkbox-label">
+                        <input type="checkbox" ng-model="dupOptions.exportSavedModels" class="duplicate-project__checkbox-input">Duplicate all saved models data</label>
+                    <label class="checkbox duplicate-project__checkbox-label" ng-if="featureFlagEnabled('model_evaluation_stores')">
+                        <input type="checkbox" ng-model="dupOptions.exportModelEvaluationStores" class="duplicate-project__checkbox-input">Duplicate all model evaluation stores data</label>
+
+                    <div ng-show="appConfig.gitMode == 'PROJECT'">
+                        <h2 class="settings-section-title">Others</h2>
+                        <label class="checkbox duplicate-project__checkbox-label">
+                            <input type="checkbox" ng-model="dupOptions.exportGitRepository" class="duplicate-project__checkbox-input">Duplicate Git repository</label>
+                        <label class="checkbox duplicate-project__checkbox-label">
+                            <input type="checkbox" ng-model="dupOptions.exportInsightsData" class="duplicate-project__checkbox-input">Duplicate static insights</label>
+                    </div>
+                    
+                    <!-- Connection remapping start-->
+                    <h2 class="settings-section-title">Connection remapping</h2>
+                    <p style="color: gray">
+                        Use this if you get connection-related errors, to remap connection names declared in the import archive to connections existing in your DSS instance.
+                    </p>
+
+                    <div style="display: inline-block; width: 100%;" add-remove ng-model="dupOptions.remapping.connections">
+                        <ul class="raw-unstyled-ul" >
+                            <li ng-repeat="conn in dupOptions.remapping.connections">
+                                <div class="remapping" style="margin: 5px 0" import-project-remapping-form>
+                                    <input type="text" ng-model="conn.source" bs-typeahead="usedConnections" ng-focus="inputFocus($event)" data-min-length="0" />
+
+                                    <i class="icon-long-arrow-right" style="font-size: 17px; margin: 0 10px; color: grey;"></i>
+
+                                    <select ng-model="target"
+                                            dku-bs-select="{liveSearch:true,size:'auto'}"
+                                            ng-options="c as c.name group by c.type for c in prepareResponse.availableConnections | orderBy:connComparator(conn.source) track by c.name"
+                                            ng-change="conn.target = target.name"
+                                            ng-init="target = findConnection(prepareResponse.availableConnections, conn.target)">
+                                    </select>
+
+                                    <span ng-if="conn.source && conn.target && findConnection(prepareResponse.usedConnections, conn.source).type && findConnection(prepareResponse.usedConnections, conn.source).type != target.type">
+                                        <i class="icon-warning-sign" toggle="tooltip" title="Type mismatch, expecting {{findConnection(prepareResponse.usedConnections, conn.source).type}}" placement="right" container="body"></i>
+                                    </span>
+
+                                    <a ng-click="remove($index)" class="pull-right" style="color: grey"><i class="icon-trash "/></a>
+                                </div>
+
+                            </li>
+                        </ul>
+
+                        <div  class="add-value" style="color:gray;cursor:pointer;">
+                            <span class="pull-right" ng-click="refreshConnections()" toggle="tooltip" title="Refresh connection list" placement="left" container="body" style="text-align: right">
+                                <i class="icon-refresh" />
+                            </span>
+                            <span ng-click="add({})">
+                                <i class="icon-plus-sign" /> ADD REMAPPING
+                            </span>
+                        </div>
+                    </div>
+                    <!-- Connection remapping end-->
+                </div>
+            </div>
+            <div ng-if="phase == 'DUPLICATING'">
+                <progress-bar neutral="{{percentage}}" allow-empty="true" class="progress-striped" active="true"  ng-if="futureResponse != null"></progress-bar>
+                <progress-bar error="{{percentage}}"   allow-empty="true" class="progress"         active="false" ng-if="futureResponse == null"></progress-bar>
+                <div class="future-progress-bar">
+                    <div style="width: {{percentage}}%"></div>
+                </div>
+                <p ng-bind-html="stateLabels"></p>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons" >
+            <button ng-show="phase != 'SHOW_WARNINGS'"type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button ng-show="phase == 'READY_TO_DUPLICATE'" type="submit" class="btn btn--text btn--primary" ng-click="duplicate()">Duplicate</button>
+            <button ng-show="phase == 'SHOW_WARNINGS'" type="submit" class="btn btn--text btn--primary" ng-click="gotoResult()">Go to project</button>
+        </div>
+    </form>
+</div>

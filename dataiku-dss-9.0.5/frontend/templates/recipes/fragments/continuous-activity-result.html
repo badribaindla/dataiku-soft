@@ -1,0 +1,57 @@
+<div ng-if="valCtx.preRunValidationError" class="alert alert-error pre-run-validation-error">
+    <div class="pull-right" style="padding: 5px">
+        <button class="btn btn--danger" ng-click="startContinuousActivity(true)">Run anyway</button>
+        <a ng-click="hooks.resetScope()" style="text-decoration: none">
+            <span times-icon />
+        </a>
+    </div>
+    <h4>Cannot run this recipe</h4>
+    <p>Errors have been detected, please fix them before running this recipe</p>
+    <ul>
+        <li ng-repeat="error in valCtx.preRunValidationError.errors">{{error.message}}</li>
+    </ul>
+</div>
+
+<div ng-if="startedJob.jobId" class="recipe-editor-job-result">
+    <debug data="startedJob" />
+    <div ng-show="isContinuousActivityRunning()" class="alert alert-info">
+        <a class="btn btn--danger pull-right" id="qa_recipe_abort-job-button"
+        ng-click="stopContinuousActivity()" toggle="tooltip" title="Stop the running job"> <i class="icon-stop" />&nbsp;Stop
+        </a> <i class="icon-spin icon-spinner" />&nbsp;Job is running, please wait...
+
+        <a ui-sref="projects.project.continuous-activities.continuous-activity.runs({continuousActivityId: startedJob.persistent.recipeId, runId: startedJob.currentState.runId, attemptId: startedJob.currentState.attemptId})">View details</a>
+        <br />
+    </div>
+    <div ng-show="!isContinuousActivityRunning() && startedJob.persistent.desiredState == 'STOPPED'" class="alert alert-success">
+        <div class="pull-right" style="padding: 5px">
+            <a ng-click="discardStartedJob()">
+                <i class="icon-remove" />
+            </a>
+        </div>
+        <h4 id="qa_recipe_job-success">Continous activity stopped.</h4>
+        <a ui-sref="projects.project.continuous-activities.continuous-activity.runs({continuousActivityId: startedJob.persistent.recipeId, runId: startedJob.currentState.runId, attemptId: startedJob.currentState.attemptId})">View details</a>
+        <br />
+        <span ng-repeat="computableSM in RecipesUtils.getFlatOutputsList(recipe)" ng-init="computable = computablesMap[computableSM.ref]">
+            <span ng-if="computable.type == 'DATASET'">
+                <a style="margin-right: 20px" href="{{$state.href('projects.project.datasets.dataset.explore', {datasetName : computableSM.ref})}}">Explore dataset {{computableSM.ref}}</a>
+            </span>
+            <span ng-if="computable.type == 'STREAMING_ENDPOINT'">
+                <a style="margin-right: 20px" href="{{$state.href('projects.project.streaming-endpoints.streaming-endpoint.explore', {streamingEndpointId : computableSM.ref})}}">View streaming endpoint {{computableSM.ref}}</a>
+            </span>
+        </span>
+    </div>
+    <div ng-show="!isContinuousActivityRunning() && startedJob.persistent.desiredState == 'STARTED'" class="alert alert-error job-result">
+        <div class="pull-right" style="padding: 5px">
+            <a ng-click="discardStartedJob()">
+                <i class="icon-dku-error" />
+            </a>
+        </div>
+
+        <h4 style="font-size: 16px; font-weight: 400;">Continuous activity failed: <span summary-of-error="startedJob.current.lastError" /></h4>
+        <p>
+            <a ui-sref="projects.project.continuous-activities.continuous-activity.runs({continuousActivityId: startedJob.persistent.recipeId, runId: startedJob.currentState.runId, attemptId: startedJob.currentState.attemptId})">View details</a>
+        </p>
+
+        <pre ng-if="startedJob.current.lastCrashLogTail" smart-log-tail="startedJob.current.lastCrashLogTail"/>
+    </div>
+</div>

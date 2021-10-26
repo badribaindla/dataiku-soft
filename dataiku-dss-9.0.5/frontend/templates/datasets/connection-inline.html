@@ -1,0 +1,41 @@
+<div scrollable-to-bottom>
+    <form class="container-fluid page-top-padding dkuform-std-vertical">
+        <label>
+            <input type="radio" ng-model="dataset.params.importSourceType" value="NONE"/> Create empty editable dataset
+        </label>
+        <label>
+            <input type="radio" ng-model="dataset.params.importSourceType" value="DATASET"/> Import from dataset
+        </label>
+        <label>
+            <input type="radio" ng-model="dataset.params.importSourceType" value="FILE"/> Import from file
+        </label>
+
+        <div ng-show="dataset.params.importSourceType">
+            <div ng-show="dataset.params.importSourceType == 'DATASET'">
+                Dataset
+                <div dataset-selector="dataset.params.importDatasetSmartName" available-datasets="availableInputDatasets" class="qa_recipe_available-datasets-dropdown"></div>
+            </div>
+        </div>
+
+        <div ng-show="dataset.params.importSourceType">
+            <div ng-show="dataset.params.importSourceType == 'FILE'">
+                <droparea drop="drop(files)" multiple>
+                    <ul class="files">
+                        <li ng-repeat="file in files track by $index">
+                            <div class="file">
+                                <a href class="close" ng-click="deleteFile(file, $event)"><i class="icon-trash"></i></a>
+                                <i class="icon-file"></i>
+                                <span class="path" title="{{ file.path }}">{{ file.path }}</span>
+                                <span class="size">{{ file.length|filesize }}</span>
+                                <progress ng-show="file.progress <= 100" value="{{ file.progress }}" max="100"></progress>
+                            </div>
+                        </li>
+                    </ul>
+                </droparea>
+            </div>
+        </div>
+        <!-- <div>
+            <button class="btn btn-small btn--success" ng-click="test()" ng-disabled="testing">Test</button>
+        </div> -->
+    </form>
+</div>

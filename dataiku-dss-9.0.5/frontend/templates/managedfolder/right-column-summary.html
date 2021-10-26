@@ -1,0 +1,359 @@
+<div class="object-right-column-summary h100 vertical-flex" ng-if="selection.selectedObject">
+    <div item-header
+        class="noflex"
+        ng-if="selection.selectedObject.description && (isLocalFolder || !folderData.directAccessOnOriginal)"
+        href="$state.href('projects.project.managedfolders.managedfolder.view', {projectKey: selection.selectedObject.projectKey, odbId: selection.selectedObject.name})"
+        color="dataset"
+        icon="icon-folder-open"
+        title="{{selection.selectedObject.name}}">
+        {{selection.selectedObject.description}}
+    </div>
+    <div item-header
+        class="noflex"
+        ng-if="selection.selectedObject.description && !isLocalFolder && folderData.directAccessOnOriginal"
+        href="$state.href('projects.project.foreignmanagedfolders.managedfolder.view', {projectKey: $stateParams.projectKey, odbId: selection.selectedObject.name, sourceProjectKey: selection.selectedObject.projectKey})"
+        color="dataset"
+        icon="icon-folder-open"
+        title="{{selection.selectedObject.name}}">
+        {{selection.selectedObject.description}}
+    </div>
+    <div class="column-header-tabs noflex" ng-if="!$state.current.name.startsWith('projects.project.flow') && !$state.current.name.startsWith('projects.project.managedfolders.managedfolder') && !$state.current.name.startsWith('projects.project.foreignmanagedfolders.managedfolder')">
+        <div class="tab" ng-class="{'tab' : true, 'active' : uiState.activeTab == 'details'}"
+            ng-click="uiState.activeTab = 'details'">
+            <div class="title">Details</div>
+        </div>
+        <div class="tab" ng-class="{active: uiState.activeTab == 'discussions'}" ng-click="uiState.activeTab = 'discussions'">
+            <div class="title">Discussions</div>
+        </div>
+        <div class="tab" ng-class="{'tab' : true, 'active' : uiState.activeTab == 'actions'}"
+            ng-click="uiState.activeTab = 'actions'">
+            <div class="title">Actions</div>
+        </div>
+    </div>
+
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex oa">
+        <div class="h100" ng-switch="uiState.activeTab">
+            <div ng-switch-when="details" class="details-tab  h100 oa">
+                <object-details
+                    object-type="MANAGED_FOLDER"
+                    object-data="folderData"
+                    context="right-column"
+                    hover-intent-callback="QuickView"
+                    editable="canWriteProject()"
+                    edit-custom-fields="editCustomFields">
+                </object-details>
+            </div>
+
+            <!-- DISCUSSIONS tab -->
+            <div ng-switch-when="discussions" class="object-summary-tab-content discussions-tab h100 oa">
+                <div class="h100" discussions-widget watch-object="selection.selectedObject" selected-item="{projectKey: selection.selectedObject.projectKey, type: 'MANAGED_FOLDER', id: selection.selectedObject.name}" />
+            </div>
+
+            <div ng-switch-when="actions" class="object-summary-tab-content actions-tab h100 oa" style="overflow-x: hidden">
+                <div class="icons-section icons-grey icons-main">
+
+                    <div simple-right-col-action-href
+                        ng-if="isOnFolderObjectPage()"
+                        href="{{$state.href('projects.project.flow', { id : 'managedfolder_' + $stateParams.projectKey + '.' + $stateParams.odbId })}}"
+                        label="View in flow"
+                        icon="icon-sitemap icon-rotate-90"
+                        />
+
+                    <div simple-right-col-action-click
+                        ng-if="baseOdb && baseOdb.buildable && isOnFolderObjectPage()"
+                        on-click="GlobalProjectActions.buildManagedFolder(this, $stateParams.odbId)"
+                        label="Build"
+                        icon="icon-play"
+                        />
+
+                    <div simple-right-col-action-href
+                         ng-if="!isLocalFolder && !isOnFolderObjectPage()"
+                         href="{{ $state.href('projects.project.foreignmanagedfolders.managedfolder.view', {projectKey : $stateParams.projectKey, odbId: selection.selectedObject.name, sourceProjectKey : selection.selectedObject.projectKey }) }}"
+                         label="Open"
+                         icon="icon-folder-open"
+                    />
+
+                    <div simple-right-col-action-href
+                        ng-if="isLocalFolder && !isOnFolderObjectPage()"
+                        href="{{ $state.href('projects.project.managedfolders.managedfolder.view', {projectKey : selection.selectedObject.projectKey, odbId: selection.selectedObject.name }) }}"
+                        label="Open"
+                        icon="icon-folder-open"
+                        />
+
+                    <div ng-if="!isLocalFolder && folderData.directAccessOnOriginal"
+                         simple-right-col-action-href
+                         href="{{ $state.href('projects.project.managedfolders.managedfolder.view', {projectKey : selection.selectedObject.projectKey, odbId: selection.selectedObject.name }) }}"
+                         label="View source"
+                         icon="icon-reply"
+                         title="View this shared managed folder in its original project"
+                        />
+
+                    <div ng-if="isLocalFolder && selection.selectedObject.predecessors.length"
+                        simple-right-col-action-click
+                        on-click="isProjectAnalystRW() && buildManagedFolder()"
+                        label="Build"
+                        icon="icon-play"
+                        disabled-if-ro
+                        />
+
+                    <div simple-right-col-action-click
+                        ng-if="isLocalFolder && !isOnFolderObjectPage()"
+                        on-click="startApplyTagging()"
+                        label="Tag"
+                        icon="icon-tags"
+                        disabled-if-ro
+                        title=""
+                        />
+
+                    <div simple-right-col-action-click
+                        on-click="createAndPinInsight(odb)"
+                        label="Publish"
+                        icon="icon-dku-publish"
+                        />
+
+                    <div simple-right-col-action-click
+                        on-click="createDatasetOnFolder()"
+                        label="Create dataset"
+                        disabled-if-ro
+                        icon="icon-box"
+                        />
+
+                    <div ng-if="isLocalFolder && projectSummary.canManageExposedElements"
+                        simple-right-col-action-click
+                        ng-inject="ExposedObjectsService"
+                        on-click="ExposedObjectsService.exposeSingleObject('MANAGED_FOLDER', odb.id, odb.name)"
+                        label="Share"
+                        icon="icon-dku-share"
+                        disabled-if-ro
+                        />
+
+                    <div simple-right-col-action-click
+                         ng-if="isLocalFolder"
+                         ng-show="!isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(true)"
+                         label="{{ actionLabels.WATCH }}"
+                         icon="icon-eye-open"
+                         ng-attr-title="{{ actionTooltips.WATCH }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-if="isLocalFolder"
+                         ng-show="isWatching(selection.selectedObject.interest.watching)"
+                         on-click="watchObjects(false)"
+                         label="{{ actionLabels.UNWATCH }}"
+                         icon="icon-eye-close"
+                         ng-attr-title="{{ actionTooltips.UNWATCH }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-if="isLocalFolder"
+                         ng-show="!selection.selectedObject.interest.starred"
+                         on-click="starObjects(true)"
+                         label="{{ actionLabels.STAR }}"
+                         icon="icon-star"
+                         ng-attr-title="{{ actionTooltips.STAR }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                         ng-if="isLocalFolder"
+                         ng-show="selection.selectedObject.interest.starred"
+                         on-click="starObjects(false)"
+                         label="{{ actionLabels.UNSTAR }}"
+                         icon="icon-star-empty"
+                         ng-attr-title="{{ actionTooltips.UNSTAR }}"
+                         data-toggle="tooltip"
+                    />
+
+                    <div simple-right-col-action-click
+                        ng-if="isProjectAnalystRW() && appConfig.customFieldsPluginComponentRefs.length"
+                        on-click="editCustomFields()"
+                        label="Metadata"
+                        icon="icon-dku-fields"
+                        title="Edit metadata of this folder"
+                        wt1-click-id="rightpanelmanagedfolder_actions_editcf" />
+
+                    <div ng-if="isLocalFolder"
+                        simple-right-col-action-click
+                        on-click="isProjectAnalystRW() && clearSelected()"
+                        label="Clear"
+                        icon="icon-remove"
+                        ng-class="{'icons-danger': isProjectAnalystRW()}"
+                        disabled-if-ro
+                        />
+
+                    <div ng-if="isLocalFolder"
+                        simple-right-col-action-click
+                        on-click="isProjectAnalystRW() && GlobalProjectActions.deleteTaggableObject(this, 'MANAGED_FOLDER', selection.selectedObject.name, selection.selectedObject.description)"
+                        label="Delete"
+                        icon="icon-trash"
+                        ng-class="{'icons-danger': isProjectAnalystRW()}"
+                        disabled-if-ro
+                        />
+
+                    <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS getFlexboxFillerCount-->
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel name="visualRecipes" open="true" class="accordion">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}" />
+                        Visual recipes
+                    </h4>
+                    <div ng-show="foldableOpen" class="icons-section icons-visual" disabled-block-if-ro >
+                        <div simple-right-col-action-click
+                             on-click="showCreateDownloadModal(getSmartName(folderData.folder.projectKey, folderData.folder.id), folderData.folder.zone)"
+                             label="Download"
+                             icon="icon-visual_download_recipe"
+                        />
+
+                        <div simple-right-col-action-click
+                             on-click="showCreateMergeFolderModal([getSmartName(folderData.folder.projectKey, folderData.folder.id)], folderData.folder.zone)"
+                             label="Merge Folder"
+                             icon="icon-visual_prep_merge_folder_recipe"
+                             title="Merge several folders"
+                        />
+                        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                    </div>
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel name="recipes" open="true" class="accordion">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        Code recipes
+                        <i class="{{foldableChevronClazz}}" />
+                    </h4>
+                    <div ng-show="foldableOpen" class="icons-section icons-code" disabled-block-if-ro >
+                        <div simple-right-col-action-click
+                            on-click="showCreateCodeBasedModal('python', [getSmartName(folderData.folder.projectKey, folderData.folder.id)], folderData.folder.zone)"
+                            label="Python"
+                            icon="icon-code_python_recipe"
+                            />
+
+                        <div simple-right-col-action-click
+                            ng-if="appConfig.uiCustomization.showR"
+                            on-click="showCreateCodeBasedModal('r', [getSmartName(folderData.folder.projectKey, folderData.folder.id)], folderData.folder.zone)"
+                            label="R"
+                            icon="icon-code_r_recipe"
+                            />
+
+                        <div simple-right-col-action-click
+                            ng-if="featureFlagEnabled('julia')"
+                            on-click="showCreateCodeBasedModal('julia', [getSmartName(folderData.folder.projectKey, folderData.folder.id)], folderData.folder.zone)"
+                            label="Julia"
+                            icon="icon-code_julia_recipe"
+                        />
+
+                        <div simple-right-col-action-click
+                            on-click="showCreateCodeBasedModal('shell', [getSmartName(folderData.folder.projectKey, folderData.folder.id)], folderData.folder.zone)"
+                            label="Shell"
+                            icon="icon-code_shell_recipe"
+                            />
+
+                        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                    </div>
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel open="true" class="accordion" ng-show="selectablePlugins.length != 0" name="actions.pluginRecipes">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}" />
+                        Plugin recipes
+                    </h4>
+                    <div ng-show="foldableOpen" class="icons-section icons-plugins" disabled-block-if-ro >
+                        <div ng-repeat="plugin in selectablePlugins" simple-right-col-action-click on-click="showCreateRecipeFromPlugin(plugin.pluginId, {MANAGED_FOLDER : [getSmartName(odb.projectKey, odb.id)]}, folderData.folder.zone)" label="{{plugin.label}}" icon="{{plugin.icon}}" />
+                        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                    </div>
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel open="true" class="accordion" name="actions.flowZones" ng-if="$state.current.name.startsWith('projects.project.flow')">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}" />
+                        Flow Zones
+                    </h4>
+                    <div ng-show="foldableOpen" class="icons-section icons-flow-zones" disabled-block-if-ro >
+                        <div simple-right-col-action-click
+                             on-click="moveToFlowZone(getSelectedTaggableObjectRefs(), false, computeMovingImpact())"
+                             label="Move"
+                             icon="icon-move_to_zone"
+                             title="Move to a flow zone"
+                        />
+                        <div simple-right-col-action-click
+                             on-click="shareToFlowZone(getSelectedTaggableObjectRefs())"
+                             label="Share"
+                             icon="icon-share_to_zone"
+                             title="Share to a flow zone"
+                        />
+                        <div simple-right-col-action-click
+                             ng-if="selection.selectedObject.usedByZones.length && !selection.selectedObject.successors.length"
+                             on-click="unshareToFlowZone(getSelectedTaggableObjectRefs(), [selection.selectedObject.usedByZones[0]])"
+                             label="Unshare"
+                             icon="icon-unshare_to_zone"
+                             title="Unshare from this flow zone"
+                        />
+                        <div simple-right-col-action-click
+                             ng-if="$state.current.name.startsWith('projects.project.flow') && isMFZoneInput()"
+                             on-click="zoomToOtherZoneNode(selection.selectedObject.ownerZone)"
+                             label="Original"
+                             toggle="tooltip-bottom"
+                             title="Zoom on original node in other zone"
+                             icon="icon-go_to_original"
+                        />
+                        <div class="action-icon" ng-repeat="i in ([9] | range)"></div> <!-- flexbox filler, see CSS -->
+                    </div>
+                </div>
+
+                <div dku-foldable dku-foldable-right-panel name="otherActions" open="true" class="accordion other-actions" ng-if="isProjectAnalystRW() || !isLocalFolder">
+                    <h4 class="accordion-title" ng-click="foldableToggle()">
+                        <i class="{{foldableChevronClazz}}" />
+                        Other actions
+                    </h4>
+
+                    <div ng-show="foldableOpen">
+                        <ul class="simple-list" style="margin-bottom: 10px;">
+                            <li ng-if="!isLocalFolder">
+                                <a class="link-std" href="{{$state.href('projects.project.flow', {projectKey: selection.selectedObject.projectKey})}}">
+                                    <i class="icon-mail-reply" /> Go to source project
+                                </a>
+                            </li>
+                            <li ng-if="isProjectAnalystRW() && !isLocalFolder"><!-- isProjectAnalystRW is not required but that would be weird -->
+                                <a class="link-std" ng-click="unshare()">
+                                    <i class="icon-trash" /> Stop sharing to this project
+                                </a>
+                            </li>
+                            <li ng-if="isProjectAnalystRW() && isLocalFolder && selection.selectedObject.predecessors.length">
+                                <a class="link-std" ng-click="addSelectedToScenario()">
+                                    <i class="icon-play" /> Add to a scenario
+                                </a>
+                            </li>
+                            <li ng-if="isProjectAnalystRW() && isLocalFolder && !$state.current.name.includes('view')">
+                                <a class="link-std" ng-click="changeSelectedItemsConnections()">
+                                    <i class="icon-dataset" /> Change connection
+                                </a>
+                            </li>
+                            <li ng-if="isLocalFolder && $state.current.name.includes('flow')">
+                                <a class="link-std" ng-click="copyAllSelected()">
+                                    <i class="icon-fixed-width icon-copy" /> Copy
+                                </a>
+                            </li>
+                            <li ng-if="isLocalFolder && $state.current.name.includes('flow')">
+                                <a class="link-std" ng-click="updateStatuses()">
+                                    <i class="icon-refresh" /> Update status (count of record, file size)
+                                </a>
+                            </li>
+                            <div ng-show="macroRoles['MANAGED_FOLDER'] && macroRoles['MANAGED_FOLDER'].length != 0">
+                                <hr />
+                                <li ng-repeat="runnable in macroRoles['MANAGED_FOLDER']" ng-show="runnable.applicableToForeign || isLocalFolder">
+                               <a class="link-std" ng-click="showCreateRunnable(runnable.runnable, runnable.roleTarget, getSmartName(selection.selectedObject.projectKey, selection.selectedObject.name))">
+                                        <i class="icon-fixed-width {{runnable.icon}}" /> {{runnable.label}}
+                                    </a>
+                                </li>
+                            </div>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

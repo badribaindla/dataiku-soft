@@ -1,0 +1,80 @@
+<div data-extend-template="/templates/object-details/item-template.html">
+
+    <div data-block="item-header"
+        item-header
+        href="StateUtils.href.jupyterNotebook(data.notebook.name, data.notebook.projectKey)"
+        color="notebook"
+        icon="icon-dku-nav_notebook"
+        >
+        {{data.notebook.name}}
+    </div>
+
+    <div data-block="right">
+        <div class="line" ng-if="data.notebook.displayKernelSpec && data.notebook.displayKernelSpec.envName && data.notebook.language == 'python2'">
+            <h4>Code env.</h4>
+            <p ng-if="appConfig.isAutomation">
+                <a ui-sref="admin.codeenvs-automation.python-edit({envName: data.notebook.displayKernelSpec.envName})">
+                    {{data.notebook.displayKernelSpec.envName}}
+                </a>
+            </p>
+            <p ng-if="!appConfig.isAutomation">
+                <a ui-sref="admin.codeenvs-design.python-edit({envName: data.notebook.displayKernelSpec.envName})">
+                    {{data.notebook.displayKernelSpec.envName}}
+                </a>
+            </p>
+        </div>
+        <div class="line" ng-if="data.notebook.displayKernelSpec && data.notebook.displayKernelSpec.envName && data.notebook.language == 'ir'">
+            <h4>Code env.</h4>
+            <p ng-if="appConfig.isAutomation">
+                <a ui-sref="admin.codeenvs-automation.r-edit({envName: data.notebook.displayKernelSpec.envName})">
+                    {{data.notebook.displayKernelSpec.envName}}
+                </a>
+            </p>
+            <p ng-if="!appConfig.isAutomation">
+                <a ui-sref="admin.codeenvs-design.r-edit({envName: data.notebook.displayKernelSpec.envName})">
+                    {{data.notebook.displayKernelSpec.envName}}
+                </a>
+            </p>
+        </div>
+        <div class="line" ng-if="data.notebook.analyzedDataset.length">
+            <h4>Associated dataset</h4>
+            <p>
+                <a href="{{StateUtils.href.dataset(data.notebook.analyzedDataset, data.notebook.projectKey)}}"
+                    >
+                    {{data.notebook.analyzedDataset}}
+                </a>
+            </p>
+        </div>
+        <div class="line" ng-if="data.notebook.associatedRecipe.length">
+            <h4>Associated recipe</h4>
+            <p><a
+                    href="{{StateUtils.href.recipe(data.notebook.associatedRecipe, data.notebook.projectKey)}}">
+                    {{data.notebook.associatedRecipe}}</a></p>
+        </div>
+        <div class="accordion mtop16" dku-foldable dku-foldable-right-panel name="git" open="true" ng-if="data.notebook.gitReference">
+            <h4 class="accordion-title" ng-click="foldableToggle()">
+                <i class="{{foldableChevronClazz}}"></i>
+                Associated remote Git
+            </h4>
+            <div class="padtop0" ng-show="foldableOpen">
+                <div class="line">
+                    <h4>Repository</h4>
+                    <p>
+                        {{data.notebook.gitReference.remote}}
+                    </p>
+                </div>
+                <div class="line">
+                    <h4>Branch</h4>
+                    <p>
+                        {{data.notebook.gitReference.checkout ? data.notebook.gitReference.checkout.replace('refs/heads/', '') : ''}}
+                    </p>
+                </div>
+                <div class="line line--columns">
+                    <h4>Path</h4>
+                    <p class="flex-no-grow" show-tooltip-on-text-overflow text-tooltip="data.notebook.gitReference.remotePath" tooltip-direction="'tooltip-top'">
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

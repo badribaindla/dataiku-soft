@@ -1,0 +1,35 @@
+<div class="modal modal3 dku-modal" ng-controller="PlugindevPullController">
+    <div dku-modal-header-with-totem modal-title="Pull changes" modal-totem="icon-download-alt"/>
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+
+    <div class="modal-body">
+        <div block-api-error />
+
+        <form class="dkuform-horizontal">
+                <div class="control-group">
+                    <label class="control-label">Remote</label>
+                    <div class="controls">
+                        <select
+                                dku-bs-select
+                                ng-options="r.name as (r.name + ' - '+ r.url) for r in gitStatus.remotes"
+                                ng-model="pullSettings.remoteName"/>
+                    </div>
+                </div>
+            <div class="control-group">
+                <label class="control-label">Branch</label>
+                <div class="controls">
+                    <select
+                            dku-bs-select
+                            ng-options="b|extractGitRefName as b|extractGitRefName for b in gitBranches"
+                            ng-model="pullSettings.branchName"/>
+                </div>
+            </div>
+            </form>
+        </div>
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+            <button type="submit" class="btn btn--text btn--primary" ng-click="gitPull();">Pull</button>
+        </div>
+    </form>
+
+</div>

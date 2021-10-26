@@ -1,0 +1,263 @@
+<div class="dss-page plugins-store-page h100">
+    <div block-api-error></div>
+    <div class="plugins-store-grid" ng-if="pluginsList && pluginsList.pluginsNumberInStore > 0">
+        <div class="plugins-search-column" ng-show="pluginsList">
+            <div class="std-list-search-box plugin-search-field">
+                <span class="add-on"> <i class="icon-dku-search"></i></span>
+                <input type="search" ng-model="pluginsUIState.searchQuery" placeholder="Search plugin&hellip;">
+            </div>
+            <div class="plugins-facets plugins-facets--store">
+
+                <div class="plugins-facet">
+                    <h3 class="plugins-facet__title">Tags ({{pluginsUIState.storeTags.size}}) <span class="toggle-show-more" ng-if="pluginsUIState.storeTags.size > 10 && pluginsUIState.showAllStoreTags" ng-click="toggleShowAllStoreTags()"> - Show less</span></h3>
+                    
+                    <div class="plugins-facet__items">
+                        <div class="plugins-facet__item" ng-class="{'plugins-facet__item--disabled': pluginsUIState.storeTagsQuery.length === 0}">
+                            <input type="checkbox" id="all-tags" name="all-tags" ng-disabled="pluginsUIState.storeTagsQuery.length === 0"
+                                ng-checked="pluginsUIState.storeTagsQuery.length === 0" ng-click="resetStoreTagsQuery()">
+                            <label class="plugins-facet__item-label" for="all-tags">All</label>
+                        </div>
+
+                        <div class="plugins-facet__item" ng-repeat="(key, value) in pluginsUIState.storeTags | map2Object" ng-show="pluginsUIState.showAllStoreTags || $index < 10">
+                            <input class="plugins-facet__item-checkbox" type="checkbox" id="{{key}}" name="{{key}}"
+                                ng-checked="isStoreTagSelected(key)"
+                                ng-click="toggleStoreTagQuery(key)">
+                            <label class="plugins-facet__item-label" for="{{key}}">{{key | capitalize}} <span class="plugins-facet__item-count">{{value}}</span></label>
+                        </div>
+                    </div>
+
+                    <span class="toggle-show-more" ng-if="pluginsUIState.storeTags.size > 10 && !pluginsUIState.showAllStoreTags" ng-click="toggleShowAllStoreTags()">
+                        + {{pluginsUIState.storeTags.size - 10}} more...
+                    </span>
+                </div>
+                
+                <div class="plugins-facet">
+                    <h3 class="plugins-facet__title">Support Coverage
+                        <i dku-help-popover="'/templates/plugins/plugins-support-help.html'" 
+                            class="plugins-facet__help-icon icon-question-sign"
+                            data-original-title="Support Coverage">
+                        </i>
+                    </h3>
+
+                    <div class="plugins-facet__items">
+                        <div class="plugins-facet__item" ng-repeat="supportLevel in pluginsUIState.supportLevels">
+                            <input class="plugins-facet__item-checkbox" type="checkbox" id="{{supportLevel.value}}" name="{{supportLevel.value}}"
+                                ng-checked="isStoreSupportLevelSelected(supportLevel.value)"
+                                ng-click="toggleStoreSupportFilter(supportLevel.value)">
+                            <label class="plugins-facet__item-label" for="{{supportLevel.value}}"><i class="plugins-facet__item-icon {{supportLevel.icon}}"></i>{{supportLevel.label}}<span class="plugins-facet__item-count">{{getStoreSupportLevelCount(supportLevel.value)}}</span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plugins-facet">
+                    <h3 class="plugins-facet__title">Installation Status</h3>
+                    <div class="plugins-facet__items">
+                        <div class="plugins-facet__item" ng-class="{'plugins-facet__item--disabled': pluginsUIState.storeInstallationStatusQuery.length === 0}">
+                            <input type="checkbox" id="all-installed-status" name="all-installation-status" ng-disabled="pluginsUIState.storeInstallationStatusQuery.length === 0"
+                                   ng-checked="pluginsUIState.storeInstallationStatusQuery.length === 0" ng-click="resetStoreInstallationStatusQuery()">
+                            <label class="plugins-facet__item-label" for="all-installed-status">All</label>
+                        </div>
+
+                        <div class="plugins-facet__item">
+                            <input class="plugins-facet__item-checkbox" type="checkbox" id="installed" name="installed"
+                                   ng-checked="isStoreInstallationStatusSelected(true)"
+                                   ng-click="toggleStoreInstallationStatusFilter(true, $event)">
+                            <label class="plugins-facet__item-label" for="installed">Installed<span class="plugins-facet__item-count">{{getStoreInstallationStatusCount(true)}}</span></label>
+                        </div>
+                        <div class="plugins-facet__item">
+                            <input class="plugins-facet__item-checkbox" type="checkbox" id="not-installed" name="not-installed"
+                                   ng-checked="isStoreInstallationStatusSelected(false)"
+                                   ng-click="toggleStoreInstallationStatusFilter(false, $event)">
+                            <label class="plugins-facet__item-label" for="not-installed">Not installed<span class="plugins-facet__item-count">{{getStoreInstallationStatusCount(false)}}</span></label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <a class="btn btn--secondary plugins-store__reload-button" ng-click="reloadAllPlugins()" ng-if="appConfig.globalPermissions.mayDevelopPlugins"><i class="icon-refresh" /> Reload all</a>
+            <h5 class="plugins-notice-title">Plugins are not supported by default. <br> Plugins covered by Dataiku Support or Tier 2 support are explicitly indicated.</h5>
+        </div>
+        <div class="plugins-store-portfolio-column" >
+            <div ng-if="pluginsList.shouldRestart && appConfig.admin" class="noflex plugins-require-restart">
+                <div class="alert alert-info">
+                    Plugins have been installed or updated, and need Data Science Studio to be restarted.&nbsp;
+                    <a class="btn btn--secondary" ng-click="triggerRestart()">Restart</a>
+                </div>
+            </div>
+
+            <!-- error while getting the list -->
+            <div class="alert alert-error m16" ng-show="pluginsList.couldFetch && pluginsList.fetchError">
+                <div class="actions pull-right">
+                    <a ng-click="pluginsList.fetchError = null">
+                        <i class="icon-dku-error" /></a>
+                </div>
+                <h3>
+                    <i class="icon-warning-sign" />
+                    Failed to fetch the list of plugins.
+                </h3>
+                <p>{{pluginsList.fetchError.detailedMessage}}</p>
+            </div>
+
+            <!-- error while getting the list -->
+            <div class="alert alert-info m16" ng-show="!pluginsList.couldFetch && pluginsList.fetchError">
+                <h5>
+                    Cannot refresh plugins list
+                </h5>
+                <p ng-if="!appConfig.admin" >
+                    Cannot retrieve latest plugins, you might ask your administrator to configure the proxy settings.
+                </p>
+                <p ng-if="appConfig.admin">
+                    Cannot retrieve latest plugins, you might need to configure the proxy settings in the <a href="{{$state.href('admin.general.misc', {'#': 'http-proxy'})}}">Settings</a> section.</br>
+                    <a target="_blank" rel="noopener noreferrer" class="link-std" href="{{$root.versionDocRoot}}plugins/installing.html#installing-from-a-zip-file"><i class="icon-info-sign"/></a>&nbsp;You can only manually install/update plugins. You first need to obtain the Zip file of the plugin.
+                </p>
+            </div>
+            <div class="plugins-portfolio" ng-show="pluginsList">
+                <div class="plugin-card"
+                    ng-class="{'plugin-card--installed': plugin.installed}"
+                    ng-repeat="plugin in pluginsUIState.filteredStorePlugins = (pluginsList.plugins | filter:pluginsUIState.searchQuery | filter:{ inStore: true } | filter: filterStorePluginsBySupportLevel(plugin) | filter: filterStorePluginsByTags(plugin) | filter: filterStorePluginsByInstallationStatus(plugin) | orderBy:sortColumn:sortDescending)">
+
+                    <div class="plugin-card__header">
+                        <div class="plugin-card__details">
+                            <div class="plugin-card__name">
+                                <i class="icon-beaker" ng-show="plugin.isDev" />
+                                <span class="title" show-tooltip-on-text-overflow text-tooltip="plugin.storeDesc.meta.label || plugin.id"></span>
+                                <span ng-if="plugin.storeDesc.meta.supportLevel && plugin.storeDesc.meta.supportLevel === 'SUPPORTED'" class="installed-plugin__support"><i class="icon-dku-supported" toggle="tooltip" title="Covered by Dataiku Support" container="body"></i></span>
+                                <span ng-if="plugin.storeDesc.meta.supportLevel && plugin.storeDesc.meta.supportLevel === 'TIER2_SUPPORT'" class="installed-plugin__support"><i class="icon-dku-half-supported" toggle="tooltip" title="Covered by Tier 2 Support" container="body"></i></span>
+                            </div>
+                            <div class="plugin-card__author" ng-if="plugin.storeDesc.meta.author">By
+                                {{plugin.storeDesc.meta.author}}
+                            </div>
+                            <div class="plugin-card__description" ng-if="plugin.storeDesc.meta.description"
+                                from-markdown="plugin.storeDesc.meta.description" words-limit="30">
+                            </div>
+                        </div>
+                        <div class="plugin-card__icon-container">
+                            <i class="plugin-card__icon {{plugin.storeDesc.meta.icon}}"></i>
+                        </div>
+                    </div>
+
+                    <div class="plugin-card__footer">
+                        <div class="tags plugin-card__tags">
+                                <span ng-repeat="tag in plugin.storeDesc.meta.tags" class="tag plugin__tag">
+                                {{tag | capitalize}}
+                            </span>
+                        </div>
+                        <div class="plugin-card__buttons">
+                            <button
+                                ng-if="plugin.installed"
+                                class="btn btn--text btn--primary plugin-card__button"
+                                ng-click="goToPluginDetails(plugin.installedDesc.desc.id)">
+                                See details
+                            </button>
+                            <button
+                                class="btn btn--text btn--primary plugin-card__button"
+                                ng-if="!plugin.installed"
+                                ng-click="seePluginStoreDetails(plugin)">
+                                See details
+                            </button>
+                            <button
+                                toggle="tooltip"
+                                data-placement="top"
+                                title="Only administrators can update or install plugins from the store."
+                                class="btn btn--text btn--secondary plugin-card__button disabled"
+                                ng-if="!appConfig.admin && !plugin.installed && !plugin.updateAvailable">
+                                Install
+                            </button>
+                            <button
+                                toggle="tooltip"
+                                data-placement="top"
+                                title="Only administrators can update or install plugins from the store."
+                                class="btn btn--text btn--secondary plugin-card__button disabled"
+                                ng-if="!appConfig.admin && plugin.updateAvailable">
+                                Update
+                            </button>
+                            <button class="btn btn--text btn--primary plugin-card__button"
+                                ng-if="appConfig.admin && !plugin.installed && !plugin.updateAvailable && pluginsList.couldFetch"
+                                ng-click="previewInstallStorePlugin(plugin)">
+                                Install
+                            </button>
+                            <a class="btn btn--text btn--primary plugin-card__button"
+                                ng-if="appConfig.admin && !plugin.installed && !plugin.updateAvailable && !pluginsList.couldFetch"
+                                target="_blank" rel="noopener noreferrer"
+                                href="{{plugin.storeDesc.meta.url}}">
+                                More Info
+                            </a>
+                            <button class="btn btn--text btn--primary plugin-card__button"
+                                ng-if="appConfig.admin && plugin.updateAvailable"
+                                ng-click="previewInstallStorePlugin(plugin)">
+                                Update
+                            </button>
+                            <button
+                                toggle="tooltip"
+                                data-placement="top"
+                                title="Only administrators can uninstall plugins."
+                                class="btn btn--text btn--secondary plugin-card__button disabled"
+                                ng-if="!appConfig.admin && plugin.installed">
+                                Uninstall
+                            </button>
+                            <button
+                                toggle="tooltip"
+                                data-placement="top"
+                                title="Built-in plugins can not be uninstalled through this GUI."
+                                class="btn btn--text btn--secondary plugin-card__button disabled"
+                                ng-if="appConfig.admin && plugin.installed && !plugin.uninstallable">
+                                Uninstall
+                            </button>
+                            <button class="btn btn--text btn--primary plugin-card__button"
+                                ng-if="appConfig.admin && plugin.installed && plugin.uninstallable"
+                                ng-click="previewUninstallPlugin(plugin)">
+                                Uninstall
+                            </button>
+                            <span class="btn disabled plugin-card__button--installed plugin-card__button"
+                                ng-if="plugin.installed && !plugin.updateAvailable">
+                                <i class="icon-ok-sign"></i>&nbsp; Installed
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="plugins-no-result"
+                    ng-show="hasNoResultsForStoreQuery()">
+                    <h4 class="plugins-no-result__title">No plugin matches your filter.</h4>
+                    <a class="btn btn--secondary" ng-click="resetStoreQuery()">Clear filters</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div ng-if="pluginsList && pluginsList.couldFetch === false && pluginsList.pluginsNumberInStore === 0" class="plugins-fetch-fail">
+        <h4>Failed to reach the Dataiku plugin store&nbsp;<button
+                class="btn btn--secondary"
+                ng-click="pluginsList.showFetchError = !pluginsList.showFetchError;">{{pluginsList.showFetchError ? 'Hide' : 'Show'}}
+                HTTP error</button></h4>
+        <div ng-show="pluginsList.showFetchError" class="alert alert-error">
+            <p>{{pluginsList.fetchError.detailedMessage}}</p>
+        </div>
+        <p>
+            Your server likely doesn't have Internet access.<br />
+            You might need to configure the proxy settings in the <a href="{{$state.href('admin.general.misc', {'#': 'http-proxy'})}}">Settings</a> section.
+        </p>
+        <p>
+            You can manually install plugins. You first need to obtain the ZIP file of the plugin.
+        </p>
+        <p>
+            For official plugins, obtain the ZIP file from <a target="_blank" rel="noopener noreferrer" href="https://www.dataiku.com/product/plugins/">our plugins webpage</a>.
+        </p>
+        <div>
+            <h5>Uploading the ZIP file</h5>
+            <ul>
+                <li>Click on "ADD PLUGIN" button on the top right of this page and select "Upload"</li>
+                <li>Choose your file</li>
+                <li>Validate</li>
+                <li>Follow the restart instructions if any</li>
+            </ul>
+
+            <h5>Updating a plugin</h5>
+            <ul>
+                <li>Click on "ADD PLUGIN" button on the top right of this page and select "Upload"</li>
+                <li>Choose your file</li>
+                <li>Check the “This is an update for an installed plugin” checkbox</li>
+                <li>Validate</li>
+                <li>Follow the restart instructions if any</li>
+            </ul>
+        </div>
+    </div>
+</div>

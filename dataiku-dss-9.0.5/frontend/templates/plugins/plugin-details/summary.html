@@ -1,0 +1,139 @@
+<div class="plugin-content plugin-information fh oa">
+    <div block-api-error />
+    <div class="plugin-page-grid" ng-if="pluginData">
+        <div class="plugin-info-column">
+            <div class="plugin-info">
+                <div class="plugin-info__header">
+                    <div class="plugin-info__details">
+                        <h4 class="plugin-details__title">{{ pluginData.installedDesc.desc.meta.label || pluginData.installedDesc.desc.id }}</h4>
+                        <div class="plugin-details__description" ng-if="pluginData.installedDesc.desc.meta.description" from-markdown="pluginData.installedDesc.desc.meta.description"></div>
+                        <a target="_blank" rel="noopener noreferrer" href="{{pluginData.installedDesc.desc.meta.url}}">Plugin documentation &nbsp; <i class="icon-external-link"></i></a>
+                    </div>
+
+                    <div class="plugin-info__icon-container">
+                        <i class="plugin-info__icon {{ pluginData.installedDesc.desc.meta.icon || pluginData.storeDesc.desc.meta.icon }}"></i>
+                    </div>
+                </div>
+
+                <div class="line">
+                    <span class="line-title">Author</span >
+                    <span class="line-content">
+                        {{pluginData.installedDesc.desc.meta.author}}
+                    </span>
+                </div>
+
+                <div class="line">
+                    <span class="line-title">Version</span >
+                    <span class="line-content">
+                        {{pluginData.installedDesc.desc.version}}
+                    </span>
+                </div>
+
+                <div class="line">
+                    <span class="line-title">License</span >
+                    <span class="line-content">
+                        {{pluginData.installedDesc.desc.meta.licenseInfo}}
+                    </span>
+                </div>
+
+                <div class="line" ng-if="pluginData.installedDesc.desc.meta.supportLevel">
+                    <span class="line-title">Support tier
+                        <a href="https://doc.dataiku.com/dss/latest/troubleshooting/support-tiers.html" target="blank"class="link-std"><i class="icon-question-sign"></i></a>
+                    </span >
+                    <span class="line-content">
+                        {{pluginData.installedDesc.desc.meta.supportLevel |niceConst}}
+                    </span>
+                </div>
+
+                <div class="line tags-and-reload" ng-if="pluginData.installedDesc.desc.meta.tags && pluginData.installedDesc.desc.meta.tags.length > 0">
+                    <span class="line-title">Tags</span>
+                    <span class="line-content">
+                        <ul class="tags inline">
+                            <li ng-repeat="tag in pluginData.installedDesc.desc.meta.tags">
+                                <span class="tag plugin__tag">{{tag}}</span>
+                            </li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="plugin-components-column">
+
+            <div class="plugin-external-dependencies" ng-if="pluginData.installedDesc.frontendRequirements.codeEnvLanguage">
+                <h4 class="plugin-details__title">
+                    Code Environment
+                </h4>
+                <p class="text-warning warning-background--light pad8" ng-if="pluginEnvUpToDate === false">
+                    <i class="icon-warning-sign mright8"></i>
+                    This plugin will not work until the code environment is properly setup and all dependencies are installed.
+                </p>
+                <div plugin-requirements
+                    plugin-desc="pluginData.installedDesc"
+                    settings="pluginData.settings"
+                    on-valid="validatePluginEnv"
+                    on-invalid="invalidatePluginEnv">
+                </div>
+            </div>
+
+            <div class="plugin-external-dependencies" ng-if="pluginData.installedDesc.frontendRequirements.hasDependencies">
+                <h4 class="plugin-details__title">
+                    Dependencies
+                </h4>
+                <p class="text-warning warning-background--light pad8" ng-if="(pluginData.installedDesc.frontendRequirements.pythonPackages.length || pluginData.installedDesc.frontendRequirements.rPackages.length || pluginData.installedDesc.frontendRequirements.installScriptCommand) && pluginEnvUpToDate === false">
+                    <i class="icon-warning-sign mright8"></i>
+                    This plugin will not work until all dependencies are installed.
+                </p>
+                <div plugin-requirements
+                    plugin-desc="pluginData.installedDesc"
+                    settings="pluginData.settings"
+                    on-valid="validatePluginEnv"
+                    on-invalid="invalidatePluginEnv">
+                </div>
+            </div>
+
+            <div class="plugin-components">
+                <div  ng-show="computeNbComponents(pluginData.installedDesc)">
+                    <h4 class="plugin-details__title">Components
+                        <span>({{computeNbComponents(pluginData.installedDesc)}})</span>
+                    </h4>
+                    <div class="flex std-list-search-box">
+                        <span class="search-icon"><i class="icon-dku-search"></i></span>
+                        <input type="search" ng-model="filterQuery.userQuery" placeholder="Search&hellip;">
+                    </div>
+                </div>
+
+                <div class="plugin-components__group alert-error" ng-if="pluginData.loadingFailures.length > 0">
+                    <h5 class="plugin-components__group-title" ng-click="foldableToggle()"><i ng-class="foldableOpen ? 'icon-caret-down' : 'icon-caret-right'"></i>
+                        Some components were not loaded
+                    </h5>
+                </div>
+                <ul class="plugin-components__group" ng-repeat="contentType in getComponentsTypeListFiltered()">
+                    <li ng-repeat="content in filteredContent[contentType] | orderBy: 'meta.displayOrderRank'" class="plugin-component-item plugin-component-item--readonly" ng-click="content.folderName && openPluginContentInEditor(content, contentType)">
+                        <div class="plugin-component-item__content">
+                            <div class="plugin-component-item__icon-column">
+                                <i class="plugin-component-item__icon {{ getComponentIcon(contentType, content) }}"></i>
+                            </div>
+                            <div class="plugin-component-item__meta-column">
+                                <h5 class="plugin-component-item__name">{{ content.meta.label || content.id }} </h5>
+                                <div ng-if="content.meta.description"
+                                    class="plugin-component-item__description"
+                                    from-markdown="content.meta.description">
+                                </div>
+                            </div>
+                            <div class="plugin-component-item__right-column">
+                                <span class="plugin-component-item__type">{{ contentType | humanContentType }}</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <div ng-if="pluginData && pluginData.installedDesc &&  computeNbComponents(pluginData.installedDesc) > 0 && getComponentsTypeListFiltered().length === 0" class="empty-list-cta">
+                    <p>No component matches your query.</p>
+                </div>
+                <div ng-if="pluginData && pluginData.installedDesc &&  computeNbComponents(pluginData.installedDesc) === 0" class="empty-list-cta">
+                    <p>This plugin has no components.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

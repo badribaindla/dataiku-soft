@@ -1,0 +1,119 @@
+<div class="standard-container">
+    <div block-api-error />
+
+    <div class="standard-container__wrap" ng-if="projectStatus">
+        <div class="horizontal-flex standard-container__header standard-container__header--with-totem">
+            <div class="noflex standard-container__totem" ng-if="projectStatus.projectBasicInfo.id">
+                <totem project-name="projectStatus.projectBasicInfo.name"
+                    project-key="projectStatus.projectBasicInfo.id"
+                    object-type="'PUBLISHED_PROJECT'"
+                    object-id="projectStatus.projectBasicInfo.id"
+                    object-img-hash = "projectStatus.projectBasicInfo.imageInfo.objectImgHash"
+                    img-color="projectStatus.projectBasicInfo.imageInfo.imgColor"
+                    img-pattern="projectStatus.projectBasicInfo.imageInfo.imgPattern"
+                    show-initials="projectStatus.projectBasicInfo.imageInfo.showInitials"
+                    is-project-img="projectStatus.projectBasicInfo.imageInfo.isUploadedImg"
+                    default-img-color="projectStatus.projectBasicInfo.imageInfo.defaultImgColor"
+                    totem-class="standard-container__totem-image"
+                />
+            </div>
+            <div class="flex minw0 standard-container__titles">
+                <h3 class="standard-container__title" show-tooltip-on-text-overflow text-tooltip="projectStatus.projectBasicInfo.name" tooltip-direction="'tooltip'"></h3>
+            </div>
+        </div>
+        <div class="standard-container__sections">
+            <div class="standard-container__section">
+                <form class="dkuform-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Project Key</label>
+                        <div class="controls">
+                            <input type="text"  value="{{ projectStatus.projectBasicInfo.id }}" disabled />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="standard-container__section">
+                <div ng-if="projectStatus.packages.length">
+                    <div class="deployer__search-box mbot16">
+                        <input type="search" ng-model="uiState.query" placeholder="Search bundles...">
+                    </div>
+                    <table sort-table class="table table-hover table-fixed standard-list__table mbot0" sort-column="publishedOn" sort-descending="true">
+                        <thead>
+                            <tr>
+                                <th sort-col="id" style="width: 30%;">Bundle</th>
+                                <th sort-col="originInfo.projectKey" style="width: 20%;">Design project</th>
+                                <th class="sortable--overflow" ng-repeat="stage in currentStages" sort-col="{{ 'stages.counts.' + stage.id }}">
+                                    <div class="sortable-content" show-tooltip-on-text-overflow text-tooltip="stage.id === '__OTHERS__' ? 'Others' : stage.id" tooltip-direction="'tooltip'"></div>
+                                </th>
+                                <th sort-col="publishedOn" style="width: 110px;">Last published</th>
+                                <th sort-col="publishedBy" style="width: 10%;">Published by</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="standard-list__table-row" ng-repeat="bundle in projectStatus.packages | toArray | filter:uiState.query | orderBy:sortColumn:sortDescending" full-click>
+                                <td>
+                                    <div class="horizontal-flex">
+                                        <i class="icon-bundle standard-list__row-icon universe-color project-deployer"></i>
+                                        <a ui-sref="projectdeployer.projects.project.bundle.status({ publishedProjectKey: projectStatus.projectBasicInfo.id, bundleId: bundle.id })" class="standard-list__row-title" main-click show-tooltip-on-text-overflow text-tooltip="bundle.id" tooltip-direction="'tooltip'">
+                                        </a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div ng-show="!bundle.originInfo.url" show-tooltip-on-text-overflow text-tooltip="bundle.originInfo.projectKey" tooltip-direction="'tooltip'"></div>
+                                    <div class="horizontal-flex" ng-show="bundle.originInfo.url">
+                                        <a href="{{ bundle.originInfo.url }}"
+                                            ng-click="$event.stopPropagation()"
+                                            class="standard-list__external-link"
+                                            target="blank"
+                                            show-tooltip-on-text-overflow 
+                                            text-tooltip="bundle.originInfo.projectKey"
+                                            tooltip-direction="'tooltip'">
+                                        </a>
+                                        <a href="{{ bundle.originInfo.url }}" ng-click="$event.stopPropagation()" class="standard-list__external-link no-underline padleft4 noflex">
+                                            <i class="smaller-font icon-external-link"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td ng-repeat="stage in currentStages">
+                                    <div ng-if="stage.id === '__OTHERS__' && bundle.stages.others" dku-html-tooltip position="left">
+                                        <tooltip-trigger>
+                                            <span class="cursor-pointer">
+                                                {{ bundle.stages.others.deployments.length }}
+                                            </span>
+                                        </tooltip-trigger>
+                                        <tooltip-content>
+                                            <ul class="raw-unstyled-ul">
+                                                <li ng-repeat="(otherStage, otherCount) in bundle.stages.others.stageCounts">
+                                                    {{ otherStage === '__OTHERS__' ? 'Unknown stages' : otherStage }}: {{ otherCount }}
+                                                </li>
+                                            </ul>
+                                        </tooltip-content>
+                                    </div>
+                                    <span ng-if="!(stage.id === '__OTHERS__' && bundle.stages.others)" ng-class="{ 'text-disabled': !bundle.stages.perStage[stage.id].deployments.length }">
+                                        {{ bundle.stages.perStage[stage.id].deployments.length }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span toggle="tooltip" data-placement="right" title="{{ bundle.publishedOn | date:'yyyy-MM-dd – HH:mm:ss' }}">
+                                        {{ bundle.publishedOn | friendlyTimeDeltaShort }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div show-tooltip-on-text-overflow text-tooltip="bundle.publishedBy" tooltip-direction="'tooltip'"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>                
+                </div>
+                <div ng-if="!projectStatus.packages.length" class="flex empty-list-cta mtop16 mbot16">
+                    <p>
+                        No bundles in this project
+                    </p>
+                    <button class="btn btn--large btn--primary" ng-if="projectStatus.canWrite" ng-click="openUploadBundleModal()">
+                        <i class="icon-upload" />&nbsp;Upload bundles
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

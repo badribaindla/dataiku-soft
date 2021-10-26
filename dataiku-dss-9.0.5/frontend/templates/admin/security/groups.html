@@ -1,0 +1,82 @@
+<div class="h100 vertical-flex pad16"
+    ng-init="canGroups = (appConfig.licensedFeatures.userSecurityAllowed && appConfig.licensingMode != 'SAAS')">
+
+    <div block-api-error></div>
+
+    <div class="fh oa" ng-if="!canGroups">
+        <div class="locked-feature" ng-if="!appConfig.licensedFeatures.userSecurityAllowed">
+            <div class="banner">
+                Your DSS <span ng-bind="appConfig.licensedFeatures.limitedEditionString" /> does
+                not allow you to manage groups.
+            </div>
+            <div include-no-scope="/templates/profile/community-vs-enterprise-try.html"></div>
+        </div>
+        <div class="container-fluid page-top-padding" ng-if="appConfig.licensingMode == 'SAAS'">
+            <div style="margin: 3em auto; width: 500px; text-align: center">
+                <h4 class="ce-unavail">
+                    Collaborative features are not available in
+                    <br />
+                    Dataiku DSS Online Trial
+                </h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="noflex std-list-header" ng-show="canGroups">
+        <div class="dropdown pull-right">
+            <a class="btn btn--primary" href="{{$state.href('admin.security.groups.new')}}"> <i plus-icon /> New group</a>
+        </div>
+        <div class="std-list-search-box">
+            <span class="add-on"> <i class="icon-dku-search"></i>
+            </span>
+            <input type="search" ng-model="query" style="width: 190px;" placeholder="Filter..."/>
+        </div>
+    </div>
+
+    <div class="flex" ng-if="canGroups">
+        <div class="fh">
+            <div class="h100 oa">
+                <table sort-table class="table table-striped table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th sort-col="name">Group name</th>
+                            <th sort-col="type">Type</th>
+                            <th sort-col="description">Description</th>
+                            <th sort-col="admin">Administrator</th>
+                            <th sort-col="userCount">Nb. users</th>
+                            <th>&nbsp;</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr  ng-repeat="group in groups | filter:query | orderBy : sortColumn:sortDescending">
+                            <td>
+                                <a href="{{ $state.href('admin.security.groups.edit', {name:group.name}) }}" main-click>{{group.name}}</a>
+                            </td>
+                            <td>{{group.sourceType}}</td>
+                            <td>{{group.description}}</td>
+                            <td>{{group.admin}}</td>
+                            <td>{{group.userCount}}</td>
+                            <td>
+                                <a class="link-danger" ng-click="deleteGroup(group)" style="text-decoration: none">
+                                    <i class="icon-trash"></i>
+                                </a>
+                                <!-- <div class="dropdown">
+                                    <a data-toggle="dropdown" class="dropdown-trigger-fade"> <i class="icon-cog" /></a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="link-danger" ng-click="deleteGroup(group)">
+                                                <i class="icon-trash"></i>
+                                                Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div> -->
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>

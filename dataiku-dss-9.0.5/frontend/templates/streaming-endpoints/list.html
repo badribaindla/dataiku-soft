@@ -1,0 +1,56 @@
+<div class="list-page-4 flex dss-home-page list-page--flat-design">
+    <div data-extend-template="/templates/layouts/list-items-2.html" class="vertical-flex h100 main-panel" ng-class="{'main-panel--reduced': standardizedSidePanel.opened}">
+        <!-- COUNTER -->
+        <span data-block="counter-name">
+            Streaming endpoints
+        </span>
+
+        <div new-streaming-endpoint-menu title="New streaming endpoint" data-block="newItem"/>
+
+        <div data-block="empty">
+            <h1>
+                No streaming endpoint in this project
+            </h1>
+            <p>Streaming endpoints handle data that is streaming continuously</p>
+        </div>
+
+        <div data-block="item" class="h100">
+            <label>
+                <span style="display:none;" main-click ng-click="objectClicked(item, $event)"></span> <!-- because checkbox click is prioritary -->
+                <input type="checkbox" ng-model="item.$selected" class="qa_streaming-endpoints_list-checkbox" ng-click="checkBoxChanged(item, $event)" />
+            </label>
+            <div class="hit h100" dataset="item">
+                <div class="illustration">
+                    <i class="{{item.type | datasetTypeToIcon}} universe-color streaming-endpoint"></i>
+                </div>
+                <div class="hitContent horizontal-flex h100" >
+                    <div class="hit-content-main noflex">
+                        <h4 class="hit-content-main__title">
+                            <a href="{{ $state.href('projects.project.streaming-endpoints.streaming-endpoint.explore', {projectKey : $stateParams.projectKey, streamingEndpointId :item.id}) }}"
+                                title="{{ item.displayName }}" ng-bind-html="item.name | boldify:selection.filterParams.userQueryResult" class="qa_project_datasetslist_datasetname">
+                            </a>
+                            <span class="hit-content-main__interests">
+                                <star-interest status="item.interest.starred"
+                                               on-toggle="starObject(nextStatus, item)"
+                                ></star-interest>
+                                <watch-interest status="item.interest.watching"
+                                                on-toggle="watchObject(nextStatus, item)"
+                                ></watch-interest>
+                            </span>
+                        </h4>
+                        <div class="hit-content-main__subtitle">
+                            {{ item.type|niceType }}
+                        </div>
+                    </div>
+                    <div class="hit-content__tags flex">
+                        <responsive-tags-list items="item.tags" tags-map="projectTagsMap" object-type="'STREAMING_ENDPOINT'"></responsive-tags-list>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <standardized-side-panel page="objects_list" object-type="{{ (selection.selectedObjects.length <= 1) ? ((selection.selectedObject != null) ? 'STREAMING_ENDPOINT' : '') : 'MULTI' }}" single-type="LOCAL_STREAMING_ENDPOINT">
+    </standardized-side-panel>
+
+</div>

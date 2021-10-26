@@ -1,0 +1,160 @@
+<div class="paned-settings-page-pane">
+    <h1>Event Server</h1>
+    
+    <div class="section">
+        <h2>Targets</h2>
+
+        <div add-remove ng-model="generalSettings.eventServerSettings.targets">
+
+            <div ng-repeat="target in generalSettings.eventServerSettings.targets" class="repeatable-config-block spark-execution-config" >
+            
+                <a class="pull-right text-danger" style="margin: 10px" ng-click="remove($index)">
+                    <i class="icon-trash" />
+                </a>
+
+                <form class="dkuform-horizontal">
+                <h3>Dispatching</h3>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Topics selection</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="target.topicsFiltering" ng-options="x[0] as x[1] for x in [['ALL', 'All'],['SELECTED', 'Explicit list']]" />
+                    </div>
+                </div>
+                <div class="control-group" ng-if="target.topicsFiltering == 'SELECTED'">
+                    <label for="" class="control-label">Topics</label>
+                    <div class="controls">
+                        <input type="text" comma-separated-view ng-model="target.topics" />
+                        <span class="help-inline">Comma-separated</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="" class="control-label">Routing keys selection</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="target.routingKeysFiltering" ng-options="x[0] as x[1] for x in [['ALL', 'All'],['SELECTED', 'Explicit list']]" />
+                    </div>
+                </div>
+                <div class="control-group" ng-if="target.routingKeysFiltering == 'SELECTED'">
+                    <label for="" class="control-label">Routing keys</label>
+                    <div class="controls">
+                        <input type="text" comma-separated-view ng-model="target.routingKeys" />
+                        <span class="help-inline">Comma-separated</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                <label class="control-label">Require auth. key</label>
+                <div class="controls">
+                    <input type="password" autocomplete="new-password" ng-model="target.requiredAuthKey" />
+                    <span class="help-inline">The key must be in the event auth keys list (see below)</span>
+                </div>
+            </div>
+
+                <h3>Destination</h3>
+
+                <div class="control-group">
+                    <label for="" class="control-label">Type</label>
+                    <div class="controls">
+                        <select dku-bs-select ng-model="target.type" ng-options="x[0] as x[1] for x in [['FILE_LIKE_CONNECTION_PATH', 'Path in FS-like connection']]" />
+                    </div>
+                </div>
+                <div ng-if="target.type == 'FILE_LIKE_CONNECTION_PATH'">
+                    <div class="control-group">
+                        <label for="" class="control-label">Write as user</label>
+                        <div class="controls">
+                            <input type="text" ng-model="target.runAs" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Connection name</label>
+                        <div class="controls">
+                            <input type="text" ng-model="target.fileLikeConnectionName" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Path within connection</label>
+                        <div class="controls">
+                            <input type="text" ng-model="target.fileLikePathWithinConnection" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Subfolder per topic</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="target.folderByTopic" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Subfolder per routing key</label>
+                        <div class="controls">
+                            <input type="checkbox" ng-model="target.folderByRoutingKey" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Time partitioning</label>
+                        <div class="controls">
+                             <select dku-bs-select ng-model="target.partitioningPeriod" ng-options="x[0] as x[1] for x in [['MONTH', 'Month'],['DAY', 'Day'],['HOUR','Hour']]" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Flush size (bytes)</label>
+                        <div class="controls">
+                             <input type="number" min="0" ng-model="target.flushEveryBytes" />
+                             <span class="help-inline">0 means flush after each message. Don't use that.</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Flush interval (seconds)</label>
+                        <div class="controls">
+                             <input type="number" min="0" ng-model="target.flushEveryS" />
+                             <span class="help-inline">0 = no auto-flush on interval</span>
+                        </div>
+                    </div>
+                </div>
+                </form>
+            </div>
+
+            <button type="button" 
+                class="btn btn--text btn--primary" 
+                ng-click="add({})">
+                <span plus-icon></span>&nbsp;Add a target
+            </button>
+        </div>
+
+    </div>
+
+    <div class="section">
+        <h2>Security</h2>
+
+        <form class="dkuform-horizontal">
+            <div class="control-group">
+                <label class="control-label">Require auth for events</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="generalSettings.eventServerSettings.requireAuthenticationForEvents" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Authorized keys</label>
+                <div class="controls">
+                    <editable-list ng-model="generalSettings.eventServerSettings.eventsAuthenticationKeys"
+                        add-label="Add key" sortable="false">
+                        <div><input type="password" autocomplete="new-password" ng-model="it.key" ng-trim="false"/></div>
+                    </editable-list>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Require auth for stats</label>
+                <div class="controls">
+                    <input type="checkbox" ng-model="generalSettings.eventServerSettings.requireAuthenticationForStats" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Authorized keys</label>
+                <div class="controls">
+                    <editable-list ng-model="generalSettings.eventServerSettings.statsAuthenticationKeys"
+                        add-label="Add key" sortable="false">
+                        <div><input type="password" autocomplete="new-password" ng-model="it.key" ng-trim="false"/></div>
+                    </editable-list>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

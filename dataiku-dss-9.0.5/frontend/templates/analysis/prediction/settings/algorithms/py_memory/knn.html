@@ -1,0 +1,70 @@
+<div data-extend-template="/templates/analysis/mlcommon/settings/base-algorithm-params.html">
+    <div data-block="algorithm-title">
+        K Nearest Neighbors
+    </div>
+    <div data-block="algorithm-description">
+        <div ng-if="isRegression()">
+            <strong>K Nearest Neighbors</strong> makes predictions for a sample by finding the <em>k</em> nearest samples and averaging their responses.
+        </div>
+        <div ng-if="isClassification()">
+            <strong>K Nearest Neighbors</strong> makes predictions for a sample by finding the <em>k</em> nearest samples and assigning the most represented class among them.
+        </div>
+        <div>
+            <strong>Warning: </strong> this algorithm requires storing the entire training data into the model. This will lead to a very large model if the data is larger than a few hundred lines. Predictions will also be slow.
+        </div>
+    </div>
+    <div data-block="algorithm-params">
+        <ml-hp-numerical ng-model="mlTaskDesign.modeling.knn.k"
+                         required
+                         label="K"
+                         help-inline="The number of neighbors to examine for each sample."
+                         strategy="{{mlTaskDesign.modeling.gridSearchParams.strategy}}">
+        </ml-hp-numerical>
+        <div class="control-group required">
+            <label class="control-label ">Distance weighting</label>
+            <div class="controls">
+                <label class="checkbox-label">
+                    <input type="checkbox" ng-model="mlTaskDesign.modeling.knn.distance_weights"> Use distance weighting
+                </label>
+                <div class="help-inline">
+                    If enabled, {{isRegression() ? 'averaging' : 'voting'}} across neighbors will be weighed by the inverse distance from the sample to the neighbor.
+                </div>
+            </div>
+        </div>
+        <div class="control-group required">
+            <label class="control-label">Neighbor finding algorithm</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="mlTaskDesign.modeling.knn.algorithm" options-descriptions="['A method will be selected empirically depending on the data.',
+                'Stores the data points into a partitioned data structure for efficient lookup.',
+                'Stores the data points into a partitioned data structure for efficient lookup.',
+                'Will examine every training sample for every prediction. Usually inefficient.']">
+                    <option value="auto">Automatic</option>
+                    <option value="kd_tree">KD Tree</option>
+                    <option value="ball_tree">Ball Tree</option>
+                    <option value="brute">Brute force</option>
+                </select>
+                <div class="help-inline">
+                    The method used to find the nearest neighbors to each point. Has no impact on predictive performance, but will have a high impact on training and prediction speed.
+                </div>
+            </div>
+        </div>
+        <div class="control-group" ng-if="['kd_tree', 'ball_tree'].indexOf(mlTaskDesign.modeling.knn.algorithm) > -1">
+            <label class="control-label">Leaf size</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.knn.leaf_size" min="1">
+                <div class="help-inline">
+                    Leaf size passed to the Ball or KD Tree. This can affect the speed of the construction and query.
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">p</label>
+            <div class="controls">
+                <input type="number" ng-model="mlTaskDesign.modeling.knn.p" min="1">
+                <div class="help-inline">
+                    The exponent of the Minkowski metric used to search neighbors. For p = 2, this gives Euclidian distance, for p = 1, Manhattan distance. Greater values lead to the L<sub>p</sub> distances.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

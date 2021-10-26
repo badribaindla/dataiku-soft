@@ -1,0 +1,76 @@
+<div class="sql-modal modal modal3 modal-wide" ng-controller="SqlModalController" auto-size="false" style="min-height: 300px;">
+    <dku-modal-header-with-totem modal-totem="icon-dku-nav_dataset" >
+        <dku-modal-title>
+            <span ng-if="engine == 'SQL'">SQL query</span>
+            <span ng-if="engine == 'HIVE'">HiveQL query</span>
+            <span ng-if="engine == 'IMPALA'">Impala query</span>
+            <span ng-if="engine == 'SPARK'">Spark SQL query</span>
+        </dku-modal-title>
+    </dku-modal-header-with-totem>
+
+    <div class="modal-body" style="padding:0 20px; min-height: 200px">
+        <div class="tabs" ng-if="executionPlan && executionPlan.steps.length > 0">
+            <a class="tab" ng-click="uiState.currentTab = 'query'" ng-class="{'enabled':uiState.currentTab == 'query'}">Query</a>
+            <a class="tab" ng-click="uiState.currentTab = 'plan'" ng-class="{'enabled':uiState.currentTab == 'plan'}">Execution plan</a>
+        </div>
+
+        <div ng-if="uiState.currentTab == 'query'">
+            <textarea
+                ng-if="query"
+                class="generated-query"
+                ng-model="query"
+                ui-codemirror="editorOptions"
+                >
+            </textarea>
+
+            <div class="editor-statusbar" ng-show="runsOnImpala && !validatesOnImpala">
+            	<!-- 'pre-line' here because we expect the exception to be multiline when impala tries several hosts before giving up -->
+				<span class="text-error" style="white-space: pre-line;"> <i class="icon-warning-sign" />&nbsp; {{impalaImpossibilityReason}}</span>
+            </div>
+		</div>
+        <div ng-show="uiState.currentTab == 'plan'" ng-if="executionPlan && executionPlan.steps.length > 0">
+            <div execution-plan ng-model="executionPlan"/>
+            <span>
+                Execution on {{executionPlan.db}}
+            </span>
+        </div>
+        <div ng-if="uiState.currentTab == 'plan' && failedToComputeExecutionPlan">
+            <div style="text-align: center; margin-top: 80px; font-size: 29px; color: #999; font-weight: 300;">
+                Cannot compute execution plan
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer modal-footer-std-buttons">
+    	<div class="text-right" ng-if="!cannotConvert">
+    		<button type="button"
+                class="btn btn--text btn--danger"
+                ng-if="engine == 'HIVE' && !isAlreadyRecipe && !isNotebook"
+                ng-click="convert('hive', 'Hive');dismiss();"
+                >
+                Convert to Hive recipe
+            </button>
+    		<button type="button"
+                class="btn btn--text btn--danger"
+                ng-if="engine == 'SQL' && !isAlreadyRecipe && !isNotebook"
+                ng-click="convert('sql', 'SQL');dismiss();"
+                >
+                Convert to SQL recipe
+            </button>
+            <button type="button"
+                class="btn btn--text btn--danger"
+                ng-if="engine == 'IMPALA' && !isAlreadyRecipe && !isNotebook"
+                ng-click="convert('impala', 'Impala');dismiss();"
+                >
+                Convert to Impala recipe
+            </button>
+            <button type="button"
+                class="btn btn--text btn--danger"
+                ng-if="engine == 'SPARK' && !isAlreadyRecipe && !isNotebook"
+                ng-click="convert('spark', 'Spark');dismiss();"
+                >
+                Convert to Spark SQL
+            </button>
+    	</div>
+    </div>
+</div>

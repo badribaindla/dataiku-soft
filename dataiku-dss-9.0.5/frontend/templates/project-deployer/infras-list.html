@@ -1,0 +1,86 @@
+<feature-locked feature-name="'Project Deployer capabilities'"
+    class="dss-page container-fluid"
+    ng-if="isFeatureLocked">
+</feature-locked>
+
+<div class="h100 oa" ng-if="!isFeatureLocked">
+    <div block-api-error></div>
+    <div ng-if="infraStatusList.length" class="standard-container standard-list">
+        <div class="standard-container__wrap">
+            <div class="standard-list__header horizontal-flex">
+                <div class="standard-list__title">
+                    <i class="icon-infra standard-list__title-icon universe-color project-deployer"></i>
+                    Infrastructures
+                </div>
+                <div class="deployer__search-box">
+                    <input type="search" ng-model="uiState.query" placeholder="Search infras...">
+                </div>
+                <div class="standard-list__actions">
+                    <button class="btn btn--primary"
+                            ng-click="startCreateInfra()"
+                            disabled-if="!canCreateInfras()"
+                            disabled-message="You don't have the right to create infrastructures">
+                        <span plus-icon></span>&nbsp;New infrastructure
+                    </button>
+                </div>
+            </div>
+            <table sort-table class="table table-hover table-fixed standard-list__table">
+                <thead>
+                    <tr>
+                        <th class="standard-list__table-cell" sort-col="infraBasicInfo.id" style="width: 30%">ID</th>
+                        <th sort-col="infraBasicInfo.stage">Stage</th>
+                        <th sort-col="deployments.length">Deployments</th>
+                        <th sort-col="infraHealthError.title" style="width: 50px;">Status</th>
+                        <th sort-col="infraBasicInfo.url" style="width: 35%">URL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr full-click class="standard-list__table-row" ng-repeat="infraStatus in infraStatusList | toArray | filter:filterInfra | orderBy:sortColumn:sortDescending">
+                        <td class="standard-list__table-cell">
+                            <div class="horizontal-flex">
+                                <i class="icon-infra standard-list__row-icon universe-color project-deployer"></i>
+                                <a class="standard-list__row-title"
+                                   ui-sref="projectdeployer.infras.infra.status({infraId: infraStatus.infraBasicInfo.id})"
+                                   show-tooltip-on-text-overflow
+                                   text-tooltip="infraStatus.infraBasicInfo.id"
+                                   tooltip-direction="'tooltip'"
+                                   main-click></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div show-tooltip-on-text-overflow text-tooltip="infraStatus.infraBasicInfo.stage" tooltip-direction="'tooltip'"></div>
+                        </td>
+                        <td>{{infraStatus.deployments.length}}</td>
+                        <td  title="{{ infraStatus.infraHealthError.message }}" toggle="tooltip" data-placement="left" data-container="body">
+                            <div class="status-icon">
+                                <i ng-if="infraStatus.infraHealthError" ng-class="infraStatus.infraHealthError.message ? 'icon-dku-error text-error' : 'icon-dku-success text-success'"></i>
+                                <i ng-if="!infraStatus.infraHealthError" class="icon-spin icon-spinner"></i>
+                            </div>
+                        </td>
+                        <td class="horizontal-flex">
+                            <a href="{{infraStatus.infraBasicInfo.automationNodeUrl}}" target="blank" ng-if="infraStatus.infraBasicInfo.automationNodeUrl" class="horizontal-flex mx-textellipsis standard-list__external-link">
+                                <span show-tooltip-on-text-overflow text-tooltip="infraStatus.infraBasicInfo.automationNodeUrl" tooltip-direction="'tooltip'"></span>
+                            </a>
+                            <a href="{{infraStatus.infraBasicInfo.automationNodeUrl}}" target="blank" ng-if="infraStatus.infraBasicInfo.automationNodeUrl" class="no-underline padleft4 standard-list__external-link">
+                                <i class="icon-external-link smaller-font"></i>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div ng-if="infraStatusList && !infraStatusList.length" class="flex empty-list-cta">
+        <h1>
+            No deployment infrastructures available
+        </h1>
+        <p>Infrastructures are where your projects can be deployed.</p>
+        <p ng-if="!canCreateInfras()">Your Administrator needs to create an infrastructure first.</p>
+        <div ng-if="canCreateInfras()">
+            <a class="btn btn--primary btn--large" ng-click="startCreateInfra()">
+                <span plus-icon />
+                &nbsp;New infrastructure
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+<div class="modal modal3 lambda-new-endpoint-modal">
+    <div dku-modal-header-with-totem modal-title="New scoring API from model" modal-class="has-border" modal-totem="icon-cloud" />
+
+    <form name="newEndpointForm" class="dkuform-modal-horizontal dkuform-modal-wrapper">
+        <div class="modal-body">
+            <div block-api-error />
+
+            <div>
+                <i class="object-icon universe-color icon-machine_learning_regression saved-model" />
+                <strong>{{savedModelName}}</strong>
+            </div>
+
+            <div class="control-group" ng-if="lambdaServices.length">
+                <div class="control-label">
+                    <label for="">API service</label>
+                </div>
+                <div class="controls">
+                    <label>
+                        <input type="radio" ng-model="service.create" ng-value="true" /> New API Service
+                    </label>
+                    <label>
+                        <input type="radio" ng-model="service.create" ng-value="false" /> Use existing
+                    </label>
+                    <span ng-if="!service.create">
+                        <div object-picker="service.id" type="LAMBDA_SERVICE" error-scope="$modalScope"></div>
+                    </span>
+                </div>
+            </div>
+
+            <div class="control-group" ng-if="service.create">
+                <div class="control-label">
+                    <label for="serviceId">API service ID</label>
+                </div>
+                <div class="controls">
+                    <input id="serviceId" type="text" ng-model="service.id" required />
+                    <div class="help-inline">
+                        should be unique
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <label for="sdtPredictionEndpointID">Endpoint ID</label>
+                </div>
+                <div class="controls">
+                    <input id="sdtPredictionEndpointID" type="text" ng-model="ep.id" required />
+                    <div class="help-inline">
+                        should be unique in a given service
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <button type="button" ng-click="dismiss()" class="btn btn--text btn--secondary">Cancel</button>
+            <button type="submit" ng-click="createEndPoint(ep)" ng-disabled="newEndpointForm.$invalid" class="btn btn--text btn--primary">Append</button>
+        </div>
+    </form>
+</div>

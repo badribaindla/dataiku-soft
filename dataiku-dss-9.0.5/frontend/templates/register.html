@@ -1,0 +1,180 @@
+<div class="register-page fh oa" ng-controller="RegisterController">
+    <aside class="login-page__landscape"></aside>
+    <section class="login-page__container">
+        <section class="login-page__left-column-container">
+            <img class="login-page__logo" src="/static/dataiku/images/logodss.png"/>
+            <div class="login-page__left-column">
+                <h1>Dataiku</h1>
+                <h2>Your all-in-one, end-to-end <br/> data science platform.</h2>
+                <div class="login-page__button login-page__button--link"><a target="blank" href="https://www.dataiku.com/learn/whatsnew/">Learn more</a></div>
+            </div>
+        </section>
+        <section class="login-page__right-column-container">
+            <div ng-switch="register.state">
+                <!-- Welcome page -->
+                <section ng-switch-when="welcome" class="login-page__right-column login-page__right-column--with-stepper">
+                    <h1 class="login-page__title login-page__step-title"><span ng-bind="register.step" class="login-page__register-step"></span><span class="login-page__register-stepper"> - </span> Welcome to Dataiku DSS</h1>
+                    <h2 class="login-page__subtitle">Do you already have a DSS license file ?</h2>
+                    <div class="login-page__buttons-group">
+                        <button ng-click="switchStep('enter-license', 2)" ng-disabled="loginForm.$invalid" class="login-page__button">Yes</button>
+                        <button ng-click="switchStep('register-new-license', 2)" ng-disabled="loginForm.$invalid" class="login-page__button">No</button>
+                    </div>
+                </section>
+
+                <!-- Getting a license page -->
+                <section ng-switch-when="register-new-license" class="login-page__right-column login-page__right-column--with-stepper">
+                    <h1 class="login-page__title"><span ng-bind="register.step" class="login-page__register-step"></span><span class="login-page__register-stepper"> - </span> Select your license</h1>
+                    <form name="newAccountForm" class="login-page__row-form">
+                        <div class="login-page__trial-radio">
+                            <input type="radio" name="license-type" ng-value="false" id="freeEdition" ng-model="register.wantEETrial" checked="checked">
+                            <label for="freeEdition">Free Edition</label>
+                            <p>Unlimited access to single-user, standard connectors.</p>
+                        </div>
+                        <div class="login-page__trial-radio">                        
+                            <input type="radio" name="license-type" ng-value="true" id="enterpriseTrial" ng-model="register.wantEETrial">
+                            <label for="enterpriseTrial">Enterprise Trial</label>
+                            <p>2-weeks access to most features: big data connectors and engines, scheduling and automation. Reverts to Free Edition after your trial.</p>
+                        </div>
+                        <input class="login-page__input login-page__input--half-width login-page__input__visual-check" type="text" required placeholder="First name *" name="first-name" ng-model="newAccount.firstName"/>
+                        <input class="login-page__input login-page__input--half-width login-page__input__visual-check" type="text" required placeholder="Last name *" name="last-name" ng-model="newAccount.lastName" />
+                        <span class="invalid" ng-show="touchEmail && newLicenseForm.$error.email">Incorrect email address</span>
+                        <input class="login-page__input login-page__input__visual-check" type="email" required placeholder="Email address *" name="mail" ng-model="newAccount.userEmail" ng-blur="touchEmail=true" />
+                        
+                        <input class="login-page__input login-page__input--half-width login-page__input__visual-check" type="text" required placeholder="Company *" name="company" ng-model="newAccount.company" />
+                        <select class="login-page__input login-page__input--half-width login-page__input__visual-check" required name="persona" ng-model="newAccount.persona">
+                            <option selected value="" disabled hidden>Describe yourself *</option>
+                            <option value="persona_15">Data Scientist</option>
+                            <option value="persona_16">Analyst</option>
+                            <option value="persona_17">Data Architect or Data Engineer</option>
+                            <option value="persona_18">Data Team Manager</option>
+                            <option value="persona_19">Data Exec</option>
+                            <option value="persona_20">Line of Business Manager or Exec</option>
+                            <option value="persona_21">CTO, CIO or IT Manager</option>
+                            <option value="persona_22">Consultant or Partner</option>
+                            <option value="persona_23">Student or Job Seeker</option>
+                            <option value="persona_24">Other</option>
+                        </select>
+                        <i class="icon-caret-down"></i>
+                                
+                        <div class="login-page__checkbox">
+                            <input id="newsletter"  type="checkbox" ng-model="newAccount.newsletter"/>
+                            <label for="newsletter">
+                                Subscribe to the Dataiku newsletter to get the latest updates, tips, and tricks.
+                            </label>
+                        </div>
+
+                        <div class="login-page__checkbox">
+                            <input id="terms" type="checkbox" required ng-model="newAccount.termsOK"/>
+                            <label for="terms" ng-if="!appConfig.anonRegistrationAllowed" style="margin-bottom: 40px;">
+                                I agree to the
+                                <a target="blank" class="login-page__link" href="http://www.dataiku.com/community-terms/">Terms and Conditions</a>
+                            </label>
+                        </div>
+            
+                        <div block-api-error />
+                        <div class="login-page__buttons-group">
+                            <button ng-click="switchStep('welcome', 1)" class="login-page__button">Previous</button>
+                            <button ng-click="registerNewAccount()" type="submit" ng-disabled="newAccountForm.$invalid" class="login-page__button">Next</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- That was easy page -->
+                <section ng-switch-when="thanks-ce" class="login-page__right-column">
+                    <h1 class="login-page__title login-page__step-title">Thank you !</h1>
+                    <h2 class="login-page__subtitle">Your DSS license is now activated.</h2>
+                    <p>You can login with the following details:</p>
+                    <ul class="login-page__credentials">
+                        <li>Login:
+                            <strong ng-bind="register.loginInfo.initialLogin" />
+                        </li>
+                        <li>Password:
+                            <span ng-if="register.loginInfo.initialPassword"><strong ng-bind="register.loginInfo.initialPassword" /></span>
+                            <span ng-if="!register.loginInfo.initialPassword">{{register.loginInfo.initialPassswordHint}}</span>
+                        </li>
+                    </ul>
+                    <button ng-click="logMeIn()" class="login-page__button">Get started</button>
+                </section>
+        
+                <!-- Enter license - enterprise trial -->
+                <section ng-switch-when="enter-trial-license" class="login-page__right-column login-page__right-column--with-stepper">
+                    <h1 class="login-page__title login-page__step-title"><span ng-bind="register.step" class="login-page__register-step"></span><span class="login-page__register-stepper"> - </span> Enter your license</h1>
+                    <h2 class="login-page__subtitle">Your Dataiku Enterprise Trial license has been sent to <span ng-bind="register.registrationResult.trialRequestResponse.sentToEmail"></span>.</h2>
+                    <form name="licenseKeyForm">
+                        <textarea required ng-model="existingKey.license" class="login-page__license-textarea"/>
+                        <div block-api-error />
+                        <button class="login-page__button" type="submit" ng-disabled="licenseKeyForm.$invalid" ng-click="setLicense()">Activate</button>
+                    </form>
+                    <p style="color: #999;"><a class="login-page__link" ng-click="register.state = 'thanks-ce'">Skip this step.</a> You will be able to enter your license later.</p>
+                </section>
+
+                <!-- That was easy page - enterprise trial -->
+                <section ng-switch-when="thanks-ee-trial-granted" class="login-page__right-column">
+                    <h1 class="login-page__title login-page__step-title">Installation complete!</h1>
+                    <h2 class="login-page__subtitle">You Dataiku Enterprise Trial is now activated.</h2>
+                    <p>You can login with the following details:</p>
+                    <ul class="login-page__credentials">
+                        <li>Login:
+                            <strong ng-bind="register.loginInfo.initialLogin" />
+                        </li>
+                        <li>Password:
+                            <span ng-if="register.loginInfo.initialPassword"><strong ng-bind="register.loginInfo.initialPassword" /></span>
+                            <span ng-if="!register.loginInfo.initialPassword">{{register.loginInfo.initialPassswordHint}}</span>
+                        </li>
+                    </ul>
+                    <button ng-click="logMeIn()" class="login-page__button">Get started</button>
+                </section>
+        
+                <!-- Trial denied page -->
+                <section ng-switch-when="thanks-ee-trial-denied" class="login-page__right-column">
+                    <h1 class="login-page__title login-page__step-title">Uh oh!</h1>
+                    <h2 class="login-page__subtitle">Unfortunately, we could not create your DSS Enterprise features trial. <a class="login-page__link" href="mailto:dss@dataiku.com">Contact us</a>.</h2>
+                    <p>{{register.registrationResult.trialRequestResponse.message}}</p>
+                    <p>In the meantime, you can already enjoy using Dataiku DSS Free Edition.</p>
+                    <p>You can login with the following details:</p>
+                    <ul class="login-page__credentials">
+                        <li>Login:
+                            <strong ng-bind="register.loginInfo.initialLogin" />
+                        </li>
+                        <li>Password:
+                            <span ng-if="register.loginInfo.initialPassword"><strong ng-bind="register.loginInfo.initialPassword" /></span>
+                            <span ng-if="!register.loginInfo.initialPassword">{{register.loginInfo.initialPassswordHint}}</span>
+                        </li>
+                    </ul>
+                    <button ng-click="logMeIn()" class="login-page__button">Get Started</button>
+                </section>
+        
+                <!-- That was easy page -->
+                <section ng-switch-when="thanks-license" class="login-page__right-column">
+                    <h1 class="login-page__title login-page__step-title">That was easy!</h1>
+                    <h2 class="login-page__subtitle">Your DSS is now activated.</h2>
+                    <p>You can login with the following details:</p>
+                    <ul class="login-page__credentials">
+                        <li>Login:
+                            <strong ng-bind="register.loginInfo.initialLogin" />
+                        </li>
+                        <li>Password:
+                            <span ng-if="register.loginInfo.initialPassword"><strong ng-bind="register.loginInfo.initialPassword" /></span>
+                            <span ng-if="!register.loginInfo.initialPassword">{{register.loginInfo.initialPassswordHint}}</span>
+                        </li>
+                    </ul>
+                    <button ng-click="logMeIn()" class="login-page__button">Get Started</button>
+                </section>
+                
+                <!-- Entering the license page -->
+                <section ng-switch-when="enter-license" class="login-page__right-column login-page__right-column--with-stepper">
+                    <form name="licenseKeyForm">
+                        <h1 class="login-page__title"><span ng-bind="register.step" class="login-page__register-step"></span><span class="login-page__register-stepper"> - </span> Enter your license</h1>
+                        <h2 class="login-page__subtitle">Enter the license that you received from Dataiku.</h2>
+                        <textarea required ng-model="existingKey.license" class="login-page__license-textarea"/>
+                        <div block-api-error />
+                        <div class="login-page__buttons-group">
+                            <button ng-click="switchStep('welcome', 1)" ng-disabled="loginForm.$invalid" class="login-page__button">Previous</button>
+                            <button type="submit" ng-disabled="licenseKeyForm.$invalid" ng-click="setLicense()" class="login-page__button">Next</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </section>
+    </section>
+</div>

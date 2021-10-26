@@ -1,0 +1,113 @@
+<li>
+	<a href="{{ $state.href('projects.project.foreigndatasets.dataset.explore', {datasetFullName: object.projectKey + '.'+object.name }) }}"> <i class="icon-fixed-width icon-shaker" />
+		Explore
+	</a>
+</li>
+<li>
+	<a ng-click="toggleTab('lab')">
+		<i class="icon-fixed-width  icon-dku-lab" />
+		Lab
+	</a>
+</li>
+
+<li ng-if="!object.forbiddenForeignProject" class="divider"></li>
+<li ng-if="!object.forbiddenForeignProject">
+	<a href="{{ $state.href('projects.project.flow', {projectKey: object.projectKey, id: 'dataset_' + object.projectKey + '.' + object.name}, {inherit: false}) }}"> <i class="icon-fixed-width icon-reply" />
+		View source
+	</a>
+</li>
+
+<li class="divider"></li>
+<li disabled-if-ro>
+    <a ng-click="moveToFlowZone(getSelectedTaggableObjectRefs(), false, computeMovingImpact())" id="qa_flow-zone-item">
+        <i class="icon-fixed-width icon-move_to_zone" />
+        Move to a flow zone
+    </a>
+</li>
+<li disabled-if-ro>
+    <a ng-click="shareToFlowZone(getSelectedTaggableObjectRefs())" id="qa_flow-zone-share">
+        <i class="icon-fixed-width icon-share_to_zone" />
+        Share to a flow zone
+    </a>
+</li>
+<li ng-if="object.usedByZones.length && !object.successors.length" disabled-if-ro>
+    <a ng-click="unshareToFlowZone(getSelectedTaggableObjectRefs(), [object.usedByZones[0]])" id="qa_flow-zone-unshare">
+        <i class="icon-fixed-width icon-unshare_to_zone" />
+        Unshare from this zone
+    </a>
+</li>
+<li ng-if="othersZones && !othersZones.includes(object.usedByZones[0])" class="dropdown-submenu">
+    <a>
+        <i class="icon-fixed-width icon-go_to_usage" />
+        Go to usage
+    </a>
+    <ul class="dropdown-menu">
+        <li ng-repeat="zone in othersZones">
+            <a ng-click="zoomToOtherZoneNode(zone)">
+                <i class="icon-fixed-width icon-zone" />
+                {{FlowGraph.node("zone_"+zone).description}}
+            </a>
+        </li>
+    </ul>
+</li>
+<li ng-if="othersZones && othersZones.includes(object.usedByZones[0] || object.ownerZone)" disabled-if-ro>
+    <a ng-click="zoomToOtherZoneNode(object.ownerZone)">
+        <i class="icon-fixed-width icon-go_to_original" />
+        Go to original
+    </a>
+</li>
+<li ng-if="object.predecessors.length || object.successors.length || hasPredecessorsInOtherZone(object) || hasSuccessorsInOtherZone(object)" class="divider"></li>
+
+<li ng-if="object.predecessors.length || hasPredecessorsInOtherZone(object) ">
+	<a ng-click="selectPredecessors(object)" ng-mouseover="previewSelectPredecessors()" ng-mouseleave="endPreviewBranch()">
+		<i class="icon-long-arrow-left" />
+		Select all upstream
+	</a>
+</li>
+
+<li ng-if="object.successors.length || hasSuccessorsInOtherZone(object)">
+	<a ng-click="selectSuccessors(object)" ng-mouseover="previewSelectSuccessors()" ng-mouseleave="endPreviewBranch()">
+		<i class="icon-long-arrow-right" />
+		Select all downstream
+	</a>
+</li>
+
+<li ng-if="object.predecessors.length || object.successors.length" class="divider"></li>
+
+<li ng-if="object.predecessors.length">
+	<a ng-click="FlowGraphFolding.foldPredecessors(object)" ng-mouseover="previewFoldPredecessors()" ng-mouseleave="FlowGraphFolding.endPreviewBranch()">
+		<i class="icon-DKU_collapse_upstream" />
+		Hide all upstream
+	</a>
+</li>
+
+<li ng-if="object.successors.length">
+	<a ng-click="FlowGraphFolding.foldSuccessors(object)" ng-mouseover="previewFoldSuccessors()" ng-mouseleave="FlowGraphFolding.endPreviewBranch()">
+		<i class="icon-DKU_collapse_downstream" />
+		Hide all downstream
+	</a>
+</li>
+
+<!-- No tool active: tools menu -->
+
+<li ng-if="!tool.type"  class="divider"></li>
+<li disabled-if-ro ng-if="!tool.type" class="dropdown-submenu" disabled-if-ro >
+	<a>
+		<i class="icon-fixed-width  icon-wrench" />
+		Tools
+	</a>
+	<ul class="dropdown-menu">
+		<li disabled-if-ro  ng-if="tool.type != 'PROPAGATE_SCHEMA'" >
+			<a ng-click="startTool('PROPAGATE_SCHEMA', {'projectKey' : object.projectKey, 'datasetName' : object.name});">
+				<i class="icon-fixed-width icon-list" />
+				Start schema propagation from here
+			</a>
+		</li>
+		<li disabled-if-ro>
+			<a ng-click="buildFromComputable(object.projectKey + '.' + object.name);">
+				<i class="icon-fixed-width icon-play" />
+				Rebuild from here
+			</a>
+		</li>
+	</ul>
+</li>

@@ -1,0 +1,32 @@
+<div ng-if="tile.behavior == 'GO_TO_DATASET'">
+    <a main-click ui-sref="projects.project.datasets.dataset.settings({datasetName:tile.datasetName})" wt1-click-event="app-tile-sql-dataset-edit"><i class="icon-dataset"></i>&nbsp;{{tile.datasetName}}</a>
+    <span ng-include="'/templates/apps/fragments/tile-help.html'"></span>
+</div>
+<div ng-if="tile.behavior.startsWith('MODAL_')">
+    <button class="btn btn--secondary" ng-click="openModal()">Edit</button>
+</div>
+<div ng-if="tile.behavior.startsWith('INLINE_')">
+    <div block-api-error />
+    <div class="app-tiles__tile-sql-browse-zone">
+        <div ng-if="uiState.tableList == null">
+           <input type="text" ng-model="dataset.params.table" ng-disabled="true"/> <!-- the point of the tile is to change via dropdown -->
+           <button class="btn btn--secondary" ng-click="fetchTableList()" ng-disabled="uiState.fetching"><span ng-if="uiState.fetching"><i class="icon-spin icon-spinner"></i>&nbsp;</span>Fetch table list</button>
+        </div>
+        <div ng-if="uiState.tableList != null">
+            <select dku-bs-select="{'liveSearch':true}"
+                ng-model="dataset.params.table"
+                ng-options="table.table as table.table for table in uiState.tableList | orderBy:'table.schema+table.table' track by table.schema + '.' + table.table"/>
+        </div>
+        <div ng-show="detectionResults && !detectionResults.connectionOK">
+            <div class="alert alert-error">
+                <i class="icon-dku-error" /><span summary-of-error="detectionResults.connectionError" />
+            </div>
+        </div>
+    </div>
+
+    <span ng-include="'/templates/apps/fragments/tile-help.html'" class="app-tiles__tile-help--multiline-neighbour"></span>
+    <div>
+        <a main-click ui-sref="projects.project.datasets.dataset.settings({datasetName:tile.datasetName})" wt1-click-event="app-tile-sql-dataset-edit"><i class="icon-arrow-right"></i>&nbsp;View settings of dataset {{tile.datasetName}}</a>
+        <span>({{dataset.schema.columns.length}} column(s))</span>
+    </div>
+</div>

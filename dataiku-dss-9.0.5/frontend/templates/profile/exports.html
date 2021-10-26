@@ -1,0 +1,55 @@
+<div class="boxed-next-to-sidebar no-padding">
+    <div>
+        <div class="pull-right" style="padding: 15px" ng-if="userExports.length > 0">
+            <button ng-click="clearExports()" class="btn btn--danger">Remove all</button>
+        </div>
+        <h1 class="page-title" style="padding: 15px 20px">Exports</h1>
+
+        <div class="exports-list">
+
+            <div ng-if="userExports && !userExports.length" class="placeholder-block">
+                You have no exports
+            </div>
+
+            <table ng-if="userExports.length" sort-table class="table table-striped table-hover" style="width:100%" sort-column="startDate" sort-descending="true">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th sort-col="inputDescription.name">Name</th>
+                        <th sort-col="writtenBytes">Size</th>
+                        <th sort-col="params.format.type">Format</th>
+                        <th sort-col="startDate">Date</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="export in userExports | toArray | filter:query | orderBy:sortColumn:sortDescending track by export.exportId"
+                        ng-if="export.params.destinationType != 'DATASET'">
+                        <td>
+                            <!-- icon -->
+                        </td>
+                        <td>{{export.inputDescription.name}} </td>
+                        <td><span ng-if="export.writtenBytes>0">{{export.writtenBytes | filesize}}</span><span ng-if="export.writtenBytes==0">-</span></td>
+                        <td>{{export.params.format.type}}</td>
+                        <td>{{export.startDate | friendlyDate}}</td>
+                        <td>
+                            <a ng-if="export.state != 'FAILED' && export.state != 'ABORTED'" class="target" ng-click="downloadExport(export.exportId)">
+                                <i class="icon-download"></i> Download
+                            </a>
+                            <span ng-if="export.state == 'FAILED'" class="text-error">Failed</span>
+                            <span ng-if="export.state == 'ABORTED'" class="text-error">Aborted</span>
+                        </td>
+
+                        <td>
+                            <a class="link-std" ng-click="deleteExport(export.exportId)">
+                                <i class="icon-trash" />
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>

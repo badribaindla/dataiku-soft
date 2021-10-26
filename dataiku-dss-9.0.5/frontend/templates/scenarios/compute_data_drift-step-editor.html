@@ -1,0 +1,94 @@
+<div ng-controller="ComputeDataDriftStepController">
+    <div ng-include="'/templates/scenarios/fragments/step-header.html'" style="display: inline-block;"></div>
+    <div class="alert alert-info">
+        This step computes data drift between two model evaluations.
+    </div>
+
+    <form name="descriptionForm" class="dkuform-horizontal">
+        <div class="control-group">
+            <label class="control-label">Current model / evaluation</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="step.params.currentDeterminationMethod">
+                    <option value="LATEST_FROM_MES">Use latest from model evaluation store</option>
+                    <option value="EXPLICIT">Explicit</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="step.params.currentDeterminationMethod == 'EXPLICIT'">
+            <label class="control-label">Explicit ID</label>
+            <div class="controls">
+                <input type="text" ng-model="step.params.currentId">
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="step.params.currentDeterminationMethod == 'LATEST_FROM_MES'">
+            <label class="control-label">Model evaluation store</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="step.params.mesId" ng-options="mes.id as mes.name for mes in modelEvaluationStores">
+                </select>
+            </div>
+        </div>
+
+        <div block-api-error />
+
+        <hr>
+
+        <div class="control-group">
+            <label class="control-label">Reference model / evaluation</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="step.params.referenceDeterminationMethod">
+                    <option value="AUTOMATIC">Automatically determine from the current model / evaluation</option>
+                    <option value="EXPLICIT">Explicit</option>
+                </select>
+
+                <span dku-html-tooltip>
+                    <tooltip-trigger>
+                        <i class="text-info icon-info-sign"></i>
+                    </tooltip-trigger>
+                    <tooltip-content>
+                        <b>Automatic reference determination:</b>
+                        <ul>
+                            <li>If the current model evaluation has been created by an evaluation recipe, select the saved model version that was referenced</li>
+                            <li>If the current model evaluation has been created by a standalone evaluation recipe, select the oldest model evaluation of its model evaluation store</li>
+                        </ul>
+                    </tooltip-content>
+                </span>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="step.params.referenceDeterminationMethod == 'EXPLICIT'">
+            <label class="control-label">Explicit ID</label>
+            <div class="controls">
+                <input type="text" ng-model="step.params.referenceId">
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="control-group">
+            <label class="control-label">Store result into scenario variable</label>
+            <div class="controls">
+                <input type="text" ng-model="step.params.driftModelAccuracyVariableName">
+                <span class="help-inline">Store the drift model accuracy in a scenario variable (optional)</span>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="!step.params.evaluateValues">
+            <label class="control-label">Advanced parameters</label>
+            <div class="controls">
+                <label><input type="checkbox" ng-model="showAdvancedParameters">Show advanced parameters</label>
+                <div class="codemirror" style="border: 1px solid #ccc;" ng-show="showAdvancedParameters">
+					<textarea name="jsonStuff" json-object-pretty-view ng-model="step.params.driftParams" style="min-height: 120px"
+                              ui-codemirror="codeMirrorSettingService.get('application/json')"></textarea>
+                </div>
+                <div ng-show="setupForm.jsonStuff.$invalid" class="alert alert-error">
+                    JSON is invalid<br />{{setupForm.jsonStuff.dkuJSONError}}
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <hr/>
+    <div ng-include="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+</div>

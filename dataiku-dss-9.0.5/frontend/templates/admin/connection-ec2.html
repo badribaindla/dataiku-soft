@@ -1,0 +1,218 @@
+<div ng-controller="EC2ConnectionController" class="h100 vertical-flex">
+    <div class="flex">
+        <div class="fh oa">
+            <div class="h100 small-lr-padding">
+                <div class="generic-white-box">
+                    <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+
+                    <div block-api-error />
+
+                    <form name="connectionParamsForm" class="dkuform-horizontal">
+                        <h2 class="settings-section-title">Connection</h2>
+
+                        <div class="control-group">
+                            <label class="control-label">Credentials</label>
+                            <div class="controls">
+                                <select dku-bs-select ng-model="connection.params.credentialsMode" 
+                                ng-options="x[0] as x[1] for x in [['KEYPAIR', 'AWS keypair'], ['ENVIRONMENT', 'Environment'], ['STS_ASSUME_ROLE', 'STS with AssumeRole'], ['CUSTOM_PROVIDER', 'Custom']]" 
+                                options-descriptions="['AccessId + SecretId', 'Use credentials from environment variables, or ~/.aws/credentials file, or instance profile', 'Assume a role, with master credentials coming from the environment', 'Custom provider class']"/>
+                            </div>
+                        </div>
+                        <fieldset ng-if="connection.params.credentialsMode == 'KEYPAIR' && connection.credentialsMode != 'PER_USER'">
+                            <div class="control-group"
+                            form-template-element
+                            model="connection.params"
+                            field="{name:'accessKey',type:'string', label:'Access key'}" />
+
+                            <div class="control-group"
+                            form-template-element
+                            model="connection.params"
+                            field="{name:'secretKey',type:'password', label:'Secret key'}" />
+                        </fieldset>
+
+                        <div class="control-group" ng-if="connection.params.credentialsMode == 'STS_ASSUME_ROLE'">
+                            <label class="control-label">STS role to assume</label>
+                            <div class="controls">
+                                 <input type="text" ng-model="connection.params.stsRoleToAssume" />
+                                 <span class="help-inline">
+                                     Variable expansion, notably per-user properties are supported here.
+                                 </span>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="connection.params.credentialsMode == 'STS_ASSUME_ROLE'">
+                            <label class="control-label">STS token duration</label>
+                            <div class="controls">
+                                <input type="text" ng-model="connection.params.stsAssumeDurationSeconds" />
+                                <span class="help-inline">
+                                    Optional. Validity of the STS token, in seconds. Leave empty for default (1 hour). 
+                                    Value must be an integer between 900 and the maximum session duration setting for the role (which can go up to 12 hours / 43200 seconds). Variable expansion, notably per-user properties are supported here.
+                                </span>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="connection.params.credentialsMode == 'STS_ASSUME_ROLE'">
+                            <label class="control-label">Assume role external Id</label>
+                            <div class="controls">
+                                 <input type="text" ng-model="connection.params.stsAssumeExternalId" />
+                                 <span class="help-inline">
+                                     Optional. If the role to assume requires an external id, enter it here. Variable expansion, notably per-user properties are supported here.
+                                 </span>
+                            </div>
+                        </div>
+
+                        <div class="control-group" ng-if="connection.params.credentialsMode == 'CUSTOM_PROVIDER'">
+                            <label class="control-label">Custom provider class</label>
+                            <div class="controls">
+                                <input type="text" ng-model="connection.params.customAWSCredentialsProviderClass" />
+                                <span class="help-inline">
+                                    Class name of a custom DSS AWS credentials provider
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="control-group" ng-if="connection.params.customAWSCredentialsProviderClass">
+                            <label class="control-label">Custom provider settings</label>
+                            <div class="controls">
+                                <ng2-credentials-list 
+                                    [(items)]="connection.params.customAWSCredentialsProviderParams"
+                                    key-identifier="name"
+                                    key-placeholder="Provider key"
+                                    value-placeholder="Provider value"
+                                    [can-be-final]="false"
+                                    add-label="Add provider setting">
+                                </ng2-credentials-list>
+                            </div>
+                        </div>
+
+                        <div class="control-group"
+                        form-template-element
+                        model="connection.params"
+                        field="{name:'regionOrEndpoint',
+                        type:'string',
+                        label:'Region / Endpoint',
+                        tooltip:'Optional AWS region (e.g. eu-west-1) or custom endpoint (e.g. http[s]://my.s3.endpoint/)'}" />
+                        
+                        <div class="control-group">
+                            <label for="switchToRegionFromBucket" class="control-label">Switch to bucket region</label>
+                            <div class="controls">
+                                <input id="switchToRegionFromBucket" type="checkbox" ng-model="connection.params.switchToRegionFromBucket" />
+                                <span class="help-inline">Switch to the bucket's region even if the region for connecting is set (to avoid redirects).</span>
+                            </div>
+                        </div>
+
+                        <h2 class="settings-section-title">Path restrictions</h2>
+
+                        <div class="control-group" form-template-element
+                        model="connection.params"
+                        field="{name:'chbucket', type:'string', label:'Bucket', tooltip:'Optional. Limit accesses on this connection to the contents of this bucket. If empty, users will be able to select bucket (among buckets allowed by this access key)'}" />
+                        <div class="control-group" form-template-element
+                        model="connection.params"
+                        field="{name:'chroot', type:'string', label:'Path in bucket', tooltip:'Optional. Limit accesses on this connection to the contents of this folder. If empty, users will be able to use the whole bucket (or buckets)'}" />
+
+                        <fieldset ng-disabled="!connection.allowManagedDatasets && !connection.allowManagedFolders">
+                            <h2 class="settings-section-title">Managed datasets &amp; folders</h2>
+                            <div class="control-group" ng-if="!connection.params.chbucket"
+                            form-template-element
+                            model="connection.params"
+                            field="{name:'defaultManagedBucket',type:'string',
+                            label:'Default bucket',
+                            tooltip:'Managed datasets will be created by default in this bucket. May contain variables.'}" />
+                            <div class="control-group" ng-if="!connection.params.chbucket"
+                            form-template-element
+                            model="connection.params"
+                            field="{name:'defaultManagedPath',type:'string',
+                            label:'Default path',
+                            tooltip:'Managed datasets will be created by default in this path. May contain variables.'}" />
+                            <div class="control-group" ng-if="connection.params.chbucket"
+                            form-template-element
+                            model="connection.params"
+                            field="{name:'defaultManagedPath',type:'string',
+                            label:'Managed data subpath',
+                            tooltip:'Managed datasets and folders will be created by default in this subpath of the root path in bucket. May contain variables.'}" />
+                        </fieldset>
+
+                        <div include-no-scope="/templates/admin/fragments/fs-naming-rule.html" />
+
+                        <h2 class="settings-section-title">Advanced</h2>
+                        <div class="control-group">
+                            <label class="control-label">HDFS interface</label>
+                            <div class="controls">
+                                <select ng-model="connection.params.hdfsInterface" dku-bs-select>
+                                    <option value="S3A">Hadoop S3A</option>
+                                    <option value="S3A_DATABRICKS">Databricks</option>
+                                    <option value="EMRFS">Amazon EMRFS</option>
+                                    <option value="NONE">None</option>
+                                </select>
+                                <span class="help-inline">Protocol to use for direct access to S3 datasets from Spark.</span>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="['S3A', 'S3A_DATABRICKS'].indexOf(connection.params.hdfsInterface) >= 0">
+                            <label for="usePathMode" class="control-label">Use path style</label>
+                            <div class="controls">
+                                <input id="usePathMode" type="checkbox" ng-model="connection.params.usePathMode" />
+                                <span class="help-inline">Changes calls to S3 from using virtual hosting style urls to path style urls.</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Encryption Mode</label>
+                            <div class="controls">
+                                <select ng-model="connection.params.encryptionMode" dku-bs-select>
+                                    <option value="NONE">None</option>
+                                    <option value="SSE_S3">SSE-S3</option>
+                                    <option value="SSE_KMS">SSE-KMS</option>
+                                </select>
+                                <span ng-if="connection.params.encryptionMode == 'SSE_KMS'">
+                                    Key ID (optional)
+                                    <input type="text" ng-model="connection.params.encryptionKeyId" placeholder="default" />
+                                </span>
+                                <span class="help-inline">
+                                    Server-Side Encryption for files, see
+                                    <a target="_blank" rel="noopener noreferrer"
+                                       href="http://docs.aws.amazon.com/AmazonS3/latest/dev/serv-side-encryption.html"
+                                    >S3 documentation</a>.
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Associated Athena conn.</label>
+                            <div class="controls">
+                                <input type="text" ng-model="connection.params.associatedAthenaConnection" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Metastore synchronization</label>
+                            <div class="controls">
+                                <select ng-model="connection.params.metastoreSynchronizationMode" dku-bs-select>
+                                    <option value="KEEP_IN_SYNC">Keep datasets synced</option>
+                                    <option value="NO_SYNC">No sync</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="" class="control-label">Fallback metastore DB</label>
+                            <div class="controls">
+                                <input type="text" ng-model="connection.params.defaultMetastoreDatabase" name="defaultMetastoreDatabase" ng-pattern="/^(?:\w|\$\{[^}]*\})+$/" />
+                                <div class="help-inline error-text-color" ng-show="connectionParamsForm.defaultMetastoreDatabase.$invalid">
+                                    Metastore database names can only contains letters, numbers and underscores.
+                                </div>
+                                <div class="help-inline">
+                                    This database is used as default for datasets that do not declare one
+                                </div>
+                            </div>
+                        </div>
+
+                        <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                        <div include-no-scope="/templates/admin/fragments/connection-credentials-mode.html" />
+                    </form>
+                </div>
+                <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                    <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="noflex small-lr-padding page-top-padding" include-no-scope="/templates/admin/fragments/connection-name-test-save-with-results.html" />
+</div>

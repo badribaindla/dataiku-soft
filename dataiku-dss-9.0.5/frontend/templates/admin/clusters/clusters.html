@@ -1,0 +1,53 @@
+<div class="dss-page small-lr-padding page-top-padding vertical-flex">
+    <div class="noflex std-list-header">
+        <div class="dropdown pull-right" >
+            <button class="btn btn--primary" ng-click="createCluster()">Create cluster</button>
+        </div>
+        <div class="std-list-search-box">
+            <span class="add-on"> <i class="icon-dku-search"></i>
+            </span>
+            <input type="search" ng-model="uiState.query" style="width: 190px;" placeholder="Filter..."/>
+        </div>
+    </div>
+
+    <div class="flex">
+        <div class="fh">
+            <div block-api-error></div>
+            <div class="h100 oa">
+                <table sort-table class="table table-striped table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th sort-col="name">Name</th>
+                            <th sort-col="id">Id</th>
+                            <th sort-col="type">Type</th>
+                            <th sort-col="architecture">Architecture</th>
+                            <th sort-col="owner">Owner</th>
+                            <th sort-col="state">State</th>
+                            <th>Usages</th>
+                            <th>&nbsp;</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="cluster in clusters | filter:query | orderBy:sortColumn:sortDescending">
+                            <td full-click>
+                                <a ui-sref="admin.clusters.cluster({clusterId:cluster.id})">{{cluster.name}}</a>
+                            </td>
+                            <td>{{cluster.id}}</td>
+                            <td>{{cluster.type}}</td>
+                            <td>{{cluster.architecture}}</td>
+                            <td>{{cluster.owner}}</td>
+                            <td ng-if="cluster.type =='manual'">-</td>
+                            <td ng-if="cluster.type != 'manual'">{{getStateDisplayString(cluster.state)}}</td>
+                            <td>{{(cluster.usedInScenarios + cluster.usedInProjects > 0 ? cluster.usedInScenarios + cluster.usedInProjects : '&mdash;')}}</td>
+                            <td>
+                                <a ng-click="deleteCluster(cluster.id)" style="text-decoration:none; margin-right: 10px;">
+                                    <i class="icon-trash" />
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

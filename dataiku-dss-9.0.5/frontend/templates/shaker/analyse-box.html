@@ -1,0 +1,82 @@
+<div class="modal modal3 analyse-modal modal-fixed-height430" tab-model="uiState.activeTab" auto-size="false">
+
+    <dku-modal-header modal-class="has-border" >
+        <dku-modal-menu ng-if="shakerWritable">
+            <div ng-if="shakerWritable"
+                style="float: right; margin-top: 2em; margin-right: 2em"
+                custom-element-popup
+                cep-position="align-right-bottom"
+                close-on-click="true">
+                <button ng-click="togglePopover()" class="mainzone btn btn--secondary dropdown-toggle">
+                    Actions <span class="caret"></span>
+                </button>
+                <ul class="popover custom-element-popup-popover dropdown-menu">
+                    <li>
+                        <a ng-click="handleInvalids('REMOVE_ROW')">Remove invalid rows for meaning {{column.selectedType.name}}</a>
+                    </li>
+                    <li>
+                        <a ng-click="handleInvalids('CLEAR_CELL')">Clear invalid cells for meaning {{column.selectedType.name}}</a>
+                    </li>
+                    <li>
+                        <a ng-click="removeEmpty()">Remove rows when {{columnName}} is empty</a>
+                    </li>
+                    <li>
+                        <a ng-click="deleteColumn()">Delete column</a>
+                    </li>
+                </ul>
+            </div>
+        </dku-modal-menu>
+
+        <dku-modal-title>
+            <a ng-if="prevColumn" ng-click="setColumn(prevColumn)" class="icon-chevron-left switch"></a>
+            <a ng-if="nextColumn" ng-click="setColumn(nextColumn)" class="icon-chevron-right switch"></a>
+            <div class="mx-textellipsis" style="display: inline-block; vertical-align: top; max-width: 400px;" title="{{columnName}}">
+                "{{columnName}}"
+            </div>
+            <div ng-if="shaker.origin == 'DATASET_EXPLORE' && datasetFullInfo.dataset.projectKey == $stateParams.projectKey" style="display:inline-block;">
+                <div analyse-full-sample-toggle callback="refreshAnalysis" prefix="on"/>
+            </div>
+            <div ng-if="!uiState.useFullSampleStatistics && analysis.alphanumFacet" style="display: inline-block; font-size: 0.8em;">
+                - ({{analysis.alphanumFacet.totalNbValues}} distinct)
+            </div>
+            <div ng-if="uiState.useFullSampleStatistics && analysis.fullSampleAnalysis.categorical" style="display: inline-block; font-size: 0.8em;">
+                - ({{analysis.fullSampleAnalysis.categorical.countDistinct.value}} distinct)
+            </div>
+        </dku-modal-title>
+
+        <dku-modal-tabs>
+            <li class="tab" tab-active="categorical"><a tab-set="categorical">Categorical</a></li>
+            <li ng-show="showNumerical" class="tab" tab-active="numerical"><a tab-set="numerical">Numerical</a></li>
+            <li ng-show="showClusters && !uiState.useFullSampleStatistics" class="tab" tab-active="clustering"><a tab-set="clustering">Values clustering</a></li>
+            <li ng-show="showArray && !uiState.useFullSampleStatistics" class="tab" tab-active="array"><a tab-set="array">Array</a></li>
+            <li ng-show="showText && !uiState.useFullSampleStatistics" class="tab" tab-active="text"><a tab-set="text">Natural language</a></li>
+        </dku-modal-tabs>
+    </dku-modal-header>
+
+<div class="modal-body" style="padding-bottom: 10px; overflow: hidden" ng-switch="uiState.activeTab">
+    <div block-api-error></div>
+
+    <div ng-switch-when="categorical" class="h100">
+        <div ng-include="'/templates/shaker/analyse-box-categorical.html'" class="h100" ng-if="!uiState.useFullSampleStatistics"></div>
+        <div ng-include="'/templates/shaker/analyse-box-categorical-full.html'" class="h100" ng-if="uiState.useFullSampleStatistics"></div>
+    </div>
+
+    <div ng-switch-when="numerical" class="h100">
+        <div ng-include="'/templates/shaker/analyse-box-numerical.html'" class="h100" ng-if="!uiState.useFullSampleStatistics"></div>
+        <div ng-include="'/templates/shaker/analyse-box-numerical-full.html'" class="h100" ng-if="uiState.useFullSampleStatistics"></div>
+    </div>
+
+    <div ng-switch-when="clustering" class="h100">
+        <div ng-include="'/templates/shaker/analyse-box-clustering.html'" class="h100"></div>
+    </div>
+
+    <div ng-switch-when="array" class="h100">
+        <div ng-include="'/templates/shaker/analyse-box-array.html'" class="h100"></div>
+    </div>
+
+    <div ng-switch-when="text" class="h100">
+        <div ng-include="'/templates/shaker/analyse-box-text.html'" class="h100"></div>
+    </div>
+
+</div>
+</div>

@@ -1,0 +1,178 @@
+<div ng-controller="CustomCodeRecipeController" class="custom-code-recipe">
+
+    <div include-no-scope="/templates/recipes/fragments/simple-recipe-top-tabs.html" />
+
+
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+    <div class="dss-page" ng-if="topNav.tab == 'settings'">
+        <div block-api-error />
+
+        <div class="h100" >
+
+            <div class="h100 vertical-flex">
+                <div class="flex">
+                    <div class="fh">
+                        <div class="h100 fixedPanes" ng-class="{'showLeftPane': desc.showInputsPane}">
+                            <div class="h100 leftPane oa" style="background: white;">
+
+                                <!-- lighter version of code-based-recipe-right-datasets-tab.html -->
+                                <div class="datasets datasets-explorer" code-recipe-schema-list ng-if="computablesMap">
+                                    <h4>Inputs</h4>
+                                    <div ng-if="recipe.inputs.length == 0" class="nodatasets">
+                                        This recipe has no input datasets
+                                    </div>
+                                    <ul ng-repeat="(role,inputs) in recipe.inputs">
+                                        <li ng-repeat="input in inputs.items" foldable="false" ng-init="computable =computablesMap[input.ref]">
+                                            <div ng-if="computable.type == 'MANAGED_FOLDER'">
+                                                 <div class="pull-right actions">
+                                                    <a title="Open" href="/projects/{{computable.projectKey}}/managedfolder/{{computable.name}}/view/">
+                                                        <i class="icon-shaker" />
+                                                    </a>
+                                                </div>
+                                                <h5 style="cursor:inherit">
+                                                    {{computable.label}}
+                                                    <span style="padding-left: 22px; font-weight: normal; color: #999">
+                                                        <br />(Folder: {{computable.name}})
+                                                    </span>
+                                                </h5>
+                                            </div>
+                                            <div ng-if="computable.type == 'DATASET'">
+                                                <div class="pull-right actions">
+                                                    <a title="Explore" href="/projects/{{computable.projectKey}}/datasets/{{computable.dataset.name}}/explore/">
+                                                        <i class="icon-shaker" />
+                                                    </a>
+                                                </div>
+                                                <h5 ng-click="toggleFold()"><i class="icon-fixed-width icon-{{unfolded ? 'caret-down' : 'caret-right'}}" />
+                                                    &nbsp;{{input.ref}}
+                                                    <span ng-show="computable.dataset.params.table" style="padding-left: 22px; font-weight: normal; color: #999">
+                                                        <br />Table: {{computable.dataset.params.table}}
+                                                    </span>
+                                                </h5>
+                                                <div ng-show="unfolded && !computable.dataset.schema.columns.length" class="noschema">
+                                                    This dataset doesn't have a schema
+                                                 </div>
+                                                <ul ng-if="unfolded" class="schema">
+                                                    <li ng-repeat="col in computable.dataset.schema.columns" class="horizontal-flex">
+                                                        <a main-click class="flex mx-textellipsis">{{col.name}}</a>
+
+                                                        <span class="type noflex text-right">{{col.type}}</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="h100 mainPane">
+                                <div class="fh w800 oa" style="margin: auto;">
+                                    <div style="margin: 20px 0">
+                                        <h1 class="custom-code-recipe-title">{{desc.meta.label || desc.id}}</h1>
+                                        <div class="recipe-settings-section2">
+                                            <div from-markdown="desc.meta.description" />
+
+                                            <a ng-if="pluginDesc.url" href="{{pluginDesc.url}}" target="_blank" rel="noopener noreferrer">
+                                                Plugin documentation&nbsp;<i class="icon-external-link"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <div class="recipe-settings-section1" style="margin-bottom: 20px">
+                                        <div plugin-settings-alert
+                                            plugin-desc="pluginDesc"
+                                            component-type="recipe"
+                                            has-settings="pluginDesc.hasSettings"
+                                            app-config="appConfig"
+                                            />
+                                        <div custom-params-form
+                                            desc="desc"
+                                            plugin-desc="pluginDesc"
+                                            component-id="loadedDesc.id"
+                                            config="recipe.params.customConfig"
+                                            columns-per-input-role="columnsPerInputRole"
+                                            recipe-config="recipe"
+                                            />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="noflex" ng-if="valCtx.preRunValidationError || startedJob.jobId">
+                    <div class="recipe-settings-floating-result recipe-job-result">
+                        <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="recipe-settings-floating-run">
+                <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-partitions.html"></div>
+                <div include-no-scope="/templates/recipes/fragments/run-job-buttons.html"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid h100 oa" ng-if="topNav.tab == 'io'">
+        <div class="h100" include-no-scope="/templates/recipes/code-based/custom-code-recipe-io.html" />
+    </div>
+
+    <div class="dss-page small-lr-padding" ng-if="topNav.tab == 'advanced'">
+        <div block-api-error />
+        <div class="horizontal-centerer">
+            <div ng-if="desc.kind == 'PYSPARK' || desc.kind == 'SPARK_SCALA'">
+                <div class="recipe-settings-section1 w800">
+                    <h1 class="recipe-settings-section1-title">Spark configuration</h1>
+                    <div spark-override-config config="recipe.params.sparkConfig" class="recipe-settings-section2" />
+
+                    <form class="dkuform-horizontal recipe-settings-section2">
+                        <div class="control-group">
+                            <label class="control-label">Spark engine</label>
+                            <div class="controls" >
+                                <select dku-bs-select ng-model="recipe.params.executionEngine" >
+                                    <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+                                    <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+                                    <option value="DATABRICKS">Databricks</option>
+                                </select>
+                            </div>
+                        </div>
+                        <h5>Spark pipelining &amp; Metastore</h5>
+                        <recipe-pipeline-config config="recipe.params" any-pipeline-type-enabled="anyPipelineTypeEnabled()"></recipe-pipeline-config>
+
+                        <div class="control-group">
+                            <label class="control-label">Hive metastore</label>
+                            <div class="controls">
+                                <label>
+                                    <input type="checkbox" ng-model="recipe.params.useGlobalMetastore" />
+                                    <span class="help-inline">
+                                        Use global Hive metastore
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div ng-if="desc.kind == 'PYTHON' || desc.kind == 'R'">
+                <div class="recipe-settings-section1 w800">
+                    <h1 class="recipe-settings-section1-title">Container configuration</h1>
+
+                    <div class="recipe-settings-section2"
+                         container-selection-form="recipe.params.containerSelection"></div>
+                </div>
+            </div>
+            <div class="recipe-settings-section1 w800">
+                <h1 class="recipe-settings-section1-title">Concurrent activities</h1>
+                <form class="dkuform-horizontal recipe-settings-section2">
+                    <div class="control-group">
+                        <label class="control-label">Recipe limit</label>
+                        <div class="controls">
+                            <input type="number" ng-model="recipe.maxRunningActivities"/>
+                            <span class="help-inline">Limit the number of concurrent activities for this recipe (zero for "unlimited").</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>

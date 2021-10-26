@@ -1,0 +1,30 @@
+
+<div ng-controller="PullGitRefsStepController">
+	<div ng-include="'/templates/scenarios/fragments/step-header.html'"></div>
+	<div class="alert alert-info">
+        This step updates chosen Git references for the project libraries.
+    </div>
+	<form name="setupForm" class="dkuform-horizontal">
+		<div class="control-group">
+			<label class="control-label">Update</label>
+			<div class="controls">
+				<label>
+					<input type="radio" ng-model="step.params.updateAll" ng-value="true" class="exclude-from-smart-change"/>
+					All Git references configurations
+				</label>
+				<label>
+					<input type="radio" ng-model="step.params.updateAll" ng-value="false" class="exclude-from-smart-change"/>
+					Selected Git references
+				</label>
+			</div>
+		</div>
+		<div class="control-group" ng-show="!step.params.updateAll">
+			<div class="controls">
+				<select dku-bs-select multiple="multiple" ng-model="step.params.gitReferences"
+						ng-options="gitRefPath as gitRefPath for (gitRefPath, gitRef) in gitReferences"></select>
+			</div>
+		</div>
+	</form>
+	<hr />
+	<div ng-include ="'/templates/scenarios/fragments/step-run-condition.html'"></div>
+</div>

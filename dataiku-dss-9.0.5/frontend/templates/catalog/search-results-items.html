@@ -1,0 +1,305 @@
+<div ng-show="!canShowSearchResults()">
+    <div class="alert alert-info">
+        <h4>No match</h4>
+        <p ng-if="hasFacets()">
+            Remove your filters to see more
+            <a class="btn btn--secondary" ng-click="resetSearch()">Remove all filters</a>
+        </p>
+        <p ng-show="hasUnindexedConnections() && !inboxPage">
+            There {{'is' |plurify : unindexedConnections.length : 'are'}}
+            {{indexedAndUnindexed.unindexedButIndexableConnections}} unindexed {{'connection' |plurify : unindexedConnections.length}}
+            that may contain what you are looking for.
+        </p>
+        <div ng-show="query.facets.scope[0] != 'dss'" ng-if="meaningsPage && appConfig.globalPermissions.mayManageUDM">
+            <p>You can:</p>
+            <ul>
+                <li>Create new <a ng-click="createUDM()">meanings</a></li>
+            </ul>
+        </div>
+        <div ng-show="query.facets.scope[0] != 'dss'" ng-if="!meaningsPage && !inboxPage">
+            <p>You can:</p>
+            <ul>
+                <li>
+                    Import tables with <a ng-click="goToConnectionsExplorer()">connections explorer</a>
+                </li>
+                <li ng-show="appConfig.admin || appConfig.globalPermissions.mayCreateAuthenticatedConnections">
+                    <a href="{{$state.href('admin.connections.list')}}">Index connections</a> to find their tables in catalog
+                </li>
+                <li ng-show="!appConfig.admin && !appConfig.globalPermissions.mayCreateAuthenticatedConnections">
+                    Ask Dataiku administrator to index connections to find their tables in catalog
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+<div class="vertical-flex h100" ng-show="canShowSearchResults()">
+    <div style="height: 50px; padding: 0 10px; " class="dku-border-bottom">
+        <div style=" align-items: center; display: flex; height: 100%;">
+            <div style="width: 100%;">
+                <div class="pull-right">
+                    <div class="counters" data-block="counter">
+                        <div class="dib" style="font-size: 18px; margin-right: 1em; vertical-align: middle" ng-bind-html="itemCount()"></div>
+                    </div>
+                </div>
+                <div class="dropdown auto mass-action-btn" ng-show="(itemsPage || inboxPage) && selection.filteredObjects.some && selection.filteredObjects.some(isItemSelectable)" style="margin-left: -6px">
+                    <input type="checkbox"
+                        ng-model="selection.all"
+                        dku-indeterminate="selection.some"
+                        ng-change="updateMassSelectionCheckbox();"
+                        >
+                    <a data-toggle="dropdown"
+                        class="dropdown-toggle unselectable"
+                        ng-class="{disabled: selection.selectedObjects.length == 0, collapsed: selection.none}"
+                        >
+                        <span ng-hide='!selection.selectedObjects.length'>ACTIONS</span>
+                        <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a ng-click="importTables()"><i class="icon-circle-arrow-down"/>Import</a>
+                        </li>
+                        <li>
+                            <a ng-click="clickShowSelected()"><i class="icon-eye"/>{{!showSelectedOnly ? 'Show selected tables' : 'Show all items'}}</a>
+                        </li>
+
+                    </ul>
+                </div>
+                <span ng-show="selection.selectedObjects.length" style="margin-left: 5px">
+                    <a class="unselectable" ng-click="clickShowSelected()">{{selection.selectedObjects.length}} selected</a> <span ng-show="showSelectedOnly">(showing only selected)</span>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div ng-show="notReady">
+        <div class="alert alert-info">
+            <h4>Data catalog indexing…</h4>
+        </div>
+    </div>
+    <ul class="list-items"
+        style="flex: 1"
+        filtered-multi-select-rows ng-model="formatted_items"
+        select-click-behaviour="select-add"
+        fat-repeat="!showSelectedOnly ? selection.filteredObjects : selection.selectedObjects"
+        as="item"
+        row-height="70"
+        remember-selection
+        remember-selection-comparator="'_id'"
+        is-item-selectable-predicate="isItemSelectable"
+        >
+        <li ng-click="selectIndex(item.$idx)"
+            class="list-item"
+            ng-class="{
+                'focused': selected.item === item,
+                'selected': item.$selected,
+                'inbox-unread': unread(item),
+                'inbox-closed': item._source.closed
+            }"
+            style="border-bottom: 1px #ccc solid; list-style: none; position: relative; height: 100%; align-items: center; display: flex;">
+            <div class="hit" dataset="item" style="display: flex; padding:0 0 0 0px; width: 100%; align-items: center;">
+                <div style="flex-basis: 65px; margin-left: 10px; flex-grow: 0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative;">
+                    <input type="checkbox" ng-model="item.$selected"
+                       ng-show="item._type === 'table'"
+                       style="margin: 0; position: absolute; left: 0;"
+                       ng-click="checkBoxChanged(item,$event)"
+                       />
+                    <i ng-if="!inboxPage" class="icon {{itemToIcon(item, true)}} universe-color {{itemToColor(item)}}" style="margin: 0;"></i>
+                    <div ng-if="inboxPage" class="vertical-flex" style="text-align: center;">
+                        <div class="noflex">
+                            <div ng-repeat="up in item._source.discussionAuthor track by $index" user-picture="up" class="avatar{{item._source.discussionAuthor.length > 1 ? '20' : '32'}}" ng-if="$index >= 0 && $index < 2" style="margin-left: 2px;"></div>
+                        </div>
+                        <div class="noflex">
+                            <div ng-repeat="up in item._source.discussionAuthor track by $index" user-picture="up" size="20" ng-if="$index >= 2 && $index < 4" style="margin-left: 2px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hitContent" style="flex: 1; overflow: hidden; margin: 0;">
+                    <div style="display: flex; flex-direction: column; justify-content: center;">
+
+                        <div class="hit-content-main">
+                            <div class="horizontal-flex">
+                                <div class="noflex inbox-closed-tag">closed</div>
+                                <h4 class="flex hit-content-main__title">
+                                    <a ng-if="itemsPage"
+                                       href="{{ getLink(item) }}"
+                                       ng-bind-html="formatItemName(item, true)">
+                                    </a>
+                                    <span ng-if="inboxPage"
+                                       ng-bind-html="formatItemName(item, true)">
+                                    </span>
+                                    <a ng-if="meaningsPage"
+                                       ng-click="goToItem(item); $event.stopPropagation();"
+                                       ng-bind-html="formatItemName(item, true)">
+                                    </a>
+                                </h4>
+                                <div class="noflex" style="height: 0">
+                                    <span ng-if="(itemsPage || inboxPage) && isFunction(sortOptions.column) && sortOptions.column.name != 'type' && sortOptions.column(item)">
+                                        {{ sortOptions.column(item) | friendlyTimeDeltaShort }}
+                                    </span>
+                                    <span ng-if="meaningsPage">
+                                        {{ types[item._source.udm_type] }}
+                                    </span>
+                                </div>
+
+                                <p style="margin: 0; flex: 1; text-align: right; padding-right: 5px; white-space: nowrap;">
+                                    <span style="font-size: 0.9em;">
+                                        <span ng-if="item.highlight.hasOwnProperty('projectName')">
+                                            <span ng-bind-html="item.highlight.projectName[0]"></span>
+                                        </span>
+                                        <span ng-if="!item.highlight.hasOwnProperty('projectName')">
+                                            <span>{{item._source.projectName}}</span>
+                                            <span ng-if="item.highlight.hasOwnProperty('projectKey')">
+                                                (<span ng-bind-html="item.highlight.projectKey[0]"></span>)
+                                            </span>
+                                        </span>
+                                        <span ng-if="!item.highlight.hasOwnProperty('connection')">
+                                            <span>{{item._source.connection |connectionNameFormatter}}</span>
+                                            <span ng-if="item._source.catalog">/ {{item._source.catalog}}</span>
+                                            <span ng-if="item._source.schema">/ {{item._source.schema}}</span>
+                                        </span>
+                                        <span ng-if="item._source.relatedItems">
+                                            <span ng-if="item.highlight.hasOwnProperty('relatedItems.projects.datasets.name')">
+                                                  - <span ng-bind-html="item.highlight['relatedItems.projects.datasets.name'][0]"></span>
+                                            </span>
+                                            <span ng-if="!item.highlight.hasOwnProperty('dataset')">
+                                                  - {{item._source.dataset}}
+                                            </span>
+                                        </span>
+                                        <span ng-if="inboxPage && item._source.hasOwnProperty('lastReplyTime')">
+                                            <span>- {{item._source.lastReplyTime | friendlyTimeDeltaShort }}</span>
+                                        </span>
+                                    </span>
+                                </p>
+                            </div>
+
+                            <!-- preview discussion -->
+                            <div ng-if="inboxPage" style="display: flex; flex-wrap: wrap; max-height: 40px">
+                                <div class="markdown-preview" from-markdown="item._source.discussionReply[item._source.discussionReply.length - 1]"></div>
+                            </div>
+
+                            <div class="matches">
+                                <!-- Catalog snippet -->
+                                <div ng-if="itemsPage" style="display: flex; flex-wrap: wrap; max-height: 40px" class="found_in">
+
+                                    <!-- columns -->
+                                    <p ng-if="item.highlight.hasOwnProperty('columns.name')" class="matching_part">
+                                        <span>{{'column' | plurify : item.highlight['columns.name'].length}}:</span>
+                                        <span ng-if="item.highlight['columns.name'].length > 4">
+								        <span>{{item.highlight['columns.name'].length}} matching</span>
+                                    </span>
+                                        <span ng-if="item.highlight['columns.name'].length < 5" ng-repeat="column in item.highlight['columns.name'] track by $index">
+                                        <span ng-bind-html="column"></span>
+                                        <span class="separator" ng-show="!$last"> • </span>
+                                    </span>
+                                    </p>
+                                    <!-- tags -->
+                                    <p ng-if="item.highlight.hasOwnProperty('tag')" class="matching_part">
+                                        <span>tag{{item.highlight.tag.length > 1 ? 's' : ''}}:</span>
+                                        <span ng-repeat="tag in item.highlight.tag track by $index">
+            								<span ng-bind-html="tag"></span>
+                                            <span style="padding: 0 5px;" ng-show="!$last"> • </span>
+                                        </span>
+                                    </p>
+                                    <!-- code -->
+                                    <p ng-if="item.highlight.hasOwnProperty('code')" class="matching_part">
+                                        <span>code:</span>
+                                        <span>{{item.highlight.code.length}} matches</span>
+                                    </p>
+
+                                    <p ng-if="item.highlight.hasOwnProperty('discussionReply')" class="matching_part">
+                                        <span>discussion:</span>
+                                        <span>{{item.highlight.discussionReply.length}} matches</span>
+                                    </p>
+
+                                    <p ng-if="item.highlight.hasOwnProperty('text')" class="matching_part">
+                                        <span>article:</span>
+                                        <span>{{item.highlight.text.length}} matches</span>
+                                    </p>
+
+                                    <div item-highlight="item.highlight['relatedItems.projects.name']"
+                                        ng-show="item.highlight['relatedItems.projects.name']"
+                                        label="project"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['relatedItems.projects.datasets.name']"
+                                        ng-show="item.highlight['relatedItems.projects.datasets.name']"
+                                        label="dataset"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['recipes.recipe']"
+                                        ng-show="item.highlight['recipes.recipe']"
+                                        label="recipe"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['indexes.name']"
+                                        ng-show="item.highlight['indexes.name']"
+                                        label="index"
+                                        plural="indices"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['remarks']"
+                                        ng-show="item.highlight['remarks']"
+                                        label="remark"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['description']"
+                                        ng-show="item.highlight['description']"
+                                        label="description"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['discussions.topic']"
+                                        ng-show="item._type != 'discussion' && item.highlight['discussions.topic']"
+                                        label="discussion topic"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['discussionAuthor']"
+                                        ng-show="item.highlight['discussionAuthor']"
+                                        label="has commented"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['discussionAuthorName']"
+                                        ng-show="item.highlight['discussionAuthorName']"
+                                        label="has commented"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['attachments.projectKey']"
+                                        ng-show="item.highlight['attachments.projectKey']"
+                                        label="attachment"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['attachments.type']"
+                                        ng-show="item.highlight['attachments.type']"
+                                        label="attachment"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['attachments.displayName']"
+                                        ng-show="item.highlight['attachments.displayName']"
+                                        label="attachment"
+                                        class="matching_part">
+                                    </div>
+                                    <div item-highlight="item.highlight['attachments.mimeType']"
+                                        ng-show="item.highlight['attachments.mimeType']"
+                                        label="attachment"
+                                        class="matching_part">
+                                    </div>
+
+                                </div>
+
+                                <!-- Meanings snippet -->
+                                <div ng-if="meaningsPage">
+                                    <p>
+                                        <span>
+    								        <span ng-bind-html="item.highlight.prefix[0] || item._source.prefix"></span>
+                                            on {{item.inner_hits.column.hits.hits.length || 0 }} columns
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </li>
+    </ul>
+</div>

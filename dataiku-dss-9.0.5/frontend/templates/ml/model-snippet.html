@@ -1,0 +1,320 @@
+<div class="model-snippet-header">
+    <!-- Name and Score -->
+    <div class="model-snippet-header__details">
+        <a class="model-snippet-header__name"
+            ng-if="snippetData.trainInfo.state === 'DONE'"
+            href="{{$state.href(out.sRefPrefix + (snippetSource === 'SAVED' ? '' : '.model') + '.report',
+                {'fullModelId': snippetData.fullModelId})}}">{{snippetData.userMeta.name}}
+        </a>
+        <a class="model-snippet-header__name"
+            ng-if="snippetData.trainInfo.state !== 'DONE'">
+            <span ng-class="{'text-error': out.isModelFailedOrAborted(snippetData)}">
+                {{snippetData.userMeta.name}}
+            </span>
+        </a>
+        <!-- Metric if finished -->
+        <span ng-show="out.isModelDone(snippetData)" class="model-snippet-header__metric">
+            <i class="icon-trophy" ng-if="out.isBestModelScore(snippetData, true)"></i>
+            <i class="icon-dku-weight" ng-if="out.model.sampleWeightsEnabled"></i>
+            <span ng-if="snippetData.partitionedModelEnabled">~</span>
+            <span ng-show="!out.isModelFailedOrAborted(snippetData)&&!out.isModelRunning(snippetData)" ng-bind-html="snippetData.mainMetric | mlMetricFormat
+            :currentMetric
+            :(currentMetric.substr(0, 3) === 'NB_' ? 0 : 3)
+            :snippetData.mainMetricStd">
+            </span>
+            <span ng-if="snippetData.partitionedModelEnabled"
+                  dku-md-popover="{{out.getAggregationExplanation(currentMetric)}}"
+                  dku-md-title="Aggregated metric"
+                  data-placement="bottom">
+                   <i class="icon-info-sign"></i>
+            </span>
+        </span>
+    </div>
+
+    <!-- Training state  -->
+    <div class="model-snippet-header__state">
+        <span class="mright8" ng-show="snippetData.trainInfo.state=='RUNNING'">
+            <i class="dku-loader icon-spin w20 h20 pull-left"></i>
+            <span ng-show="!snippetData.partitionedModelEnabled">
+                Step {{snippetData.trainInfo.progress.top_level_done.length}}/{{snippetData.trainInfo.progress.top_level_todo.length + snippetData.trainInfo.progress.top_level_done.length}} -
+            </span>
+            <span ng-show="snippetData.partitionedModelEnabled && out.getTotalAmountOfPartitions(snippetData) > 0">
+                Partition {{ out.getPartitionsSnippetStateSize(snippetData, 'DONE', 'RUNNING') }}/{{ out.getTotalAmountOfPartitions(snippetData) }} -
+            </span>
+             <span>
+                {{snippetData.trainInfo.resumed ? "resumed" : "started"}} {{snippetData.trainInfo.startTime | friendlyTimeDeltaHHMMSS }} ago
+            </span>
+
+            <!-- TODO : remove once KERAS algo have own template -->
+            <span ng-show="out.isMLBackendType('KERAS') && out.isModelOptimizing(snippetData)">— training epoch {{snippetData.modelTrainingInfo.currentEpoch + 1}}{{snippetData.modelTrainingInfo.nbEpochs ? '/'+snippetData.modelTrainingInfo.nbEpochs : ''}}
+            </span>
+        </span>
+        <span class="text mleft16" style="white-space: nowrap;" ng-show="out.isModelDone(snippetData)">
+            <i class="icon-ok"></i>
+            Done {{snippetData.trainInfo.endTime||snippetData.trainInfo.startTime+snippetData.trainInfo.trainingTime | friendlyTimeDeltaShort}} ({{snippetData.trainInfo.endTime|date:'yyyy-MM-dd HH:mm:ss'}})
+            <span ng-if="out.getPartitionsSnippetStateSize(snippetData, 'ABORTED') > 0">
+                &mdash; {{out.getPartitionsSnippetStateSize(snippetData, 'ABORTED')}} aborted
+            </span>
+            <a href="{{$state.href(out.sRefPrefix + (snippetSource === 'SAVED' ? '' : '.model') + '.report', {fullModelId: snippetData.fullModelId, '#': snippetData.partitionedModelEnabled ? '' : 'train'})}}"
+               class="text text-diagnostics mleft16" style="white-space: nowrap;" icon-placement="left"
+               ng-if="out.hasDiagnostics(snippetData)" display-popup="true" popup-content="{{out.getDiagnosticsTextForPartitions(snippetData)}}"
+               diagnostics-modal diagnostics="snippetData.trainDiagnostics.diagnostics" text-content="Diagnostics ({{out.countDiagnostics(snippetData)}})" icon-size="large">
+            </a>
+        </span>
+        <span ng-show="out.isModelPending(snippetData)">
+            Will start soon
+        </span>
+        <span class="text-error" ng-show="out.isModelFailed(snippetData) || out.isModelAborted(snippetData)">
+            <i class="icon-remove"></i>
+            <span ng-show="out.isModelFailed(snippetData)">Failed</span>
+            <span ng-show="out.isModelAborted(snippetData)">Aborted</span>
+            <span
+               class="text text-diagnostics mleft16" style="white-space: nowrap;" icon-placement="left"
+               ng-if="out.hasDiagnostics(snippetData)" display-popup="true" popup-content="{{out.getDiagnosticsTextForPartitions(snippetData)}}"
+               diagnostics-modal diagnostics="snippetData.trainDiagnostics.diagnostics" text-content="Diagnostics ({{out.countDiagnostics(snippetData)}})" icon-size="large">
+            </span>
+        </span>
+    </div>
+
+    <!-- Buttons and actions dropdown menu -->
+    <div class="model-snippet-header__actions">
+        <!-- finalize btn -->
+        <button class="btn btn--text btn--primary" toggle="tooltip-top" container="body" title="Suspend, keep best results so far" ng-show="out.isModelOptimizing(snippetData) && snippetData.trainInfo.$userRequestedState !== 'FINALIZE'" ng-click="out.stopGridSearch([snippetData.fullModelId])">
+            <i class="icon-pause"></i> Suspend
+        </button>
+        <button class="btn btn--text btn--primary" ng-click="out.retrainModel(snippetData.sessionId, [snippetData.fullModelId])" ng-show="!out.mlTaskStatus.training && out.isModelOptimizationResumable(snippetData)">
+            <i class="icon-play"></i> Resume
+        </button>
+        <!-- finalizing -->
+        <span ng-show="out.isModelOptimizing(snippetData) && snippetData.trainInfo.$userRequestedState === 'FINALIZE'">
+            <span class="icon-pause mright4"></span> Suspending optimization…
+        </span>
+        <!-- second button -->
+        <button class="btn btn--text btn--primary mleft8" ng-show="!snippetData.partitionedModelEnabled && out.isModelRetrainable(snippetData)" ng-click="out.retrainModel(snippetData.sessionId, [snippetData.fullModelId])">
+            <i class="icon-undo"></i> Rerun
+        </button>
+        <a class="btn btn--text btn--primary" ng-class="{'btn-deeplearning mright8': out.isMLBackendType('KERAS')}" ng-show="out.isModelFailedOrAborted(snippetData)" target="_blank" ng-href="/dip/api/analysis/mlcommon/cat-activity-log/?fullModelId={{snippetData.fullModelId}}">
+            View logs
+        </a>
+        <button class="btn btn--primary mleft8" ng-show="snippetData.partitionedModelEnabled && out.isModelRetrainable(snippetData)" ng-click="out.retrainModel(snippetData.sessionId, [snippetData.fullModelId])">
+            <i class="icon-undo"></i>
+            <span toggle="tooltip-bottom" container="body" data-original-title="Rerun aborted partitions">Rerun</span>
+        </button>
+        <button class="btn btn--text btn--danger" ng-click="out.partiallyAbortTraining([snippetData.fullModelId])" ng-show="out.isModelRunning(snippetData) && taskType=='PREDICTION' && snippetData.backendType=='PY_MEMORY'">
+            <i class="icon-remove"></i> Abort
+        </button>
+
+        <div ng-show="snippetSource === 'ANALYSIS'" class="model-snippet-header__star" ng-click="out.toggleStarred(snippetData)">
+            <i class="icon-star-empty" ng-if="!snippetData.userMeta.starred"></i>
+            <i class="icon-star" ng-if="snippetData.userMeta.starred"></i>
+        </div>
+        <span ng-show="snippetSource === 'ANALYSIS'" custom-element-popup cep-position="smart" cep-offset-left="-26" close-on-click="true" full-click>
+            <a class="mainzone dropdown-toggle" main-click ng-click="togglePopover()">
+                <i class="dku-ellipsis-vertical dku-ellipsis-vertical--circle-on-hover"></i>
+            </a>
+            <ul class="popover custom-element-popup-popover dropdown-menu column-header-menu shaker-column-row-popup">
+                <li ng-show="!out.mlTaskStatus.training && out.isModelOptimizationResumable(snippetData)">
+                    <a ng-click="out.retrainModel(snippetData.sessionId, [snippetData.fullModelId])" >
+                        <i class="icon-play"></i> Resume model train
+                        <span ng-show="!out.isModelOptimizationBoundByTimeout(snippetData) && out.getModelSearchProgress(snippetData)!== undefined">({{out.getModelSearchProgress(snippetData) | percentage: 100}} done)</span>
+                        <span ng-show="out.isModelOptimizationBoundByTimeout(snippetData)">(will run for {{snippetData.gridsearchData.timeout}}min)</span>
+                    </a>
+                </li>
+                <li ng-show="!out.isModelRunning(snippetData)">
+                    <a ng-click="out.deleteModel(snippetData)" class="text-error">
+                        <i class="icon-trash"></i> Delete
+                    </a>
+                </li>
+                <li>
+                    <a target="_blank" ng-href="/dip/api/analysis/mlcommon/cat-activity-log/?fullModelId={{snippetData.fullModelId}}">
+                        <i class="icon-align-justify"></i>
+                        View logs
+                    </a>
+                </li>
+                <li ng-show="out.isModelDone(snippetData) && out.mlTaskDesign.taskType === 'PREDICTION' && out.mlTaskDesign.backendType !== 'VERTICA'">
+                    <a ng-click="out.revertDesignToModel(snippetData.fullModelId, snippetData.algorithm)" >
+                        <i class="icon-backward"></i> Revert design to this model
+                    </a>
+                </li>
+            </ul>
+        </span>
+    </div>
+</div>
+
+<!-- The snippet which is shown for a model in the "list" view of a MLTask -->
+<div class="model-snippet-body model-snippet-body--{{snippetData.trainInfo.state}}" ng-class="{'not-active' : smData && !smData.active, 'model-snippet-body--with-selector': !hideSelectors}">
+    <div class="model-snippet-body__selector" ng-if="!hideSelectors">
+        <input ng-click="out.checkBoxChanged(snippetData, $event)" id="model-snippet-body-input-{{snippetData.$idx}}" type="checkbox" ng-if="!smData" ng-model="snippetData.$selected" />
+        <input ng-click="out.checkBoxChanged(smData, $event)" id="model-snippet-body-input-{{smData.$idx}}" type="checkbox" ng-if="smData" ng-model="smData.$selected" />
+        <label for="model-snippet-body-input-{{snippetData.$idx}}" ng-if="!smData" class="fh"></label>
+        <label for="model-snippet-body-input-{{smData.$idx}}" ng-if="smData" class="fh"></label>
+    </div>
+
+    <!-- Partition mode -->
+    <div class="model-snippet-body__summary" ng-if="snippetData.partitionedModelEnabled">
+        <!-- FOR ANALYSIS -->
+        <table class="model-train-details-table" ng-if="snippetSource === 'ANALYSIS' && snippetData.trainInfo.state !== 'PENDING'">
+            <tr ng-show="out.getTotalAmountOfPartitions(snippetData) > 0">
+                <td>Partitions</td><td>{{ out.getTotalAmountOfPartitions(snippetData) }}</td>
+            </tr>
+            <tr ng-show="out.getPartitionsSnippetStateSize(snippetData, 'RUNNING') > 0">
+                <td>Running</td><td>{{ out.getPartitionsSnippetStateSize(snippetData, 'RUNNING') }}</td>
+            </tr>
+            <tr ng-show="out.getPartitionsSnippetStateSize(snippetData, 'DONE') > 0">
+                <td>Trained</td><td>{{ out.getPartitionsSnippetStateSize(snippetData, 'DONE') }}</td>
+            </tr>
+            <tr ng-show="out.getPartitionsSnippetStateSize(snippetData, 'PENDING') > 0">
+                <td>Pending</td><td>{{ out.getPartitionsSnippetStateSize(snippetData, 'PENDING') }}</td>
+            </tr>
+            <tr ng-show="out.getPartitionsSnippetStateSize(snippetData, 'FAILED') > 0">
+                <td>Failed</td><td>{{ out.getPartitionsSnippetStateSize(snippetData, 'FAILED') }}</td>
+            </tr>
+            <tr ng-show="out.getPartitionsSnippetStateSize(snippetData, 'ABORTED') > 0">
+                <td>Aborted</td><td>{{ out.getPartitionsSnippetStateSize(snippetData, 'ABORTED') }}</td>
+            </tr>
+        </table>
+
+        <!-- FOR SAVED MODEL -->
+        <table class="model-train-details-table" ng-if="snippetSource === 'SAVED' && snippetData.trainInfo.state !== 'PENDING'">
+            <tr ng-show="out.getTotalAmountOfPartitions(snippetData) > 0">
+                <td>Partitions</td><td>{{ out.getTotalAmountOfPartitions(snippetData) }}</td>
+            </tr>
+            <tr ng-show="out.getPartitionsSnippetStateSize(snippetData, 'DONE') > 0">
+                <td>Trained</td><td>{{ out.getPartitionsSnippetStateSize(snippetData, 'DONE') }}</td>
+            </tr>
+            <tr ng-show="out.getPartitionsSnippetStateSize(snippetData, 'FAILED') > 0">
+                <td>Failed</td><td>{{ out.getPartitionsSnippetStateSize(snippetData, 'FAILED') }}</td>
+            </tr>
+            <tr ng-show="out.getPartitionsSnippetStateSize(snippetData, 'REUSED_DONE', 'REUSED_FAILED', 'REUSED_ABORTED') > 0">
+                <td>Re-used</td><td>{{ out.getPartitionsSnippetStateSize(snippetData, 'REUSED_DONE', 'REUSED_FAILED', 'REUSED_ABORTED') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="model-snippet-body__main" 
+        ng-class="{'model-snippet-body__main--pending': snippetData.trainInfo.state === 'PENDING'}" 
+        ng-if="snippetData.partitionedModelEnabled"
+        ng-switch="snippetData.trainInfo.state">
+        <div ng-switch-when="PENDING" class="model-snippet-body__message">
+            <h4 class="model-snippet-body__message-title"><i class="dku-loader icon-spin w24 h24 mright8 pull-left"></i> Training will start soon… </h4>
+        </div>
+        <div ng-switch-default>
+            <div class="partitioned-model-table__container">
+                <table ng-if="(snippetData.partitions.summaries | objectSize) > 0">
+                    <thead>
+                    <tr class="partitioned-model-table__header">
+                        <th>Partition</th>
+                        <th colspan="2">Metric</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="(name, summary) in snippetData.partitions.summaries"
+                        class="partitioned-model-table__row">
+                        <td>
+                            <span ng-if="summary.snippet && summary.state.endsWith('DONE')">
+                                <a ng-href="{{$state.href(out.sRefPrefix + (snippetSource === 'SAVED' ? '' : '.model') + '.report', {'fullModelId': summary.snippet.fullModelId})}}"
+                                class="partitioned-model__link" title="Open partitioned model">
+                                    {{ name }}
+                                </a>
+                            </span>
+                            <span ng-if="!summary.snippet || !summary.state.endsWith('DONE')">{{name}}</span>
+                        </td>
+                        <td>
+                            <span>{{ summary.snippet.mainMetric | mlMetricFormat
+                                        :currentMetric
+                                        :(currentMetric.substr(0, 3) === 'NB_' ? 0 : 3)
+                                        :snippetData.mainMetricStd }}</span>
+                        </td>
+                        <td ng-style="{'background': out.getPartitionResultMetricGradient(snippetData, summary.snippet.sortMainMetric, currentMetric)}" class="bar"></td>
+                        <td>
+                            <span><model-state state="summary.state" model="summary.snippet" s-ref-prefix="out.sRefPrefix + (snippetSource === 'SAVED' ? '' : '.model') + '.report'" display-diagnostics-popup="true" display-diagnostics="true"/></span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div ng-switch-when="FAILED" class="model-snippet-body__message">
+            <h4 class="model-snippet-body__message-title text-error">Training failed</h4>
+            <div class="text-error">{{snippetData.trainInfo.failure.detailedMessage}}</div>
+            <div class="mtop10">
+                <a target="_new" href="/dip/api/analysis/mlcommon/cat-activity-log?fullModelId={{snippetData.fullModelId}}">Read the logs</a>
+                <span ng-show="snippetData.trainInfo.failure.debuggingHint"> - </span>
+                <a ng-show="appConfig.admin && snippetData.trainInfo.failure.debuggingHint == 'CHECK_BACKEND_LOG'" href="/admin/maintenance/logs/" target="_blank">More info might be available in backend log</a>
+                <span ng-show="!appConfig.admin && snippetData.trainInfo.failure.debuggingHint == 'CHECK_BACKEND_LOG'">More info might be available in backend log (ask your admin)</span>
+            </div>
+        </div>
+        <div ng-switch-when="ABORTED" class="model-snippet-body__message">
+            <h4 class="model-snippet-body__message-title">Training aborted.</h4>
+        </div>
+    </div>
+    <ng-include src="'/templates/ml/model-snippet-details-content.html'" ng-if="snippetData.partitionedModelEnabled"></ng-include>
+
+    <!-- Non-partitioned mode -->
+    <div class="model-snippet-body__summary" ng-if="!snippetData.partitionedModelEnabled && snippetData.trainInfo.state === 'DONE'" >
+        <div class="model-snippet-body__grid-description" grid-description desc="snippetData.trainInfo" trained="true" gridsearch-data="snippetData.gridsearchData"></div>
+    </div>
+    <div class="model-snippet-body__summary" ng-if="!snippetData.partitionedModelEnabled && snippetData.trainInfo.state !== 'DONE'">
+        <div ng-if="snippetData.trainInfo.state !== 'PENDING'" class="model-snippet-body__grid-description" grid-description desc="snippetData.trainInfo" trained="false"></div>
+    </div>
+    <div class="model-snippet-body__main" 
+        ng-class="{'model-snippet-body__main--pending': snippetData.trainInfo.state === 'PENDING'}" 
+        ng-if="!snippetData.partitionedModelEnabled"
+        ng-switch="snippetData.trainInfo.state">
+        <div ng-switch-when="DONE" class="h100">
+            <div class="model-snippet-body__message" ng-if="!snippetData.topImportance.length && !snippetData.topCoefs.length && !snippetData.facts.clusters">
+                <h4 class="model-snippet-body__message-title">No model-specific details available.</h4>
+            </div>
+            <h5 class="model-snippet-body__main-title" ng-show="snippetData.topImportance.length">Most important variables</h5>
+            <table ng-if="snippetData.topImportance.length">
+                <tr ng-repeat="f in snippetData.topImportance | listSlice:0:6">
+                    <td><span class="fh" ng-bind-html="f.s | mlFeature : true" /></td>
+                    <td class="bar">&nbsp;<span style="width: {{ f.d * 100 / snippetData.topImportance[0].d }}%">&nbsp;</span></td>
+                </tr>
+            </table>
+            <h5 class="model-snippet-body__main-title" ng-show="snippetData.topCoefs.length">Top coefficients</h5>
+            <table ng-if="snippetData.topCoefs.length">
+                <tr ng-repeat="f in snippetData.topCoefs | listSlice:0:6" ng-if="f.d != 0">
+                    <td><span class="fh" ng-bind-html="f.s | mlFeature : true" /></td>
+                    <td class="coef positive" ng-if="f.d &gt; 0">&#11016;</td>
+                    <td class="coef negative" ng-if="f.d &lt; 0">&#11018;</td>
+                    <td ng-if="f.p.toFixed" ng-bind="f.p | mlScoreAssess : 'pvalue'" />
+                </tr>
+            </table>
+            <h5 class="model-snippet-body__main-title" ng-show="snippetData.facts.clusters">Clusters sizes</h5>
+            <table ng-if="snippetData.facts.clusters && snippetData.userMeta.clusterMetas">
+                <tr ng-repeat="f in snippetData.facts.clusters | listSlice:0:6">
+                    <td><span class="fh"><code
+                        ng-bind-html="snippetData.userMeta.clusterMetas[f.cluster].name || f.cluster" /></span></td>
+                    <td class="bar">&nbsp;<span style="width: {{ f.size * 100 / snippetData.facts.global.size }}%;
+                        background-color: {{ snippetData.userMeta.clusterMetas[f.cluster].color }}">&nbsp;</span></td>
+                </tr>
+            </table>
+        </div>
+        <div ng-switch-when="RUNNING">
+            <div model-train-progress progress="snippetData.trainInfo.progress" train-diagnostics="snippetData.trainDiagnostics"
+                 gridsearch-data="(!out.isMLBackendType('KERAS') && out.isModelOptimizing(snippetData) && !snippetData.partitionedModelEnabled) ? snippetData.gridsearchData : undefined">
+            </div>
+        </div>
+        <div ng-switch-when="PENDING" class="model-snippet-body__message">
+            <h4 class="model-snippet-body__message-title"><i class="dku-loader icon-spin w24 h24 mright8 pull-left"></i>Training will start soon…</h4>
+        </div>
+        <div ng-switch-when="ABORTED" class="model-snippet-body__message">
+            <h4 class="model-snippet-body__message-title">Training aborted.</h4>
+        </div>
+        <div ng-switch-when="FAILED" class="model-snippet-body__message fh">
+            <div class="model-snippet-body__message-summary">
+                <h4 class="model-snippet-body__message-title text-error">Training failed</h4>
+                <a target="_new" href="/dip/api/analysis/mlcommon/cat-activity-log?fullModelId={{snippetData.fullModelId}}">Read the logs</a>
+                <span ng-show="snippetData.trainInfo.failure.debuggingHint"> - </span>
+                <a ng-show="appConfig.admin && snippetData.trainInfo.failure.debuggingHint == 'CHECK_BACKEND_LOG'" href="/admin/maintenance/logs/" target="_blank">More info might be available in backend log</a>
+                <span ng-show="!appConfig.admin && snippetData.trainInfo.failure.debuggingHint == 'CHECK_BACKEND_LOG'">More info might be available in backend log (ask your admin)</span>
+            </div>
+            <div class="model-snippet-body__message-logs text-error">
+                {{snippetData.trainInfo.failure.detailedMessage}}
+            </div>
+        </div>
+    </div>
+    <ng-include src="'/templates/ml/model-snippet-details-content.html'" ng-if="!snippetData.partitionedModelEnabled"></ng-include>
+</div>

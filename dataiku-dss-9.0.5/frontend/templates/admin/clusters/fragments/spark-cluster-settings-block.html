@@ -1,0 +1,813 @@
+<form class="dkuform-horizontal" ng-if="addLicInfo.sparkLicensed">
+	<div class="section" ng-if="mask">
+	    <div class="control-group" ng-if="mask">
+	        <label class="control-label">Override global settings</label>
+	        <div class="controls">
+	            <label>
+	                <input type="checkbox" ng-model="mask.enabled" />
+	                <span class="help-inline">If disabled, this cluster will use globally-defined settings for everything related to Spark</span>
+	            </label>
+	        </div>
+	    </div>
+	</div>
+
+    <div class="section"  ng-if="!mask || mask.enabled">
+	    <div class="control-group">
+	        <label class="control-label">Enable Spark</label>
+	        <div class="controls">
+	            <label>
+	                <input type="checkbox" ng-model="settings.sparkEnabled"/>
+	                <span class="help-inline">Enable support of Spark {{mask ? 'for this cluster': ''}}</span>
+	            </label>
+	        </div>
+	    </div>
+	</div>
+
+    <div class="section" ng-if="mask.enabled && settings.sparkEnabled">
+        <div ng-if="mask.enabled" class="control-group">
+            <label class="control-label">Spark HOME</label>
+            <div class="controls">
+                <label>
+                    <input type="text" ng-model="settings.sparkHome"/>
+                    <span class="help-inline">Overrides the Spark HOME from the install-spark-integration command. Leave empty to use the globally-defined Spark HOME</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="section" ng-if="(!mask || mask.enabled) && settings.sparkEnabled">
+
+        <h2 id="runtime-config">Runtime configurations</h2>
+
+        <div class="control-group" ng-if="mask">
+            <label class="control-label">Override runtime configs</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.properties">
+                    <span class="help-inline">Override this to define additional properties and/or runtime configurations</span>
+                </label>
+            </div>
+        </div>
+
+        <div ng-if="!mask || mask.properties">
+            <div ng-if="mask.properties" style="margin-bottom: 20px">
+                <h3>Config keys added to all configurations <button type="button" ng-if="hadoopSettings" class="btn btn--secondary pull-right" ng-click="copyHadoopSettings()">Copy Hadoop settings</button></h3>
+                <ng2-credentials-list 
+                    [(items)]="settings.executionConfigsGenericOverrides"
+                    key-placeholder="Configuration key"
+                    value-placeholder="Configuration value"
+                    add-label="Add configuration"
+                    warn-if-trimmable="true">
+                </ng2-credentials-list>
+            </div>
+            <div ng-if="mask.properties">
+                <h3>Per-configuration overrides</h3>
+            </div>
+
+            <div add-remove ng-model="settings.executionConfigs">
+
+                <div ng-repeat="execConfig in settings.executionConfigs" class="repeatable-config-block spark-execution-config" >
+            
+                    <a class="pull-right text-danger" style="margin: 10px" ng-click="remove($index)">
+                        <i class="icon-trash" />
+                    </a>
+
+                    <h3>Basic</h3>
+
+                    <div class="control-group">
+                        <label for="" class="control-label">Config name</label>
+                        <div class="controls">
+                            <input type="text" ng-model="execConfig.name" />
+                            <div class="help-inline">
+                                NB: renaming or removing deleted configurations could cause trouble.
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="mask && execConfig.name && execConfig.name.length > 0 && appConfig.sparkExecutionConfigs.indexOf(execConfig.name) < 0" class="alert alert-warning">
+                        <p>No runtime configuration named <em>{{execConfig.name}}</em> exists at the instance level.</p>
+                        <p>Runtime configurations defined at the cluster level are only overrides of configurations defined in <a href="{{$state.href('admin.general')}}">Administration</a></p>
+                    </div>
+                    <div class="control-group">
+                        <label for="" class="control-label">Description</label>
+                        <div class="controls">
+                            <textarea ng-model="execConfig.description" style="height: 130px; width: 480px" />
+                        </div>
+                    </div>
+                    <h3>Config keys</h3>
+                    <small>
+                        Define here Spark configuration keys.
+                        Keys not listed here are inherited from your system-wide Spark configuration.
+                    </small>
+                    <ng2-credentials-list 
+                        [(items)]="execConfig.conf"
+                        key-placeholder="Configuration key"
+                        value-placeholder="Configuration value"
+                        add-label="Add Spark configuration"
+                        warn-if-trimmable="true">
+                    </ng2-credentials-list>
+
+                    <div ng-if="settings.databricksSettings.enabled">
+						<h3>Databricks cluster definition</h3>
+						<div class="control-group">
+	                        <label for="" class="control-label">Spark version</label>
+	                        <div class="controls">
+	                            <input type="text" ng-model="execConfig.databricksClusterDef.spark_version" />
+	                        </div>
+                    	</div>
+                    	<div class="control-group">
+	                        <label for="" class="control-label">Number of workers (static)</label>
+	                        <div class="controls">
+	                            <input type="number" force-integer min="0" ng-model="execConfig.databricksClusterDef.num_workers" />
+	                            <span class="help-inline">
+	                            	For autoscaling, add a "autoscale" key in the JSON config
+	                            </span>
+	                        </div>
+                    	</div>
+						<div class="control-group">
+	                        <label for="" class="control-label">Node type</label>
+	                        <div class="controls">
+	                            <input type="text" ng-model="execConfig.databricksClusterDef.node_type_id" />
+	                        </div>
+                    	</div>
+						<div class="control-group">
+	                        <label for="" class="control-label">Autotermination time</label>
+	                        <div class="controls">
+	                            <input type="number" force-integer min="0" ng-model="execConfig.databricksClusterDef.autotermination_minutes" />
+	                            <span class="help-inline">
+	                            	In minutes. Dataiku does not recommend setting it to 0
+	                            </span>
+	                        </div>
+                    	</div>
+						<div class="control-group">
+	                        <label for="" class="control-label">Raw JSON conf</label>
+	                        <div class="controls">
+	                            <textarea ng-model="execConfig.databricksClusterDef" deep-update="true" json-object-pretty-view style="height: 130px; width: 480px" />
+	                            <div class="help-inline">
+	                                Must match Databricks Clusters API creation object
+	                            </div>
+	                        </div>
+                    	</div>
+                    </div>
+
+                    <div>
+                        <div class="control-group" style="margin-top: 20px; margin-bottom:: 20px;">
+                            <label for="" class="control-label"><h3 style="margin: -3px 0 0 0">Managed Spark-on-K8S</h3></label>
+                            <div class="controls">
+                                <label>
+                                <input type="checkbox" ng-model="execConfig.kubernetesSettings.managedKubernetes" />
+                                <span class="help-inline">
+                                    Automatically manage setting up Spark for Kubernetes. If you're not using dynamic K8S clusters, you'll still need to setup the <em>spark.master</em> config key.
+                                </span>
+                                 </label>
+                            </div>
+                        </div>
+
+                        <div ng-if="execConfig.kubernetesSettings.managedKubernetes">
+                            <div class="control-group">
+                                <label class="control-label">Image registry URL</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="execConfig.kubernetesSettings.repositoryURL"/>
+                                    <span class="help-inline">
+                                        Base URL of the image registry, in the form host/root. See doc. for more information.
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="execConfig.kubernetesSettings.repositoryURL">
+                                <label class="control-label">Image pre-push hook</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="execConfig.kubernetesSettings.prePushMode" 
+                                    ng-options="x[0] as x[1] for x in [['NONE', 'None'], ['ECR', 'Enable push to ECR'], ['ACR', 'Enable push to ACR'], ['CUSTOM', 'Custom script']]" />
+                                    <span class="help-inline">
+                                        Action to run before pushing an image.
+                                        This is usually only required for running on Amazon EKS or Azure AKS
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="execConfig.kubernetesSettings.prePushMode == 'CUSTOM'">
+                                <label class="control-label">Script</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="execConfig.kubernetesSettings.prePushScript"/>
+                                    <span class="help-inline">
+                                        Absolute path to a shell script. Receives the repository url, image name &amp; tag as arguments.
+                                        This script should support being called on an already-existing image/tag.
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="" class="control-label">Kubernetes namespace</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="execConfig.kubernetesSettings.managedNamespace" />
+                                    <span class="help-inline">
+                                        Kubernetes Namespace to use. Variable expansion is supported
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="execConfig.kubernetesSettings.managedNamespace.indexOf('${') >= 0"> <!-- only useful when there are variables in the namespace name -->
+                                <label for="" class="control-label">Make K8S-compliant</label>
+                                <div class="controls">
+                                    <label>
+                                    <input type="checkbox" ng-model="execConfig.kubernetesSettings.ensureNamespaceCompliance" />
+                                    <span class="help-inline">
+                                        Automatically adjust namespace name to ensure it is compatible with the RFC1123 sub-domain syntax enforced by Kubernetes
+                                    </span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="" class="control-label">Auto-create namespace</label>
+                                <div class="controls">
+                                    <label>
+                                    <input type="checkbox" ng-model="execConfig.kubernetesSettings.createNamespace" />
+                                    <span class="help-inline">
+                                        Automatically create the namespace if it doesn't already exist.
+                                    </span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="" class="control-label">Authentication mode</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-model="execConfig.kubernetesSettings.authenticationMode" ng-options="x[0] as x[1] for x in [['BUILTIN', 'Use builtin configuration'], ['DYNAMIC_SERVICE_ACCOUNT', 'Create service accounts dynamically']]" options-descriptions="['For UIF, each impersonated user needs credentials', '']" layout="list" />
+                                    <span class="help-inline">
+                                        Spark-on-K8S jobs need end-users to authenticate to K8S. Select how to authenticate and authorize user jobs.
+                                    </span>
+                                </div>
+                            </div>
+
+                            <h4>Advanced settings</h4>
+                            <div class="control-group">
+                                <label class="control-label">Kubectl context</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="execConfig.kubernetesSettings.kubeCtlContext"/>
+                                    <span class="help-inline">kubectl context to use (empty = use default). This will not be taken into account if using dynamic K8S clusters</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Kubectl config path</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="execConfig.kubernetesSettings.kubeConfigPath"/>
+                                    <span class="help-inline">Path to the kubectl config file (empty = use default).  This will not be taken into account if using dynamic K8S clusters</span>
+                                </div>
+                            </div>
+                            <!-- the other fields of the ContainerBuildConfig don't apply here, we don't want to know about building images for K8S via a remote docker -->
+                            
+                            <h3>Advanced settings</h3>
+                            <div class="control-group">
+                                <label class="control-label">Base image</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="execConfig.kubernetesSettings.baseImage"/>
+                                    <span class="help-inline">
+                                        Leave empty to use the default image (see doc. for more information about base images)
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="appConfig.sparkVersion.startsWith('3.')">
+                                <label class="control-label">Executor pod YAML</label>
+                                <div class="controls">
+                                    <!-- <div class="codemirror" style="height: 30px"> -->
+                                        <textarea style="width: 700px" ng-model="execConfig.kubernetesSettings.executorPodTemplate" zui-codemirror="codeMirrorSettingService.get('text/yaml')" placeholder="Optional pod template specified as YAML" />
+                                    <!-- </div> -->
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="appConfig.sparkVersion.startsWith('3.') && execConfig.kubernetesSettings.executorPodTemplate">
+                                <label class="control-label">Executor container name</label>
+                                <div class="controls">
+                                    <input type="text" ng-model="execConfig.kubernetesSettings.executorPodTemplateContainerName"/>
+                                    <span class="help-inline">
+                                        Name of the container for the Spark executor in the pod YAML (default is spark-executor)
+                                    </span>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+
+
+                    <div>
+                        <div class="control-group" style="margin-top: 20px; margin-bottom:: 20px;">
+                            <label for="" class="control-label"><h3 style="margin: -3px 0 0 0">Managed cloud credentials</h3></label>
+                            <div class="controls">
+                                <label>
+                                <input type="checkbox" ng-model="execConfig.cloudCredentialsSettings.enabled" />
+                                <span class="help-inline">
+                                    Automatically manage Cloud (AWS, Azure, GCP) credentials for SparkSQL notebooks. Use this preferably in "standalone" kind of deployments like Spark-on-Kubernetes
+                                </span>
+                                 </label>
+                            </div>
+                        </div>
+
+                        <div ng-if="execConfig.cloudCredentialsSettings.enabled">
+                            <div class="control-group">
+                                <label class="control-label">Provide AWS credential</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-options="x[0] as x[1] for x in [['NONE', 'No'], ['ANY_MATCH', 'From any AWS connection'], ['FIRST_MATCH', 'From a connection']]" ng-model="execConfig.cloudCredentialsSettings.aws.mode" />
+                                    <span class="help-inline">Only connections for which the user has 'read connection details' rights will be considered</span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="execConfig.cloudCredentialsSettings.aws.mode == 'FIRST_MATCH'">
+                                <label class="control-label">AWS connections to consider</label>
+                                <div class="controls">
+                                    <input type="text" comma-separated-view ng-model="execConfig.cloudCredentialsSettings.aws.connections"/>
+                                    <span class="help-inline">
+                                        Comma-separated list of AWS connections names. The first connection on which the user has 'read connection details' will be used
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="appConfig.synchronizeToMetastoreCatalogFlavor == 'AWS_GLUE'">
+                                <label class="control-label">Also manage Glue credential</label>
+                                <div class="controls">
+                                    <input type="checkbox" ng-model="execConfig.cloudCredentialsSettings.aws.provideGlueClientCredential"/>
+                                    <span class="help-inline">
+                                        Use the credential from the specified connection to access the Glue catalog client in the notebook
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">Provide Azure credential</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-options="x[0] as x[1] for x in [['NONE', 'No'], ['ANY_MATCH', 'From any Azure connection'], ['FIRST_MATCH', 'From a connection']]" ng-model="execConfig.cloudCredentialsSettings.azure.mode" />
+                                    <span class="help-inline">Only connections for which the user has 'read connection details' rights will be considered</span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="execConfig.cloudCredentialsSettings.azure.mode == 'FIRST_MATCH'">
+                                <label class="control-label">Azure connections to consider</label>
+                                <div class="controls">
+                                    <input type="text" comma-separated-view ng-model="execConfig.cloudCredentialsSettings.azure.connections"/>
+                                    <span class="help-inline">
+                                        Comma-separated list of Azure connections names. The first connection on which the user has 'read connection details' will be used
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">Provide GCP credential</label>
+                                <div class="controls">
+                                    <select dku-bs-select ng-options="x[0] as x[1] for x in [['NONE', 'No'], ['ANY_MATCH', 'From any GCP connection'], ['FIRST_MATCH', 'From a connection']]" ng-model="execConfig.cloudCredentialsSettings.gcp.mode" />
+                                    <span class="help-inline">Only connections for which the user has 'read connection details' rights will be considered</span>
+                                </div>
+                            </div>
+                            <div class="control-group" ng-if="execConfig.cloudCredentialsSettings.gcp.mode == 'FIRST_MATCH'">
+                                <label class="control-label">GCP connections to consider</label>
+                                <div class="controls">
+                                    <input type="text" comma-separated-view ng-model="execConfig.cloudCredentialsSettings.gcp.connections"/>
+                                    <span class="help-inline">
+                                        Comma-separated list of GCP connections names. The first connection on which the user has 'read connection details' will be used
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" 
+                    class="btn btn--text btn--primary" 
+                    ng-click="add({conf : [], databricksClusterDef: {spark_version: '4.3.x-scala2.11', node_type_id:'i3.xlarge', num_workers:2, autotermination_minutes:120}})">
+                    <span plus-icon></span>&nbsp;Add another config
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="section" ng-if="(!mask || mask.enabled) && settings.sparkEnabled && settings.databricksSettings.enabled">
+        <h2 id="databricks">Databricks integration (BETA)</h2>
+        <div ng-if="!mask || mask.databricks">
+            <div class="control-group">
+                <label class="control-label">Enable Databricks support</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="settings.databricksSettings.enabled"/>
+                    </label>
+                </div>
+            </div>
+            <div ng-if="settings.databricksSettings.enabled">
+	            <div class="control-group">
+	                <label class="control-label">Databricks URL</label>
+	                <div class="controls">
+	                    <label>
+	                        <input type="text" ng-model="settings.databricksSettings.databricksURL"/>
+	                        <span class="help-inline">
+	                            Generally, either https://dbc-xxxxx-xxxx.cloud.databricks.com or https://xxxxxxx.azuredatabricks.net
+	                        </span>
+	                    </label>
+	                </div>
+	            </div>
+
+	            <div class="control-group">
+		            <label class="control-label">Credentials mode</label>
+		            <div class="controls">
+		                <select dku-bs-select ng-model="settings.databricksSettings.credentialsMode">
+		                    <option value="GLOBAL">Global</option>
+		                    <option value="PER_USER">Per user</option>
+		                </select>
+		            </div>
+		        </div>
+	            <div class="control-group" ng-show="settings.databricksSettings.credentialsMode == 'GLOBAL'">
+	                <label class="control-label">Databricks API Token</label>
+	                <div class="controls">
+	                    <input type="password" ng-model="settings.databricksSettings.token"/>
+	                </div>
+	            </div>
+                <div class="control-group">
+                    <label class="control-label">JDBC Path midfix</label>
+                    <div class="controls">
+                        <input type="text" ng-model="settings.databricksSettings.jdbcPathMidfix"/>
+                        <span class="help-inline">
+                            "0" for AWS, your "o=" token for Azure
+                        </span>
+                    </div>
+                </div>
+
+	            <div class="control-group">
+	                <label class="control-label">Conn. for resources upload</label>
+	                <div class="controls">
+	                    <input type="text" ng-model="settings.databricksSettings.uploadSettings.connectionName"/>
+	                    <span class="help-inline">Name of a DSS connection. Must be a S3 connection for Databricks on AWS, an Azure Blob Storage connection for Azure Databricks</span>
+	                </div>
+	            </div>
+	            <div class="control-group">
+	                <label class="control-label">Bucket for resources upload</label>
+	                <div class="controls">
+	                    <input type="text" ng-model="settings.databricksSettings.uploadSettings.bucket"/>
+	                </div>
+	            </div>
+	            <div class="control-group">
+	                <label class="control-label">Bucket DBFS mount point</label>
+	                <div class="controls">
+	                    <input type="text" ng-model="settings.databricksSettings.uploadSettings.mountedPathWithinBucket"/>
+	                    <span class="help-inline">
+	                    	Path within the bucket that is mounted on HDFS
+	                    </span>
+	                </div>
+	            </div>
+	            <div class="control-group">
+	                <label class="control-label">Mount point in DBFS</label>
+	                <div class="controls">
+	                    <input type="text" ng-model="settings.databricksSettings.uploadSettings.dbfsMountPoint"/>
+	                    <span class="help-inline">
+	                    	Path within DBFS in which the path of the bucket is mounted (must start with mnt)
+	                    </span>
+	                </div>
+	            </div>
+
+	            <div class="control-group">
+	                <label class="control-label">Direct upload to DBFS (unsafe)</label>
+	                <div class="controls">
+	                    <input type="checkbox" ng-model="settings.databricksSettings.uploadSettings.unsafeDirectUploadToDBFS"/>
+	                    <span class="help-inline">
+	                    	Easier (no need to setup connections, mounts and IAM roles) but allows users to tamper with resource files
+	                    </span>
+	                </div>
+	            </div>
+
+	            <div class="control-group">
+	                <label class="control-label">Per-user clusters</label>
+	                <div class="controls">
+	                    <input type="checkbox" ng-model="settings.databricksSettings.userSpecificClusters"/>
+	                </div>
+	            </div>
+
+	            <div>
+                    <button class="btn btn--secondary" ng-click="setRemoteSparkJupyterSupport('DATABRICKS', true)">Install Jupyter support</button>
+                    <button class="btn btn--secondary" ng-click="setRemoteSparkJupyterSupport('DATABRICKS', false)">Remove Jupyter support</button>
+                </div>
+	        </div>
+        </div>
+    </div>
+
+    <div class="section" ng-if="appConfig.livyEnabled && (!mask || mask.enabled) && settings.sparkEnabled && settings.livy.enabled">
+        <h2 id="livy">Livy integration (BETA)</h2>
+
+        <div class="control-group" ng-if="mask">
+            <label class="control-label">Override</label>
+            <label class="dku-toggle" style="display: inline-block;">
+                <input type="checkbox" ng-model="mask.jdbc">
+                <span/>
+            </label>
+        </div>
+    
+        <div ng-if="!mask || mask.jdbc">
+            <div class="control-group">
+                <label class="control-label">Enable Livy</label>
+                <div class="controls">
+                    <label>
+                        <input type="checkbox" ng-model="settings.livy.enabled"/>
+                    </label>
+                </div>
+            </div>
+        
+            <div ng-if="settings.livy.enabled">
+                <div class="control-group">
+                    <div class="controls">
+                        <button type="button" class="btn btn--secondary" ng-click="testLivy(settings.livy)">Test</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="livyUseURLcheckbox" class="control-label">Use advanced URL syntax</label>
+                    <div class="controls">
+                        <input id="livyUseURLcheckbox" type="checkbox" ng-model="settings.livy.useURL"/>
+                    </div>
+                </div>
+                <div ng-show="settings.livy.useURL != true">
+                    <div class="control-group">
+                        <label for="livyHost" class="control-label">Protocol</label>
+                        <div class="controls">
+                            <select dku-bs-select id="livyProtocol" ng-model="settings.livy.protocol" >
+                                <option value="HTTP">Http</option>
+                                <option value="RSC">RSC</option>
+                            </select>
+                            <span class="help-inline">Protocol to use for the Livy client</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="livyHost" class="control-label">Host</label>
+                        <div class="controls">
+                            <input type="text" id="livyHost" ng-model="settings.livy.host"/>
+                            <span class="help-inline">Livy host</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="livyPort" class="control-label">Port</label>
+                        <div class="controls">
+                            <input type="number" id="livyPort" min="0" max="65535" step="1" ng-model="settings.livy.port"/>
+                            <span class="help-inline">Livy port</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="livyAuth" class="control-label">Authentication</label>
+                        <div class="controls">
+                            <select dku-bs-select id="livyAuth" ng-model="settings.livy.auth">
+                                <option value="NONE">None</option>
+                                <option value="KERBEROS">Kerberos</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="livyExtraUrl" class="control-label">Extra URL</label>
+                        <div class="controls">
+                            <input type="text" id="livyExtraUrl" ng-model="settings.livy.extraUrl"/>
+                            <span class="help-inline">Appended to the URL after the scheme://host:port</span>
+                        </div>
+                    </div>
+                </div>
+                <div ng-show="settings.livy.useURL == true">
+                    <div class="control-group">
+                        <label class="control-label">Connection URL</label>
+                        <div class="controls">
+                            <input type="text" ng-model="settings.livy.url"/>
+                            <span class="help-inline">Mandatory</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Displayed connection URL</label>
+                        <div class="controls">
+                            <input type="text" ng-model="settings.livy.displayedUrl"/>
+                            <span class="help-inline">Shown in logs instead of connection URL if present. Useful to hide passwords</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label  class="control-label">Connection properties</label>
+                    <div class="controls">
+                        <ng2-credentials-list 
+                            [(items)]="settings.livy.connectionProperties"
+                            key-placeholder="Connection key"
+                            value-placeholder="Connection value"
+                            add-label="Add Livy connection property">
+                        </ng2-credentials-list>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="livyTestResult">
+                    <div class="controls">
+                        <div class="alert alert-warning" ng-if="!livyTestResult.connectionOk">
+                            Cannot connect to Livy server
+                        </div>
+                        <div ng-if="livyTestResult.connectionError" api-error-alert="livyTestResult.connectionError" />
+                        <div class="alert alert-warning" ng-if="livyTestResult.connectionOk && !livyTestResult.sessionOk">
+                            Setup to Livy server OK but session can't start
+                        </div>
+                        <div ng-if="livyTestResult.sessionError" api-error-alert="livyTestResult.sessionError" />
+                        <div class="alert alert-success" ng-if="livyTestResult.connectionOk && livyTestResult.sessionOk">
+                            Connection to Livy server OK
+                        </div>
+                        <div class="alert alert-warning" ng-if="livyTestResult.connectionOk && !livyTestResult.hasBackendConnectivity">
+                            Connectivity between Spark driver run by Livy and DSS's backend seems to be missing
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Spark version</label>
+                    <div class="controls">
+                        <input type="text" id="livyExtraUrl" ng-model="settings.livy.sparkVersion"/>
+                        <span class="help-inline">Leave empty if same as installed Spark</span>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="livyTestResult && livyTestResult.connectionOk">
+                    <div class="controls">
+                        <div class="alert alert-warning" ng-if="!sparkVersionsCompatible(testedSettings.sparkVersion, livyTestResult.sparkVersion)">
+                            Spark version {{testedSettings.sparkVersion}} is not compatible with version {{livyTestResult.sparkVersion}} run by Livy
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="livyYarnClustercheckbox" class="control-label">Uses yarn-cluster master</label>
+                    <div class="controls">
+                        <input id="livyYarnClustercheckbox" type="checkbox" ng-model="settings.livy.useYarnCluster"/>
+                        <span class="help-inline">If Livy doesn't run in cluster deployment mode, the Livy server and DSS must be collocated and Livy will access the files from DSS directly</span>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="livyTestResult && livyTestResult.connectionOk">
+                    <div class="controls">
+                        <div class="alert alert-warning" ng-if="testedSettings.useYarnCluster != shouldUseYarnCluster(livyTestResult.sparkMaster, livyTestResult.deployMode)">
+                            Livy runs Spark jobs with master {{livyTestResult.sparkMaster}} in deploy mode {{livyTestResult.deployMode}}, which is not compatible with the 'Uses yarn-cluster master' set to {{testedSettings.useYarnCluster}}.
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="livyFetchSize" class="control-label">Fetch size</label>
+                    <div class="controls">
+                        <input type="number" id="livyFetchSize" min="1" step="1" ng-model="settings.livy.fetchSize"/>
+                        <span class="help-inline">Fetch size for statements run via Livy</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label for="livyBlacklistedProperties" class="control-label">Blacklisted properties</label>
+                    <div class="controls">
+                        <input type="text" id="livyBlacklistedProperties" ng-model="settings.livy.blacklistedProperties"/>
+                        <span class="help-inline">Comma-separated list of Spark properties that Livy forbids</span>
+                    </div>
+                </div>
+
+		        <div class="control-group" ng-if="impersonationEnabled">
+		            <label class="control-label">Livy user</label>
+		            <div class="controls">
+		                <input type="text" ng-model="settings.livy.additionalUserToGrantAccessToWhenImpersonating"/>
+		                <span class="help-inline">In impersonation mode, DSS needs to grant access to this user</span>
+		            </div>
+		        </div>
+
+            </div>
+        </div>
+    </div>
+
+
+	<div class="section" ng-if="(!mask || mask.enabled) && settings.sparkEnabled">
+        <h2 id="yarn">Cluster mode (Unsupported)</h2>
+
+        <div class="control-group" ng-if="mask" >
+            <label class="control-label">Override</label>
+            <label class="dku-toggle" style="display: inline-block;">
+                <input type="checkbox" ng-model="mask.yarnCluster">
+                <span/>
+            </label>
+        </div>
+        
+        <div ng-if="!mask || mask.yarnCluster">
+            <div class="control-group">
+                <div class="controls">
+                    <button type="button" class="btn btn--secondary" ng-click="preloadYarnClusterFiles(settings.yarnClusterSettings)">Preload</button>
+                    <span class="help-inline">Upload DSS-related files to the cluster to speed up application launching in yarn-cluster mode</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="yarnClusterConnection" class="control-label">Connection</label>
+                <div class="controls">
+                    <input type="text" id="yarnClusterConnection" ng-model="settings.yarnClusterSettings.connectionName"/>
+                    <span class="help-inline">Name of DSS connection to use to push files on cluster</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="yarnClusterLocation" class="control-label">Location</label>
+                <div class="controls">
+                    <input type="text" id="yarnClusterLocation" ng-model="settings.yarnClusterSettings.location"/>
+                    <span class="help-inline">Location inside the connection to push files on cluster</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="yarnClusterTunnelConnection" class="control-label">Tunnel connection</label>
+                <div class="controls">
+                    <input type="text" id="yarnClusterTunnelConnection" ng-model="settings.yarnClusterSettings.tunnelConnectionName"/>
+                    <span class="help-inline">Name of a SSH (DSS) connection to use to tunnel to the cluster. Use when DSS is behind a NAT from the cluster p.o.v.</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="yarnClusterTunnelHost" class="control-label">Tunnel remote host</label>
+                <div class="controls">
+                    <input type="text" id="yarnClusterTunnelHost" ng-model="settings.yarnClusterSettings.tunnelRemoteHost"/>
+                    <span class="help-inline">Hostname of the tunnel remote host (overrides the output of the 'hostname' command)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+	<div class="section" ng-if="(!mask || mask.enabled) && settings.sparkEnabled">
+		<h2 id="interactive-sparks">Interactive SparkSQL (notebooks &amp; charts)</h2>
+
+        <div class="control-group" ng-if="mask">
+            <label class="control-label">Override</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.interactiveExecutionEngine" />
+                    <span/>
+                </label>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="!mask || mask.interactiveExecutionEngine">
+            <label class="control-label">Execution mode</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="settings.interactiveExecutionEngine">
+                    <option ng-repeat="o in executionEngines" value="{{o.value}}" ng-disabled="o.disabled">{{o.label}}</option>
+                </select>
+            </div>
+        </div>
+	</div>
+
+
+    <div class="section">
+
+        <h2 id="default-config">Default configuration (recipes &amp; ML)</h2>
+
+        <div class="control-group" ng-if="mask">
+            <label class="control-label">Override</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.engineCreationSettings">
+                    <span/>
+                </label>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="!mask || mask.engineCreationSettings">
+            <label class="control-label">Default runtime config</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="settings.engineCreationSettings.executionConfig" ng-options="x for x in appConfig.sparkExecutionConfigs" />
+                <span class="help-inline">Applies only to new recipes and machine learning tasks. Will use "default" if empty</span>
+            </div>
+        </div>
+
+        <div class="control-group" ng-if="(!mask || mask.engineCreationSettings)">
+            <label class="control-label">Default Spark engine</label>
+            <div class="controls">
+                <select dku-bs-select ng-model="settings.engineCreationSettings.executionEngine">
+                    <option value="SPARK_SUBMIT">CLI (spark-submit)</option>
+                    <option value="LIVY_BATCH" ng-disabled="!appConfig.livyEnabled">Livy</option>
+                    <option value="DATABRICKS">Databricks</option>
+                </select>
+                <span class="help-inline">Applies only to new recipes and machine learning tasks.</span>
+            </div>
+        </div>
+        <div class="control-group" ng-if="!mask || mask.engineCreationSettings">
+            <label class="control-label">Default global metastore</label>
+            <div class="controls">
+                <input type="checkbox" ng-model="settings.engineCreationSettings.useGlobalMetastore" />
+                <span class="help-inline">Should the recipes and machine learning be created in "Global metastore" mode? Applies only to new recipes and machine learning tasks</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+    	<h2>Advanced settings</h2>
+        <div class="control-group">
+            <label for="" class="control-label">Additional jars</label>
+            <div class="controls" style="max-width: 400px;">
+                <div>
+	                <span class="help-inline">Will be added to calls to spark-submit</span>
+                </div>
+                <ng2-values-list [(items)]="settings.additionalSparkSubmitJars" add-label="Add a jar" value-placeholder="E.g. jar-file-name.jar"></ng2-values-list>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="section" ng-if="mask">
+
+        <h2 id="environment-variables">Environment variables</h2>
+
+        <div class="control-group" ng-if="mask">
+            <label class="control-label">Override</label>
+            <div class="controls">
+                <label>
+                    <input type="checkbox" ng-model="mask.environmentVariables">
+                    <span/>
+                </label>
+            </div>
+        </div>
+
+        <div ng-if="mask.environmentVariables">
+            <div class="spark-execution-config">
+                <ng2-key-values-list 
+                    [(items)]="settings.environmentVariables" 
+                    add-label="Add Environment Variable" 
+                    key-placeholder="Variable key" 
+                    value-placeholder="Variable value">
+                </ng2-key-values-list>
+            </div>
+        </div>
+    </div>
+</form>

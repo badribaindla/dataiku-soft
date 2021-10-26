@@ -1,0 +1,138 @@
+<div class="h100 vertical-flex visual-recipe-run-summary">
+    <div class="flex oa pad16">
+        <div class="recipe-settings-section1 execution mtop0 pad16">
+            <h1 class="recipe-settings-section1-title pad0">
+                Execution:
+
+                <div engine-selector-button
+                    recipe-type="recipe.type"
+                    recipe-status="recipeStatus"
+                    recipe-params="params"
+                    update-status="hooks.updateRecipeStatus"
+                    can-change-engine="canChangeEngine"
+                    hide-status="1"
+                    style="display: inline-block;"/>
+
+                <div class="pull-right">
+                    <a ng-click="hooks.updateRecipeStatus(true)" title="update status">
+                        <i class="icon-refresh" style="font-size: 14px"></i>
+                    </a>
+                </div>
+            </h1>
+
+            <i ng-if="recipeStateUpdateInProgress && (!recipeStatus || !recipeStatus.outputSchema || !recipeStatus.outputSchema.columns.length)" 
+                class="icon-spinner icon-spin m16">
+            </i>
+            
+            <div ng-if="recipeStatus" ng-class="{'text-success': recipeStatus.selectedEngine.statusWarnLevel == 'OK', 
+                'text-warning icon-warning-sign': recipeStatus.selectedEngine.statusWarnLevel == 'WARN', 
+                'text-error': recipeStatus.selectedEngine.statusWarnLevel == 'ERROR'}">
+                {{recipeStatus.selectedEngine.statusMessage}}
+                <div>
+                    <select
+                        class="qa_recipe_select-output-dataset"
+                        dku-bs-select
+                        ng-model="selectedOutputName"
+                        ng-if="recipeStatus.sql && hasMultipleOutputs()"
+                        ng-options="s.outputName as s.outputName for s in recipeStatus.sqlWithExecutionPlanList"
+                        ng-change="selectOutputForSql(selectedOutputName)">
+                    </select>
+                    <button
+                        class="btn btn--secondary qa_recipe_show-sql-query"
+                        ng-show="recipeStatus.selectedEngine.queryBased && recipeStatus.selectedEngine.type != 'DSS'"
+                        ng-disabled="!recipeStatus.sql"
+                        ng-click="showSQLModal()"
+                        title="{{recipeStatus.sqlWarning}}">
+                        <i class="icon-dku-nav_dataset"></i> View query
+                    </button>
+                    <button class="btn btn--secondary qa_recipe_convert-to-sql-recipe-button"
+                        ng-if="recipeStatus.selectedEngine.type == 'SQL' && !hasMultipleOutputs()"
+                        ng-disabled="!recipeStatus.sql"
+                        ng-click="convertToQueryRecipe('sql', 'SQL')">
+                        <i class="icon-code_sql_recipe"></i> Convert to SQL recipe
+                    </button>
+                    <button class="btn btn--secondary"
+                        ng-if="recipeStatus.selectedEngine.type == 'HIVE' && !hasMultipleOutputs()"
+                        ng-disabled="!recipeStatus.sql"
+                        ng-click="convertToQueryRecipe('hive', 'Hive')">
+                        <i class="icon-code_hive_recipe"></i>Convert to Hive recipe
+                    </button>
+                    <button class="btn btn--secondary"
+                        ng-if="recipeStatus.selectedEngine.type == 'IMPALA' && !hasMultipleOutputs()"
+                        ng-disabled="!recipeStatus.sql"
+                        ng-click="convertToQueryRecipe('impala', 'Impala')">
+                        <i class="icon-code_impala_recipe"></i> Convert to Impala recipe
+                    </button>
+                    <button class="btn btn--secondary"
+                        ng-if="recipeStatus.selectedEngine.type == 'SPARK' && !hasMultipleOutputs()"
+                        ng-disabled="!recipeStatus.sql"
+                        ng-click="convertToQueryRecipe('spark', 'Spark')">
+                        <i class="icon-code_sparksql_recipe"></i> Convert to Spark SQL
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div data-block="errors-zone">
+        </div>
+
+        <div class="recipe-settings-section1 pad16" data-block="columns-zone">
+            <h1 class="recipe-settings-section1-title pad0">
+                Output column names
+            </h1>
+            <div class="recipe-settings-section2 pad0 mtop16">
+                <div ng-show="recipeStatus && recipeStatus.outputSchema && recipeStatus.outputSchema.columns.length > 0">
+                    <ul ng-if="uiState.outputColumnNamesOverridable" class="output-schema unstyled editable">
+                        <li ng-repeat="column in recipeStatus.outputSchema.columns track by $index" class="column">
+                            <span style="width:2em; display: inline-block; text-align: right">{{$index+1}}</span>
+                            <span class="column-label">
+                                <span class="column-type">
+                                    ({{column.type}})
+                                </span>
+                            </span>
+
+                            <span >
+                                <input type="text"
+                                    class="in-place-edit"
+                                    ng-blur="hooks.updateRecipeStatus()"
+                                    ng-model="column.name"
+                                    ng-change="updateColumnNameOverride(column)"
+                                    placeholder="Override column name"
+                                    />
+                            </span>
+
+                            <span class="original-column-name" ng-if="params.outputColumnNameOverrides[column.$beforeOverride]">
+                                <button class="btn btn--secondary" ng-click="column.name = column.$beforeOverride; updateColumnNameOverride(column);">Reset</button>
+                                original column name '{{column.$beforeOverride}}'
+                            </span>
+                        </li>
+                    </ul>
+                    <ul ng-if="!uiState.outputColumnNamesOverridable" class="output-schema unstyled">
+                        <li ng-repeat="column in recipeStatus.outputSchema.columns" class="column">
+                            <span style="width:2em; display: inline-block; text-align: right">{{$index+1}}</span>
+                            <i class="icon-reorder handle"></i>
+                            <span class="column-label">
+                                <span class="column-type">
+                                    ({{column.type}})
+                                </span>
+                                <span class="column-name">
+                                    {{column.name}}
+                                </span>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                <div ng-show="!recipeStateUpdateInProgress && (!recipeStatus || !recipeStatus.outputSchema || !recipeStatus.outputSchema.columns.length)">
+                    Schema could not be computed.
+                </div>
+                <div ng-show="recipeStateUpdateInProgress && (!recipeStatus || !recipeStatus.outputSchema || !recipeStatus.outputSchema.columns.length)">
+                    <i class="icon-spinner icon-spin"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="noflex job-result-pane">
+        <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"/>
+    </div>
+</div>

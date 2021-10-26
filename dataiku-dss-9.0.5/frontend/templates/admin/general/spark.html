@@ -1,0 +1,110 @@
+<div class="paned-settings-page-pane">
+	<h1>Spark</h1>
+
+    <div class="section" ng-if="!generalSettings.sparkSettings.sparkEnabled">
+        <div class="alert alert-info">
+            Spark is not enabled. To enable Spark, please see <doclink page="/spark/index" title="the documentation" />
+        </div>
+    </div>
+    
+    <div class="section" ng-if="generalSettings.sparkSettings.sparkEnabled && !addLicInfo.sparkLicensed" class="alert alert-error">
+        <i class="icon-dku-error" />&nbsp;Your license does not cover usage of Spark
+    </div>
+    
+    <div class="section locked-feature" ng-if="appConfig.communityEdition">
+        <div class="banner">
+            Spark is not available with your
+            <span class="edition">Free Edition</span> license
+        </div>
+        <div include-no-scope="/templates/profile/community-vs-enterprise-try.html"></div>
+    </div>
+    <div class="container-fluid page-top-padding" ng-if="appConfig.licensingMode == 'SAAS'">
+        <div style="margin: 3em auto; width: 500px; text-align: center">
+            <h4 class="ce-unavail">
+                Spark is not available in
+                <br />
+                DSS Online Trial
+            </h4>
+        </div>
+    </div>
+
+    <div spark-cluster-settings-block settings="generalSettings.sparkSettings" impersonation-enabled="generalSettings.impersonation.enabled" cluster-id="'__builtin__'" ng-if="generalSettings"/>
+
+    <div class="section" ng-if="generalSettings">
+        <h2 id="notebook-config">Configuration for PySpark/SparkR/Scala notebook</h2>
+
+	    <form class="dkuform-horizontal" ng-if="generalSettings.sparkSettings.sparkEnabled && addLicInfo.sparkLicensed">
+	        
+	        <small>
+	            Select the Spark runtime configuration to use for PySpark/SparkR/Scala notebooks.
+	            Note: you need to restart DSS after changing this.
+	        </small>
+	            <div class="control-group">
+	                <label for="" class="control-label">Config name</label>
+	                <div class="controls">
+	                    <select dku-bs-select ng-model="generalSettings.sparkSettings.configForJupyter" ng-options="x for x in appConfig.sparkExecutionConfigs" />
+	                </div>
+	            </div>
+	        </form>
+	</div>
+	 <div class="section">
+        <h2 id="recipes-config">Configuration for Spark code recipes validation</h2>
+
+        <small>
+            Select the Spark runtime configuration to use for the validation of Spark-Scala &amp; SparkSQL recipes.
+            Note: you need to restart DSS after changing this.
+        </small>
+        <form class="dkuform-horizontal">
+            <div class="control-group">
+                <label for="" class="control-label">Config name</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="generalSettings.sparkSettings.configForSEK" ng-options="x for x in appConfig.sparkExecutionConfigs" />
+                </div>
+            </div>
+        </form>
+    </div>
+
+        
+    <div class="section" ng-if="generalSettings.sparkSettings.interactiveExecutionEngine != null">
+         <h2 id="interactive-sql-config">Configuration for interactive SparkSQL</h2>
+
+        <small>
+            Select the Spark runtime configuration to use for SparkSQL notebooks, SparkSQL metrics and SparkSQL charts
+            Note: you need to restart DSS after changing this.
+        </small>
+        <form class="dkuform-horizontal">
+            <div class="control-group">
+                <label for="" class="control-label">Config name</label>
+                <div class="controls">
+                    <select dku-bs-select ng-model="generalSettings.sparkSettings.configForInteractive" ng-options="x for x in appConfig.sparkExecutionConfigs" />
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="section">
+         <h2 id="native-shaker">Experimental features</h2>
+
+        <form class="dkuform-horizontal">
+	        <div class="control-group">
+	            <label class="control-label">Native prepare processors</label>
+	            <div class="controls">
+	                <label>
+	                    <input type="checkbox" ng-model="generalSettings.sparkSettings.useNativeProcessors"/>
+	                    <span class="help-inline"><strong>Experimental feature</strong>. Enable usage of native Spark version of Shaker processors, where applicable</span>
+	                </label>
+	            </div>
+	        </div>
+        </form>
+    </div>
+    
+    <div class="section">
+        <form class="dkuform-horizontal" >
+            <div class="text-center" style="margin: 20px 0">
+                <button ng-click="pushBaseImages()" class="btn btn--primary btn--large">Push base images</button>
+            </div>
+        </form>
+        <div block-api-error />
+    </div>
+
+</div>

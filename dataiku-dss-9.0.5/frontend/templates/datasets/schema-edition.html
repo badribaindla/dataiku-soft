@@ -1,0 +1,168 @@
+<div class="dataset-schema-editor fh" ng-model="dataset.schema.columns" on-any-change="setSchemaUserModifiedIfDirty()" schema-editor-base>
+<div class="h100 vertical-flex" filtered-multi-select-rows ng-model="dataset.schema.columns">
+    <div block-api-error classs="noflex" />
+        <div class="noflex header last-header dataset-schema-editor-header">
+            <span style="width:465px;">
+                <div style="padding-left: 10px;padding-right: 5px;display: inline-block;">
+                    <span custom-element-popup class="mass-action-btn" cep-position="align-left-bottom" cep-offset-left="-26" close-on-click="true">
+                        <input type="checkbox"
+                            class="select-cb"
+                            ng-model="selection.all"
+                            dku-indeterminate="selection.some"
+                            ng-change="updateMassSelectionCheckbox();">
+                        <a ng-class="{disabled:selection.none}" ng-click="togglePopover()" class="mainzone dropdown-toggle" id="qa_dataset_schema-actions-dropdown">
+                            <span ng-hide='selection.none'>ACTIONS</span>
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="popover custom-element-popup-popover dropdown-menu column-header-menu shaker-column-row-popup">
+                            <div class="section">
+                                <div class="section-content">
+                                    <ul class="nav dropdown">
+                                        <li full-click>
+                                            <a main-click ng-click="renameColumns()">
+                                                <i class="icon-edit"></i> Rename…
+                                            </a>
+                                        </li>
+                                        <li class="dropdown-submenu" >
+                                            <a>Set type</a>
+                                            <ul class="dropdown-menu">
+                                                <li ng-repeat="columnType in columnTypes">
+                                                    <a ng-click="setColumnsType(columnType.name)">{{ columnType.label}}</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li class="dropdown-submenu" >
+                                            <a>Set meaning</a>
+                                            <ul class="dropdown-menu column-header-meanings-menu pull-right" ng-include="'/templates/shaker/edit-meaning-contextual-menu.html'" ></ul>
+                                        </li>
+                                        <li full-click>
+                                            <a main-click ng-click="setSchemaUserModified(); removeSelected()" id="qa_dataset_schema-option-delete">
+                                                <i class="icon-trash"></i> Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </ul>
+                    </span>
+                </div>
+                <div class="std-list-search-box list-control-widget" style="margin-left: 0px;">
+                    <span class="add-on" style="font-size: 14px"><i class="icon-dku-search"></i></span>
+                    <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Columns" autofocus="" class="ng-pristine ng-valid" style="width: 280px">
+                </div>
+                <small>{{selection.selectedObjects.length}} / {{selection.allObjects.length}}</small>
+            </span>
+            <span style="width: 130px;">
+                <div class="list-customfilter-box list-control-widget" style="margin-left: 0">
+                    <span class="add-on"><i class="icon-filter"></i></span>
+                    <select dku-bs-select="{liveSearch:true,width:100}" ng-model="selection.filterQuery.type"
+                            ng-options="type.name as type.label for type in columnTypes">
+                        <option value="" selected>All types</option>
+                    </select>
+                </div>
+            </span>
+            <span style="width: 130px;">
+                <div class="list-customfilter-box list-control-widget" style="margin-left: 0">
+                    <span class="add-on"><i class="icon-filter"></i></span>
+                    <select dku-bs-select="{liveSearch:true,width:100}" ng-model="selection.filterQuery.meaning"
+                            ng-options="type as label for (type, label) in appConfig.meanings.labelsMap">
+                        <option value="" selected>All meanings</option>
+                    </select>
+                </div>
+
+            </span>
+            <div  class="pull-right" style="margin-right: 10px">
+                <button class="btn btn--outline btn--primary" ng-click="addNew()" ng-if="!hideAdd">
+                    <i plus-icon></i> Add column
+                </button>
+                <div class="dib" ng-if="!consistency && dataset.formatType">
+                     <button disabled class="btn btn--secondary" style="pointer-events: auto" title="Please preview the dataset or check schema consistency first" toggle="tooltip" container="body">Infer types</button>
+                </div>
+                <button ng-if="consistency.result.makesSenseToInferStorageTypes" class="btn btn--secondary" ng-click="inferStorageTypesFromData()">Infer types from data</button>
+                <button class="btn btn--secondary" ng-click="exportSchema()">Export schema</button>
+            </div>
+        </div>
+
+        <div class="flex" style="background: white">
+            <form class="fh">
+                <div class="row-fluid h100 horizontal-flex">
+                    <div class="span9 h100 offset0 flex">
+                        <div class="fh">
+                            <div class="h100 vertical-flex">
+                                <div ng-show="selection.filteredObjects.length==0" class="noflex" style="margin-top: 20px">
+                                    <span class="no-rows-info">No rows found.</span>
+                                    <span class="no-rows-info" ng-show="selection.filteredObjects.length!==selection.allObjects.length">You can <a ng-click="clearFilters()">clear the filters</a> to show more...
+                                    </span>
+                                </div>
+                                <div fat-repeat="selection.filteredObjects" as="column" class="flex columns unstyled" row-height="36" digest-child-only="true" ng-keydown="multiSelectKeydown($event, true)" tabindex="0" style="outline:none;">
+                                    <li class="form-template horizontal-flex" ng-class="{focused: selection.selectedObject === column,selected: column.$selected}" full-click>
+                                        <span style="display:none;" main-click ng-click="objectClicked(column, $event)"></span> <!-- because checkbox click is prioritary -->
+                                        <div class="mass noflex unselectable">
+                                            <label for="fieldCheck-{{column.$idx || column.name}}" class="checkbox-label" disable-main-click>  <!-- Make sure the label do not activate the checkbox because of click conflict with "main-click" -->
+                                                <input id="fieldCheck-{{column.$idx || column.name}}" type="checkbox" class="qa_dataset_schema-column-checkboxes" ng-model="column.$selected" ng-click="checkBoxChanged(column, $event)" />
+                                            </label>
+                                        </div>
+                                        <span class="noflex unselectable" style="width:20px; display: inline-block; text-align: right; margin-right: 5px;">{{column.$idx+1}}</span>
+                                        <span class="name noflex">
+                                            <label>
+                                                <input dku-enter="blur($event)" 
+                                                ng-focus="column.$editingName = true" 
+                                                ng-blur="column.$editingName = false" 
+                                                ng-model="column.name" 
+                                                type="text" 
+                                                placeholder="Name" 
+                                                required 
+                                                class="input-large" />
+                                            </label>
+                                        </span>
+                                        <complex-type-selector style="width: 130px" model="column" class="noflex"></complex-type-selector>
+
+                                        <span style="margin-left: 5px; width:130px; display:inline-block;" class="noflex column-edit-meaning unselectable">
+                                            <span ng-click="openMeaningMenu($event, column)" style="width: 100%" class="mx-textellipsis">
+                                                {{ (column.meaning | meaningLabel) || 'Auto-detect'}}
+                                                <span class="caret" />
+                                            </span>
+                                        </span>
+
+                                        <span class="comment flex unselectable">{{column.comment}}</span>
+
+                                        <span class="actions noflex unselectable" style="padding-left: 5px">
+                                            <a ng-click="moveColumnUp(column);"> <i class="icon-arrow-up"></i></a>
+                                            <a ng-click="moveColumnDown(column);"> <i class="icon-arrow-down"></i></a>
+                                            <a class="remove" ng-click="setSchemaUserModified(); removeObject(column);"> <i class="icon-trash"></i></a>
+                                        </span>
+                                    </li>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="span3 h100 oa offset0 type-sidebar z" ng-class="{z: !selection.selectedObject}">
+	                    <complex-type-editor 
+                            ng-if="selection.single || (selection.none && selection.selectedObject)" 
+	                        model="selection.selectedObject" show-comment-tab="true" hide-custom-fields="true"
+	                    	class="type-editor-container complex-type-editor side h100"
+	                    	style="display: block;"
+	                    	></complex-type-editor>
+                        <complex-type-editor 
+                            ng-if="selection.multiple && multipleSelectionInfo.sameTypes" 
+                            model="multipleSelectionInfo.commonType" show-comment-tab="true" hide-custom-fields="true"
+                            class="type-editor-container complex-type-editor side h100"
+                            style="display: block;"
+                            ></complex-type-editor>
+                        <div 
+                            ng-if="selection.multiple && !multipleSelectionInfo.sameTypes" 
+                            style="margin: 10px;">
+                            <strong>Type:</strong>
+                            <complex-type-selector 
+                                model="multipleSelectionInfo.commonBaseType" 
+                                class="noflex"
+                                ></complex-type-selector>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,1 @@
+Loads a Dataiku dataset and reads it into a Pandas dataframe. The whole dataset is read in memory.

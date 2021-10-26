@@ -1,0 +1,85 @@
+<div class="top-level-tabs">
+    <div class="horizontal-flex row-fluid object-nav">
+        <div class="flex-no-grow oh object-breadcrumb">
+            <a class="item bundle"> <i class="icon icon-bundle"></i>
+                <span class="title ellipsis">New bundle</span>
+            </a>
+        </div>
+
+        <div class="flex-no-shrink" style="padding: 0 20px; box-sizing: border-box; display: inline-block; line-height: 45px;">
+            <form name="newBundleForm" class="form-inline common-styles-only" ng-submit="newBundleForm.bundleId.$valid && createBundle()">
+                <input type="text"
+                       name="bundleId"
+                       ng-model="newBundle.bundleId"
+                       required
+                       ng-pattern="/^[\w-_]+$/"
+                       placeholder="New bundle id" />
+                <button type="button" class="btn btn--success" ng-click="createBundle()" ng-disabled="newBundleForm.bundleId.$invalid"> <i class="icon-save"></i>
+                    Create
+                </button>
+            </form>
+        </div>
+
+        <div class="noflex" ng-init="topNav.tab = 'content'">
+            <a class="tab"  ng-class="{'enabled': topNav.tab === 'content'}" ng-click="topNav.tab = 'content'">Content</a>
+            <a class="tab"  ng-class="{'enabled': topNav.tab === 'commitLog'}" ng-click="topNav.tab = 'commitLog'" >Commit log</a>
+            <a class="tab"  ng-class="{'enabled': topNav.tab === 'diff'}" ng-click="topNav.tab = 'diff'" >Diff</a>
+        </div>
+    </div>
+</div>
+
+<div class="dss-page new-bundle-page">
+    <div future-waiting response="preparingFuture" ng-if="preparingFuture && !preparingFuture.hasResult"></div>
+    <div class="vertical-flex h100 oa" ng-show="preparationResult">
+
+        <div class="flex">
+            <div class="fh" ng-switch="topNav.tab">
+
+                <div ng-switch-when="content">
+                    <div class="container-fluid page-top-padding h100 oa">
+                        <div block-api-error />
+
+                        <h4>Project configuration</h4>
+                        <div class="row-fluid offset0">
+                            <div class="span9 offset0" style="padding-right: 20px">
+                                <div bundle-config-content config-content="preparationResult.configContent" />
+                            </div>
+
+                            <div class="span3 offset0">
+                                <div class="doc-encart doc-encart-floating">
+                                    <p>The whole project configuration is always included in your Bundle.</p>
+                                    <p>
+                                        Additionally, the bundle can contain selected data from the project: datasets (non partitioned), managed folders and saved models.
+                                    </p>
+                                    <p>When activating the bundle in the Automation node, the data will be reloaded.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4>Additional content</h4>
+                        <div bundle-content-editor ng-if="preparationResult.exporterSettings" exporter-settings="preparationResult.exporterSettings" />
+
+                        <h4>Release notes</h4>
+                        <textarea ng-model="preparationResult.exportUserInfo.releaseNotes" style="width: 100%; box-sizing: border-box; height: 100px;"></textarea>
+                    </div>
+                </div>
+
+                <div ng-switch-when="commitLog" class="h100">
+                    <div class="container-fluid page-top-padding h100 oa">
+                        <div block-api-error />
+                        <div bundle-git-log changelog="preparationResult.changelog" class="h100" />
+                    </div>
+                </div>
+
+                <div ng-switch-when="diff" class="h100">
+                    <div class="container-fluid page-top-padding h100 oa">
+                        <div block-api-error />
+                        <div bundle-git-diff changelog="preparationResult.changelog" class="h100" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>

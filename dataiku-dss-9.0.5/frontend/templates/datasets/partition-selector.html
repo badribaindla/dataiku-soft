@@ -1,0 +1,38 @@
+<div class="partition-selector {{bemModifier}}" ng-show="partitioning.dimensions.length > 0">
+    <p class="partition-selector__instruction">
+        Please define partition(s) to build <span class="help-inline" style="display: inline" doclink-wrapper page="/partitions/identifiers"><i style="color: #777; position: relative; top: -1px;" class="icon-question-sign"></i></span>
+    </p>
+    <div ng-repeat="dimension in partitioning.dimensions" class="partition-selector__partition">
+        <ng-switch on="dimension.type">
+            <div ng-switch-when="time" class="partition-selector__control-group control-group">
+                <label class="partition-selector__control-label control-label horizontal-flex">
+                    <i class="partition-selector__dimension-icon icon-calendar noflex"></i>
+                    <span class="partition-selector__dimension-name flex">{{ dimension.name }}</span>
+                </label>
+                <div class="controls partition-selector__controls">
+                    <div ng-if="!(buildPartitions[dimension.name].useExplicit) && dimension.params.period != 'YEAR'" daterangepicker start-date="buildPartitions[dimension.name].start" end-date="buildPartitions[dimension.name].end" format="{{ buildPartitions[dimension.name].format }}"></div>
+                    <input ng-if="buildPartitions[dimension.name].useExplicit && dimension.params.period != 'YEAR'" type="text" required="true" ng-model="buildPartitions[dimension.name].explicit" />
+                    <input ng-if="dimension.params.period == 'YEAR'" type="text" required="true" ng-model="buildPartitions[dimension.name]" />
+                    <span class="partition-selector__help-inline" doclink-wrapper page="/partitions/identifiers">
+                        <i style="color: #777; position: relative; top: -1px;" class="icon-question-sign"></i>
+                    </span>
+                    <label ng-if="dimension.params.period != 'YEAR'" class="partition-selector__explicit-date-label">
+                        <input class="partition-selector__explicit-date-input" type="checkbox" ng-model="buildPartitions[dimension.name].useExplicit"/>Specify explicitly
+                    </label>
+                </div>
+            </div>
+            <div ng-switch-default class="partition-selector__control-group control-group">
+                <label class="partition-selector__control-label control-label horizontal-flex">
+                    <i class="partition-selector__dimension-icon icon-code-fork icon-rotate-90 noflex"></i>
+                    <span class="partition-selector__dimension-name flex" title="{{ dimension.name }}">{{ dimension.name }}</span>
+                </label>
+                <div class="controls partition-selector__controls">
+                    <input type="text" required="true" ng-model="buildPartitions[dimension.name]" />
+                    <span class="partition-selector__help-inline help-inline" doclink-wrapper page="/partitions/identifiers">
+                        <i style="color: #777; position: relative; top: -1px;" class="icon-question-sign"></i>
+                    </span>
+                </div>
+            </div>
+        </ng-switch>
+    </div>
+</div>

@@ -1,0 +1,121 @@
+<div class="paned-settings-page-pane">
+	<h1 ng-show="creation">New API Key</h1>
+	<h1 ng-show="!creation">Edit API Key</h1>
+
+    <form class="dkuform-horizontal" name="theform">
+		<div block-api-error />
+
+		<div class="section">
+
+			<div class="control-group" ng-hide="creation">
+				<label class="control-label cursor-initial">Secret</label>
+				<div class="controls" style="line-height: 26px">
+					{{apiKey.key}}
+				</div>
+			</div>
+
+			<div class="control-group">
+				<label class="control-label" for="apiKeyLabelInput">Label</label>
+				<div class="controls">
+					<input type="text" ng-model="apiKey.label" placeholder="Label" id="apiKeyLabelInput" />
+				</div>
+			</div>
+
+			<fieldset class="control-group" ng-disabled="!appConfig.admin">
+				<label class="control-label" for="apiKeyUserInput" >Impersonate DSS user</label>
+				<div class="controls">
+					<input type="text" ng-model="apiKey.dssUserForImpersonation" id="apiKeyUserInput" />
+					<div class="help-inline">
+						This is used only for selecting the user
+						to impersonate in jobs. It does not grant the privileges of this
+						user.
+					</div>
+				</div>
+				<div ng-show="!appConfig.admin" class="alert alert-error">You may not edit this</div>
+			</fieldset>
+
+			<div class="control-group">
+				<label class="control-label" for="apiKeyDescriptionInput">Description</label>
+				<div class="controls">
+					<input type="text" ng-model="apiKey.description" placeholder="What should this key be used for?" id="apiKeyDescriptionInput" />
+				</div>
+			</div>
+
+		</div>
+
+		<div class="section">
+			<h2>Global permissions</h2>
+			<div global-permissions-editor permissions="apiKey.globalPermissions"></div>
+			<!-- the one perm that's not in the GroupPermissions -->
+			<div class="control-group">
+	            <label class="control-label" for="execSQLLikeInput">Execute SQL code</label>
+	            <div class="controls">
+	                <label>
+	                    <input type="checkbox" ng-model="apiKey.execSQLLike" ng-hide="apiKey.globalPermissions.admin" ng-disabled="apiKey.globalPermissions.admin" id="execSQLLikeInput" />
+	                    <input type="checkbox" ng-show="apiKey.globalPermissions.admin" disabled checked />
+	                    <span class="help-inline">Can these users run SQL queries on the connections defined in DSS.</span>
+	                </label>
+	            </div>
+	        </div>
+
+			<div ng-show="!apiKey.globalPermissions.admin">
+	            <h3>Project folder permissions</h2>
+
+	            <div class="control-group">
+	                <textarea json-object-pretty-view ng-model="apiKey.projectFolders" id="apiKeyProjectFoldersInput" style="width: 100%; box-sizing: border-box; min-height: 200px"/>
+	            </div>
+	        </div>
+
+	        <div ng-show="!apiKey.globalPermissions.admin">
+	            <h3>Project permissions</h2>
+
+	            <div class="control-group">
+	                <textarea json-object-pretty-view ng-model="apiKey.projects" id="apiKeyProjectsInput" style="width: 100%; box-sizing: border-box; min-height: 200px"/>
+	            </div>
+	        </div>
+
+	        <div ng-show="!apiKey.globalPermissions.admin && !apiKey.globalPermissions.mayManageCodeEnvs">
+	            <h3>Code env permissions</h2>
+
+	            <div class="control-group">
+	                <textarea json-object-pretty-view ng-model="apiKey.codeEnvs" id="apiKeyCodeEnvsInput" style="width: 100%; box-sizing: border-box; min-height: 200px"/>
+	            </div>
+	        </div>
+
+	        <div ng-show="!apiKey.globalPermissions.admin && !apiKey.globalPermissions.mayManageClusters">
+	            <h3>Cluster permissions</h2>
+
+	            <div class="control-group">
+	                <textarea json-object-pretty-view ng-model="apiKey.clusters" id="apiKeyClustersInput" style="width: 100%; box-sizing: border-box; min-height: 200px"/>
+	            </div>
+	        </div>
+		</div>
+
+		<div class="section">
+			<h2>Properties</h2>
+
+	        <div class="control-group">
+	            <label class="control-label">User properties</label>
+	            <div class="controls">
+	                <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+	                    <textarea json-object-pretty-view name="userProps" ui-codemirror="codeMirrorSettingService.get('text/json')" ng-model="apiKey.userProperties"></textarea>
+	                </div>
+	            </div>
+	        </div>
+	        <div class="control-group">
+	            <label class="control-label">Admin properties</label>
+	            <div class="controls">
+	                <div style="border: 1px solid #ccc; padding-bottom: 10px;">
+	                    <textarea json-object-pretty-view name="adminProps" ui-codemirror="codeMirrorSettingService.get('text/json')" ng-model="apiKey.adminProperties"></textarea>
+	                </div>
+	            </div>
+	        </div>
+		</div>
+
+		<button type="submit" class="btn btn--primary" ng-click="create()" ng-if="creation"><i class="icon-save" />&nbsp;Save
+		</button>
+		<button type="submit" class="btn btn--primary" ng-click="save()" ng-if="!creation"><i class="icon-save" />&nbsp;Save</button>
+
+    </form>
+
+</div>

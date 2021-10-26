@@ -1,0 +1,215 @@
+<div ng-controller="DownloadRecipeController" ng-if="computablesMap">
+    <div class="top-level-tabs objecttype-recipe">
+        <div class="horizontal-flex row-fluid object-nav">
+            <div class="flex oh" std-object-breadcrumb />
+            <div class="noflex">
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab == 'summary'}" ng-click="topNav.tab='summary'">
+                    Summary
+                </a>
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab == 'settings'}" ng-click="topNav.tab='settings'">
+                    Settings
+                </a>
+                <a class="tab" ng-class="{'tab': true, 'enabled': topNav.tab == 'io'}" ng-click="topNav.tab='io'">
+                    Input / Output
+                </a>
+                <a class="tab" ng-class="{'enabled': topNav.tab == 'gitlog'}" ng-click="topNav.tab='gitlog'">
+                    History
+                </a>
+                <div class="otherLinks">
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-save-button.html" />
+                    <div style="display: inline-block" include-no-scope="/templates/recipes/fragments/recipe-tabs-other-links.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div include-no-scope="/templates/recipes/fragments/recipe-summary-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-io-tab.html" />
+    <div include-no-scope="/templates/recipes/fragments/recipe-git-log.html" />
+
+    <div class="summary-tab dss-page download-recipe oa" ng-if="topNav.tab == 'settings'">
+		<div block-api-error />
+
+        <div class="h100 vertical-flex">
+            <div class="flex">
+                <div class="fh">
+                    <div class="h100 oa">
+                        <div class="horizontal-centerer">
+                            <div class="recipe-settings-section1 w800 pad16">
+                                <form class="dkuform-horizontal recipe-settings-section2 pad0">
+                                    <div class="control-group">
+                                        <label for="deleteExtraFiles" class="control-label">Delete extra files</label>
+                                        <div class="controls">
+                                            <input id="deleteExtraFiles" type="checkbox" ng-model="recipe.params.deleteExtraFiles" />
+                                            <span class="help-inline" style="display: inline">
+                                                Remove files from the target folder if they are not present any source
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="copyEvenUpToDateFiles" class="control-label">Download up-to-date files</label>
+                                        <div class="controls">
+                                            <input id="copyEvenUpToDateFiles" type="checkbox" ng-model="recipe.params.copyEvenUpToDateFiles" />
+                                            <span class="help-inline" style="display: inline">
+                                                Download files from the source even if they appear to be up-to-date in the target folder
+                                            </span>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="horizontal-centerer">
+                            <div class="recipe-settings-section1 w800 pad16">
+
+                                <div ng-if="!recipe.params.sources || recipe.params.sources.length == 0" class="add-source-cta">
+                                    <h1 class="pad0">
+                                        No source for this download recipe
+                                    </h1>
+                                    <p>
+                                        Sources point to files to retrieve<br /> on various external systems (FTP, S3, ...)
+                                    </p>
+                                    <div class="add-first-source">
+                                        <a disabled-if-ro="" class="btn btn-contained btn--visual-recipe btn--large" ng-click="addSource()">
+                                            <span plus-icon />
+                                            &nbsp;Add a first source
+                                        </a>
+                                    </div>
+                                </div>
+                                <div ng-if="recipe.params.sources && recipe.params.sources.length > 0">
+                                    <div class="row-fluid">
+                                        <ul class="sources raw-unstyled-ul">
+                                            <li ng-repeat="source in recipe.params.sources track by $index" class="dkuform-horizontal" ng-class="{'source-error' : source.$status && !source.$status.ok}">
+                                                <div class="control-group">
+                                                    <label class="control-label">Download from</label>
+                                                    <div class="controls">
+                                                        <select dku-bs-select
+                                                                ng-model="source.providerType"
+                                                                ng-options="t as (t|fsProviderDisplayName) for t in providerTypes"/>
+
+                                                        <button class="btn btn--icon btn--danger btn--text pull-right"
+                                                            ng-click="removeSource($index)" toggle="tooltip"
+                                                            title="Remove this source">
+                                                            <i class="icon-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div ng-if="source.providerType && source.providerType != 'URL'">
+                                                    <div fs-provider-settings provider-type="source.providerType" provider-connection-type="getConnectionType(source.providerType)"
+                                                    connection-has-metadata="hasConnectionHasMetadata(source)" default-path="getDefaultPath(source)"
+                                                    config="source.params" on-change="onProviderParamsChanged(source)"
+                                                    context-vars="getContextVars()">
+                                                    </div>
+                                                </div>
+
+                                                <div class="control-group" ng-if="source.providerType == 'URL'">
+                                                    <label class="control-label">URL</label>
+                                                    <div class="controls">
+                                                        <input type="text"
+                                                            ng-model="source.params.path"
+                                                            class="input-xxlarge"
+                                                            placeholder="HTTP/HTTPS/FTP URL" />
+                                                    </div>
+                                                </div>
+                                                <div class="control-group" ng-if="source.providerType == 'URL' && appConfig.hasGlobalProxy">
+                                                    <label class="control-label">Use global proxy</label>
+                                                    <div class="controls">
+                                                        <input ng-model="source.useGlobalProxy" type="checkbox" />
+                                                    </div>
+                                                </div>
+                                                <div class="control-group" ng-if="source.providerType == 'URL'">
+                                                    <label class="control-label">Consider 404 as empty</label>
+                                                    <div class="controls">
+                                                        <input ng-model="source.params.consider404AsEmpty" type="checkbox" />
+                                                    </div>
+                                                </div>
+                                                <div class="control-group" ng-if="source.providerType == 'URL'">
+                                                    <label class="control-label">Use GET as fallback for HEAD</label>
+                                                    <div class="controls">
+                                                        <input ng-model="source.params.fallbackHeadToGet" type="checkbox" />
+                                                        <span class="inline-help">HEAD requests are used to prod the URL existence, size and modification time</span>
+                                                    </div>
+                                                </div>
+                                                <div class="control-group">
+                                                    <label for="SSL_any" class="control-label">Trust any SSL certificate</label>
+                                                    <div class="controls">
+                                                        <input id="SSL_any" type="checkbox" ng-model="source.params.trustAnySSLCertificate" />
+                                                        <span class="help-inline">Disable validation of SSL certificate</span>
+                                                    </div>
+                                                </div>
+                                                <div class="control-group">
+                                                    <div class="controls">
+                                                        <div>
+                                                            <button type="button" ng-click="checkSource(source)" class="btn btn--secondary" ng-disabled="isOutputPartitioned() && !source.$testPartition">Check</button>
+                                                            <div style="display: inline-block;" ng-if="isOutputPartitioned()">
+                                                                <span>for partition</span>
+                                                                <input type="text" ng-model="source.$testPartition" />
+                                                            </div>
+                                                        </div>
+                                                        <div ng-if="isOutputPartitioned()">
+                                                            <span class="help-inline">Insert partitioning dimensions in the path or the URL with the '$DKU_DST_[dimension]' syntax</span>
+                                                        </div>
+                                                        <div ng-if="source.$check && source.$check.error" api-error-alert="source.$check.error">
+                                                        </div>
+                                                        <div ng-if="source.$check && source.$check.error == null && !source.$check.successful" class="text-error">
+                                                            <span>
+                                                                 <i class="icon-warning-sign" /> Failed to enumerate files
+                                                            </span>
+                                                        </div>
+                                                        <div ng-if="source.$check && source.$check.error == null && source.$check.paths">
+                                                            <div class="text-success">
+                                                                 <i class="icon-ok" />
+                                                                    {{source.$check.totalFileCount}} files,
+                                                                    {{source.$check.totalFileSize|filesize}}
+                                                            </div>
+                                                            <div class="paths-list oa">
+                                                                <table class="table table-striped">
+                                                                    <tr ng-repeat="path in source.$check.paths | limitTo:100">
+                                                                        <td class="mx-textellipsis">{{path.path}}</td>
+                                                                        <td>{{path.size|filesize}}</td>
+                                                                    </tr>
+                                                                    <tr ng-if="source.$check.paths.length > 100">
+                                                                        <td class="mx-textellipsis">... {{source.$check.paths.length - 100}} more</td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                        <div ng-if="source.$check && !source.$check.enumerationPrefixExists" class="text-warning">
+                                                            <span>
+                                                                 <i class="icon-warning-sign" /> Nothing found at the path
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div>
+                                        <button class="btn btn--secondary" ng-click="addSource()">
+                                            <i class="icon-plus" />
+                                            Add another source
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="noflex job-result-pane" ng-if="valCtx.preRunValidationError || startedJob.jobId">
+                <div class="recipe-settings-floating-result">
+                    <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-result.html"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recipe-settings-floating-run">
+            <div include-no-scope="/templates/recipes/fragments/recipe-editor-job-partitions.html"></div>
+            <div include-no-scope="/templates/recipes/fragments/run-job-buttons.html"></div>
+        </div>
+    </div>
+</div>

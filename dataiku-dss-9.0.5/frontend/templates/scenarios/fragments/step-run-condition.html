@@ -1,0 +1,34 @@
+<form name="descriptionForm" class="dkuform-horizontal" >
+    <div class="control-group">
+        <label for="" class="control-label">Run this step</label>
+        <div class="controls message-condition">
+            <select dku-bs-select ng-model="step.$variant" ng-options="v as v.label for v in stepRunConditionVariants" options-descriptions="stepRunConditionDescriptions"/>
+            <select ng-if="step.$variant.showStatuses" dku-bs-select multiple="multiple" ng-model="step.runConditionStatuses" ng-options="s.id as s.label for s in statuses"/>
+            <div ng-if="step.$variant.showExpression" style="margin-top: 5px;">
+                <textarea ng-model="step.runConditionExpression" ui-codemirror="conditionEditorOptions"></textarea>
+                <div class="help-inline" >Condition required for the step to be run (if empty, the step will never run)</div>
+            </div>
+        </div>
+    </div>
+    <div class="control-group" ng-if="couldResetStatus(step)">
+        <label class="control-label">Reset failure state</label>
+        <div class="controls">
+            <input type="checkbox" ng-model="step.resetScenarioStatus"></input>
+            <div class="help-inline">If enabled, prior to running this step, the current state of the scenario is reset to "success" (discard errors in the previous steps)</div>
+        </div>
+    </div>
+    <div class="control-group">
+        <label for="" class="control-label">Maximal number of retries</label>
+        <div class="controls">
+            <input type="number" min="0" step="1" ng-model="step.maxRetriesOnFail">
+            <span class="help-inline">Number of additional attempts before considering the step definitively failed</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="step.maxRetriesOnFail &gt; 0">
+        <label for="" class="control-label">Delay between each attempt</label>
+        <div class="controls">
+            <input type="number" min="0" step="1" ng-model="step.delayBetweenRetries">
+            <span class="help-inline">Interval in seconds between each retry (if any)</span>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,77 @@
+<div class="dataset-page vertical-flex h100" global-keydown="{'ctrl-s meta-s':'saveDataset()'}">
+    <debug class="noflex" data="dataset"/>
+
+    <div block-api-error class="noflex" />
+  <div class="row-fluid noflex new-dataset-name-zone" style="z-index: 0">
+        <form name="renaming" class="form-inline common-styles-only">
+            <h4 style="margin-top: 0; margin-right: 10px; display: inline-block; margin-bottom: 0; vertical-align: middle">
+                New dataset name:
+            </h4>
+            <input type="text"
+                name="dataset_name" id="qa_dataset-upload_dataset-name-input"
+                ng-model="new_dataset_name"
+                ng-change="new_dataset_name_manually_edited = !!(new_dataset_name && new_dataset_name != '')"
+                check-dataset-name-unique
+                required
+                ng-pattern="/^[\w-_]+$/"
+                dku-enter="renaming.dataset_name.$valid && canBeSaved() && saveDataset()"
+                placeholder="New dataset name" />
+            <button type="button" class="btn btn--success btn--wide" id="qa_upload-dataset_create-btn" ng-click="saveDataset()" ng-disabled="!renaming.dataset_name.$valid || !canBeSaved()">
+                <i class="icon-save"></i>
+                Create
+            </button>
+            <span class="text-warning" ng-show="uiState.creationWarning"><i class="icon-warning-sign" />&nbsp;{{uiState.creationWarning}}</span>
+            <check-hive-handles-dataset-name class='sub-field-warning' dataset-name="new_dataset_name" dataset-connection-type="dataset.type" ></check-hive-handles-dataset-name>
+        </form>
+    </div>
+
+    <div ng-switch on="interactionType" class="flex" style="overflow: hidden" ng-init="isCreationPage = true;">
+        <div ng-switch-when="managed_sql">
+            <div class="fh" include-no-scope="/templates/datasets/managed-sql-dataset.html" />
+        </div>
+        <div ng-switch-when="managed_fslike">
+            <div class="fh" include-no-scope="/templates/datasets/managed-fslike-dataset.html" />
+        </div>
+        <div ng-switch-when="external_sql">
+            <div class="fh" include-no-scope="/templates/datasets/external-sql-dataset.html" />
+        </div>
+        <div ng-switch-when="external_hive">
+            <div class="fh" include-no-scope="/templates/datasets/external-sql-dataset.html" />
+        </div>
+        <div ng-switch-when="external_other">
+            <div class="fh" include-no-scope="/templates/datasets/external-other-dataset.html" />
+        </div>
+        <div ng-switch-when="elasticsearch">
+            <div class="fh" include-no-scope="/templates/datasets/elasticsearch-dataset.html" />
+        </div>
+        <div ng-switch-when="dynamodb">
+            <div class="fh" include-no-scope="/templates/datasets/dynamodb-dataset.html" />
+        </div>
+        <div ng-switch-when="mongodb">
+            <div class="fh" include-no-scope="/templates/datasets/mongodb-dataset.html" />
+        </div>
+        <div ng-switch-when="managed_cassandra">
+            <div class="fh" include-no-scope="/templates/datasets/managed-cassandra-dataset.html" />
+        </div>
+        <div ng-switch-when="external_cassandra">
+            <div class="fh" include-no-scope="/templates/datasets/external-cassandra-dataset.html" />
+        </div>
+        <div ng-switch-when="twitter_stream">
+            <div class="fh" include-no-scope="/templates/datasets/twitter-stream-dataset.html" />
+        </div>
+        <div ng-switch-when="custom-dataset">
+            <div class="fh" include-no-scope="/templates/datasets/custom-dataset-dataset.html" />
+        </div>
+        <div ng-switch-when="editable">
+            <div class="fh" include-no-scope="/templates/datasets/editable-dataset.html" />
+        </div>
+        <div ng-switch-when="jobsdb">
+            <div class="fh" include-no-scope="/templates/datasets/jobsdb-dataset.html" />
+        </div>
+         <div ng-switch-when="statsdb">
+            <div class="fh" include-no-scope="/templates/datasets/statsdb-dataset.html" />
+        </div>
+    </div>
+
+
+</div>

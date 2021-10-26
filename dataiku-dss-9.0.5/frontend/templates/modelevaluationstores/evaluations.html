@@ -1,0 +1,107 @@
+<div class="fh oa vertical-flex model-evaluations__page" filtered-multi-select-rows ng-model="uiState.refs" ng-if="modelEvaluationStore">
+    <div block-api-error />
+
+    <div class="model-evaluations__headers noflex">
+        <div class="horizontal-flex">
+            <div class="noflex model-evaluations__actions" ng-if="$root.projectSummary.canWriteProjectContent">
+                <span class="model-evaluations__actions-button dropdown auto">
+                    <a data-toggle="dropdown" class="btn btn--secondary dropdown-toggle unselectable" ng-class="{disabled:selection.none}">
+                        ACTIONS <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a ng-click="deleteSelectedEvaluations()"><i class="icon-trash"/>Delete</a>
+                        </li>
+                    </ul>
+                </span>
+            </div>
+            <div class="flex"></div>
+            <a class="noflex refresh-button link-std" ng-click="refreshStatus()"> <i class="icon-refresh" /></a>
+
+            <div class="noflex std-list-search-box list-control-widget model-evaluations__textual-filter">
+                <span class="add-on">
+                    <i class="icon-dku-search"></i>
+                </span>
+                <input type="search" ng-model="selection.filterQuery.userQuery" placeholder="Search..." style="width: 130px" >
+            </div>
+
+            <div class="noflex list-customfilter-box list-control-widget model-evaluations__metrics">
+                <select dku-bs-select="{'style': 'dku-select-button', titlePrefix:'Metric'}"
+                    multiple="multiple"
+                    ng-model="modelEvaluationStore.displayParams.displayedMetrics"
+                    ng-options="m[0] as m[1] disable when m[0] == null for m in possibleMetrics">
+                </select>
+            </div>
+            <div class="noflex list-customfilter-box list-control-widget model-perfdrift__sort">
+                <select dku-bs-select="{'style': 'dku-select-button', titlePrefix:'Labels', 'selectedTextFormat': 'count'}" 
+                    multiple="multiple" 
+                    ng-model="uiState.shownLabels"
+                    ng-options="l as labelSuffix(l) group by labelPrefix(l) for l in uiState.possibleLabels">
+                </select>
+            </div>
+            <div class="flex"></div>
+            <h2 class="noflex model-evaluations__count">{{selection.allObjects.length}} Model evaluation{{selection.allObjects.length > 1 ? 's' : ''}}</h2>
+        </div>
+    </div>
+
+    <div class="flex">
+        <div>
+            <div ng-if="evaluations && selection.filteredObjects && selection.filteredObjects.length===0" class="h100 model-evaluations__list-empty">
+                <div class="flex empty-list-cta section" ng-if="selection.allObjects.length===0">
+                     <h1>
+                        No model evaluation in this evaluation store
+                    </h1>
+                    <p>Build the evaluation store or add evaluations via the public API</p>
+                    <div>
+                        <a class="btn btn--secondary btn--large" ng-click="refreshStatus()">
+                            <i class="icon-refresh" ></i>&nbsp;Refresh
+                        </a>
+                    </div>
+                </div>
+
+                <div class="alert alert-info" ng-if="selection.allObjects.length>0" sytle="margin-top: 8px;">
+                    <h4>No evaluation matches match your filter</h4>
+                    <div style="margin: 10px 0">
+                        <a class="btn btn--secondary" ng-click="clearFilters()">Clear filters</a>
+                    </div>
+                </div>
+            </div>
+
+            <table sort-table-dyn class="table table-hover model-perfdrift-table"
+                sort-column="modelEvaluationStore.displayParams.sortColumn" sort-descending="modelEvaluationStore.displayParams.sortDescending"
+                ng-show="selection.filteredObjects.length > 0">
+                <thead>
+                    <tr>
+                        <th ng-if="!labels && $root.projectSummary.canWriteProjectContent" rowspan="2" class="nostretch">
+                            <input type="checkbox"
+                            ng-model="selection.all"
+                            dku-indeterminate="selection.some"
+                            ng-change="updateMassSelectionCheckbox()"/>
+                        </th>
+                        <th sort-col-dyn="runId" rowspan="2" class="nostretch">Model Evaluation Run Id</th>
+                        <th ng-repeat="tl in uiState.titleLabels" colspan="{{tl.span}}" class="domain-border nostretch" ng-if="tl.domain">{{tl.domain}}</th>
+                        <th sort-col-dyn="metrics.{{cur.key}}" class="nostretch"
+                            ng-repeat="cur in uiState.currentFormattedNames" rowspan="2" ng-class="{'domain-border': $first}">{{cur.label}}</th>
+                        <th></th>
+                    </tr>
+                    <tr>
+                        <th ng-repeat="tl in uiState.titleLabels" ng-class="{'domain-border': tl.domain}" sort-col-dyn="labels.{{tl.fullLabel}}">{{tl.subLabel}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="item in selection.filteredObjects | orderBy:sortValue(modelEvaluationStore.displayParams.sortColumn):modelEvaluationStore.displayParams.sortDescending">
+                        <td ng-if="!labels && $root.projectSummary.canWriteProjectContent" class="nostretch"><input type="checkbox" ng-model="item.$selected" ng-click="checkBoxChanged(item, $event)"/></td>
+                        <td class="nostretch">
+                            <a main-click href="{{$state.href('projects.project.modelevaluationstores.modelevaluationstore.evaluation.report', {projectKey : $stateParams.projectKey, mesId: item.ref.id, runId: item.runId})}}">{{item.runId.replace('_', '_&shy;')}}</a>
+                        </td>
+                        <td class="nostretch" ng-repeat="tl in uiState.titleLabels" ng-class="{'domain-border': tl.domain}">{{item.labels.get(tl.fullLabel) || '-'}}</td>
+                        <td class="nostretch" ng-repeat="cur in uiState.currentFormattedNames" ng-class="{'domain-border': $first}">
+                            <div class="text-center" ng-bind-html="item.formattedMetrics[cur.key]"></div>
+                        </td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

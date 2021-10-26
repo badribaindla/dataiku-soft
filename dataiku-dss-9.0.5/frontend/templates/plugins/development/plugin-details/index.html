@@ -1,0 +1,68 @@
+<div class="object-nav horizontal-flex plugin-dev-commons">
+    <div class="object-breadcrumb object-breadcrumb--tooltip-on-overflow">
+        <div class="item">
+            <i class="icon {{ pluginData.installedDesc.desc.meta.icon || 'icon-puzzle-piece' }} universe-background plugin"></i>
+            <div class="title">
+                <a ui-sref="plugins.development"
+                    class="object-breadcrumb__link"
+                    title="Go back to development plugins list">
+                    Plugins
+                </a>
+                <i class="object-breadcrumb__divider">/</i>
+                <a ui-sref="plugindev.definition({pluginId: pluginData.installedDesc.desc.id })" 
+                    class="object-breadcrumb__link object-breadcrumb__item"
+                    show-tooltip-on-text-overflow 
+                    text-tooltip="pluginData.installedDesc.desc.meta.label || pluginData.installedDesc.desc.id">
+                </a>
+                <div ng-if="appConfig.pluginDevGitMode === 'PLUGIN'" include-no-scope="/templates/plugins/development/git-actions.html" replace="true"></div>
+            </div>
+        </div>
+    </div>
+    <div class="noflex">
+        <a class="tab" ng-class="{'enabled': uiState.state.includes('plugindev.definition')}" ui-sref="plugindev.definition" fw500-width id="qa_plugindev_tab-definition">
+            Summary
+        </a>
+        <a class="tab" ng-class="{'enabled': uiState.state.includes('plugindev.editor') }" ui-sref="plugindev.editor" fw500-width id="qa_plugindev_tab-editor">
+            Edit
+        </a>
+        <a class="tab"
+            ng-class="{'enabled': $state.includes('plugindev.settings')}" ui-sref="plugindev.settings" fw500-width>
+            Settings
+        </a>
+        <a class="tab"
+            ng-if="appConfig.admin"
+            ng-class="{'enabled': $state.includes('plugindev.usages')}" ui-sref="plugindev.usages">
+            Usages
+        </a>
+        <a class="tab" ng-class="{'enabled': uiState.state.includes('plugindev.history') }" ui-sref="plugindev.history" fw500-width id="qa_plugindev_tab-history"
+            ng-show="appConfig.pluginDevGitMode === 'PLUGIN'">
+            History
+        </a>
+        <div class="otherLinks">
+            <div class="dropdown">
+                <button class="btn btn--secondary dropdown-toggle" data-toggle="dropdown" href>Actions <span class="caret"></span></button>
+                <ul class="dropdown-menu pull-right text-left">
+                    <li>
+                        <a ng-click="downloadPlugin()">
+                            <i class="icon-download-alt" /> Download this plugin
+                        </a>
+                    </li>
+                    <li>
+                        <a ng-click="reloadPlugin()">
+                            <i class="icon-refresh" /> Reload this plugin
+                        </a>
+                    </li>
+                    <li>
+                        <a ng-click="deletePlugin()" class="text-error">
+                            <span class="text-error"><i class="icon-trash" /> Delete this plugin</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dss-page plugin-dev-commons" ng-init="uiState.tab = uiState.tab || 'definition'">
+    <div ui-view></div>
+</div>

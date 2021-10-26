@@ -1,0 +1,36 @@
+<div class="object-right-column-summary object-right-column-summary-multitab fh vertical-flex"
+     ng-if="selection.selectedObject">
+    <div item-header
+         class="noflex"
+         href="selection.selectedObject.type !== 'hiveserver2' ? connectionHref : null"
+         color="dataset"
+         icon="{{selection.selectedObject.type | connectionTypeToIcon}}"
+         title="{{selection.selectedObject.type === 'hiveserver2' ? selection.selectedObject.params.db : selection.selectedObject.name}}">
+        <div style="display: flex">
+            <span style="flex: 1">{{selection.selectedObject.type === 'hiveserver2' ? selection.selectedObject.params.db : selection.selectedObject.name}}</span>
+            <div>
+                <i ng-if="selection.selectedObject.indexingMetadata.currentJobId"
+                   style="color: #2196F3; font-size: 16px; vertical-align: middle"
+
+                   class="icon-refresh"></i>
+            </div>
+        </div>
+    </div>
+    <div block-api-error class="noflex oa" style="max-height: 300px;"/>
+
+    <div class="flex">
+        <div class="fh" ng-switch="uiState.activeTab">
+            <!-- DETAILS tab -->
+            <div ng-switch-when="details" class="details-tab h100 oa">
+                <object-details
+                        object-type="CONNECTION"
+                        object-data="selection.selectedObject"
+                        context="right-column"
+                        hover-intent-callback="QuickView"
+                        editable="canWriteProject()">
+                </object-details>
+            </div>
+
+        </div>
+    </div>
+</div>

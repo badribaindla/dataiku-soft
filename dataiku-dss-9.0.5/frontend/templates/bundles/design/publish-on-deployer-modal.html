@@ -1,0 +1,101 @@
+<div class="modal modal3 dku-modal project-deployer-infra-setup-modal" auto-size="false">
+    <div ng-switch="step">
+        <div ng-switch-when="confirmPublish">
+            <div dku-modal-header modal-title="Publish {{uploadParams.bundleId}}"/>
+        </div>
+        <div ng-switch-when="publishing">
+            <div dku-modal-header modal-title="Publishing {{uploadParams.bundleId}}..."/>
+        </div>
+        <div ng-switch-when="published">
+            <div dku-modal-header modal-title="Bundle published"/>
+        </div>
+    </div>
+
+
+    <form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform">
+        <div class="modal-body">
+            <div block-api-error />
+            <div ng-switch="step">
+                <div ng-switch-when="confirmPublish">
+                    <div>
+                        You are about to publish this bundle to the
+                        <a target="blank" ng-if="appConfig.deployerMode === 'REMOTE'" href="{{ appConfig.deployerURL + '/project-deployer/deployments/' }}">
+                            Deployer <i class="icon-external-link"></i>
+                        </a>
+                        <a target="blank" ng-if="appConfig.deployerMode === 'LOCAL'" ui-sref="projectdeployer.deployments.dashboard">
+                            Deployer
+                        </a>
+                        .
+                    </div>
+                    <div style="margin-top: 25px;">
+                        <a ng-click="advancedMode = !advancedMode">
+                            Advanced
+                            <i ng-class="{'icon-chevron-down': !advancedMode, 'icon-chevron-up': advancedMode}" />
+                        </a>
+                        <div class="alert alert-warning" ng-show="advancedMode" style="margin-top: 10px">
+                            Changing the target project is generally not advised
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-show="advancedMode">
+                        <div>
+                            <label class="control-label">Target project</label>
+                        </div>
+                        <div class="controls">
+                            <div ng-switch="publishedProjects">
+                                <select dku-bs-select="{'liveSearch': true, 'noneSelectedText': 'No project selected'}"
+                                        ng-switch-default
+                                        ng-model="uploadParams.targetProject"
+                                        ng-options="p as (p.createProjectMessage || p.projectBasicInfo.name) for p in publishedProjects"
+                                        options-annotations="publishedProjectKeys" required>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group" ng-show="advancedMode" ng-if="uploadParams.targetProject.createProjectMessage">
+                        <div>
+                            <label class="control-label" for="projectKey">New project key</label>
+                        </div>
+                        <div class="controls">
+                            <input id="projectKey" type="text" ng-pattern="/^\w+$/" ng-model="uploadParams.targetProject.projectBasicInfo.id" required />
+                            <div class="help-inline">
+                                should be unique
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div ng-switch-when="publishing">
+                    <progress class="dku-linear-loader w100" ng-if="!fatalAPIError"></progress>
+                </div>
+                <div ng-switch-when="published">
+                    Bundle {{uploadParams.bundleId}} successfully published on the Deployer
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer modal-footer-std-buttons">
+            <div ng-if="step == 'confirmPublish'">
+                <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Cancel</button>
+                <button type="submit" class="btn btn--text btn--primary" ng-disabled="theform.$invalid" ng-click="ok()">Publish on Deployer</button>
+            </div>
+            <div ng-if="step == 'published'">
+                <button type="button" class="btn btn--text btn--secondary" ng-click="dismiss()">Done</button>
+                <a type="submit"
+                   ng-if="appConfig.deployerMode === 'REMOTE'"
+                   class="btn btn--text btn--primary"
+                   target="blank"
+                   href="{{ appConfig.deployerURL + '/project-deployer/projects/' + uploadParams.targetProject.projectBasicInfo.id + '/bundle/' + uploadParams.bundleId + '/' }}">
+                    Open in Deployer
+                </a>
+                <a type="submit"
+                   ng-if="appConfig.deployerMode === 'LOCAL'"
+                   class="btn btn--text btn--primary"
+                   target="blank"
+                   ui-sref="projectdeployer.projects.project.bundle.status({publishedProjectKey: uploadParams.targetProject.projectBasicInfo.id, bundleId: uploadParams.bundleId})">
+                    Open in Deployer
+                </a>
+            </div>
+        </div>
+    </form>
+</div>

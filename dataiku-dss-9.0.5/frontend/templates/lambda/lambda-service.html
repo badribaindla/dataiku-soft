@@ -1,0 +1,80 @@
+<div class="top-level-tabs objecttype-lambdaservice" global-keydown="{'ctrl-s meta-s':'saveService()'}">
+     <div class="row-fluid object-nav horizontal-flex">
+        <div std-object-breadcrumb class="flex oh" />
+        <div class="noflex">
+            <a class="tab"
+                ng-class="{enabled: topNav.tab == 'summary'}"
+                href="{{$state.href('projects.project.lambdaservices.service.summary')}}"
+                fw500-width>
+                Summary
+            </a>
+            <a class="tab"
+                ng-class="{enabled: topNav.tab == 'endpoints'}"
+                ui-sref="projects.project.lambdaservices.service.endpoints"
+                fw500-width>
+                Endpoints
+            </a>
+            <a class="tab"
+                ng-class="{enabled: topNav.tab == 'packages'}"
+                ui-sref="projects.project.lambdaservices.service.packages"
+                fw500-width>
+                Versions
+            </a>
+            <a class="tab"
+                ng-class="{enabled: topNav.tab == 'conf'}"
+                ui-sref="projects.project.lambdaservices.service.config"
+                fw500-width>
+                Security
+            </a>
+
+            <div class="otherLinks">
+                <button ng-show="!$root.appConfig.deployerClientEnabled" type="button" class="btn btn--success" ng-click="startPreparePackage()">
+                    <i class="icon-archive" />&nbsp;Make package
+                </button>
+                <button ng-show="$root.appConfig.deployerClientEnabled" type="button" class="btn btn--success" ng-click="publishVersionOnDeployer()">
+                    <i class="icon-cloud" />&nbsp;Publish on deployer
+                </button>
+
+                 <button ng-if="!serviceIsDirty()" disabled class="btn btn--outline btn--primary" >
+                    <i class="icon-save" />&nbsp;Saved !
+                </button>
+                <button ng-if="serviceIsDirty()" type="button" class="btn btn--outline btn--primary" ng-click="saveService()">
+                    <i class="icon-save" />&nbsp; Save
+                </button>
+
+                <div class="dropdown">
+                    <button data-toggle="dropdown" class="btn btn--secondary dropdown-toggle">
+                        Actions <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" ng-init="localMacroRole = 'API_SERVICE'; hasMacros = macroRoles[localMacroRole] && macroRoles[localMacroRole].length > 0;">
+                        <li ng-if="appConfig.customFieldsPluginComponentRefs.length">
+                            <a ng-click="editCustomFields()">
+                                <i class="icon-dku-fields" /> Edit metadata
+                            </a>
+                        </li>
+                        <li ng-if="lambdaDevServerStatus">
+                            <a ng-click="deployToDevServer()">
+                                <i class="icon-play" /> Restart (now running on port <em>{{lambdaDevServerStatus.port}}</em> )
+                            </a>
+                        </li>
+                        <li ng-if="!lambdaDevServerStatus">
+                            <a ng-click="deployToDevServer()">
+                                <i class="icon-play" />  Start in API designer
+                            </a>
+                        </li>
+                        <li ng-if="hasMacros" class="divider"></li>
+                        <li ng-if="hasMacros" class="nav-header">Macros</li>
+                        <li ng-if="hasMacros"
+                            ng-repeat="runnable in macroRoles[localMacroRole]">
+                            <a ng-click="showCreateRunnable(runnable.runnable, runnable.roleTarget, service.id)">
+                                <i class="icon-fixed-width {{ runnable.icon }}"></i>{{runnable.label}}</a>
+                        </li>
+                    </ul>
+                </div>
+	  		</div>
+        </div>
+
+    </div>
+</div>
+
+<div ui-view class="dss-page"></div>

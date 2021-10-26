@@ -1,0 +1,62 @@
+<div ng-controller="ElasticSearchConnectionController" class="h100 vertical-flex">
+    <div class="flex">
+        <div class="fh oa">
+            <div class="h100 small-lr-padding">
+                <div class="generic-white-box">
+                    <div include-no-scope="/templates/admin/fragments/connection-name.html" />
+                    <div block-api-error />
+
+                    <form name="connectionParamsForm" class="dkuform-horizontal" on-smart-change="testConnection()">
+                        <h2 class="settings-section-title">Connection</h2>
+                        <div class="control-group" form-template-element model="connection.params"
+                            field="{name:'host',type:'string', mandatory:true, label:'Host'}" />
+                        <div class="alert alert-warning" ng-show="checkForHttpInHostUrl(connection.params.host)">
+                            Host should not contain a http(s):// prefix.
+                        </div>
+                        <div class="control-group" form-template-element model="connection.params"
+                            field="{name:'port', type:'int', mandatory:true, label:'Port'}" />
+                        <div class="control-group">
+                            <label for="elasticConnParam_SSL" class="control-label">Use HTTPS</label>
+                            <div class="controls">
+                                <input id="elasticConnParam_SSL" type="checkbox" ng-model="connection.params.ssl" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="elasticConnParam_SSL_any" class="control-label">Trust any SSL certificate</label>
+                            <div class="controls">
+                                <input id="elasticConnParam_SSL_any" type="checkbox" ng-disabled="!connection.params.ssl"
+                                    ng-model="connection.params.trustAnySSLCertificate" />
+                                <span class="help-inline">Disable validation of SSL certificate</span>
+                            </div>
+                        </div>
+                        <div class="control-group" form-template-element model="connection.params"
+                            field="{name:'username',type:'string', mandatory:false, label:'Username'}" />
+                        <div class="control-group" form-template-element model="connection.params"
+                            field="{name:'password',type:'password', mandatory:false, label:'Password'}" />
+                        <div class="control-group" form-template-element model="connection.params"
+                            field="{name:'dialect', type:'advanced_select', mandatory:true, label:'Dialect',
+                                advancedChoices: [{value: 'ES_LE_2', label: '1.x or 2.x'}, {value: 'ES_5', label: '5.x or 6.x'}, {value: 'ES_7', label: '7.x'}]}" />
+                        <div include-no-scope="/templates/admin/fragments/connection-flags.html" />
+                    </form>
+                </div>
+                <div class="generic-white-box mtop20" ng-if="appConfig.customFieldsMap['CONNECTION'].length > 0">
+                    <div include-no-scope="/templates/admin/fragments/connection-custom-fields.html" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="noflex small-lr-padding page-top-padding">
+        <div include-no-scope="/templates/admin/fragments/connection-name-test-save.html" />
+        <div class="alert alert-success" ng-if="testResult.connectionOK && !testResult.dialectChanged">
+            <strong>Connection OK</strong>, found ES v. {{testResult.version}}
+        </div>
+        <div class="alert alert-warning" ng-if="testResult.dialectChanged && connectionDirty()">
+            <strong>Connection OK</strong>, but dialect did not match version (v. {{testResult.version}})
+            and was changed. Click Save to persist this change.
+        </div>
+        <div class="alert alert-error" ng-if="testResult && !testResult.connectionOK">
+            <strong>Connection Error</strong>: {{testResult.connectionErrorMsg}}
+        </div>
+    </div>
+</div>

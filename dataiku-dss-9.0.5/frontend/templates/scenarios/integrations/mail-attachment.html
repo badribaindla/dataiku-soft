@@ -1,0 +1,169 @@
+<div ng-controller="AttachmentController">
+    <div class="control-group">
+        <label for="" class="control-label fit bold">{{getAttachmentTypeDisplayName(attachment.type)}}</label>
+        <div class="controls">
+            <div class="pull-right">
+				<a class="noflex delete" aria-hidden="true" ng-click="removeAttachment(attachment)" ><i class="icon-trash"></i></a>
+            </div>
+        </div>
+    </div>
+	<div class="control-group" ng-if="attachment.type == 'FOLDER'">
+	    <label class="control-label">Attached folder</label>
+	    <div class="controls">
+	        <select required dku-bs-select="{liveSearch:true,size:'auto'}" ng-model="attachment.params.attachedFolderId" ng-options="((mf.foreign ? (mf.projectKey + '.') : '') + mf.id) as mf.name for mf in managedfolders"></select>
+	        <span class="help-inline">Attach a folder to the mail (limited to 20 MB zipped, unless overriden in general settings).</span>
+	    </div>
+	</div>
+
+
+	<div class="control-group" ng-if="attachment.type == 'FOLDER_ITEM'">
+	    <label class="control-label">Folder</label>
+	    <div class="controls">
+	        <select required dku-bs-select="{liveSearch:true,size:'auto'}" ng-model="attachment.params.folderId" ng-options="((mf.foreign ? (mf.projectKey + '.') : '') + mf.id) as mf.name for mf in managedfolders"></select>
+	    </div>
+	</div>
+    <div class="control-group" ng-if="attachment.type == 'FOLDER_ITEM'">
+        <label class="control-label">Item</label>
+        <div class="controls">
+            <input class="input-large" type="text" ng-model="attachment.params.attachedItemPath"></input>
+            <span class="help-inline">Path in the folder of the item to attach.</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="attachment.type == 'FOLDER_ITEM'">
+        <label class="control-label">Content Id</label>
+        <div class="controls">
+            <input class="input-large" type="text" ng-model="attachment.params.contentId"></input>
+            <span class="help-inline">Optional: if not empty, the file is attached to the mail "inline" and can be referred to using this contentId, for example in &lt;img /&gt; tags</span>
+        </div>
+    </div>
+
+
+    <div class="control-group" ng-if="attachment.type == 'DATASET'">
+        <label class="control-label">Attached dataset</label>
+        <div class="controls">
+            <select required dku-bs-select="{liveSearch:true,size:'auto'}" ng-model="attachment.params.attachedDataset" ng-options="ds.smartName as ds.displayName for ds in datasetSmartNames"></select>
+            <span class="help-inline">Attach a dataset to the mail (limited to 20 MB, unless overriden in general settings).</span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="attachment.type == 'DATASET' && dataset.partitioning && dataset.partitioning.dimensions.length > 0">
+        <label class="control-label">Partition(s)</label>
+        <div class="controls">
+            <input class="input-large" type="text" ng-model="attachment.params.partitionId"></input>
+            <span class="help-inline">Specifications of partitions to attach. Leave empty to attach all dataset.</span>
+        </div>
+    </div>
+	<div class="export-recipe-body" ng-if="attachment.type == 'DATASET'">
+	    <ul class="nav nav-tabs">
+	            <li class="tab"  ng-class="{'active': exportParams.destinationType == 'DOWNLOAD'}"><a ng-click="exportModal.$destinationType ='DOWNLOAD'">Export to file</a></li>
+	            <li class="tab"  ng-class="{'active': exportParams.destinationType == 'CUSTOM_MANAGED'}"><a ng-click="exportModal.$destinationType ='CUSTOM_MANAGED'">Other exports</a></li>
+	    </ul>
+	    <div ng-if="exportParams.$exportOption" class="mtop10">
+	        <form class="row-fluid dkuform-modal-horizontal">
+	            <div include-no-scope="/templates/exports/export-settings-main.html" />
+	            <div include-no-scope="/templates/exports/export-settings-advanced.html" />
+	            <label>
+	                <input style="margin: 0" type="checkbox" ng-model="exportModal.advancedMode" /> Show all settings
+	            </label>
+	        </form>
+	    </div>
+	</div>
+    <div class="control-group" ng-if="attachment.type == 'DATASET'">
+        <label for="" class="control-label">As HTML variable</label>
+        <div class="controls">
+            <input type="checkbox" ng-model="attachment.params.addAsHtmlVariable" />
+	        <span class="help-inline">
+                The dataset will be available as a ${} variable in the message, instead of an attached file.</span>
+        </div>
+    </div>
+	<div class="control-group" ng-if="attachment.type == 'DATASET' && attachment.params.addAsHtmlVariable">
+	    <label class="control-label">Variable name</label>
+	    <div class="controls">
+            <input class="input-large" type="text" ng-model="attachment.params.htmlVariable"></input>
+	        <span class="help-inline">If not defined, 'datasetHtml' is used.</span>
+	    </div>
+	</div>
+	
+    <div dashboard-export-form params="attachment.params" origin="scenario" ng-if="attachment.type == 'DASHBOARD_EXPORT'"/>
+
+    <div class="control-group" ng-if="attachment.type == 'NOTEBOOK_EXPORT'">
+		<label class="control-label">Attached notebook</label>
+
+		<div class="controls">
+			<div object-picker="attachment.params.attachedNotebookId" type="JUPYTER_NOTEBOOK" />
+		</div>
+	</div>
+    <div class="control-group" ng-if="attachment.type == 'NOTEBOOK_EXPORT'">
+        <label for="" class="control-label">Mode</label>
+        <div class="controls">
+            <select dku-bs-select ng-model="attachment.params.mode" ng-options="x[0] as x[1] for x in [['CREATE_NEW', 'Create new export'], ['USE_LATEST', 'Use latest export']]" />
+        </div>
+    </div>
+    <div class="control-group" ng-if="attachment.type == 'NOTEBOOK_EXPORT' && attachment.params.mode == 'CREATE_NEW'" >
+        <label for="" class="control-label">Execute</label>
+        <div class="controls">
+            <input type="checkbox" ng-model="attachment.params.execute" />
+            <span class="help-inline">
+                Re-execute the entire notebook
+            </span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="attachment.type == 'NOTEBOOK_EXPORT'">
+        <label for="" class="control-label">As HTML variable</label>
+        <div class="controls">
+            <input type="checkbox" ng-model="attachment.params.addAsHtmlVariable" />
+	        <span class="help-inline">
+                The notebook export will be available as a ${} variable in the message, instead of an attached file.
+            </span>
+        </div>
+    </div>
+	<div class="control-group" ng-if="attachment.type == 'NOTEBOOK_EXPORT' && attachment.params.addAsHtmlVariable">
+	    <label class="control-label">Variable name</label>
+	    <div class="controls">
+            <input class="input-large" type="text" ng-model="attachment.params.htmlVariable"></input>
+	        <span class="help-inline">If not defined, 'notebookHtml' is used.</span>
+	    </div>
+	</div>
+
+
+    <div class="control-group" ng-if="attachment.type == 'RMARKDOWN_REPORT'">
+        <label class="control-label">Attached report</label>
+
+        <div class="controls">
+            <div object-picker="attachment.params.attachedReportId" type="REPORT" />
+        </div>
+    </div>
+    <div class="control-group" ng-if="attachment.type == 'RMARKDOWN_REPORT'">
+        <label for="" class="control-label">Format</label>
+        <div class="controls">
+            <select dku-bs-select
+                ng-model="attachment.params.rmdOutputFormat"
+                ng-options="format.name as format.desc for format in rmdOutputFormats"/>
+            <span class="help-inline"></span>
+        </div>
+    </div>
+    <div class="control-group" ng-if="attachment.type == 'RMARKDOWN_REPORT'">
+        <label for="" class="control-label">Use latest snapshot</label>
+        <div class="controls">
+            <label>
+                <input type="checkbox" ng-model="attachment.params.useLatestSnapshotIfItContainsFormat" />
+                <span class="help-inline">
+                    If the latest snapshot of this report already includes the proper format, use it.
+                    If it doesn't, or if this option is disabled, then a new run and export of the RMarkdown report is performed.
+                </span>
+            </label>
+        </div>
+    </div>
+
+    <wiki-export-form params="attachment.params" origin="scenario" ng-if="attachment.type === 'WIKI_EXPORT'"/>
+
+    <div model-documentation-export-form params="attachment.params" type="SAVED_MODEL" origin="scenario"
+        ng-init="attachment.params.defaultTemplate = true"
+        ng-if="attachment.type == 'SAVED_MODEL_DOCUMENTATION_EXPORT'">
+    </div>
+
+    <div model-documentation-export-form params="attachment.params" type="ANALYSIS" origin="scenario"
+        ng-init="attachment.params.defaultTemplate = true"
+        ng-if="attachment.type == 'ANALYSIS_MODEL_DOCUMENTATION_EXPORT'">
+    </div>
+
+</div>

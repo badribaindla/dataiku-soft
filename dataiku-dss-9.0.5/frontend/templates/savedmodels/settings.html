@@ -1,0 +1,126 @@
+<div class="managed-folder-settings h100" object-metrics metrics-auto-save="false" model-metrics-main global-keydown="{'ctrl-s meta-s': 'save()'}">
+	<div style="position: absolute; right: 10px; top: 6px;">
+		<button ng-click="save()" class="btn btn--outline btn--primary" ng-if="dirtySettings()"> <i class="icon-save" />&nbsp; Save
+		</button>
+		<button disabled class="btn btn--outline btn--primary disabled" ng-if="!dirtySettings()"> <i class="icon-save" />&nbsp; Saved
+		</button>
+	</div>
+	<tabs class="tabs-with-margin vertical-flex">
+		<pane title="Flow" >
+			<div block-api-error />
+
+			<div style="padding: 10px 20px;" class="h100 oya">
+			<h2 class="settings-section-title">Activation</h2>
+
+			<form class="dkuform-horizontal">
+				<div class="control-group">
+					<label class="control-label">Activate new versions</label>
+					<div class="controls">
+						<select dku-bs-select ng-model="savedModel.publishPolicy">
+							<option value="MANUAL">Manually</option>
+							<option value="UNCONDITIONAL">Automatically at each retrain</option>
+						</select>
+					</div>
+				</div>
+			</form>
+
+			<h2 class="settings-section-title">Recursive build behavior</h2>
+
+			<div class="control-group">
+				<label class="control-label">Retrain behavior</label>
+				<div class="controls">
+					<label>
+						<input type="radio" ng-model="savedModel.rebuildBehavior" value="NORMAL" />
+						<span class="help-inline">
+						<b>Always</b> : always retrain the model when recursively building a downstream dataset
+						</span>
+					</label>
+					<label>
+						<input type="radio" ng-model="savedModel.rebuildBehavior" value="EXPLICIT" />
+						<span class="help-inline">
+						<b>Explicit</b> : only retrain the model when it's explicitly asked
+						</span>
+					</label>
+					<label>
+						<input type="radio" ng-model="savedModel.rebuildBehavior" value="WRITE_PROTECT" />
+						<span class="help-inline">
+						<b>Write-protected</b> : never retrain the model, even when explicitly asked
+						</span>
+					</label>
+				</div>
+			</div>
+
+			<div ng-if="canHaveConditionalOutput" class="common-styles-only">
+				<h2 class="settings-section-title">Conditional output columns</h2>
+				<div class="alert alert-warning">
+					Conditional outputs have been deprecated and will be removed in a future version.
+					Using them is not recommended.
+				</div>
+
+				<div class="repeatable-config-block" ng-repeat="co in savedModel.conditionalOutputs">
+					<p style="float: right">
+						<button class="btn btn--text btn--danger btn-icon editable-list__delete" ng-click="savedModel.conditionalOutputs.splice($index, 1)"> <i class="icon-trash"></i></button>
+					</p>
+					<p class="inline-labels">
+						Output column name
+						<input type="text" ng-model="co.name" />
+						<br />
+						Input
+						<label style="padding-left: 1em">
+							&nbsp;
+							<input type="radio" name="p0_{{$index}}" ng-model="co.input"
+							ng-value="'proba_' + targetRemapping[1]" />
+							Probability of
+							<code ng-bind="targetRemapping[1]" /></label>
+						<label style="padding-left: 1em">&nbsp;<input type="radio" name="p0_{{$index}}"
+							ng-model="co.input" ng-value="'proba_' + targetRemapping[0]" /> Probability of <code ng-bind="targetRemapping[0]" /></label>
+						<label style="padding-left: 1em">&nbsp;<input type="radio" name="p0_{{$index}}" ng-model="co.input"
+							value="proba_percentile"  /> Percentile of probability of <code ng-bind="targetRemapping[1]" /></label>
+					</p>
+					<editable-list ng-model="co.rules" sortable="true" pre-add="co.rules.lenght == 0" transcope="{co: co}"
+						add-label="Add conditional output" style="max-width: 500px">
+						<span>if it is</span>
+						<span><select ng-model="it.operation" style="width: 3em">
+							<option value="LT" selected>&lt;</option>
+							<option value="LE">&le;</option>
+							<option value="GT">&gt;</option>
+							<option value="GE">&ge;</option>
+						</select></span>
+						<span ng-if="co.input === 'proba_percentile'">
+							<input ng-model="it.operand" type="number" min="1" max="100" step="1" style="width: 6em" placeholder="no value" />,
+						</span>
+						<span ng-if="co.input !== 'proba_percentile'">
+							<input ng-model="it.operand" type="number" min="0" max="1" style="width: 6em" placeholder="no value" name="name" required/>,
+						</span>
+						<span>output</span>
+						<div><input type="text" ng-model="it.output" placeholder="empty string"/></div>
+					</editable-list>
+					<p style="margin-top: .5em">… else output <input type="text" ng-model="co.defaultOutput" /></p>
+				</div>
+
+				<button type="button" class="btn btn--text btn--primary" ng-click="savedModel.conditionalOutputs.push({rules: [], inputIs0: false})"><i plus-icon />Add column</button>
+			</div>
+		
+            <h2 class="settings-section-title">Content type</h2>
+            <form class="dkuform-horizontal">
+	            <div class="control-group" >
+	                <label class="control-label">Model type</label>
+	                <div class="controls">
+	                    <input type="text" ng-model="savedModel.contentType"></input>
+	                </div>
+	            </div>
+            </form>			
+			</div>
+		</pane>
+
+		<pane title="Status checks">
+			<div class="h100 oa">
+				<div block-api-error />
+				<form class="dkuform-modal-horizontal dkuform-modal-wrapper" name="theform" edit-checks-settings can-preview="true">
+				</form>
+			</div>
+		</pane>
+
+	</tabs>
+</div>
+
